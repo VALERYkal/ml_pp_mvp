@@ -1,0 +1,38 @@
+# 🔧 IDE & système
+.idea/
+.vscode/
+.DS_Store
+
+# 🔧 Plateformes spécifiques Flutter (à adapter selon besoin)
+ios/
+android/
+web/
+macos/
+linux/
+windows/
+
+# 🔁 Fichiers et dossiers générés
+build/
+.dart_tool/
+.pub-cache/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# 🧬 Fichiers générés automatiquement (build_runner, freezed, hive, etc.)
+**/*.g.dart
+**/*.freezed.dart
+lib/**/hive/*.g.dart
+test/**/*.g.dart
+
+# 🧾 Fichiers de config
+.env
+.cursorignore
+
+# ⚠️ Fichiers temporaires ou logs
+*.log
+*.tmp
+*.lock
+
+# 📁 (optionnel) Assets si lourds ou externes
+# assets/

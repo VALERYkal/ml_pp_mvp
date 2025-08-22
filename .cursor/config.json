@@ -1,0 +1,46 @@
+{
+  "projectName": "ML_PP_MVP",
+  "description": "Application de gestion logistique pétrolière avec modules cours de route, réception, sorties, stock.",
+  "stack": {
+    "frontend": ["Flutter 3+", "Material 3", "Riverpod 2+", "GoRouter"],
+    "backend": ["Supabase (PostgreSQL)", "Supabase Auth", "RLS"],
+    "ci_cd": ["flutter test", "Cursor AI"],
+    "dev_tools": ["Cursor AI", "ChatGPT"]
+  },
+  "architecture": "Clean architecture modulaire (features + shared)",
+  "modules": [
+    "auth",
+    "dashboard",
+    "cours_de_route",
+    "receptions",
+    "sorties_produit",
+    "stocks_journaliers",
+    "citernes",
+    "referentiels (clients, partenaires, fournisseurs, produits)",
+    "log_actions"
+  ],
+  "directoryStructure": {
+    "lib/": {
+      "features/": ["auth", "cours_de_route", "receptions", "sorties_produit", "stocks_journaliers"],
+      "shared/": ["models", "widgets", "services", "providers", "navigation"]
+    },
+    "test/": {
+      "unit/": ["models", "services", "providers"],
+      "e2e/": ["auth", "cours_route", "dashboard"]
+    }
+  },
+  "codingStyle": "dartfmt",
+  "testingStrategy": {
+    "unit": true,
+    "integration": true,
+    "e2e": true,
+    "mocking": "Mockito"
+  },
+  "aiIntegration": {
+    "prompting": "Structured multi-step prompts in prompts_cursor_ai.md",
+    "fileNamingConvention": "feature_first",
+    "autoCommenting": true
+  },
+  "rolesPermissions": "defined in roles_permissions.md",
+  "documentation": "generated in /docs folder"
+}

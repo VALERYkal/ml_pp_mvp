@@ -1,0 +1,19 @@
+targets:
+  $default:
+    builders:
+      json_serializable:
+        options:
+          # Options pour json_serializable
+          include_if_null: false
+      freezed:
+        options:
+          # Options pour freezed
+          copy_with: true
+          equal: true
+          to_string: true
+          union_key: type
+          union_value_case: snake
+      mockito|mockBuilder:
+        enabled: true
+        generate_for:
+          - test/**.dart

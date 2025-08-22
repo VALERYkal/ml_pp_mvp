@@ -1,0 +1,107 @@
+# ------------------------
+# OS / Éditeurs
+# ------------------------
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# ------------------------
+# Flutter / Dart
+# ------------------------
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+.buildlog/
+build/
+**/doc/api/
+**/ios/Flutter/.last_build_id
+
+# ------------------------
+# Android
+# ------------------------
+android/.gradle/
+android/local.properties
+android/key.properties
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# ------------------------
+# iOS
+# ------------------------
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/ephemeral/
+
+# ------------------------
+# macOS
+# ------------------------
+macos/Flutter/ephemeral/
+
+# ------------------------
+# Linux
+# ------------------------
+linux/flutter/ephemeral/
+
+# ------------------------
+# Windows
+# ------------------------
+windows/flutter/ephemeral/
+
+# ------------------------
+# Web
+# ------------------------
+web/.dart_tool/
+
+# ------------------------
+# Supabase
+# ------------------------
+supabase/.temp/
+supabase/functions/.env
+supabase/.env
+
+# ------------------------
+# Hive
+# ------------------------
+*.hive
+*.hive.lock
+
+# ------------------------
+# Secrets / Environnement
+# ------------------------
+.env
+.env.*
+env/
+*.keystore
+*.jks
+*.p12
+*.pem
+*.cer
+*.key
+
+# ------------------------
+# Archives / Temp
+# ------------------------
+*.zip
+*.tar
+*.gz
+
+# ------------------------
+# Rapports / Coverage
+# ------------------------
+coverage/
+*.lcov

@@ -1,0 +1,144 @@
+// 📌 Providers pour Stocks journaliers (liste/filtre)
+
+import 'package:flutter_riverpod/flutter_riverpod.dart' as Riverpod;
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/foundation.dart';
+
+class StockRowView {
+  final String id;
+  final String dateJour; // YYYY-MM-DD
+  final String citerneId;
+  final String citerneNom;
+  final double capaciteTotale;
+  final double capaciteSecurite;
+  final String produitId;
+  final String produitNom;
+  final double stockAmbiant;
+  final double stock15c;
+
+  const StockRowView({
+    required this.id,
+    required this.dateJour,
+    required this.citerneId,
+    required this.citerneNom,
+    required this.capaciteTotale,
+    required this.capaciteSecurite,
+    required this.produitId,
+    required this.produitNom,
+    required this.stockAmbiant,
+    required this.stock15c,
+  });
+}
+
+enum StockSortKey { ratio, stockAmbiant, stock15c, capaciteTotale }
+
+final stocksSortKeyProvider = Riverpod.StateProvider<StockSortKey>((ref) => StockSortKey.ratio);
+final stocksSortAscendingProvider = Riverpod.StateProvider<bool>((ref) => false);
+
+final stocksSelectedDateProvider = Riverpod.StateProvider<DateTime>((ref) => DateTime.now());
+final stocksSelectedProduitIdProvider = Riverpod.StateProvider<String?>((ref) => null);
+final stocksSelectedCiterneIdProvider = Riverpod.StateProvider<String?>((ref) => null);
+
+final stocksListProvider = Riverpod.FutureProvider<List<StockRowView>>((ref) async {
+  final client = Supabase.instance.client;
+  final date = ref.watch(stocksSelectedDateProvider);
+  final produitId = ref.watch(stocksSelectedProduitIdProvider);
+  final citerneId = ref.watch(stocksSelectedCiterneIdProvider);
+  final sortKey = ref.watch(stocksSortKeyProvider);
+  final asc = ref.watch(stocksSortAscendingProvider);
+
+  String _fmtYmd(DateTime d) =>
+      '${d.year.toString().padLeft(4,'0')}-${d.month.toString().padLeft(2,'0')}-${d.day.toString().padLeft(2,'0')}';
+
+  final dateStr = _fmtYmd(date);
+  try {
+    dynamic query = client
+        .from('stocks_journaliers')
+        .select('id, date_jour, stock_ambiant, stock_15c, citerne_id, produit_id, citernes(id, nom, capacite_totale, capacite_securite), produits(id, nom)')
+        .eq('date_jour', dateStr);
+    if (produitId != null) {
+      query = query.eq('produit_id', produitId);
+    }
+    if (citerneId != null) {
+      query = query.eq('citerne_id', citerneId);
+    }
+    // L'ordre par created_at n'existe pas sur stocks_journaliers (pas de colonne) ; on trie en mémoire
+    final res = await query;
+    final list = (res as List<dynamic>).map((e) {
+      final m = e as Map<String, dynamic>;
+      final cit = (m['citernes'] ?? {}) as Map<String, dynamic>;
+      final prod = (m['produits'] ?? {}) as Map<String, dynamic>;
+      return StockRowView(
+        id: m['id'] as String,
+        dateJour: (m['date_jour'] as String),
+        citerneId: (m['citerne_id'] as String),
+        citerneNom: (cit['nom']?.toString() ?? 'Citerne'),
+        capaciteTotale: (cit['capacite_totale'] as num?)?.toDouble() ?? 0,
+        capaciteSecurite: (cit['capacite_securite'] as num?)?.toDouble() ?? 0,
+        produitId: (m['produit_id'] as String),
+        produitNom: (prod['nom']?.toString() ?? 'Produit'),
+        stockAmbiant: (m['stock_ambiant'] as num).toDouble(),
+        stock15c: (m['stock_15c'] as num).toDouble(),
+      );
+    }).toList();
+    
+    double _ratio(StockRowView s) =>
+        s.capaciteTotale > 0 ? (s.stockAmbiant / s.capaciteTotale) : 0.0;
+
+    int _cmp(num a, num b) => a == b ? 0 : (a < b ? -1 : 1);
+
+    list.sort((a, b) {
+      int r;
+      switch (sortKey) {
+        case StockSortKey.ratio:
+          r = _cmp(_ratio(a), _ratio(b));
+          break;
+        case StockSortKey.stockAmbiant:
+          r = _cmp(a.stockAmbiant, b.stockAmbiant);
+          break;
+        case StockSortKey.stock15c:
+          r = _cmp(a.stock15c, b.stock15c);
+          break;
+        case StockSortKey.capaciteTotale:
+          r = _cmp(a.capaciteTotale, b.capaciteTotale);
+          break;
+      }
+      if (!asc) r = -r;
+      // tie-breaker pour un ordre stable
+      if (r == 0) {
+        r = a.citerneNom.compareTo(b.citerneNom);
+        if (r == 0) r = a.produitNom.compareTo(b.produitNom);
+      }
+      return r;
+    });
+
+    return list;
+  } on PostgrestException catch (e) {
+    debugPrint('❌ stocksListProvider: ${e.message}');
+    rethrow;
+  }
+});
+
+final stocksProduitsRefProvider = Riverpod.FutureProvider<List<Map<String, String>>>((ref) async {
+  final res = await Supabase.instance.client.from('produits').select('id, nom').order('nom');
+  return (res as List<dynamic>)
+      .map((e) => {'id': (e as Map<String, dynamic>)['id'] as String, 'nom': e['nom']?.toString() ?? ''})
+      .toList();
+});
+
+final stocksCiternesRefProvider = Riverpod.FutureProvider<List<Map<String, String>>>((ref) async {
+  final res = await Supabase.instance.client
+      .from('citernes')
+      .select('id, nom, produit_id')
+      .eq('statut', 'active')
+      .order('nom');
+  return (res as List<dynamic>).map((e) {
+    final m = (e as Map<String, dynamic>);
+    return {
+      'id': m['id'] as String,
+      'nom': m['nom']?.toString() ?? '',
+      'produit_id': m['produit_id']?.toString() ?? '',
+    };
+  }).toList();
+});
+
