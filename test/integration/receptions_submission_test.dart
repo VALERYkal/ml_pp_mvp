@@ -5,16 +5,33 @@ import 'package:ml_pp_mvp/features/receptions/screens/reception_form_screen.dart
 import 'package:ml_pp_mvp/features/receptions/providers/reception_providers.dart' as RP;
 import 'package:ml_pp_mvp/features/receptions/data/reception_service.dart';
 import 'package:ml_pp_mvp/features/receptions/models/reception.dart';
+import 'package:ml_pp_mvp/shared/referentiels/referentiels_repo.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class _SpyReceptionService extends ReceptionService {
   final void Function(Reception) onCall;
-  _SpyReceptionService(this.onCall) : super.withClient(SupabaseClient('http://localhost', 'anon'));
+  _SpyReceptionService(this.onCall) : super.withClient(
+    SupabaseClient('http://localhost', 'anon'),
+    refRepo: FakeRefRepo(),
+  );
   @override
   Future<Reception> createReception(Reception reception) async {
     onCall(reception);
     return reception.copyWith(id: 'rec-1');
   }
+}
+
+class FakeRefRepo extends ReferentielsRepo {
+  FakeRefRepo() : super(Supabase.instance.client);
+  
+  @override
+  Future<void> loadProduits() async {}
+  
+  @override
+  Future<void> loadCiternesActives() async {}
+  
+  @override
+  String? getProduitIdByCodeSync(String code) => 'prod-1';
 }
 
 void main() {

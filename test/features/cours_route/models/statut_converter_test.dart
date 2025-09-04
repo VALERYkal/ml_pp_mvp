@@ -12,12 +12,12 @@ void main() {
       expect(StatutCoursConverter.fromDb('déchargé'), StatutCours.decharge);
     });
 
-    test('toDb retourne les formes accentuées PRD', () {
-      expect(StatutCoursConverter.toDb(StatutCours.frontiere), 'frontière');
-      expect(StatutCoursConverter.toDb(StatutCours.arrive), 'arrivé');
-      expect(StatutCoursConverter.toDb(StatutCours.decharge), 'déchargé');
-      expect(StatutCoursConverter.toDb(StatutCours.transit), 'transit');
-      expect(StatutCoursConverter.toDb(StatutCours.chargement), 'chargement');
+    test('toDb retourne les formes majuscules sans accents', () {
+      expect(StatutCoursConverter.toDb(StatutCours.frontiere), 'FRONTIERE');
+      expect(StatutCoursConverter.toDb(StatutCours.arrive), 'ARRIVE');
+      expect(StatutCoursConverter.toDb(StatutCours.decharge), 'DECHARGE');
+      expect(StatutCoursConverter.toDb(StatutCours.transit), 'TRANSIT');
+      expect(StatutCoursConverter.toDb(StatutCours.chargement), 'CHARGEMENT');
     });
   });
 }

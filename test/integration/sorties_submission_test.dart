@@ -9,11 +9,37 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class _SpySortieService extends SortieService {
   final void Function(SortieProduit) onCall;
-  _SpySortieService(this.onCall) : super.withClient(SupabaseClient('http://localhost', 'anon'));
+  _SpySortieService(this.onCall) : super(SupabaseClient('http://localhost', 'anon'));
   @override
-  Future<SortieProduit> createSortie(SortieProduit sortie, {String? currentUserId}) async {
+  Future<String> createValidated({
+    required String citerneId,
+    required String produitId,
+    double? indexAvant,
+    double? indexApres,
+    double? temperatureCAmb,
+    double? densiteA15,
+    double? volumeCorrige15C,
+    String proprietaireType = 'MONALUXE',
+    String? clientId,
+    String? partenaireId,
+    String? chauffeurNom,
+    String? plaqueCamion,
+    String? plaqueRemorque,
+    String? transporteur,
+    String? note,
+    DateTime? dateSortie,
+  }) async {
+    final sortie = SortieProduit(
+      id: '',
+      citerneId: citerneId,
+      produitId: produitId,
+      clientId: clientId,
+      partenaireId: partenaireId,
+      indexAvant: indexAvant,
+      indexApres: indexApres,
+    );
     onCall(sortie);
-    return sortie.copyWith(id: 'out-1');
+    return 'out-1';
   }
 }
 

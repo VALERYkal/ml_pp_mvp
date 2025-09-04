@@ -8,6 +8,7 @@ import 'package:ml_pp_mvp/features/receptions/models/reception.dart';
 import 'package:ml_pp_mvp/features/receptions/models/owner_type.dart';
 import 'package:ml_pp_mvp/features/citernes/data/citerne_service.dart';
 import 'package:ml_pp_mvp/features/stocks_journaliers/data/stocks_service.dart';
+import 'package:ml_pp_mvp/shared/referentiels/referentiels_repo.dart';
 
 import 'reception_service_test.mocks.dart';
 
@@ -58,6 +59,19 @@ class FakeStocksServiceHigh extends StocksService {
   Future<double> getAmbientForToday({required String citerneId, required String produitId, DateTime? dateJour}) async => 600.0;
 }
 
+class FakeRefRepo extends ReferentielsRepo {
+  FakeRefRepo() : super(Supabase.instance.client);
+  
+  @override
+  Future<void> loadProduits() async {}
+  
+  @override
+  Future<void> loadCiternesActives() async {}
+  
+  @override
+  String? getProduitIdByCodeSync(String code) => 'prod-1';
+}
+
 @GenerateMocks([SupabaseClient])
 void main() {
   group('ReceptionService validations', () {
@@ -78,7 +92,7 @@ void main() {
     });
 
     test('rejette indices incohérents (volume <= 0)', () async {
-      final service = ReceptionService.withClient(mockClient);
+      final service = ReceptionService.withClient(mockClient, refRepo: FakeRefRepo());
       final r = buildReception(indexApres: 0);
       expect(() => service.createReception(r), throwsA(isA<ArgumentError>()));
     });
@@ -88,6 +102,7 @@ void main() {
         mockClient,
         citerneServiceFactory: (_) => FakeCiterneServiceInactive(),
         stocksServiceFactory: (_) => StocksService.withClient(mockClient),
+        refRepo: FakeRefRepo(),
       );
 
       expect(
@@ -101,6 +116,7 @@ void main() {
         mockClient,
         citerneServiceFactory: (_) => FakeCiterneServiceIncompatible(),
         stocksServiceFactory: (_) => StocksService.withClient(mockClient),
+        refRepo: FakeRefRepo(),
       );
 
       expect(
@@ -114,6 +130,7 @@ void main() {
         mockClient,
         citerneServiceFactory: (_) => FakeCiterneServiceCapacity(),
         stocksServiceFactory: (_) => FakeStocksServiceHigh(),
+        refRepo: FakeRefRepo(),
       );
 
       // vObs = 1000, capacityDisponible = 2000 - 500 - 600 = 900 → 1000 > 900
