@@ -80,7 +80,7 @@ CREATE TABLE public.cours_de_route (
   depart_pays text,
   date_chargement date NOT NULL,
   volume numeric,
-  statut text DEFAULT 'chargement' CHECK (statut IN ('chargement', 'transit', 'frontière', 'arrivé', 'déchargé')),
+  statut text DEFAULT 'CHARGEMENT' CHECK (statut IN ('CHARGEMENT', 'TRANSIT', 'FRONTIERE', 'ARRIVE', 'DECHARGE')),
   note text,
   created_at timestamptz DEFAULT now()
 );

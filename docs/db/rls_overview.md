@@ -16,6 +16,20 @@
   - read_citernes_authenticated (r, authenticated, `USING true`)
   - citernes_update (w, authenticated, `USING/with_check role ∈ {'admin','directeur'}`)
 
+## Récapitulatif — Réceptions & Sorties
+
+| Table           | Action  | Policy name                     | Roles         | Rule (USING/WITH CHECK)                                           |
+|-----------------|---------|---------------------------------|---------------|--------------------------------------------------------------------|
+| receptions      | SELECT  | read_receptions_authenticated   | authenticated | true                                                               |
+| receptions      | INSERT  | insert_receptions_authenticated | authenticated | role_in(user_role(), ['operateur','gerant','directeur','admin'])   |
+| receptions      | UPDATE  | update_receptions_admin         | authenticated | admin only (USING/WITH CHECK)                                      |
+| receptions      | DELETE  | delete_receptions_admin         | authenticated | admin only                                                         |
+| log_actions     | INSERT  | log_actions_insert_authenticated| authenticated | WITH CHECK user_id = auth.uid() OR user_id IS NULL                 |
+| sorties_produit | SELECT  | read_sorties_authenticated      | authenticated | true                                                               |
+| sorties_produit | INSERT  | insert_sorties_authenticated    | authenticated | role_in(user_role(), ['operateur','gerant','directeur','admin'])   |
+| sorties_produit | UPDATE  | update_sorties_admin            | authenticated | admin only (USING/WITH CHECK)                                      |
+| sorties_produit | DELETE  | delete_sorties_admin            | authenticated | admin only                                                         |
+
 ## Requêtes de vérification
 
 -- Réceptions (policies)
