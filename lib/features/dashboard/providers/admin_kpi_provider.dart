@@ -16,39 +16,69 @@ class AdminKpis {
   });
 }
 
+String _ymd(DateTime d) =>
+    '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+String _isoUtc(DateTime d) =>
+    d.toUtc().toIso8601String().split('.').first + 'Z';
+
 final adminKpiProvider = FutureProvider<AdminKpis>((ref) async {
   final supa = Supabase.instance.client;
-  final now = DateTime.now();
-  final dayStart = DateTime(now.year, now.month, now.day);
+  final now = DateTime.now().toUtc();
+  final dayStart = DateTime.utc(now.year, now.month, now.day);
+  final dayEnd = dayStart.add(const Duration(days: 1));
+  final last24h = now.subtract(const Duration(hours: 24));
 
+  // 1) logs 24h (vue de compat)
   final logsErr = await supa
       .from('logs')
       .select('id')
-      .gte('created_at', now.subtract(const Duration(hours: 24)).toIso8601String())
-      .in_('niveau', ['ERROR', 'CRITICAL']);
+      .gte('created_at', _isoUtc(last24h));
+
+  // 2) réceptions du jour (DATE)
   final recs = await supa
       .from('receptions')
       .select('id')
-      .gte('date_reception', dayStart.toIso8601String());
+      .eq('statut', 'validee')
+      .eq('date_reception', _ymd(dayStart));
+
+  // 3) sorties du jour (TIMESTAMPTZ)
   final sorties = await supa
-      .from('sorties')
+      .from('sorties_produit')
       .select('id')
-      .gte('date_sortie', dayStart.toIso8601String());
-  final citSousSeuil = await supa
+      .eq('statut', 'validee')
+      .gte('date_sortie', _isoUtc(dayStart))
+      .lt('date_sortie', _isoUtc(dayEnd));
+
+  // 4) citernes sous seuil
+  final citernes = await supa
       .from('citernes')
-      .select('id, capacite_totale, capacite_securite, stock_estime')
-      .eq('statut', 'active');
+      .select('id,capacite_securite');
+
+  final latest = await supa
+      .from('v_citerne_stock_actuel')
+      .select('citerne_id,stock_ambiant');
+
+  final stockByCiterne = <String, double>{};
+  for (final m in (latest as List)) {
+    final id = m['citerne_id'] as String?;
+    final stock = (m['stock_ambiant'] as num?)?.toDouble() ?? 0.0;
+    if (id != null) stockByCiterne[id] = stock;
+  }
+
+  int nbCitSousSeuil = 0;
+  for (final m in (citernes as List)) {
+    final id = m['id'] as String?;
+    final seuil = (m['capacite_securite'] as num?)?.toDouble() ?? 0.0;
+    if (id == null) continue;
+    final stock = stockByCiterne[id] ?? 0.0;
+    if (stock < seuil) nbCitSousSeuil++;
+  }
+
+  // 5) produits actifs
   final produitsActifs = await supa
       .from('produits')
       .select('id')
       .eq('actif', true);
-
-  int nbCitSousSeuil = 0;
-  for (final m in (citSousSeuil as List)) {
-    final stock = (m['stock_estime'] as num?)?.toDouble() ?? 0;
-    final seuil = (m['capacite_securite'] as num?)?.toDouble() ?? 0;
-    if (stock < seuil) nbCitSousSeuil++;
-  }
 
   return AdminKpis(
     erreurs24h: (logsErr as List).length,
@@ -58,4 +88,3 @@ final adminKpiProvider = FutureProvider<AdminKpis>((ref) async {
     produitsActifs: (produitsActifs as List).length,
   );
 });
-

@@ -32,6 +32,48 @@ class CiterneService {
   final SupabaseClient _client;
   CiterneService.withClient(this._client);
 
+  /// Formate une date en YYYY-MM-DD pour la base de données
+  String _fmtYmd(DateTime d) =>
+      '${d.year.toString().padLeft(4,'0')}-${d.month.toString().padLeft(2,'0')}-${d.day.toString().padLeft(2,'0')}';
+
+  /// Récupère le stock actuel pour une citerne et un produit à une date donnée
+  /// 
+  /// [citerneId] : ID de la citerne
+  /// [produitId] : ID du produit
+  /// [date] : Date optionnelle (par défaut aujourd'hui)
+  /// 
+  /// Retourne : Map avec 'ambiant' et 'c15' (volumes en litres)
+  Future<Map<String, double>> getStockActuel(
+    String citerneId, 
+    String produitId, 
+    {DateTime? date}
+  ) async {
+    final dateJour = _fmtYmd(date ?? DateTime.now());
+    
+    try {
+      final res = await _client
+          .from('stock_actuel')
+          .select('stock_ambiant, stock_15c')
+          .eq('citerne_id', citerneId)
+          .eq('produit_id', produitId)
+          .eq('date_jour', dateJour)
+          .maybeSingle();
+
+      if (res == null) {
+        return {'ambiant': 0.0, 'c15': 0.0};
+      }
+
+      final m = res as Map<String, dynamic>;
+      return {
+        'ambiant': (m['stock_ambiant'] as num?)?.toDouble() ?? 0.0,
+        'c15': (m['stock_15c'] as num?)?.toDouble() ?? 0.0,
+      };
+    } catch (e) {
+      // En cas d'erreur, retourner des valeurs par défaut
+      return {'ambiant': 0.0, 'c15': 0.0};
+    }
+  }
+
   Future<CiterneInfo?> getById(String id) async {
     final res = await _client
         .from('citernes')

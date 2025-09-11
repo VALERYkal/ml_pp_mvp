@@ -1,11 +1,31 @@
 // 📌 Module : Sorties - Providers
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' as Riverpod;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../data/sortie_service.dart';
 import '../data/sortie_draft_service.dart';
 import '../models/sortie_produit.dart';
-import 'package:flutter/foundation.dart';
+import '../models/citerne_with_stock.dart' show CiterneWithStockForSortie;
+
+// --- MODELE LÉGER POUR L'UI ---
+class CiterneWithStockForSortie {
+  final String id;
+  final String nom;
+  final double? capaciteTotale;
+  final double? stockAmbiant; // L
+  final double? stock15c;     // L
+  final DateTime? date;       // date_jour du dernier stock
+
+  CiterneWithStockForSortie({
+    required this.id,
+    required this.nom,
+    this.capaciteTotale,
+    this.stockAmbiant,
+    this.stock15c,
+    this.date,
+  });
+}
 
 final sortieServiceProvider = Riverpod.Provider<SortieService>((ref) {
   return SortieService(Supabase.instance.client);
@@ -19,7 +39,7 @@ final sortieDraftServiceProvider = Riverpod.Provider<SortieDraftService>((ref) {
 final sortiesPageProvider = Riverpod.StateProvider<int>((ref) => 0);
 final sortiesPageSizeProvider = Riverpod.StateProvider<int>((ref) => 25);
 
-final sortiesListProvider = Riverpod.FutureProvider<List<SortieProduit>>((ref) async {
+final sortiesListProvider = Riverpod.FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final client = Supabase.instance.client;
   try {
     final page = ref.watch(sortiesPageProvider);
@@ -28,10 +48,28 @@ final sortiesListProvider = Riverpod.FutureProvider<List<SortieProduit>>((ref) a
     final endIdx = startIdx + size - 1;
     final res = await client
         .from('sorties_produit')
-        .select('*')
+        .select('id, created_at, date_sortie, proprietaire_type, volume_ambiant, volume_corrige_15c, '
+                'produits:produit_id(code, nom), citernes:citerne_id(nom), '
+                'client:client_id(nom), partenaire:partenaire_id(nom)')
         .order('created_at', ascending: false)
         .range(startIdx, endIdx);
-    return (res as List<dynamic>).map((e) => SortieProduit.fromJson(e as Map<String, dynamic>)).toList();
+    
+    return (res as List<dynamic>).map<Map<String, dynamic>>((e) {
+      final m = e as Map<String, dynamic>;
+      final produit = m['produits'] as Map<String, dynamic>?;
+      final citerne = m['citernes'] as Map<String, dynamic>?;
+      final client = m['client'] as Map<String, dynamic>?;
+      final partenaire = m['partenaire'] as Map<String, dynamic>?;
+      
+      return {
+        ...m,
+        'produit_code': produit?['code'] ?? '',
+        'produit_nom': produit?['nom'] ?? '',
+        'citerne_nom': citerne?['nom'] ?? '',
+        'client_nom': client?['nom'] ?? '',
+        'partenaire_nom': partenaire?['nom'] ?? '',
+      };
+    }).toList();
   } on PostgrestException catch (e) {
     debugPrint('❌ sortiesListProvider: ${e.message}');
     rethrow;
@@ -144,4 +182,52 @@ final citernesByProduitProvider = Riverpod.FutureProvider.family<List<Map<String
   return byId.entries.map((e) => {'id': e.key, 'nom': e.value}).toList();
 });
 
+// --- PROVIDER: CITERNE + DERNIER STOCK via vue stock_actuel ---
+final citernesByProduitWithStockProvider =
+    Riverpod.FutureProvider.family<List<CiterneWithStockForSortie>, String>((ref, produitId) async {
+  if (produitId.isEmpty) return [];
 
+  final supabase = Supabase.instance.client;
+
+  // 1) Citernes du produit
+  final citernes = await supabase
+      .from('citernes')
+      .select('id, nom, capacite_totale')
+      .eq('produit_id', produitId)
+      .order('nom', ascending: true) as List;
+
+  if (citernes.isEmpty) return [];
+
+  final citerneIds = citernes.map((e) => e['id'] as String).toList();
+
+  // 2) Dernier stock par citerne depuis la vue stock_actuel
+  final stocks = await supabase
+      .from('stock_actuel')
+      .select('citerne_id, stock_ambiant, stock_15c, date_jour')
+      .in_('citerne_id', citerneIds)
+      .eq('produit_id', produitId) as List;
+
+  final byCiterne = {
+    for (final s in stocks)
+      (s['citerne_id'] as String): s
+  };
+
+  // 3) Assemblage UI
+  DateTime? _parseDate(dynamic d) {
+    if (d == null) return null;
+    try { return DateTime.parse(d.toString()); } catch (_) { return null; }
+  }
+
+  return citernes.map((c) {
+    final cid = c['id'] as String;
+    final s = byCiterne[cid];
+    return CiterneWithStockForSortie(
+      id: cid,
+      nom: (c['nom'] as String?) ?? 'Citerne',
+      capaciteTotale: (c['capacite_totale'] as num?)?.toDouble(),
+      stockAmbiant: (s?['stock_ambiant'] as num?)?.toDouble(),
+      stock15c: (s?['stock_15c'] as num?)?.toDouble(),
+      date: _parseDate(s?['date_jour']),
+    );
+  }).toList();
+});

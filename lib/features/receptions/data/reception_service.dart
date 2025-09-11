@@ -199,20 +199,14 @@ class ReceptionService {
           })
           .eq('id', receptionId);
 
-      // Mise à jour des stocks journaliers
-      final stocksService = _stocksServiceFactory(_client);
-      await stocksService.increment(
-        citerneId: receptionData['citerne_id'],
-        produitId: receptionData['produit_id'],
-        volumeAmbiant: receptionData['volume_ambiant'],
-        volume15c: receptionData['volume_corrige_15c'],
-      );
+      // Les stocks journaliers sont mis à jour automatiquement par les triggers DB
+      // Pas besoin d'appel côté client
 
-      // Si c'est un cours de route Monaluxe, le passer à "déchargé"
+      // Si c'est un cours de route Monaluxe, le passer à "DECHARGE"
       if (receptionData['cours_de_route_id'] != null) {
         await _client
             .from('cours_de_route')
-            .update({'statut': 'déchargé'})
+            .update({'statut': 'DECHARGE'})
             .eq('id', receptionData['cours_de_route_id']);
       }
 
@@ -226,6 +220,13 @@ class ReceptionService {
       });
     } on PostgrestException catch (e) {
       debugPrint('❌ ReceptionService.validate: Erreur Supabase - ${e.message}');
+      debugPrint('❌ ReceptionService.validate: code=${e.code} hint=${e.hint} details=${e.details}');
+      
+      // Log spécifique pour identifier les "duplicate update" sur la même journée
+      if (e.message?.contains('duplicate') == true || e.message?.contains('unique') == true) {
+        debugPrint('⚠️ ReceptionService.validate: Possible double application détectée: ${e.message}');
+      }
+      
       rethrow;
     }
   }

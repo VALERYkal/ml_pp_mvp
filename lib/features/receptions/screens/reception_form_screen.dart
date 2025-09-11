@@ -20,6 +20,8 @@ import 'package:ml_pp_mvp/features/receptions/widgets/cours_arrive_selector.dart
 import 'package:ml_pp_mvp/features/receptions/data/citerne_info_provider.dart';
 import 'package:ml_pp_mvp/features/receptions/providers/receptions_list_provider.dart' show receptionsListProvider, receptionsPageProvider, receptionsPageSizeProvider;
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_route_providers.dart' show coursDeRouteListProvider, coursDeRouteActifsProvider, coursDeRouteArrivesProvider;
+import 'package:ml_pp_mvp/features/citernes/providers/citerne_providers.dart' show citernesWithStockProvider;
+import 'package:ml_pp_mvp/features/stocks_journaliers/providers/stocks_providers.dart' show stocksListProvider;
 import 'package:ml_pp_mvp/features/receptions/widgets/partenaire_autocomplete.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -209,6 +211,12 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
           ref.invalidate(coursDeRouteListProvider);
           ref.invalidate(coursDeRouteActifsProvider);
           ref.invalidate(coursDeRouteArrivesProvider);
+        } catch (_) {}
+        try {
+          ref.invalidate(citernesWithStockProvider);
+        } catch (_) {}
+        try {
+          ref.invalidate(stocksListProvider);
         } catch (_) {}
         context.go('/receptions');
       }

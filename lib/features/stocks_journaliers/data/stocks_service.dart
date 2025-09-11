@@ -6,6 +6,10 @@ class StocksService {
   final SupabaseClient _client;
   StocksService.withClient(this._client);
 
+  /// Formate une date en YYYY-MM-DD pour la base de données
+  String _fmtYmd(DateTime d) =>
+      '${d.year.toString().padLeft(4,'0')}-${d.month.toString().padLeft(2,'0')}-${d.day.toString().padLeft(2,'0')}';
+
   /// Incrémente (ou crée) la ligne de stock pour (date du jour, citerne, produit)
   Future<void> increment({
     required String citerneId,
@@ -14,7 +18,7 @@ class StocksService {
     required double volume15c,
     DateTime? dateJour,
   }) async {
-    final date = (dateJour ?? DateTime.now()).toIso8601String().substring(0, 10);
+    final date = _fmtYmd(dateJour ?? DateTime.now());
     // Upsert naïf: tenter update sinon insert
     final existing = await _client
         .from('stocks_journaliers')
@@ -49,7 +53,7 @@ class StocksService {
     required String produitId,
     DateTime? dateJour,
   }) async {
-    final date = (dateJour ?? DateTime.now()).toIso8601String().substring(0, 10);
+    final date = _fmtYmd(dateJour ?? DateTime.now());
     final res = await _client
         .from('stocks_journaliers')
         .select('stock_ambiant')
@@ -83,13 +87,14 @@ class StocksService {
   Future<double> getV15ForToday({
     required String citerneId,
     required String produitId,
+    DateTime? dateJour,
   }) async {
     final row = await _client
         .from('stocks_journaliers')
         .select('stock_15c')
         .eq('citerne_id', citerneId)
         .eq('produit_id', produitId)
-        .eq('date_jour', DateTime.now().toIso8601String().substring(0, 10))
+        .eq('date_jour', _fmtYmd(dateJour ?? DateTime.now()))
         .maybeSingle();
 
     if (row == null) return 0.0;

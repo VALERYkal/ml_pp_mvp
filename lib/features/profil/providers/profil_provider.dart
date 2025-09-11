@@ -10,62 +10,82 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/models/profil.dart';
 import '../../../core/models/user_role.dart';
 import '../data/profil_service.dart';
+import '../../../shared/providers/session_provider.dart';
 
 /// Provider pour l'instance du service ProfilService
 /// 
-/// Injecte automatiquement le client Supabase dans le service
-/// Utilisé par tous les autres providers du module profil
+/// Utilise le constructeur par défaut qui injecte automatiquement
+/// le client Supabase dans le service
 final profilServiceProvider = Riverpod.Provider<ProfilService>((ref) {
-  final client = Supabase.instance.client;
-  return ProfilService.withClient(client);
+  return ProfilService();
 });
 
-/// Provider asynchrone pour le profil utilisateur courant
+// 🔁 Utilisateur réactif basé sur le flux d'auth (et non un snapshot figé)
+final reactiveUserProvider = Riverpod.Provider<User?>((ref) {
+  final auth = ref.watch(appAuthStateProvider); // StreamProvider<AppAuthState>
+  return auth.maybeWhen(
+    data: (a) => a.session?.user,
+    orElse: () => null,
+  );
+});
+
+/// AsyncNotifier qui expose le profil courant (ou null si non connecté)
 /// 
-/// Récupère automatiquement le profil de l'utilisateur connecté
-/// via Supabase Auth et le service ProfilService.
-/// 
-/// États possibles :
-/// - `AsyncData<Profil?>` : Profil récupéré avec succès (peut être null)
-/// - `AsyncLoading` : Chargement en cours
-/// - `AsyncError` : Erreur lors de la récupération
-/// 
-/// Utilisé par :
-/// - Les écrans d'authentification pour vérifier le profil
-/// - Les écrans de navigation pour afficher les infos utilisateur
-/// - Les services de validation des permissions
-final profilProvider = Riverpod.FutureProvider<Profil?>((ref) async {
-  try {
-    // Récupération du service via injection de dépendance
-    final profilService = ref.read(profilServiceProvider);
+/// Comportement :
+/// 1. Attend que l'utilisateur soit connecté
+/// 2. Tente getByCurrentUser() ; si null, tente getOrCreateByCurrentUser()
+/// 3. Journalise clairement, sans SnackBar (le provider ne doit pas afficher d'UI)
+/// 4. Expose un AsyncValue<Profil?> pour la gestion d'état
+class CurrentProfilNotifier extends Riverpod.AsyncNotifier<Profil?> {
+  @override
+  Future<Profil?> build() async {
+    // 🧪 Log début (temporaire, à retirer après)
+    debugPrint('🔄 CurrentProfilProvider: build() started (auth user watching)');
     
-    // Récupération de l'utilisateur courant depuis Supabase Auth
-    final currentUser = Supabase.instance.client.auth.currentUser;
-    
-    if (currentUser == null) {
-      debugPrint('⚠️ ProfilProvider: Aucun utilisateur connecté');
+    // ⚠️ CORRECTIF : Force le rebuild sur changement d'utilisateur (RÉACTIF)
+    final user = ref.watch(reactiveUserProvider);
+    if (user == null) {
+      debugPrint('🔄 CurrentProfilProvider: no user (post-auth), returning null');
       return null;
     }
-    
-    final userId = currentUser.id;
-    debugPrint('🔍 ProfilProvider: Récupération du profil pour userId: $userId');
-    
-    // Appel du service pour récupérer le profil
-    final profil = await profilService.getCurrentProfil(userId);
-    
-    if (profil == null) {
-      debugPrint('⚠️ ProfilProvider: Aucun profil trouvé pour l\'utilisateur connecté');
-    } else {
-      debugPrint('✅ ProfilProvider: Profil récupéré - Role: ${profil.role}');
+
+    final svc = ref.read(profilServiceProvider);
+
+    // 1) tente de récupérer
+    final existing = await svc.getByCurrentUser();
+    if (existing != null) {
+      // print log
+      // ignore: avoid_print
+      print('✅ ProfilProvider: Profil trouvé - role: ${existing.role}');
+      debugPrint('🔄 CurrentProfilProvider: Profil trouvé - role: ${existing.role}');
+      return existing;
     }
-    
-    return profil;
-    
-  } catch (e) {
-    debugPrint('❌ ProfilProvider: Erreur lors de la récupération du profil - $e');
-    rethrow;
+
+    // 2) sinon, créer (get-or-create)
+    // tu peux dériver defaultRole, email depuis auth.currentUser
+    final email = user.email;
+    final created = await svc.getOrCreateByCurrentUser(
+      defaultRole: 'lecture', // ou 'directeur' si tu préfères provisoirement
+      email: email,
+    );
+
+    // ignore: avoid_print
+    print('✅ ProfilProvider: Profil créé - role: ${created.role}');
+    debugPrint('🔄 CurrentProfilProvider: Profil créé - role: ${created.role}');
+    return created;
   }
-});
+}
+
+/// Provider principal pour le profil utilisateur courant
+/// 
+/// Utilise AsyncNotifier pour une gestion d'état plus robuste
+/// avec get-or-create automatique
+final currentProfilProvider =
+    Riverpod.AsyncNotifierProvider<CurrentProfilNotifier, Profil?>(() => CurrentProfilNotifier());
+
+/// Provider de compatibilité pour l'ancien nom
+/// @deprecated Utilisez currentProfilProvider à la place
+final profilProvider = currentProfilProvider;
 
 /// Provider pour vérifier si l'utilisateur a un profil
 /// 
@@ -77,7 +97,7 @@ final profilProvider = Riverpod.FutureProvider<Profil?>((ref) async {
 /// - La redirection post-login
 /// - L'affichage conditionnel d'éléments UI
 final hasProfilProvider = Riverpod.Provider<bool>((ref) {
-  final profilAsync = ref.watch(profilProvider);
+  final profilAsync = ref.watch(currentProfilProvider);
   
   return profilAsync.when(
     data: (profil) => profil != null,
@@ -96,7 +116,7 @@ final hasProfilProvider = Riverpod.Provider<bool>((ref) {
 /// - La validation des permissions
 /// - L'affichage conditionnel des fonctionnalités
 final userProfilProvider = Riverpod.Provider<Profil?>((ref) {
-  final profilAsync = ref.watch(profilProvider);
+  final profilAsync = ref.watch(currentProfilProvider);
   
   return profilAsync.when(
     data: (profil) => profil,
@@ -105,47 +125,35 @@ final userProfilProvider = Riverpod.Provider<Profil?>((ref) {
   );
 });
 
-/// Provider pour le rôle de l'utilisateur courant avec fallback sécurisé
+/// Provider pour le rôle de l'utilisateur courant (nullable)
+/// 
+/// IMPORTANT : renvoie null tant que le profil n'est pas disponible.
+/// On ne fallback PAS en lecture pendant le chargement.
 /// 
 /// Retourne :
-/// - `UserRole` : Le rôle de l'utilisateur (fallback: UserRole.lecture)
+/// - `UserRole?` : Le rôle de l'utilisateur (null pendant le chargement)
 /// 
 /// Utilisé pour :
-/// - La redirection post-login
+/// - La redirection post-login (avec attente du rôle)
 /// - La validation des permissions
-final userRoleProvider = Riverpod.Provider<UserRole>((ref) {
-  final profil = ref.watch(userProfilProvider);
-  return profil?.role ?? UserRole.lecture; // fallback non-admin
+final userRoleProvider = Riverpod.Provider<UserRole?>((ref) {
+  final p = ref.watch(currentProfilProvider);
+  final role = p.maybeWhen(data: (v) => v?.role, orElse: () => null);
+  debugPrint('🧭 userRoleProvider -> $role (state=$p)');
+  return role;
 });
 
-/// Provider pour vérifier si l'utilisateur a un rôle spécifique
+/// Provider "colle" qui invalide le profil si l'ID user change
 /// 
-/// [role] : Le rôle à vérifier (chaîne de caractères)
-/// 
-/// Retourne :
-/// - `true` : L'utilisateur a le rôle spécifié
-/// - `false` : L'utilisateur n'a pas ce rôle ou n'est pas connecté
-/// 
-/// Utilisé pour :
-/// - L'affichage conditionnel des écrans
-/// - La validation des actions autorisées
-bool hasRole(Riverpod.WidgetRef ref, String role) {
-  final userRole = ref.watch(userRoleProvider);
-  return userRole.value == role;
-}
-
-/// Provider pour vérifier si l'utilisateur a un des rôles spécifiés
-/// 
-/// [roles] : Liste des rôles autorisés (chaînes de caractères)
-/// 
-/// Retourne :
-/// - `true` : L'utilisateur a au moins un des rôles spécifiés
-/// - `false` : L'utilisateur n'a aucun de ces rôles ou n'est pas connecté
-/// 
-/// Utilisé pour :
-/// - L'affichage conditionnel des fonctionnalités
-/// - La validation des permissions multi-rôles
-bool hasAnyRole(Riverpod.WidgetRef ref, List<String> roles) {
-  final userRole = ref.watch(userRoleProvider);
-  return roles.contains(userRole.value);
-}
+/// Couvre les cas bord où currentProfilProvider.build() resterait mémorisé
+/// et force la reconstruction quand l'utilisateur change
+final profilAuthSyncProvider = Riverpod.Provider<void>((ref) {
+  ref.listen(appAuthStateProvider, (prev, next) {
+    final prevUserId = prev?.asData?.value.session?.user?.id;
+    final nextUserId = next.asData?.value.session?.user?.id;
+    if (prevUserId != nextUserId) {
+      debugPrint('🔄 ProfilAuthSync: user changed -> invalidate currentProfilProvider');
+      ref.invalidate(currentProfilProvider);
+    }
+  });
+});

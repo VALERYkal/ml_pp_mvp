@@ -219,20 +219,37 @@ class StocksListScreen extends ConsumerWidget {
                       DataColumn(label: Text('Alerte')),
                     ],
                     rows: [
-                      for (final s in items)
-                        DataRow(cells: [
-                          DataCell(Text(s.dateJour)),
-                          DataCell(Text(s.citerneNom)),
-                          DataCell(Text(s.produitNom)),
-                          DataCell(Text(s.stockAmbiant.toStringAsFixed(0))),
-                          DataCell(Text(s.stock15c.toStringAsFixed(0))),
-                          DataCell(Text(s.capaciteTotale.toStringAsFixed(0))),
-                          DataCell(Text(s.capaciteSecurite.toStringAsFixed(0))),
-                          DataCell(Text(_fmtRatio(s))),
-                          DataCell(s.stockAmbiant <= s.capaciteSecurite
-                              ? const Icon(Icons.warning, color: Colors.red)
-                              : const SizedBox.shrink()),
-                        ]),
+                      // Lignes de données
+                      ...items.map((s) => DataRow(cells: [
+                        DataCell(Text(s.dateJour)),
+                        DataCell(Text(s.citerneNom)),
+                        DataCell(Text(s.produitNom)),
+                        DataCell(Text(s.stockAmbiant.toStringAsFixed(0))),
+                        DataCell(Text(s.stock15c.toStringAsFixed(0))),
+                        DataCell(Text(s.capaciteTotale.toStringAsFixed(0))),
+                        DataCell(Text(s.capaciteSecurite.toStringAsFixed(0))),
+                        DataCell(Text(_fmtRatio(s))),
+                        DataCell(s.stockAmbiant <= s.capaciteSecurite
+                            ? const Icon(Icons.warning, color: Colors.red)
+                            : const SizedBox.shrink()),
+                      ])),
+                      // Ligne de total
+                      DataRow(
+                        color: WidgetStateProperty.all(Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3)),
+                        cells: [
+                          const DataCell(Text('Total', style: TextStyle(fontWeight: FontWeight.bold))),
+                          const DataCell(Text('')),
+                          const DataCell(Text('')),
+                          DataCell(Text(_calculateTotal(items, (s) => s.stockAmbiant).toStringAsFixed(0), 
+                              style: const TextStyle(fontWeight: FontWeight.bold))),
+                          DataCell(Text(_calculateTotal(items, (s) => s.stock15c).toStringAsFixed(0), 
+                              style: const TextStyle(fontWeight: FontWeight.bold))),
+                          const DataCell(Text('')),
+                          const DataCell(Text('')),
+                          const DataCell(Text('')),
+                          const DataCell(Text('')),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -279,6 +296,10 @@ class StocksListScreen extends ConsumerWidget {
   String _fmtRatio(StockRowView s) {
     final r = s.capaciteTotale > 0 ? s.stockAmbiant / s.capaciteTotale : 0.0;
     return '${(r * 100).toStringAsFixed(1)}%';
+  }
+
+  double _calculateTotal(List<StockRowView> items, double Function(StockRowView) selector) {
+    return items.fold<double>(0.0, (sum, item) => sum + selector(item));
   }
 }
 

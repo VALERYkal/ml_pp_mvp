@@ -11,10 +11,10 @@ import 'package:ml_pp_mvp/features/cours_route/providers/cours_route_providers.d
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_filters_provider.dart';
 import 'package:ml_pp_mvp/shared/providers/ref_data_provider.dart';
 import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart';
+import 'package:ml_pp_mvp/core/models/user_role.dart';
 import 'package:ml_pp_mvp/shared/ui/errors.dart';
 import 'package:ml_pp_mvp/shared/ui/format.dart';
 import 'package:ml_pp_mvp/shared/ui/toast.dart';
-import 'package:ml_pp_mvp/shared/ui/dialogs.dart';
 
 /// Fonction utilitaire pour afficher le libellé du produit
 /// 
@@ -400,7 +400,7 @@ class _AdvanceButtonState extends ConsumerState<_AdvanceButton> {
   Widget build(BuildContext context) {
     final role = ref.watch(userRoleProvider);
     final canAdvance = ['operateur', 'gerant', 'directeur', 'admin']
-        .contains(role.name);
+        .contains((role ?? UserRole.lecture).value);
     final nextEnum = StatutCoursDb.next(widget.c.statut);
 
     return IconButton.filledTonal(

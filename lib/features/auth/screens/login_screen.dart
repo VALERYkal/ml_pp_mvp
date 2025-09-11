@@ -9,7 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/models/user_role.dart';
-import '../../../shared/providers/auth_provider.dart';
+import '../../../shared/providers/auth_service_provider.dart';
 import '../../profil/providers/profil_provider.dart';
 
 /// Écran de connexion avec formulaire et gestion des rôles
@@ -41,6 +41,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   
   // État pour afficher/masquer le mot de passe
   bool _obscurePassword = true;
+
+  // --- Palette douce locale (évite de toucher au thème global)
+  static const Color _primary = Color(0xFF0E6377); // bleu canard bouton
+  static const Color _primaryDark = Color(0xFF0A4C5A);
+  static const Color _fieldFill = Color(0xFFF6F8FA); // fond champs
+  static const Color _fieldStroke = Color(0xFFE1E7EC); // bord champs
+  static const Color _hint = Color(0xFF8A98A5);
 
   @override
   void dispose() {
@@ -75,27 +82,45 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
+  // Snackbars cosmétiques (succès / erreur)
+  void _showNiceSnack(
+    BuildContext context, {
+    required String message,
+    required bool success,
+  }) {
+    final bg = success ? const Color(0xFF10B981) : const Color(0xFFEF4444);
+    final icon = success ? Icons.check_circle_rounded : Icons.error_rounded;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: bg,
+          elevation: 2,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          content: Row(
+            children: [
+              Icon(icon, color: Colors.white),
+              const SizedBox(width: 10),
+              Expanded(child: Text(message)),
+            ],
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+  }
+
   /// Affiche un message d'erreur
   void _showError(String message) {
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showNiceSnack(context, message: message, success: false);
     }
   }
 
   /// Affiche un message de succès
   void _showSuccess(String message) {
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: Colors.green,
-        ),
-      );
+      _showNiceSnack(context, message: message, success: true);
     }
   }
 
@@ -115,22 +140,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         _passwordController.text,
       );
 
-      // Récupération du profil utilisateur
-      final profilAsync = await ref.read(profilProvider.future);
-      
-      if (profilAsync == null) {
-        // Pas de profil trouvé
-        _showError('Aucun profil trouvé pour cet utilisateur');
-        return;
-      }
-
       // Succès de connexion
       _showSuccess('Connexion réussie');
       
-      // Redirection selon le rôle
-      if (mounted) {
-        _redirectToDashboard(profilAsync.role);
-      }
+      // La redirection sera gérée par le router
+      // qui attendra que le profil soit créé/récupéré
 
     } on AuthException catch (e) {
       // Gestion des erreurs d'authentification
@@ -150,11 +164,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
-  /// Redirige vers le dashboard approprié selon le rôle
-  void _redirectToDashboard(UserRole role) {
-    final route = UserRoleX.roleToHome(role);
-    context.go(route);
-  }
 
   /// Erreurs d'authentification (AuthException)
   String _mapAuthError(String? message) {
@@ -183,6 +192,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       // AppBar avec titre
       appBar: AppBar(
@@ -203,38 +213,48 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Logo et titre
+                  // --- Logo avec ombre douce (garde ton asset)
                   Center(
                     child: Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(18),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(12),
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x1A000000),
+                            blurRadius: 18,
+                            offset: Offset(0, 8),
+                          ),
+                        ],
                       ),
-                      child: Image.asset(
-                        'lib/shared/assets/images/logo.png',
-                        height: 120,
-                        fit: BoxFit.contain,
+                      child: SizedBox(
+                        height: 96,
+                        child: Image.asset(
+                          'lib/shared/assets/images/logo.png',
+                          fit: BoxFit.contain,
+                        ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 28),
                   Text(
                     'Bienvenue',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: .2,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Text(
                     'Connectez-vous à votre compte',
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Colors.grey[600],
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: _hint,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
 
                   // Champ email
                   TextFormField(
@@ -243,12 +263,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.next,
                     autofocus: true,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Email',
                       hintText: 'votre.email@exemple.com',
-                      prefixIcon: Icon(Icons.email),
-                      border: OutlineInputBorder(),
-                      helperText: 'Entrez votre adresse email',
+                      prefixIcon: const Icon(Icons.mail_rounded, color: _hint),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: _fieldStroke),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: _fieldStroke),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: _primary),
+                      ),
+                      filled: true,
+                      fillColor: _fieldFill,
+                      hintStyle: TextStyle(color: _hint),
+                      labelStyle: TextStyle(color: _hint),
+                     // helperText: 'Entrez votre adresse email',
                     ),
                     validator: _validateEmail,
                     enabled: !_isLoading,
@@ -265,10 +300,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     decoration: InputDecoration(
                       labelText: 'Mot de passe',
                       hintText: 'Votre mot de passe',
-                      prefixIcon: const Icon(Icons.lock),
+                      prefixIcon: const Icon(Icons.lock_rounded, color: _hint),
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                          _obscurePassword ? Icons.visibility_rounded : Icons.visibility_off_rounded,
+                          color: _hint,
                         ),
                         onPressed: () {
                           setState(() {
@@ -276,24 +312,42 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           });
                         },
                       ),
-                      border: const OutlineInputBorder(),
-                      helperText: 'Appuyez sur Entrée pour vous connecter',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: _fieldStroke),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: _fieldStroke),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: _primary),
+                      ),
+                      filled: true,
+                      fillColor: _fieldFill,
+                      hintStyle: TextStyle(color: _hint),
+                      labelStyle: TextStyle(color: _hint),
+                     // helperText: 'Appuyez sur Entrée pour vous connecter'.
                     ),
                     validator: _validatePassword,
                     enabled: !_isLoading,
                   ),
                   const SizedBox(height: 24),
 
-                  // Bouton de connexion
+                  // --- Bouton principal
                   SizedBox(
-                    width: double.infinity,
+                    height: 52,
                     child: ElevatedButton(
                       key: const Key('login_button'),
                       onPressed: _isLoading ? null : _submitIfValid,
                       style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                        backgroundColor: _primary,
+                        foregroundColor: Colors.white,
+                        elevation: 1.5,
+                        shape: const StadiumBorder(),
+                      ).copyWith(
+                        overlayColor: MaterialStateProperty.all(_primaryDark.withOpacity(.12)),
                       ),
                       child: _isLoading
                           ? const SizedBox(
@@ -315,8 +369,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   // Message d'aide
                   Text(
                     'Utilisez vos identifiants fournis par votre administrateur',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.grey[500],
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: _hint,
                     ),
                     textAlign: TextAlign.center,
                   ),

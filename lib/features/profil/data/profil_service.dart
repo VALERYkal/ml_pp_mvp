@@ -28,6 +28,9 @@ class ProfilService {
   /// Utilisé pour permettre les tests unitaires
   const ProfilService.withClient(this._client);
 
+  /// Constructeur par défaut utilisant l'instance Supabase globale
+  ProfilService() : _client = Supabase.instance.client;
+
   /// Récupère le profil utilisateur courant
   /// 
   /// [userId] : Identifiant de l'utilisateur Supabase Auth
@@ -139,5 +142,93 @@ class ProfilService {
       debugPrint('❌ ProfilService: Erreur inattendue lors de la mise à jour - $e');
       rethrow;
     }
+  }
+
+  /// Récupère le profil de l'utilisateur actuellement connecté
+  /// 
+  /// Retourne :
+  /// - `Profil?` : Le profil utilisateur si trouvé
+  /// - `null` : Si aucun profil n'existe ou si l'utilisateur n'est pas connecté
+  Future<Profil?> getByCurrentUser() async {
+    final uid = _client.auth.currentUser?.id;
+    if (uid == null) return null;
+
+    final res = await _client
+        .from('profils')
+        .select<Map<String, dynamic>>()
+        .eq('user_id', uid)
+        .maybeSingle();
+
+    if (res == null) return null;
+    return Profil.fromJson(res);
+  }
+
+  /// Crée un profil pour l'utilisateur actuellement connecté
+  /// 
+  /// [role] : Rôle par défaut (ex: 'directeur' ou 'lecture')
+  /// [nomComplet] : Nom complet optionnel
+  /// [email] : Email optionnel
+  /// [depotId] : ID du dépôt optionnel
+  /// 
+  /// Retourne :
+  /// - `Profil` : Le profil créé
+  /// 
+  /// Exceptions :
+  /// - `StateError` : Si l'utilisateur n'est pas connecté
+  Future<Profil> createForCurrentUser({
+    required String role, // ex: 'directeur' ou 'lecture'
+    String? nomComplet,
+    String? email,
+    String? depotId,
+  }) async {
+    final uid = _client.auth.currentUser?.id;
+    if (uid == null) {
+      throw StateError('createForCurrentUser: user_id null');
+    }
+
+    // RLS : la policy INSERT autorise INSERT si user_id = auth.uid()
+    final payload = {
+      'user_id': uid,
+      'role': role,
+      if (nomComplet != null) 'nom_complet': nomComplet,
+      if (email != null) 'email': email,
+      if (depotId != null) 'depot_id': depotId,
+    };
+
+    final inserted = await _client
+        .from('profils')
+        .insert(payload)
+        .select<Map<String, dynamic>>()
+        .single();
+
+    return Profil.fromJson(inserted);
+  }
+
+  /// Récupère ou crée un profil pour l'utilisateur actuellement connecté
+  /// 
+  /// [defaultRole] : Rôle par défaut si création nécessaire
+  /// [nomComplet] : Nom complet optionnel
+  /// [email] : Email optionnel
+  /// [depotId] : ID du dépôt optionnel
+  /// 
+  /// Retourne :
+  /// - `Profil` : Le profil existant ou nouvellement créé
+  /// 
+  /// Cette méthode est idempotente et RLS-safe
+  Future<Profil> getOrCreateByCurrentUser({
+    String defaultRole = 'lecture',
+    String? nomComplet,
+    String? email,
+    String? depotId,
+  }) async {
+    final existing = await getByCurrentUser();
+    if (existing != null) return existing;
+
+    return createForCurrentUser(
+      role: defaultRole,
+      nomComplet: nomComplet,
+      email: email,
+      depotId: depotId,
+    );
   }
 }

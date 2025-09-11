@@ -3,28 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ml_pp_mvp/core/models/user_role.dart';
 import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart';
-import 'package:ml_pp_mvp/shared/providers/auth_provider.dart';
+import 'package:ml_pp_mvp/shared/providers/auth_service_provider.dart';
 import 'package:ml_pp_mvp/shared/providers/ref_data_provider.dart';
-
-/// Destination de navigation avec visibilité conditionnelle par rôle
-class _Dest {
-  final String route;
-  final String label;
-  final IconData icon;
-  final bool Function(UserRole) visible;
-  
-  const _Dest(this.route, this.label, this.icon, this.visible);
-}
-
-/// Toutes les destinations disponibles
-final _allDests = <_Dest>[
-  _Dest('/receptions', 'Réceptions', Icons.call_received, (_) => true),
-  _Dest('/sorties', 'Sorties', Icons.call_made, (_) => true),
-  _Dest('/stocks', 'Stocks', Icons.inventory_2, (_) => true),
-  _Dest('/citernes', 'Citernes', Icons.local_gas_station, (r) => r != UserRole.lecture),
-  _Dest('/cours', 'Cours route', Icons.local_shipping, (r) => r != UserRole.lecture),
-  _Dest('/logs', 'Logs', Icons.history, (r) => r == UserRole.admin || r == UserRole.directeur),
-];
+import 'package:ml_pp_mvp/shared/navigation/nav_config.dart';
+import 'package:ml_pp_mvp/features/depots/providers/depots_provider.dart';
 
 /// Titre dynamique basé sur la route courante
 class _DashboardTitle extends ConsumerWidget {
@@ -32,16 +14,9 @@ class _DashboardTitle extends ConsumerWidget {
   
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final loc = GoRouterState.of(context).uri.toString();
-    String title = switch (true) {
-      _ when loc.startsWith('/receptions') => 'Réceptions',
-      _ when loc.startsWith('/sorties') => 'Sorties',
-      _ when loc.startsWith('/stocks') => 'Stocks journaliers',
-      _ when loc.startsWith('/citernes') => 'Citernes',
-      _ when loc.startsWith('/cours') => 'Cours de route',
-      _ when loc.startsWith('/logs') => 'Journal des actions',
-      _ => 'Tableau de bord',
-    };
+    final role = ref.watch(userRoleProvider);
+    final location = GoRouterState.of(context).uri.toString();
+    final title = NavConfig.getPageTitle(location, role);
     return Text(title);
   }
 }
@@ -89,13 +64,20 @@ class DashboardShell extends ConsumerWidget {
     // Warmup des référentiels
     ref.watch(refDataProvider);
     
-    final depotName = profil?.depotId ?? '—';
-    final dests = _allDests.where((d) => d.visible(role)).toList();
+    // Safe role pour l'UI (fallback vers lecture si null)
+    final safeRole = role ?? UserRole.lecture;
+    
+    final depotNameAsync = ref.watch(currentDepotNameProvider);
+    final depotLabel = depotNameAsync.when(
+      data: (name) => name ?? '—',
+      loading: () => '…',
+      error: (_, __) => '—',
+    );
+    final items = NavConfig.getItemsForRole(role);
     
     // Sélection active depuis la route
-    final loc = GoRouterState.of(context).uri.toString();
-    int selected = dests.indexWhere((d) => loc.startsWith(d.route));
-    if (selected < 0) selected = 0;
+    final location = GoRouterState.of(context).uri.toString();
+    final selectedIndex = _selectedIndexFor(location, items, role);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -103,28 +85,28 @@ class DashboardShell extends ConsumerWidget {
 
         // NavigationRail pour desktop
         final rail = NavigationRail(
-          selectedIndex: selected,
-          onDestinationSelected: (i) => context.go(dests[i].route),
+          selectedIndex: selectedIndex,
+          onDestinationSelected: (i) => context.go(effectivePath(items[i], role)),
           extended: isWide,
           destinations: [
-            for (final d in dests)
+            for (final item in items)
               NavigationRailDestination(
-                icon: Icon(d.icon),
-                selectedIcon: Icon(d.icon),
-                label: Text(d.label),
+                icon: Icon(item.icon),
+                selectedIcon: Icon(item.icon),
+                label: Text(item.title),
               ),
           ],
         );
 
         // BottomNavigationBar pour mobile
         final bottom = NavigationBar(
-          selectedIndex: selected,
-          onDestinationSelected: (i) => context.go(dests[i].route),
+          selectedIndex: selectedIndex,
+          onDestinationSelected: (i) => context.go(effectivePath(items[i], role)),
           destinations: [
-            for (final d in dests)
+            for (final item in items)
               NavigationDestination(
-                icon: Icon(d.icon),
-                label: d.label,
+                icon: Icon(item.icon),
+                label: item.title,
               ),
           ],
         );
@@ -146,20 +128,20 @@ class DashboardShell extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Rôle: ${role.value}',
+                      'Rôle: ${safeRole.value}',
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ],
                 ),
               ),
-              for (int i = 0; i < dests.length; i++)
+              for (int i = 0; i < items.length; i++)
                 ListTile(
-                  leading: Icon(dests[i].icon),
-                  title: Text(dests[i].label),
-                  selected: i == selected,
+                  leading: Icon(items[i].icon),
+                  title: Text(items[i].title),
+                  selected: i == selectedIndex,
                   onTap: () {
                     Navigator.pop(context);
-                    context.go(dests[i].route);
+                    context.go(effectivePath(items[i], role));
                   },
                 ),
             ],
@@ -182,7 +164,7 @@ class DashboardShell extends ConsumerWidget {
                 icon: const Icon(Icons.refresh),
               ),
               const SizedBox(width: 4),
-              _RoleDepotChips(role: role, depotName: depotName),
+              _RoleDepotChips(role: safeRole, depotName: depotLabel),
               IconButton(
                 tooltip: 'Déconnexion',
                 onPressed: () async {
@@ -218,4 +200,11 @@ class DashboardShell extends ConsumerWidget {
   }
 }
 
-
+/// Helper pour calculer l'index sélectionné basé sur la location et les items
+int _selectedIndexFor(String location, List<NavItem> items, UserRole? role) {
+  for (var i = 0; i < items.length; i++) {
+    final p = effectivePath(items[i], role);
+    if (location == p || location.startsWith('$p/')) return i;
+  }
+  return 0;
+}

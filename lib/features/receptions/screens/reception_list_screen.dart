@@ -5,6 +5,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ml_pp_mvp/features/receptions/providers/receptions_table_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/reception.dart';
+import 'package:ml_pp_mvp/shared/utils/date_formatter.dart';
+import 'package:ml_pp_mvp/shared/utils/volume_formatter.dart';
 
 // Providers extraits vers features/receptions/providers/receptions_list_provider.dart
 
@@ -125,8 +127,8 @@ class _ReceptionDataSource extends DataTableSource {
   }
 }
 
-String _fmtDate(DateTime d) => d.toIso8601String().substring(0,10);
-String _fmtVol(double? v) => v == null ? '—' : '${v.toStringAsFixed(0)} L';
+String _fmtDate(DateTime d) => DateFormatter.formatDate(d);
+String _fmtVol(double? v) => VolumeFormatter.formatVolume(v);
 
 class _MiniChip extends StatelessWidget {
   final String text;
