@@ -8,8 +8,9 @@ import 'package:supabase_flutter/supabase_flutter.dart' hide Provider;
 @immutable
 class AppAuthState {
   final Session? session;
+  final Stream<AuthState> authStream;
 
-  const AppAuthState({required this.session});
+  const AppAuthState({required this.session, required this.authStream});
 
   bool get isAuthenticated => session != null;
 
@@ -19,29 +20,29 @@ class AppAuthState {
 /// Fournit un flux AppAuthState basé sur onAuthStateChange de Supabase.
 /// - Rafraîchit à chaque login/logout/refresh token.
 /// - Converti en AppAuthState minimal, consommable par l'UI/Router.
-final authStateProvider = StreamProvider<AppAuthState>((ref) {
-  final auth = Supabase.instance.client.auth;
+final appAuthStateProvider = StreamProvider<AppAuthState>((ref) async* {
+  final auth = Supabase.instance.client.auth; // <-- GoTrueClient
 
-  // Émettre l'état initial immédiatement (utile au démarrage de l'app)
-  final initial = AppAuthState(session: auth.currentSession);
+  // Stream des changements d'auth
+  final stream = auth.onAuthStateChange;
 
-  // Stream des changements provenant de Supabase
-  final supabaseStream = auth.onAuthStateChange.map<AppAuthState>((AuthState e) {
-    // e.session correspond à la session après l'événement (peut être null)
-    return AppAuthState(session: e.session);
-  });
+  // Emit une première valeur immédiate pour initialiser le router
+  yield AppAuthState(
+    session: auth.currentSession,
+    authStream: stream,
+  );
 
-  // On renvoie un stream qui commence par l'état initial
-  return Stream<AppAuthState>.multi((controller) async {
-    controller.add(initial);
-    final sub = supabaseStream.listen(controller.add, onError: controller.addError);
-    controller.onCancel = () => sub.cancel();
-  });
+  await for (final e in stream) {
+    yield AppAuthState(
+      session: e.session,
+      authStream: stream,
+    );
+  }
 });
 
 /// Dérivé pratique : booléen d'authentification, avec fallback sur l'état instantané
 final isAuthenticatedProvider = Provider<bool>((ref) {
-  final asyncState = ref.watch(authStateProvider);
+  final asyncState = ref.watch(appAuthStateProvider);
   return asyncState.maybeWhen(
     data: (s) => s.isAuthenticated,
     orElse: () {
