@@ -1,0 +1,14 @@
+{
+  "name": "ml-pp-mvp",
+  "version": "1.0.0",
+  "description": "ML PP MVP - Flutter Application",
+  "scripts": {
+    "check:utf8": "node tools/check-utf8.mjs",
+    "fix:encoding": "powershell -ExecutionPolicy Bypass -File tools/recode-to-utf8.ps1 -Root .",
+    "fix:strings": "powershell -ExecutionPolicy Bypass -File tools/fix-strings.ps1 -Root ."
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
