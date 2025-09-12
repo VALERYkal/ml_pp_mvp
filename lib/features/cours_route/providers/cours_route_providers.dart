@@ -8,18 +8,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ml_pp_mvp/features/cours_route/data/cours_de_route_service.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 
-// Provider: liste des CDR au statut ARRIVE (les seuls sélectionnables pour une réception)
-final coursDeRouteArrivesProvider = Riverpod.FutureProvider.autoDispose<List<CoursDeRoute>>((ref) async {
-  final supa = Supabase.instance.client;
-  final rows = await supa
-      .from('cours_de_route')
-      .select('id, produit_id, date_chargement, depart_pays, fournisseur_id, plaque_camion, plaque_remorque, transporteur, chauffeur_nom, volume, statut, created_at')
-      .eq('statut', 'ARRIVE')
-      .order('created_at', ascending: false);
-  return (rows as List)
-      .map((e) => e as Map<String, dynamic>)
-      .map<CoursDeRoute>(CoursDeRoute.fromMap)
-      .toList();
+/// Provider: liste des CDR au statut ARRIVE (sélectionnables pour Réception)
+final coursDeRouteArrivesProvider =
+    Riverpod.FutureProvider.autoDispose<List<CoursDeRoute>>((ref) async {
+  final service = ref.read(coursDeRouteServiceProvider);
+  return await service.getByStatut(StatutCours.arrive);
 });
 
 /// Provider pour le service CoursDeRouteService

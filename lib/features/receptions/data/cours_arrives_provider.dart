@@ -6,6 +6,7 @@
    =========================================================== */
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 import 'package:ml_pp_mvp/shared/referentiels/referentiels.dart' as refs;
 
 class CoursArriveItem {
@@ -59,8 +60,8 @@ final coursArrivesProvider = FutureProvider<List<CoursArriveItem>>((ref) async {
       ''';
     final res = await client
         .from('cours_de_route')
-        .select(select)
-        .eq('statut', 'ARRIVE')
+        .select<List<dynamic>>(select)
+        .eq('statut', StatutCoursConverter.toDb(StatutCours.arrive))
         .order('date_chargement', ascending: false)
         .order('created_at', ascending: false);
     return res as List<dynamic>;
@@ -83,9 +84,9 @@ final coursArrivesProvider = FutureProvider<List<CoursArriveItem>>((ref) async {
   } catch (_) {}
 
   return rows.map((m) {
-    final prod = m['produit'] ?? {};
-    final dep = m['depots'] ?? {};
-    final four = m['fournisseurs'] ?? {};
+    final prod = m['produit'] ?? <String, dynamic>{};
+    final dep = m['depots'] ?? <String, dynamic>{};
+    final four = m['fournisseurs'] ?? <String, dynamic>{};
     final produitId = m['produit_id'] as String?;
     final dateVal = m['date_chargement'];
     final parsedDate = dateVal == null

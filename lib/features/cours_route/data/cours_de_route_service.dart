@@ -285,19 +285,31 @@ class CoursDeRouteService {
     required StatutCours to,
     bool fromReception = false,
   }) async {
-    // Verrou applicatif: DECHARGE uniquement via la validation de Réception
+    // 0) Verrou applicatif: DECHARGE uniquement via Réception
     if (to == StatutCours.decharge && !fromReception) {
-      throw StateError(
-        'Le passage à DECHARGE se fait via la validation de réception.',
-      );
+      throw StateError('Le passage à DECHARGE se fait via la validation de réception.');
     }
 
-    // Force un retour: lève une erreur si 0 ligne (RLS/ID/condition)
+    // 1) Charger le statut actuel (fail-fast si non trouvé/RLS)
+    final current = await _supabase
+        .from('cours_de_route')
+        .select<Map<String, dynamic>>('statut')
+        .eq('id', id)
+        .single();
+    final from = StatutCoursConverter.fromDb(current['statut'] as String?);
+
+    // 2) Vérifier la transition via la machine d'états
+    final can = CoursDeRouteStateMachine.canTransition(from, to, fromReception: fromReception);
+    if (!can) {
+      throw StateError('Transition $from → $to non autorisée');
+    }
+
+    // 3) Effectuer l'UPDATE (force retour, lève si 0 ligne affectée)
     await _supabase
         .from('cours_de_route')
         .update({'statut': to.db})
         .eq('id', id)
-        .select('id')
+        .select<Map<String, dynamic>>('id')
         .single();
   }
   
