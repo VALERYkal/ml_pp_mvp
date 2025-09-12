@@ -159,4 +159,31 @@ extension UserRoleX on UserRole {
     UserRole.lecture => '/dashboard/lecture',
     UserRole.pca => '/dashboard/pca',
   };
+
+  /// Chemin du dashboard pour ce rôle
+  String get dashboardPath => switch (this) {
+    UserRole.admin => '/dashboard/admin',
+    UserRole.directeur => '/dashboard/directeur',
+    UserRole.gerant => '/dashboard/gerant',
+    UserRole.operateur => '/dashboard/operateur',
+    UserRole.pca => '/dashboard/pca',
+    UserRole.lecture => '/dashboard/lecture',
+  };
+
+  /// Parse depuis la base de données avec validation stricte
+  /// 
+  /// ⚠️ Pas de fallback "lecture" - retourne null si la valeur n'est pas reconnue
+  static UserRole? fromDb(String? raw) {
+    if (raw == null) return null;
+    final v = raw.trim().toUpperCase();
+    switch (v) {
+      case 'ADMIN': return UserRole.admin;
+      case 'DIRECTEUR': return UserRole.directeur;
+      case 'GERANT': return UserRole.gerant;
+      case 'OPERATEUR': return UserRole.operateur;
+      case 'PCA': return UserRole.pca;
+      case 'LECTURE': return UserRole.lecture;
+      default: return null; // ⚠️ pas de fallback "lecture"
+    }
+  }
 }
