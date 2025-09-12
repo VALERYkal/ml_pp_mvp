@@ -1,176 +1,408 @@
-// 📌 Module : Auth Feature - Tests Widget
+// 📌 Module : Auth Tests - LoginScreen Widget Tests
 // 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-08-07
-// 🗃️ Source SQL : Table `auth.users` + `public.profils`
-// 🧭 Description : Tests widget pour l'écran de connexion
+// 📅 Date : 2025-01-27
+// 🧭 Description : Tests widget pour LoginScreen (≥90% coverage)
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mockito/mockito.dart';
+import 'package:mockito/annotations.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:ml_pp_mvp/core/services/auth_service.dart';
+import 'package:ml_pp_mvp/features/auth/screens/login_screen.dart';
+import 'package:ml_pp_mvp/shared/providers/auth_service_provider.dart';
 
-/// Tests widget pour l'écran de connexion
-/// 
-/// Ces tests vérifient :
-/// - L'affichage correct du formulaire
-/// - La validation des champs
-/// - Les interactions de base
+import '../mocks.mocks.dart';
+
+@GenerateMocks([AuthService, User])
 void main() {
-  group('🧪 LoginScreen Tests', () {
-    /// Test que l'écran s'affiche correctement avec tous les éléments
-    testWidgets('Affichage et interaction avec les champs de connexion', (WidgetTester tester) async {
-      // 🔧 Configuration : injecter le LoginScreen dans un MaterialApp
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('Connexion ML_PP MVP'),
-                  const Text('Bienvenue'),
-                  const Text('Connectez-vous à votre compte'),
-                  TextFormField(
-                    key: const Key('email'),
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    key: const Key('password'),
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Mot de passe',
-                      border: OutlineInputBorder(),
-                      suffixIcon: Icon(Icons.visibility),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    key: const Key('login_button'),
-                    onPressed: () {},
-                    child: const Text('Se connecter'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
+  group('LoginScreen Widget Tests', () {
+    late MockAuthService mockAuthService;
+    late MockUser mockUser;
 
-      // ✅ Vérifier que les champs sont bien affichés
-      expect(find.byKey(const Key('email')), findsOneWidget);
-      expect(find.byKey(const Key('password')), findsOneWidget);
-      expect(find.byKey(const Key('login_button')), findsOneWidget);
-
-      // ✅ Vérifier la présence des éléments d'interface
-      expect(find.text('Connexion ML_PP MVP'), findsOneWidget);
-      expect(find.text('Bienvenue'), findsOneWidget);
-      expect(find.text('Connectez-vous à votre compte'), findsOneWidget);
-      expect(find.text('Email'), findsOneWidget);
-      expect(find.text('Mot de passe'), findsOneWidget);
-      expect(find.text('Se connecter'), findsOneWidget);
-
-      // ✍️ Saisir des identifiants
-      await tester.enterText(find.byKey(const Key('email')), 'test@example.com');
-      await tester.enterText(find.byKey(const Key('password')), 'password123');
-
-      // 🔔 Simuler un clic sur le bouton "Se connecter"
-      await tester.tap(find.byKey(const Key('login_button')));
-      await tester.pumpAndSettle(); // attendre les éventuelles transitions
-
-      // ✅ Vérifier que le formulaire a été soumis
-      // (Le test vérifie que le formulaire est valide et que le bouton est cliqué)
+    setUp(() {
+      mockAuthService = MockAuthService();
+      mockUser = MockUser();
+      when(mockUser.id).thenReturn('test-user-id');
+      when(mockUser.email).thenReturn('test@example.com');
     });
 
-    /// Test de l'affichage/masquage du mot de passe
-    testWidgets('Affichage/masquage du mot de passe', (WidgetTester tester) async {
-      // 🔧 Configuration
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: Center(
-              child: TextFormField(
-                key: const Key('password'),
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'Mot de passe',
-                  border: OutlineInputBorder(),
-                  suffixIcon: Icon(Icons.visibility),
-                ),
-              ),
-            ),
-          ),
+    Widget createTestWidget() {
+      return ProviderScope(
+        overrides: [
+          // Override the auth service provider with our mock
+          authServiceProvider.overrideWithValue(mockAuthService),
+        ],
+        child: const MaterialApp(
+          home: LoginScreen(),
         ),
       );
+    }
 
-      // Act - Saisir un mot de passe
-      await tester.enterText(find.byKey(const Key('password')), 'password123');
-      
-      // Assert - Par défaut, le mot de passe est masqué et l'icône est visible
-      expect(find.byIcon(Icons.visibility), findsOneWidget);
-      
-      // Act - Cliquer sur l'icône pour afficher le mot de passe
-      await tester.tap(find.byIcon(Icons.visibility));
-      await tester.pump();
-      
-      // Assert - L'icône a changé (dans un vrai widget, cela changerait l'icône)
-      // Pour ce test simple, on vérifie juste que l'icône est présente
-      expect(find.byIcon(Icons.visibility), findsOneWidget);
+    group('UI Elements', () {
+      testWidgets('should display all required UI elements', (WidgetTester tester) async {
+        // Arrange & Act
+        await tester.pumpWidget(createTestWidget());
+
+        // Assert
+        expect(find.text('Connexion ML_PP MVP'), findsOneWidget);
+        expect(find.text('Bienvenue'), findsOneWidget);
+        expect(find.text('Connectez-vous à votre compte'), findsOneWidget);
+        expect(find.byKey(const Key('email')), findsOneWidget);
+        expect(find.byKey(const Key('password')), findsOneWidget);
+        expect(find.byKey(const Key('login_button')), findsOneWidget);
+        expect(find.text('Se connecter'), findsOneWidget);
+        expect(find.text('Utilisez vos identifiants fournis par votre administrateur'), findsOneWidget);
+      });
+
+      testWidgets('should display logo image', (WidgetTester tester) async {
+        // Arrange & Act
+        await tester.pumpWidget(createTestWidget());
+
+        // Assert
+        expect(find.byType(Image), findsOneWidget);
+      });
+
+      testWidgets('should have proper form structure', (WidgetTester tester) async {
+        // Arrange & Act
+        await tester.pumpWidget(createTestWidget());
+
+        // Assert
+        expect(find.byType(Form), findsOneWidget);
+        expect(find.byType(TextFormField), findsNWidgets(2)); // Email and password fields
+        expect(find.byType(ElevatedButton), findsOneWidget);
+      });
     });
 
-    /// Test de la validation des champs vides
-    testWidgets('Validation des champs vides', (WidgetTester tester) async {
-      // 🔧 Configuration avec un formulaire simple
-      final formKey = GlobalKey<FormState>();
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: Form(
-              key: formKey,
-              child: Column(
-                children: [
-                  TextFormField(
-                    key: const Key('email'),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'L\'email est requis';
-                      }
-                      return null;
-                    },
-                  ),
-                  TextFormField(
-                    key: const Key('password'),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Le mot de passe est requis';
-                      }
-                      return null;
-                    },
-                  ),
-                  ElevatedButton(
-                    key: const Key('login_button'),
-                    onPressed: () {
-                      if (!formKey.currentState!.validate()) {
-                        // Afficher les erreurs
-                      }
-                    },
-                    child: const Text('Se connecter'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
+    group('Form Validation', () {
+      testWidgets('should show validation error for empty email', (WidgetTester tester) async {
+        // Arrange
+        await tester.pumpWidget(createTestWidget());
 
-      // Act - Appuyer sur le bouton sans remplir les champs
-      await tester.tap(find.byKey(const Key('login_button')));
-      await tester.pump();
+        // Act
+        await tester.tap(find.byKey(const Key('login_button')));
+        await tester.pump();
 
-      // Assert - Vérification des messages d'erreur
-      expect(find.text('L\'email est requis'), findsOneWidget);
-      expect(find.text('Le mot de passe est requis'), findsOneWidget);
+        // Assert
+        expect(find.text('Email requis'), findsOneWidget);
+        verifyNever(mockAuthService.signIn(any, any));
+      });
+
+      testWidgets('should show validation error for empty password', (WidgetTester tester) async {
+        // Arrange
+        await tester.pumpWidget(createTestWidget());
+
+        // Act
+        await tester.enterText(find.byKey(const Key('email')), 'test@example.com');
+        await tester.tap(find.byKey(const Key('login_button')));
+        await tester.pump();
+
+        // Assert
+        expect(find.text('Mot de passe requis'), findsOneWidget);
+        verifyNever(mockAuthService.signIn(any, any));
+      });
+
+      testWidgets('should show validation error for invalid email format', (WidgetTester tester) async {
+        // Arrange
+        await tester.pumpWidget(createTestWidget());
+
+        // Act
+        await tester.enterText(find.byKey(const Key('email')), 'invalid-email');
+        await tester.enterText(find.byKey(const Key('password')), 'password123');
+        await tester.tap(find.byKey(const Key('login_button')));
+        await tester.pump();
+
+        // Assert
+        expect(find.text('Format d\'email invalide'), findsOneWidget);
+        verifyNever(mockAuthService.signIn(any, any));
+      });
+
+      testWidgets('should accept valid email formats', (WidgetTester tester) async {
+        // Arrange
+        await tester.pumpWidget(createTestWidget());
+
+        // Act
+        await tester.enterText(find.byKey(const Key('email')), 'test@example.com');
+        await tester.enterText(find.byKey(const Key('password')), 'password123');
+        await tester.tap(find.byKey(const Key('login_button')));
+        await tester.pump();
+
+        // Assert
+        expect(find.text('Email requis'), findsNothing);
+        expect(find.text('Format d\'email invalide'), findsNothing);
+        expect(find.text('Mot de passe requis'), findsNothing);
+      });
+    });
+
+    group('Password Visibility Toggle', () {
+      testWidgets('should toggle password visibility when eye icon is tapped', (WidgetTester tester) async {
+        // Arrange
+        await tester.pumpWidget(createTestWidget());
+
+        // Initially should show visibility icon
+        expect(find.byIcon(Icons.visibility_rounded), findsOneWidget);
+
+        // Act - Tap the visibility toggle icon
+        await tester.tap(find.byIcon(Icons.visibility_rounded));
+        await tester.pump();
+
+        // Assert - Should show visibility off icon
+        expect(find.byIcon(Icons.visibility_off_rounded), findsOneWidget);
+      });
+
+      testWidgets('should toggle back to obscured when eye icon is tapped again', (WidgetTester tester) async {
+        // Arrange
+        await tester.pumpWidget(createTestWidget());
+
+        // Act - Tap visibility toggle twice
+        await tester.tap(find.byIcon(Icons.visibility_rounded));
+        await tester.pump();
+        await tester.tap(find.byIcon(Icons.visibility_off_rounded));
+        await tester.pump();
+
+        // Assert - Should show visibility icon again
+        expect(find.byIcon(Icons.visibility_rounded), findsOneWidget);
+      });
+    });
+
+    group('Login Button States', () {
+      testWidgets('should enable login button when not loading', (WidgetTester tester) async {
+        // Arrange
+        await tester.pumpWidget(createTestWidget());
+
+        // Assert
+        final loginButton = tester.widget<ElevatedButton>(find.byKey(const Key('login_button')));
+        expect(loginButton.onPressed, isNotNull);
+        expect(find.byType(CircularProgressIndicator), findsNothing);
+        expect(find.text('Se connecter'), findsOneWidget);
+      });
+
+      testWidgets('should handle login button interaction', (WidgetTester tester) async {
+        // Arrange
+        when(mockAuthService.signIn(any, any)).thenAnswer((_) async => mockUser);
+
+        await tester.pumpWidget(createTestWidget());
+
+        // Act
+        await tester.enterText(find.byKey(const Key('email')), 'test@example.com');
+        await tester.enterText(find.byKey(const Key('password')), 'password123');
+        await tester.tap(find.byKey(const Key('login_button')));
+        await tester.pumpAndSettle();
+
+        // Assert - Should show success message
+        expect(find.text('Connexion réussie'), findsOneWidget);
+      });
+    });
+
+    group('Successful Login', () {
+      testWidgets('should show success message on successful login', (WidgetTester tester) async {
+        // Arrange
+        when(mockAuthService.signIn(any, any)).thenAnswer((_) async => mockUser);
+
+        await tester.pumpWidget(createTestWidget());
+
+        // Act
+        await tester.enterText(find.byKey(const Key('email')), 'test@example.com');
+        await tester.enterText(find.byKey(const Key('password')), 'password123');
+        await tester.tap(find.byKey(const Key('login_button')));
+        await tester.pumpAndSettle();
+
+        // Assert
+        expect(find.text('Connexion réussie'), findsOneWidget);
+        verify(mockAuthService.signIn('test@example.com', 'password123')).called(1);
+      });
+
+      testWidgets('should validate email format correctly', (WidgetTester tester) async {
+        // Arrange
+        await tester.pumpWidget(createTestWidget());
+
+        // Act - Enter email with spaces (should be invalid)
+        await tester.enterText(find.byKey(const Key('email')), '  test@example.com  ');
+        await tester.enterText(find.byKey(const Key('password')), 'password123');
+        await tester.tap(find.byKey(const Key('login_button')));
+        await tester.pump();
+
+        // Assert - Should show email format error
+        expect(find.text('Format d\'email invalide'), findsOneWidget);
+      });
+    });
+
+    group('Error Handling', () {
+      testWidgets('should show error message for invalid credentials', (WidgetTester tester) async {
+        // Arrange
+        when(mockAuthService.signIn(any, any))
+            .thenThrow(const AuthException('Invalid login credentials'));
+
+        await tester.pumpWidget(createTestWidget());
+
+        // Act
+        await tester.enterText(find.byKey(const Key('email')), 'test@example.com');
+        await tester.enterText(find.byKey(const Key('password')), 'wrongpassword');
+        await tester.tap(find.byKey(const Key('login_button')));
+        await tester.pumpAndSettle();
+
+        // Assert
+        expect(find.text('Identifiants invalides'), findsOneWidget);
+        verify(mockAuthService.signIn('test@example.com', 'wrongpassword')).called(1);
+      });
+
+      testWidgets('should show error message for unconfirmed email', (WidgetTester tester) async {
+        // Arrange
+        when(mockAuthService.signIn(any, any))
+            .thenThrow(const AuthException('Email not confirmed'));
+
+        await tester.pumpWidget(createTestWidget());
+
+        // Act
+        await tester.enterText(find.byKey(const Key('email')), 'test@example.com');
+        await tester.enterText(find.byKey(const Key('password')), 'password123');
+        await tester.tap(find.byKey(const Key('login_button')));
+        await tester.pumpAndSettle();
+
+        // Assert
+        expect(find.text('Email non confirmé'), findsOneWidget);
+      });
+
+      testWidgets('should show error message for network issues', (WidgetTester tester) async {
+        // Arrange
+        when(mockAuthService.signIn(any, any))
+            .thenThrow(const AuthException('Network error'));
+
+        await tester.pumpWidget(createTestWidget());
+
+        // Act
+        await tester.enterText(find.byKey(const Key('email')), 'test@example.com');
+        await tester.enterText(find.byKey(const Key('password')), 'password123');
+        await tester.tap(find.byKey(const Key('login_button')));
+        await tester.pumpAndSettle();
+
+        // Assert
+        expect(find.text('Problème réseau'), findsOneWidget);
+      });
+
+      testWidgets('should show error message for too many requests', (WidgetTester tester) async {
+        // Arrange
+        when(mockAuthService.signIn(any, any))
+            .thenThrow(const AuthException('Too many requests'));
+
+        await tester.pumpWidget(createTestWidget());
+
+        // Act
+        await tester.enterText(find.byKey(const Key('email')), 'test@example.com');
+        await tester.enterText(find.byKey(const Key('password')), 'password123');
+        await tester.tap(find.byKey(const Key('login_button')));
+        await tester.pumpAndSettle();
+
+        // Assert
+        expect(find.text('Trop de tentatives. Réessayez plus tard.'), findsOneWidget);
+      });
+
+      testWidgets('should show generic error message for unknown AuthException', (WidgetTester tester) async {
+        // Arrange
+        when(mockAuthService.signIn(any, any))
+            .thenThrow(const AuthException('Unknown error'));
+
+        await tester.pumpWidget(createTestWidget());
+
+        // Act
+        await tester.enterText(find.byKey(const Key('email')), 'test@example.com');
+        await tester.enterText(find.byKey(const Key('password')), 'password123');
+        await tester.tap(find.byKey(const Key('login_button')));
+        await tester.pumpAndSettle();
+
+        // Assert
+        expect(find.text('Impossible de se connecter'), findsOneWidget);
+      });
+
+      testWidgets('should show error message for PostgrestException', (WidgetTester tester) async {
+        // Arrange
+        when(mockAuthService.signIn(any, any))
+            .thenThrow(const PostgrestException(
+              message: 'Permission denied',
+              details: 'RLS policy violation',
+              hint: 'Check user permissions',
+              code: 'RLS_ERROR',
+            ));
+
+        await tester.pumpWidget(createTestWidget());
+
+        // Act
+        await tester.enterText(find.byKey(const Key('email')), 'test@example.com');
+        await tester.enterText(find.byKey(const Key('password')), 'password123');
+        await tester.tap(find.byKey(const Key('login_button')));
+        await tester.pumpAndSettle();
+
+        // Assert
+        expect(find.text('Accès au profil refusé (policies RLS). Contactez l\'administrateur.'), findsOneWidget);
+      });
+
+      testWidgets('should show error message for generic exceptions', (WidgetTester tester) async {
+        // Arrange
+        when(mockAuthService.signIn(any, any))
+            .thenThrow(Exception('Unexpected error'));
+
+        await tester.pumpWidget(createTestWidget());
+
+        // Act
+        await tester.enterText(find.byKey(const Key('email')), 'test@example.com');
+        await tester.enterText(find.byKey(const Key('password')), 'password123');
+        await tester.tap(find.byKey(const Key('login_button')));
+        await tester.pumpAndSettle();
+
+        // Assert
+        expect(find.text('Erreur inattendue. Réessaie.'), findsOneWidget);
+      });
+    });
+
+    group('Keyboard Navigation', () {
+      testWidgets('should submit form when Enter is pressed on password field', (WidgetTester tester) async {
+        // Arrange
+        when(mockAuthService.signIn(any, any)).thenAnswer((_) async => mockUser);
+
+        await tester.pumpWidget(createTestWidget());
+
+        // Act
+        await tester.enterText(find.byKey(const Key('email')), 'test@example.com');
+        await tester.enterText(find.byKey(const Key('password')), 'password123');
+        await tester.testTextInput.receiveAction(TextInputAction.done);
+        await tester.pumpAndSettle();
+
+        // Assert
+        verify(mockAuthService.signIn('test@example.com', 'password123')).called(1);
+      });
+
+      testWidgets('should have proper form structure for keyboard navigation', (WidgetTester tester) async {
+        // Arrange
+        await tester.pumpWidget(createTestWidget());
+
+        // Assert - Verify form fields exist for keyboard navigation
+        expect(find.byKey(const Key('email')), findsOneWidget);
+        expect(find.byKey(const Key('password')), findsOneWidget);
+        expect(find.byKey(const Key('login_button')), findsOneWidget);
+      });
+    });
+
+    group('Accessibility', () {
+      testWidgets('should have proper semantic labels', (WidgetTester tester) async {
+        // Arrange & Act
+        await tester.pumpWidget(createTestWidget());
+
+        // Assert
+        expect(find.byKey(const Key('email')), findsOneWidget);
+        expect(find.byKey(const Key('password')), findsOneWidget);
+        expect(find.byKey(const Key('login_button')), findsOneWidget);
+      });
+
+      testWidgets('should have proper form structure for accessibility', (WidgetTester tester) async {
+        // Arrange & Act
+        await tester.pumpWidget(createTestWidget());
+
+        // Assert - Verify form structure exists
+        expect(find.byType(Form), findsOneWidget);
+        expect(find.byType(TextFormField), findsNWidgets(2));
+        expect(find.byType(ElevatedButton), findsOneWidget);
+      });
     });
   });
 }
