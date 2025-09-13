@@ -60,7 +60,7 @@ final coursArrivesProvider = FutureProvider<List<CoursArriveItem>>((ref) async {
       ''';
     final res = await client
         .from('cours_de_route')
-        .select<List<dynamic>>(select)
+        .select(select)
         .eq('statut', StatutCoursConverter.toDb(StatutCours.arrive))
         .order('date_chargement', ascending: false)
         .order('created_at', ascending: false);
@@ -84,9 +84,9 @@ final coursArrivesProvider = FutureProvider<List<CoursArriveItem>>((ref) async {
   } catch (_) {}
 
   return rows.map((m) {
-    final prod = m['produit'] ?? <String, dynamic>{};
-    final dep = m['depots'] ?? <String, dynamic>{};
-    final four = m['fournisseurs'] ?? <String, dynamic>{};
+    final prod = m['produit'] ?? {};
+    final dep = m['depots'] ?? {};
+    final four = m['fournisseurs'] ?? {};
     final produitId = m['produit_id'] as String?;
     final dateVal = m['date_chargement'];
     final parsedDate = dateVal == null

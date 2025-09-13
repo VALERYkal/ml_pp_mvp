@@ -3,14 +3,14 @@
 // 📅 Date : 2025-08-07
 // 🧭 Description : Providers Riverpod pour la gestion des cours de route
 
-import 'package:flutter_riverpod/flutter_riverpod.dart' as Riverpod;
+import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ml_pp_mvp/features/cours_route/data/cours_de_route_service.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 
 /// Provider: liste des CDR au statut ARRIVE (sélectionnables pour Réception)
 final coursDeRouteArrivesProvider =
-    Riverpod.FutureProvider.autoDispose<List<CoursDeRoute>>((ref) async {
+    riverpod.FutureProvider.autoDispose<List<CoursDeRoute>>((ref) async {
   final service = ref.read(coursDeRouteServiceProvider);
   return await service.getByStatut(StatutCours.arrive);
 });
@@ -24,7 +24,7 @@ final coursDeRouteArrivesProvider =
 /// ```dart
 /// final service = ref.read(coursDeRouteServiceProvider);
 /// ```
-final coursDeRouteServiceProvider = Riverpod.Provider<CoursDeRouteService>((ref) {
+final coursDeRouteServiceProvider = riverpod.Provider<CoursDeRouteService>((ref) {
   return CoursDeRouteService.withClient(Supabase.instance.client);
 });
 
@@ -41,7 +41,7 @@ final coursDeRouteServiceProvider = Riverpod.Provider<CoursDeRouteService>((ref)
 /// ```dart
 /// final coursAsync = ref.watch(coursDeRouteListProvider);
 /// ```
-final coursDeRouteListProvider = Riverpod.FutureProvider<List<CoursDeRoute>>((ref) async {
+final coursDeRouteListProvider = riverpod.FutureProvider<List<CoursDeRoute>>((ref) async {
   final service = ref.read(coursDeRouteServiceProvider);
   return await service.getAll();
 });
@@ -55,7 +55,7 @@ final coursDeRouteListProvider = Riverpod.FutureProvider<List<CoursDeRoute>>((re
 /// ```dart
 /// final coursActifsAsync = ref.watch(coursDeRouteActifsProvider);
 /// ```
-final coursDeRouteActifsProvider = Riverpod.FutureProvider<List<CoursDeRoute>>((ref) async {
+final coursDeRouteActifsProvider = riverpod.FutureProvider<List<CoursDeRoute>>((ref) async {
   final service = ref.read(coursDeRouteServiceProvider);
   return await service.getActifs();
 });
@@ -69,7 +69,7 @@ final coursDeRouteActifsProvider = Riverpod.FutureProvider<List<CoursDeRoute>>((
 /// ```dart
 /// final createState = ref.watch(createCoursDeRouteProvider);
 /// ```
-final createCoursDeRouteProvider = Riverpod.FutureProvider.family<void, CoursDeRoute>((ref, cours) async {
+final createCoursDeRouteProvider = riverpod.FutureProvider.family<void, CoursDeRoute>((ref, cours) async {
   final service = ref.read(coursDeRouteServiceProvider);
   await service.create(cours);
   
@@ -87,7 +87,7 @@ final createCoursDeRouteProvider = Riverpod.FutureProvider.family<void, CoursDeR
 /// ```dart
 /// final updateState = ref.watch(updateCoursDeRouteProvider(cours));
 /// ```
-final updateCoursDeRouteProvider = Riverpod.FutureProvider.family<void, CoursDeRoute>((ref, cours) async {
+final updateCoursDeRouteProvider = riverpod.FutureProvider.family<void, CoursDeRoute>((ref, cours) async {
   final service = ref.read(coursDeRouteServiceProvider);
   await service.update(cours);
   
@@ -105,7 +105,7 @@ final updateCoursDeRouteProvider = Riverpod.FutureProvider.family<void, CoursDeR
 /// ```dart
 /// final deleteState = ref.watch(deleteCoursDeRouteProvider('uuid-123'));
 /// ```
-final deleteCoursDeRouteProvider = Riverpod.FutureProvider.family<void, String>((ref, id) async {
+final deleteCoursDeRouteProvider = riverpod.FutureProvider.family<void, String>((ref, id) async {
   final service = ref.read(coursDeRouteServiceProvider);
   await service.delete(id);
   
@@ -126,7 +126,7 @@ final deleteCoursDeRouteProvider = Riverpod.FutureProvider.family<void, String>(
 ///   to: StatutCours.transit,
 /// ));
 /// ```
-final updateStatutCoursDeRouteProvider = Riverpod.FutureProvider.family<void, Map<String, dynamic>>((ref, params) async {
+final updateStatutCoursDeRouteProvider = riverpod.FutureProvider.family<void, Map<String, dynamic>>((ref, params) async {
   final service = ref.read(coursDeRouteServiceProvider);
   final id = params['id'] as String;
   final to = params['to'] as StatutCours;
@@ -148,7 +148,7 @@ final updateStatutCoursDeRouteProvider = Riverpod.FutureProvider.family<void, Ma
 /// ```dart
 /// final coursAsync = ref.watch(coursDeRouteByIdProvider('uuid-123'));
 /// ```
-final coursDeRouteByIdProvider = Riverpod.FutureProvider.family<CoursDeRoute?, String>((ref, id) async {
+final coursDeRouteByIdProvider = riverpod.FutureProvider.family<CoursDeRoute?, String>((ref, id) async {
   final service = ref.read(coursDeRouteServiceProvider);
   return await service.getById(id);
 });
@@ -162,7 +162,7 @@ final coursDeRouteByIdProvider = Riverpod.FutureProvider.family<CoursDeRoute?, S
 /// ```dart
 /// final coursEnTransit = ref.watch(coursDeRouteByStatutProvider(StatutCours.transit));
 /// ```
-final coursDeRouteByStatutProvider = Riverpod.FutureProvider.family<List<CoursDeRoute>, StatutCours>((ref, statut) async {
+final coursDeRouteByStatutProvider = riverpod.FutureProvider.family<List<CoursDeRoute>, StatutCours>((ref, statut) async {
   final service = ref.read(coursDeRouteServiceProvider);
   return await service.getByStatut(statut);
 });
@@ -171,7 +171,7 @@ final coursDeRouteByStatutProvider = Riverpod.FutureProvider.family<List<CoursDe
 /// 
 /// Permet de filtrer dynamiquement les cours selon différents critères.
 /// Utilisé dans les écrans de liste pour appliquer des filtres.
-class CoursDeRouteFilterNotifier extends Riverpod.StateNotifier<Map<String, dynamic>> {
+class CoursDeRouteFilterNotifier extends riverpod.StateNotifier<Map<String, dynamic>> {
   CoursDeRouteFilterNotifier() : super({});
   
   /// Applique un filtre par statut
@@ -217,6 +217,6 @@ class CoursDeRouteFilterNotifier extends Riverpod.StateNotifier<Map<String, dyna
 }
 
 /// Provider pour le notifier de filtrage
-final coursDeRouteFilterProvider = Riverpod.StateNotifierProvider<CoursDeRouteFilterNotifier, Map<String, dynamic>>((ref) {
+final coursDeRouteFilterProvider = riverpod.StateNotifierProvider<CoursDeRouteFilterNotifier, Map<String, dynamic>>((ref) {
   return CoursDeRouteFilterNotifier();
 });

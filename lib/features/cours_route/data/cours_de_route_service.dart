@@ -293,7 +293,7 @@ class CoursDeRouteService {
     // 1) Charger le statut actuel (fail-fast si non trouvé/RLS)
     final current = await _supabase
         .from('cours_de_route')
-        .select<Map<String, dynamic>>('statut')
+        .select('statut')
         .eq('id', id)
         .single();
     final from = StatutCoursConverter.fromDb(current['statut'] as String?);
@@ -309,7 +309,7 @@ class CoursDeRouteService {
         .from('cours_de_route')
         .update({'statut': to.db})
         .eq('id', id)
-        .select<Map<String, dynamic>>('id')
+        .select('id')
         .single();
   }
   
