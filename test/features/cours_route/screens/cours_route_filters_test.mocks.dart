@@ -133,12 +133,14 @@ class MockCoursDeRouteService extends _i1.Mock
     required String? cdrId,
     required _i5.CdrEtat? from,
     required _i5.CdrEtat? to,
+    String? userId,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#applyTransition, [], {
               #cdrId: cdrId,
               #from: from,
               #to: to,
+              #userId: userId,
             }),
             returnValue: _i3.Future<bool>.value(false),
           )

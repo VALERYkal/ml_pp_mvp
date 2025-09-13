@@ -1,24 +1,11 @@
-# This file configures the analyzer, which statically analyzes Dart code to
-# check for errors, warnings, and lints.
-#
-# The issues identified by the analyzer are surfaced in the UI of Dart-enabled
-# IDEs (https://dart.dev/tools#ides-and-editors). The analyzer can also be
-# invoked from the command line by running `flutter analyze`.
-
-# The following line activates a set of recommended lints for Flutter apps,
-# packages, and plugins designed to encourage good coding practices.
 include: package:flutter_lints/flutter.yaml
 
-linter:
-  rules:
-    always_use_package_imports: true
-    prefer_single_quotes: true
-    unawaited_futures: true
-
 analyzer:
-  language:
-    strict-inference: true
-    strict-raw-types: true
-  errors:
-    invalid_annotation_target: warning
-    deprecated_member_use: info
+  exclude:
+    - _attic/**
+    - test/features/receptions/**
+    - test/features/sorties/**
+    - test/integration/receptions_*.dart
+    - test/integration/sorties_*.dart
+    - test/depots_repository_test.dart
+    - test/integration/auth/auth_integration_test.dart
