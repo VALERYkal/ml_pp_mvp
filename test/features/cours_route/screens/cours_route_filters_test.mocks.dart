@@ -7,6 +7,7 @@ import 'dart:async' as _i3;
 
 import 'package:ml_pp_mvp/features/cours_route/data/cours_de_route_service.dart'
     as _i2;
+import 'package:ml_pp_mvp/features/cours_route/models/cdr_etat.dart' as _i5;
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart'
     as _i4;
 import 'package:mockito/mockito.dart' as _i1;
@@ -115,4 +116,41 @@ class MockCoursDeRouteService extends _i1.Mock
             ),
           )
           as _i3.Future<List<_i4.CoursDeRoute>>);
+
+  @override
+  _i3.Future<bool> canTransition({
+    required _i5.CdrEtat? from,
+    required _i5.CdrEtat? to,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#canTransition, [], {#from: from, #to: to}),
+            returnValue: _i3.Future<bool>.value(false),
+          )
+          as _i3.Future<bool>);
+
+  @override
+  _i3.Future<bool> applyTransition({
+    required String? cdrId,
+    required _i5.CdrEtat? from,
+    required _i5.CdrEtat? to,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#applyTransition, [], {
+              #cdrId: cdrId,
+              #from: from,
+              #to: to,
+            }),
+            returnValue: _i3.Future<bool>.value(false),
+          )
+          as _i3.Future<bool>);
+
+  @override
+  _i3.Future<Map<_i5.CdrEtat, int>> countByEtat() =>
+      (super.noSuchMethod(
+            Invocation.method(#countByEtat, []),
+            returnValue: _i3.Future<Map<_i5.CdrEtat, int>>.value(
+              <_i5.CdrEtat, int>{},
+            ),
+          )
+          as _i3.Future<Map<_i5.CdrEtat, int>>);
 }

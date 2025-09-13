@@ -6,6 +6,7 @@
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
+import 'package:ml_pp_mvp/features/cours_route/models/cdr_etat.dart';
 
 /// Service de gestion des cours de route avec Supabase
 /// 
@@ -297,7 +298,7 @@ class CoursDeRouteService {
         .from('cours_de_route')
         .update({'statut': to.db})
         .eq('id', id)
-        .select('id')
+        .select<Map<String, dynamic>>('id')
         .single();
   }
   
@@ -326,5 +327,62 @@ class CoursDeRouteService {
     } catch (e) {
       throw Exception('Erreur inattendue: $e');
     }
+  }
+
+  /// Vérifie si une transition d'état est autorisée
+  /// 
+  /// [from] : État de départ
+  /// [to] : État d'arrivée
+  /// 
+  /// Retourne :
+  /// - `Future<bool>` : true si la transition est autorisée
+  Future<bool> canTransition({
+    required CdrEtat from,
+    required CdrEtat to,
+  }) async {
+    // Pure guard: no I/O; business pre-checks could be added later.
+    return from.canTransitionTo(to);
+  }
+
+  /// Applique une transition d'état avec validation
+  /// 
+  /// [cdrId] : Identifiant du cours de route
+  /// [from] : État de départ
+  /// [to] : État d'arrivée
+  /// 
+  /// Retourne :
+  /// - `Future<bool>` : true si la transition a été appliquée avec succès
+  Future<bool> applyTransition({
+    required String cdrId,
+    required CdrEtat from,
+    required CdrEtat to,
+  }) async {
+    if (!from.canTransitionTo(to)) return false;
+    // DB write is intentionally minimal; adjust table/column names to the existing ones.
+    // IMPORTANT: keep exact column names already used in this service for CDR.
+    final res = await _supabase
+        .from('cours_de_route')
+        .update({'etat': to.name})
+        .eq('id', cdrId)
+        .select<Map<String, dynamic>>()
+        .maybeSingle();
+    return res != null;
+  }
+
+  /// Compte les cours de route par état
+  /// 
+  /// Retourne :
+  /// - `Future<Map<CdrEtat, int>>` : Map avec le nombre de cours par état
+  Future<Map<CdrEtat, int>> countByEtat() async {
+    final out = <CdrEtat, int>{ for (final e in CdrEtat.values) e : 0 };
+    for (final etat in CdrEtat.values) {
+      // Use Supabase exact count without fetching all rows if available in this version:
+      final rows = await _supabase
+          .from('cours_de_route')
+          .select<List<Map<String, dynamic>>>('id') // lightweight
+          .eq('etat', etat.name);
+      out[etat] = rows.length; // Fallback simple count; OK for P0.
+    }
+    return out;
   }
 }

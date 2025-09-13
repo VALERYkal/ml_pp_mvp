@@ -164,7 +164,7 @@ class CoursDeRoute with _$CoursDeRoute {
     @JsonKey(name: 'produit_id') required String produitId,
     
     /// Nom du produit (via jointure produits)
-    @JsonKey(ignore: true)
+    @JsonKey(includeFromJson: false, includeToJson: false)
     String? produitNom,
     
     /// Code du produit (jointure avec table produits)
@@ -194,7 +194,7 @@ class CoursDeRoute with _$CoursDeRoute {
     String? chauffeur,
 
     /// Champ d'affichage dédié si la colonne `chauffeur_nom` existe côté DB
-    @JsonKey(ignore: true)
+    @JsonKey(includeFromJson: false, includeToJson: false)
     String? chauffeurNom,
     
     /// Volume transporté en litres

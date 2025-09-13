@@ -418,7 +418,7 @@ class _AdvanceButtonState extends ConsumerState<_AdvanceButton> {
               try {
                 await ref
                     .read(coursDeRouteServiceProvider)
-                    .updateStatut(id: widget.c.id, to: nextEnum!);
+                    .updateStatut(id: widget.c.id, to: nextEnum);
                 if (mounted) {
                   showAppToast(context, 'Statut mis à jour → ${nextEnum.label}', type: ToastType.success);
                   // Rafraîchir les listes

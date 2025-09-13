@@ -36,7 +36,7 @@ mixin _$CoursDeRoute {
   String get produitId => throw _privateConstructorUsedError;
 
   /// Nom du produit (via jointure produits)
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   String? get produitNom => throw _privateConstructorUsedError;
 
   /// Code du produit (jointure avec table produits)
@@ -68,7 +68,7 @@ mixin _$CoursDeRoute {
   String? get chauffeur => throw _privateConstructorUsedError;
 
   /// Champ d'affichage dédié si la colonne `chauffeur_nom` existe côté DB
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   String? get chauffeurNom => throw _privateConstructorUsedError;
 
   /// Volume transporté en litres
@@ -130,14 +130,14 @@ abstract class $CoursDeRouteCopyWith<$Res> {
     String id,
     @JsonKey(name: 'fournisseur_id') String fournisseurId,
     @JsonKey(name: 'produit_id') String produitId,
-    @JsonKey(ignore: true) String? produitNom,
+    @JsonKey(includeFromJson: false, includeToJson: false) String? produitNom,
     @JsonKey(name: 'produit_code') String? produitCode,
     @JsonKey(name: 'depot_destination_id') String depotDestinationId,
     String? transporteur,
     @JsonKey(name: 'plaque_camion') String? plaqueCamion,
     @JsonKey(name: 'plaque_remorque') String? plaqueRemorque,
     String? chauffeur,
-    @JsonKey(ignore: true) String? chauffeurNom,
+    @JsonKey(includeFromJson: false, includeToJson: false) String? chauffeurNom,
     double? volume,
     @JsonKey(name: 'date_chargement') DateTime? dateChargement,
     @JsonKey(name: 'date_arrivee_prevue') DateTime? dateArriveePrevue,
@@ -281,14 +281,14 @@ abstract class _$$CoursDeRouteImplCopyWith<$Res>
     String id,
     @JsonKey(name: 'fournisseur_id') String fournisseurId,
     @JsonKey(name: 'produit_id') String produitId,
-    @JsonKey(ignore: true) String? produitNom,
+    @JsonKey(includeFromJson: false, includeToJson: false) String? produitNom,
     @JsonKey(name: 'produit_code') String? produitCode,
     @JsonKey(name: 'depot_destination_id') String depotDestinationId,
     String? transporteur,
     @JsonKey(name: 'plaque_camion') String? plaqueCamion,
     @JsonKey(name: 'plaque_remorque') String? plaqueRemorque,
     String? chauffeur,
-    @JsonKey(ignore: true) String? chauffeurNom,
+    @JsonKey(includeFromJson: false, includeToJson: false) String? chauffeurNom,
     double? volume,
     @JsonKey(name: 'date_chargement') DateTime? dateChargement,
     @JsonKey(name: 'date_arrivee_prevue') DateTime? dateArriveePrevue,
@@ -424,14 +424,14 @@ class _$CoursDeRouteImpl implements _CoursDeRoute {
     required this.id,
     @JsonKey(name: 'fournisseur_id') required this.fournisseurId,
     @JsonKey(name: 'produit_id') required this.produitId,
-    @JsonKey(ignore: true) this.produitNom,
+    @JsonKey(includeFromJson: false, includeToJson: false) this.produitNom,
     @JsonKey(name: 'produit_code') this.produitCode,
     @JsonKey(name: 'depot_destination_id') required this.depotDestinationId,
     this.transporteur,
     @JsonKey(name: 'plaque_camion') this.plaqueCamion,
     @JsonKey(name: 'plaque_remorque') this.plaqueRemorque,
     this.chauffeur,
-    @JsonKey(ignore: true) this.chauffeurNom,
+    @JsonKey(includeFromJson: false, includeToJson: false) this.chauffeurNom,
     this.volume,
     @JsonKey(name: 'date_chargement') this.dateChargement,
     @JsonKey(name: 'date_arrivee_prevue') this.dateArriveePrevue,
@@ -466,7 +466,7 @@ class _$CoursDeRouteImpl implements _CoursDeRoute {
 
   /// Nom du produit (via jointure produits)
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   final String? produitNom;
 
   /// Code du produit (jointure avec table produits)
@@ -505,7 +505,7 @@ class _$CoursDeRouteImpl implements _CoursDeRoute {
 
   /// Champ d'affichage dédié si la colonne `chauffeur_nom` existe côté DB
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   final String? chauffeurNom;
 
   /// Volume transporté en litres
@@ -643,7 +643,8 @@ abstract class _CoursDeRoute implements CoursDeRoute {
     required final String id,
     @JsonKey(name: 'fournisseur_id') required final String fournisseurId,
     @JsonKey(name: 'produit_id') required final String produitId,
-    @JsonKey(ignore: true) final String? produitNom,
+    @JsonKey(includeFromJson: false, includeToJson: false)
+    final String? produitNom,
     @JsonKey(name: 'produit_code') final String? produitCode,
     @JsonKey(name: 'depot_destination_id')
     required final String depotDestinationId,
@@ -651,7 +652,8 @@ abstract class _CoursDeRoute implements CoursDeRoute {
     @JsonKey(name: 'plaque_camion') final String? plaqueCamion,
     @JsonKey(name: 'plaque_remorque') final String? plaqueRemorque,
     final String? chauffeur,
-    @JsonKey(ignore: true) final String? chauffeurNom,
+    @JsonKey(includeFromJson: false, includeToJson: false)
+    final String? chauffeurNom,
     final double? volume,
     @JsonKey(name: 'date_chargement') final DateTime? dateChargement,
     @JsonKey(name: 'date_arrivee_prevue') final DateTime? dateArriveePrevue,
@@ -684,7 +686,7 @@ abstract class _CoursDeRoute implements CoursDeRoute {
 
   /// Nom du produit (via jointure produits)
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   String? get produitNom;
 
   /// Code du produit (jointure avec table produits)
@@ -723,7 +725,7 @@ abstract class _CoursDeRoute implements CoursDeRoute {
 
   /// Champ d'affichage dédié si la colonne `chauffeur_nom` existe côté DB
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   String? get chauffeurNom;
 
   /// Volume transporté en litres
