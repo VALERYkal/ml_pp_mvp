@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ml_pp_mvp/features/cours_route/models/cdr_etat.dart';
+import 'package:ml_pp_mvp/features/cours_route/providers/cdr_kpi_provider.dart';
 
 /// Carte KPI réutilisable
 class KpiCard extends StatelessWidget {
@@ -193,3 +195,55 @@ class KpiTilesWithStates extends ConsumerWidget {
   }
 }
 
+/// Widget KPI pour les cours de route par état
+class CdrKpiTiles extends ConsumerWidget {
+  const CdrKpiTiles({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final kpisAsync = ref.watch(cdrKpiCountsProvider);
+    
+    return kpisAsync.when(
+      loading: () => const Padding(
+        padding: EdgeInsets.all(16),
+        child: ShimmerRow(count: 4),
+      ),
+      error: (error, stack) => Padding(
+        padding: const EdgeInsets.all(16),
+        child: ErrorTile(
+          'Erreur lors du chargement des KPIs CDR: $error',
+          retry: () => ref.invalidate(cdrKpiCountsProvider),
+        ),
+      ),
+      data: (kpis) => Padding(
+        padding: const EdgeInsets.all(16),
+        child: Wrap(
+          spacing: 16,
+          runSpacing: 16,
+          children: [
+            KpiCard(
+              title: 'Cours planifiés',
+              value: kpis[CdrEtat.planifie] ?? 0,
+              icon: Icons.schedule,
+            ),
+            KpiCard(
+              title: 'Cours en cours',
+              value: kpis[CdrEtat.enCours] ?? 0,
+              icon: Icons.local_shipping,
+            ),
+            KpiCard(
+              title: 'Cours terminés',
+              value: kpis[CdrEtat.termine] ?? 0,
+              icon: Icons.check_circle,
+            ),
+            KpiCard(
+              title: 'Cours annulés',
+              value: kpis[CdrEtat.annule] ?? 0,
+              icon: Icons.cancel,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

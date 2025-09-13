@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
+import 'package:ml_pp_mvp/features/cours_route/models/cdr_etat.dart';
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_route_providers.dart';
 import 'package:ml_pp_mvp/shared/providers/ref_data_provider.dart' show refDataProvider, resolveName;
 import 'package:ml_pp_mvp/shared/ui/format.dart';
@@ -134,6 +135,15 @@ class CoursRouteDetailScreen extends ConsumerWidget {
                   ),
                 ],
               ),
+            ),
+          ),
+
+          // Boutons de transition d'état
+          Card(
+            margin: const EdgeInsets.only(bottom: 12),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: _TransitionButtons(cours: c),
             ),
           ),
 
@@ -351,6 +361,119 @@ class _InfoGrid extends StatelessWidget {
         );
       },
     );
+  }
+}
+
+class _TransitionButtons extends ConsumerWidget {
+  final CoursDeRoute cours;
+  const _TransitionButtons({required this.cours});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Mapping du statut actuel vers l'enum CdrEtat
+    final currentEtat = _mapStatutToEtat(cours.statut);
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Gestion d\'état',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: CdrEtat.values.map((etat) {
+            final isEnabled = currentEtat.canTransitionTo(etat);
+            final isCurrent = currentEtat == etat;
+            
+            return ElevatedButton.icon(
+              onPressed: isEnabled && !isCurrent 
+                  ? () => _handleTransition(context, ref, etat)
+                  : null,
+              icon: Icon(_getEtatIcon(etat)),
+              label: Text(_getEtatLabel(etat)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isCurrent 
+                    ? Theme.of(context).colorScheme.primary
+                    : null,
+                foregroundColor: isCurrent 
+                    ? Theme.of(context).colorScheme.onPrimary
+                    : null,
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  CdrEtat _mapStatutToEtat(StatutCours statut) {
+    switch (statut) {
+      case StatutCours.chargement:
+        return CdrEtat.planifie;
+      case StatutCours.transit:
+      case StatutCours.frontiere:
+      case StatutCours.arrive:
+        return CdrEtat.enCours;
+      case StatutCours.decharge:
+        return CdrEtat.termine;
+    }
+  }
+
+  IconData _getEtatIcon(CdrEtat etat) {
+    switch (etat) {
+      case CdrEtat.planifie:
+        return Icons.schedule;
+      case CdrEtat.enCours:
+        return Icons.local_shipping;
+      case CdrEtat.termine:
+        return Icons.check_circle;
+      case CdrEtat.annule:
+        return Icons.cancel;
+    }
+  }
+
+  String _getEtatLabel(CdrEtat etat) {
+    switch (etat) {
+      case CdrEtat.planifie:
+        return 'Planifier';
+      case CdrEtat.enCours:
+        return 'En cours';
+      case CdrEtat.termine:
+        return 'Terminer';
+      case CdrEtat.annule:
+        return 'Annuler';
+    }
+  }
+
+  Future<void> _handleTransition(BuildContext context, WidgetRef ref, CdrEtat toEtat) async {
+    final currentEtat = _mapStatutToEtat(cours.statut);
+    
+    try {
+      final service = ref.read(coursDeRouteServiceProvider);
+      final success = await service.applyTransition(
+        cdrId: cours.id,
+        from: currentEtat,
+        to: toEtat,
+        userId: 'current_user_id', // TODO: Récupérer l'ID utilisateur réel
+      );
+      
+      if (context.mounted) {
+        if (success) {
+          showAppToast(context, 'État mis à jour vers ${_getEtatLabel(toEtat)}', type: ToastType.success);
+          // Rafraîchir la fiche
+          ref.invalidate(coursDeRouteByIdProvider(cours.id));
+        } else {
+          showAppToast(context, 'Transition non autorisée', type: ToastType.error);
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        showAppToast(context, 'Erreur lors de la transition: $e', type: ToastType.error);
+      }
+    }
   }
 }
 

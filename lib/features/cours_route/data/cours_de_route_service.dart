@@ -7,6 +7,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cdr_etat.dart';
+import 'package:ml_pp_mvp/features/cours_route/data/cdr_logs_service.dart';
 
 /// Service de gestion des cours de route avec Supabase
 /// 
@@ -23,6 +24,9 @@ class CoursDeRouteService {
   /// Client Supabase injecté via le constructeur
   final SupabaseClient _supabase;
   
+  /// Service de logging des transitions
+  late final CdrLogsService _logsService;
+  
   /// Constructeur avec injection du client Supabase
   /// 
   /// [client] : Instance du client Supabase configuré
@@ -31,7 +35,9 @@ class CoursDeRouteService {
   /// ```dart
   /// final service = CoursDeRouteService.withClient(Supabase.instance.client);
   /// ```
-  CoursDeRouteService.withClient(this._supabase);
+  CoursDeRouteService.withClient(this._supabase) {
+    _logsService = CdrLogsService.withClient(_supabase);
+  }
   
   /// Récupère tous les cours de route
   /// 
@@ -349,6 +355,7 @@ class CoursDeRouteService {
   /// [cdrId] : Identifiant du cours de route
   /// [from] : État de départ
   /// [to] : État d'arrivée
+  /// [userId] : Identifiant de l'utilisateur qui effectue la transition
   /// 
   /// Retourne :
   /// - `Future<bool>` : true si la transition a été appliquée avec succès
@@ -356,8 +363,35 @@ class CoursDeRouteService {
     required String cdrId,
     required CdrEtat from,
     required CdrEtat to,
+    String? userId,
   }) async {
     if (!from.canTransitionTo(to)) return false;
+    
+    // Pré-validations métier (soft guards)
+    
+    // Si from==planifie && to==termine → return false (interdit)
+    if (from == CdrEtat.planifie && to == CdrEtat.termine) {
+      return false;
+    }
+    
+    // Si to==enCours, vérifier que les champs requis sont non-nuls
+    if (to == CdrEtat.enCours) {
+      final current = await _supabase
+          .from('cours_de_route')
+          .select<Map<String, dynamic>>('id, chauffeur_nom, citerne_id')
+          .eq('id', cdrId)
+          .maybeSingle();
+      
+      if (current == null) return false;
+      
+      // Vérifier les champs requis (ajuster selon le schéma réel)
+      final chauffeurNom = current['chauffeur_nom'] as String?;
+      final citerneId = current['citerne_id'] as String?;
+      
+      if (chauffeurNom == null || chauffeurNom.trim().isEmpty) return false;
+      if (citerneId == null || citerneId.trim().isEmpty) return false;
+    }
+    
     // DB write is intentionally minimal; adjust table/column names to the existing ones.
     // IMPORTANT: keep exact column names already used in this service for CDR.
     final res = await _supabase
@@ -366,6 +400,22 @@ class CoursDeRouteService {
         .eq('id', cdrId)
         .select<Map<String, dynamic>>()
         .maybeSingle();
+    
+    if (res != null && userId != null) {
+      // Enregistrer le log de transition (best-effort)
+      try {
+        await _logsService.logTransition(
+          cdrId: cdrId,
+          from: from,
+          to: to,
+          userId: userId,
+        );
+      } catch (e) {
+        // Ne pas faire échouer la transition si le log échoue
+        print('Erreur lors du logging de la transition CDR: $e');
+      }
+    }
+    
     return res != null;
   }
 

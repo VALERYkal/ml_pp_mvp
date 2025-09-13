@@ -17,6 +17,7 @@ import 'package:ml_pp_mvp/features/kpi/widgets/kpi_split_card.dart';
 import 'package:ml_pp_mvp/features/kpi/widgets/kpi_summary_card.dart';
 import 'package:ml_pp_mvp/features/kpi/models/kpi_models.dart';
 import 'package:ml_pp_mvp/shared/utils/formatters.dart';
+import 'package:ml_pp_mvp/features/dashboard/widgets/kpi_tiles.dart';
 
 class RoleDashboard extends ConsumerWidget {
   const RoleDashboard({super.key});
@@ -134,6 +135,8 @@ class RoleDashboard extends ConsumerWidget {
       padding: const EdgeInsets.all(16),
       children: [
         kpiCamions,
+        const SizedBox(height: 16),
+        const CdrKpiTiles(),
         const SizedBox(height: 16),
         kpiReceptions,
         const SizedBox(height: 16),
