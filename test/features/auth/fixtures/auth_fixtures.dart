@@ -19,7 +19,6 @@ class AuthFixtures {
         email: 'admin@test.com',
         emailConfirmedAt: DateTime.now().toIso8601String(),
         phone: '',
-        confirmedAt: DateTime.now().toIso8601String(),
         lastSignInAt: DateTime.now().toIso8601String(),
         role: 'authenticated',
         updatedAt: DateTime.now().toIso8601String(),
@@ -35,7 +34,6 @@ class AuthFixtures {
         email: 'directeur@test.com',
         emailConfirmedAt: DateTime.now().toIso8601String(),
         phone: '',
-        confirmedAt: DateTime.now().toIso8601String(),
         lastSignInAt: DateTime.now().toIso8601String(),
         role: 'authenticated',
         updatedAt: DateTime.now().toIso8601String(),
@@ -51,7 +49,6 @@ class AuthFixtures {
         email: 'gerant@test.com',
         emailConfirmedAt: DateTime.now().toIso8601String(),
         phone: '',
-        confirmedAt: DateTime.now().toIso8601String(),
         lastSignInAt: DateTime.now().toIso8601String(),
         role: 'authenticated',
         updatedAt: DateTime.now().toIso8601String(),
@@ -67,7 +64,6 @@ class AuthFixtures {
         email: 'operateur@test.com',
         emailConfirmedAt: DateTime.now().toIso8601String(),
         phone: '',
-        confirmedAt: DateTime.now().toIso8601String(),
         lastSignInAt: DateTime.now().toIso8601String(),
         role: 'authenticated',
         updatedAt: DateTime.now().toIso8601String(),
@@ -83,7 +79,6 @@ class AuthFixtures {
         email: 'pca@test.com',
         emailConfirmedAt: DateTime.now().toIso8601String(),
         phone: '',
-        confirmedAt: DateTime.now().toIso8601String(),
         lastSignInAt: DateTime.now().toIso8601String(),
         role: 'authenticated',
         updatedAt: DateTime.now().toIso8601String(),
@@ -99,7 +94,6 @@ class AuthFixtures {
         email: 'lecture@test.com',
         emailConfirmedAt: DateTime.now().toIso8601String(),
         phone: '',
-        confirmedAt: DateTime.now().toIso8601String(),
         lastSignInAt: DateTime.now().toIso8601String(),
         role: 'authenticated',
         updatedAt: DateTime.now().toIso8601String(),
@@ -109,72 +103,66 @@ class AuthFixtures {
   static Profil get adminProfil => Profil(
         id: 'admin-profil-id',
         userId: 'admin-user-id',
-        role: 'admin',
+        role: UserRole.admin,
         nomComplet: 'Admin User',
         email: 'admin@test.com',
         depotId: 'depot-1',
         createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
       );
 
   /// Profil test directeur
   static Profil get directeurProfil => Profil(
         id: 'directeur-profil-id',
         userId: 'directeur-user-id',
-        role: 'directeur',
+        role: UserRole.directeur,
         nomComplet: 'Directeur User',
         email: 'directeur@test.com',
         depotId: 'depot-1',
         createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
       );
 
   /// Profil test gérant
   static Profil get gerantProfil => Profil(
         id: 'gerant-profil-id',
         userId: 'gerant-user-id',
-        role: 'gerant',
+        role: UserRole.gerant,
         nomComplet: 'Gerant User',
         email: 'gerant@test.com',
         depotId: 'depot-1',
         createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
       );
 
   /// Profil test opérateur
   static Profil get operateurProfil => Profil(
         id: 'operateur-profil-id',
         userId: 'operateur-user-id',
-        role: 'operateur',
+        role: UserRole.operateur,
         nomComplet: 'Operateur User',
         email: 'operateur@test.com',
         depotId: 'depot-1',
         createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
       );
 
   /// Profil test PCA
   static Profil get pcaProfil => Profil(
         id: 'pca-profil-id',
         userId: 'pca-user-id',
-        role: 'pca',
+        role: UserRole.pca,
         nomComplet: 'PCA User',
         email: 'pca@test.com',
         depotId: 'depot-1',
         createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
       );
 
   /// Profil test lecture
   static Profil get lectureProfil => Profil(
         id: 'lecture-profil-id',
         userId: 'lecture-user-id',
-        role: 'lecture',
+        role: UserRole.lecture,
         nomComplet: 'Lecture User',
         email: 'lecture@test.com',
         depotId: 'depot-1',
         createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
       );
 
   /// Données JSON pour profil admin
