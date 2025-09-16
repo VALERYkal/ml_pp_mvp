@@ -8,10 +8,8 @@ import 'package:ml_pp_mvp/features/cours_route/screens/cours_route_list_screen.d
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 import 'package:ml_pp_mvp/features/cours_route/data/cours_de_route_service.dart';
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_route_providers.dart';
+import '../../../helpers/cours_route_test_helpers.dart';
 
-import 'cours_route_filters_test.mocks.dart';
-
-@GenerateMocks([CoursDeRouteService])
 void main() {
   late MockCoursDeRouteService mockService;
 

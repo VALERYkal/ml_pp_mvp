@@ -32,12 +32,17 @@ cursor.json              # Configuration IA (Cursor)
 Contient toutes les spécifications et documents nécessaires :
 - ✅ `ML pp mvp PRD.md` – exigences produit
 - ✅ `schema_supabase.md` et `schemaSQL.md` – structure base de données
-- ✅ `user_stories_final.md` – cas d’usage par rôle
+- ✅ `user_stories_final.md` – cas d'usage par rôle
 - ✅ `ux_ui_wireframes.md` – maquettes et navigation
 - ✅ `architecture.md` – contraintes techniques, design system
-- ✅ `checklist_dev.md` – suivi d’implémentation
+- ✅ `checklist_dev.md` – suivi d'implémentation
 - ✅ `plan de dev.md` – jalons de développement
 - ✅ `contexte_logique_metie_ml_pp_mvp.md` – logique métier modulaire
+
+### 🔧 Corrections et Fixes
+- ✅ `mock_conflict_fix_summary.md` – Résolution conflit Mockito MockCoursDeRouteService
+- ✅ `technical/mock_architecture.md` – Architecture des mocks CDR
+- ✅ `quick_fixes/mock_conflict_resolution.md` – Guide rapide de correction
 
 ---
 

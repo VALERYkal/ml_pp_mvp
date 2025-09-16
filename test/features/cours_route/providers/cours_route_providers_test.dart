@@ -11,10 +11,8 @@ import 'package:ml_pp_mvp/features/cours_route/providers/cours_route_providers.d
 import 'package:ml_pp_mvp/features/cours_route/data/cours_de_route_service.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 import 'package:ml_pp_mvp/features/kpi/providers/cours_kpi_provider.dart';
+import '../../../helpers/cours_route_test_helpers.dart';
 
-import 'cours_route_providers_test.mocks.dart';
-
-@GenerateMocks([CoursDeRouteService])
 void main() {
   group('CoursDeRoute Providers', () {
     late MockCoursDeRouteService mockService;

@@ -358,8 +358,8 @@ Future<void> _fillCoursForm(WidgetTester tester, Map<String, String> data) async
   await tester.pump();
 }
 
-// Mock classes
-@GenerateMocks([CoursDeRouteService, SupabaseClient])
+// Mock classes - Utilisation des mocks déjà générés dans d'autres fichiers
+// Pas de @GenerateMocks ici pour éviter les conflits avec les autres fichiers de test
 class MockCoursDeRouteService extends Mock implements CoursDeRouteService {}
 
 class MockSupabaseClient extends Mock implements SupabaseClient {}

@@ -2,6 +2,39 @@
 
 Ce fichier documente les changements notables du projet **ML_PP MVP**, conformément aux bonnes pratiques de versionnage sémantique.
 
+## [Unreleased]
+
+### 🔧 **CORRECTION CRITIQUE - Conflit Mockito MockCoursDeRouteService (15/01/2025)**
+
+#### **🚨 Problème résolu**
+- **Erreur Mockito** : `Invalid @GenerateMocks annotation: Mockito cannot generate a mock with a name which conflicts with another class declared in this library: MockCoursDeRouteService`
+- **Cause** : Plusieurs fichiers de test tentaient de générer des mocks pour la même classe `CoursDeRouteService`
+
+#### **✅ Solution appliquée**
+- **Centralisation des mocks** : Utilisation du mock central `MockCoursDeRouteService` dans `test/helpers/cours_route_test_helpers.dart`
+- **Suppression des conflits** : Retrait des `@GenerateMocks([CoursDeRouteService])` des fichiers conflictuels
+- **Nettoyage** : Suppression des fichiers `.mocks.dart` obsolètes
+
+#### **📁 Fichiers modifiés**
+- `test/features/cours_route/providers/cours_route_providers_test.dart` - Suppression `@GenerateMocks`, ajout import helper
+- `test/features/cours_route/screens/cours_route_filters_test.dart` - Suppression `@GenerateMocks`, ajout import helper
+- `test/helpers/cours_route_test_helpers.dart` - Simplification, garde des classes manuelles
+
+#### **🗑️ Fichiers supprimés**
+- `test/features/cours_route/providers/cours_route_providers_test.mocks.dart`
+- `test/features/cours_route/screens/cours_route_filters_test.mocks.dart`
+
+#### **🏆 Résultats**
+- ✅ **Build runner** : Fonctionne sans erreur
+- ✅ **Tests CDR** : Tous les tests clés passent (19 + 9 + 6)
+- ✅ **Architecture** : Mocks CDR centralisés et réutilisables
+- ✅ **Compatibilité** : Autres modules (auth, receptions, sorties) intacts
+
+#### **📚 Documentation**
+- **Guide complet** : `docs/mock_conflict_fix_summary.md`
+- **Processus** : 7 étapes de correction documentées
+- **Validation** : Checklist de vérification complète
+
 ## [2.0.0] - 2025-09-15
 
 ### 🎉 Version majeure - Module Cours de Route entièrement modernisé
