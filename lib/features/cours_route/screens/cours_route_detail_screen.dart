@@ -7,13 +7,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
-import 'package:ml_pp_mvp/features/cours_route/models/cdr_etat.dart';
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_route_providers.dart';
+import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart';
+import 'package:ml_pp_mvp/core/models/user_role.dart';
 import 'package:ml_pp_mvp/shared/providers/ref_data_provider.dart' show refDataProvider, resolveName;
 import 'package:ml_pp_mvp/shared/ui/format.dart';
 import 'package:ml_pp_mvp/shared/ui/toast.dart';
 import 'package:ml_pp_mvp/shared/ui/dialogs.dart';
 import 'package:ml_pp_mvp/shared/ui/errors.dart';
+
+// Nouveaux composants modernes
+import 'package:ml_pp_mvp/shared/ui/modern_components/modern_detail_header.dart';
+import 'package:ml_pp_mvp/shared/ui/modern_components/modern_status_timeline.dart';
+import 'package:ml_pp_mvp/shared/ui/modern_components/modern_info_card.dart';
+import 'package:ml_pp_mvp/shared/ui/modern_components/modern_action_card.dart';
 
 /// Écran de détail d'un cours de route
 /// 
@@ -30,23 +37,17 @@ class CoursRouteDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final coursAsync = ref.watch(coursDeRouteByIdProvider(coursId));
+    final userRole = ref.watch(userRoleProvider);
+    
+    debugPrint('🔍 CoursRouteDetailScreen: userRole=$userRole');
     
     return Scaffold(
       appBar: AppBar(
         title: const Text('Détail du cours'),
         actions: [
           PopupMenuButton<String>(
-            onSelected: (value) => _handleMenuAction(context, ref, value),
-            itemBuilder: (context) => const [
-              PopupMenuItem(
-                value: 'edit',
-                child: Row(children: [Icon(Icons.edit), SizedBox(width: 8), Text('Modifier')]),
-              ),
-              PopupMenuItem(
-                value: 'delete',
-                child: Row(children: [Icon(Icons.delete, color: Colors.red), SizedBox(width: 8), Text('Supprimer', style: TextStyle(color: Colors.red))]),
-              ),
-            ],
+            onSelected: (value) => _handleMenuAction(context, ref, value, userRole),
+            itemBuilder: (context) => _buildMenuItems(context, ref, userRole),
           ),
         ],
       ),
@@ -55,7 +56,7 @@ class CoursRouteDetailScreen extends ConsumerWidget {
         error: (error, stack) => _buildError(context, ref, error),
         data: (cours) => cours == null
             ? _buildNotFound(context)
-            : _buildDetail(context, cours, ref),
+            : _buildDetail(context, cours, ref, userRole),
       ),
     );
   }
@@ -98,156 +99,453 @@ class CoursRouteDetailScreen extends ConsumerWidget {
   }
   
   /// Contenu principal
-  Widget _buildDetail(BuildContext context, CoursDeRoute c, WidgetRef ref) {
+  Widget _buildDetail(BuildContext context, CoursDeRoute c, WidgetRef ref, UserRole? userRole) {
     final refDataAsync = ref.watch(refDataProvider);
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header résumé + statut
-          Card(
-            margin: const EdgeInsets.only(bottom: 12),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Cours #${c.id.substring(0, 8)}', style: Theme.of(context).textTheme.headlineSmall),
-                      _StatutChip(statut: c.statut),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      _InfoPill(icon: Icons.local_gas_station, label: fmtVolume(c.volume)),
-                      _InfoPill(icon: Icons.event, label: fmtDate(c.dateChargement)),
-                      _InfoPill(icon: Icons.badge, label: c.plaqueCamion ?? '—'),
+    return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header moderne avec informations principales
+              refDataAsync.when(
+                loading: () => _buildHeaderLoading(c),
+                error: (e, _) => _buildHeaderError(c, e),
+                data: (refData) {
+                  final four = resolveName(refData, c.fournisseurId, 'fournisseur');
+                  return ModernDetailHeader(
+                    title: 'Cours #${c.id.substring(0, 8)}',
+                    subtitle: 'Détail du cours de route',
+                    accentColor: _getStatutColor(c.statut),
+                    statusWidget: _ModernStatutChip(statut: c.statut),
+                    infoPills: [
+                      InfoPill(
+                        icon: Icons.business,
+                        label: 'Fournisseur',
+                        value: four,
+                        color: Colors.indigo,
+                      ),
+                      InfoPill(
+                        icon: Icons.local_gas_station,
+                        label: 'Volume',
+                        value: fmtVolume(c.volume),
+                        color: Colors.blue,
+                      ),
+                      InfoPill(
+                        icon: Icons.event,
+                        label: 'Date',
+                        value: fmtDate(c.dateChargement),
+                        color: Colors.green,
+                      ),
+                      InfoPill(
+                        icon: Icons.badge,
+                        label: 'Camion',
+                        value: c.plaqueCamion ?? '—',
+                        color: Colors.orange,
+                      ),
                       if ((c.plaqueRemorque ?? '').isNotEmpty)
-                        _InfoPill(icon: Icons.badge_outlined, label: c.plaqueRemorque!),
+                        InfoPill(
+                          icon: Icons.badge_outlined,
+                          label: 'Remorque',
+                          value: c.plaqueRemorque!,
+                          color: Colors.purple,
+                        ),
                     ],
+                  );
+                },
+              ),
+
+              // Timeline moderne des statuts
+              ModernStatusTimeline(
+                currentStatus: c.statut.name,
+                accentColor: _getStatutColor(c.statut),
+                steps: [
+                  StatusStep(
+                    status: StatutCours.chargement.name,
+                    label: 'Chargement',
+                    icon: Icons.upload,
+                  ),
+                  StatusStep(
+                    status: StatutCours.transit.name,
+                    label: 'Transit',
+                    icon: Icons.local_shipping,
+                  ),
+                  StatusStep(
+                    status: StatutCours.frontiere.name,
+                    label: 'Frontière',
+                    icon: Icons.border_clear,
+                  ),
+                  StatusStep(
+                    status: StatutCours.arrive.name,
+                    label: 'Arrivé',
+                    icon: Icons.location_on,
+                  ),
+                  StatusStep(
+                    status: StatutCours.decharge.name,
+                    label: 'Déchargé',
+                    icon: Icons.check_circle,
                   ),
                 ],
               ),
-            ),
-          ),
 
-          // Boutons de transition d'état
-          Card(
-            margin: const EdgeInsets.only(bottom: 12),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: _TransitionButtons(cours: c),
-            ),
-          ),
 
-          // Timeline statut
-          Card(
-            margin: const EdgeInsets.only(bottom: 12),
-            child: const Padding(
-              padding: EdgeInsets.all(16),
-              child: SizedBox.shrink(),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: _StatutTimeline(current: c.statut),
-          ),
-
-          // Cartes infos (2 cartes)
-          refDataAsync.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text('Erreur référentiels: $e'),
-            ),
-            data: (refData) {
-              final four = resolveName(refData, c.fournisseurId, 'fournisseur');
-              final prod = resolveName(refData, c.produitId, 'produit');
-              final dep = refData.depots[c.depotDestinationId] ?? '—';
-              return Column(
-                children: [
-                  // Logistique
-                  Card(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: _InfoGrid(entries: [
-                        ('Fournisseur', four),
-                        ('Produit', prod),
-                        ('Dépôt destination', dep),
-                      ]),
-                    ),
-                  ),
-                  // Transport
-                  Card(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: _InfoGrid(entries: [
-                        ('Transporteur', c.transporteur ?? '—'),
-                        ('Chauffeur', c.chauffeur ?? '—'),
-                        ('Plaque camion', c.plaqueCamion ?? '—'),
-                        ('Plaque remorque', (c.plaqueRemorque ?? '—')),
-                        ('Pays', c.pays ?? '—'),
-                        ('Date de chargement', fmtDate(c.dateChargement)),
-                        ('Volume', fmtVolume(c.volume)),
-                      ]),
-                    ),
-                  ),
-
-                  // Actions secondaires (Modifier / Supprimer)
-                  Card(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: () => context.push('/cours/${c.id}/edit'),
-                              icon: const Icon(Icons.edit),
-                              label: const Text('Modifier'),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: () => _confirmDelete(context, ref, c.id),
-                              icon: const Icon(Icons.delete, color: Colors.red),
-                              label: const Text('Supprimer'),
-                            ),
-                          ),
+              // Cartes d'information modernes
+              refDataAsync.when(
+                loading: () => _buildLoadingCard(),
+                error: (e, _) => _buildErrorCard('Erreur référentiels: $e'),
+                data: (refData) {
+                  final prod = resolveName(refData, c.produitId, 'produit');
+                  final dep = refData.depots[c.depotDestinationId] ?? '—';
+                  
+                  return Column(
+                    children: [
+                      // Informations logistiques (sans fournisseur car déjà dans le header)
+                      ModernInfoCard(
+                        title: 'Informations logistiques',
+                        subtitle: 'Produit et destination',
+                        icon: Icons.inventory_2_outlined,
+                        accentColor: Colors.blue,
+                        entries: [
+                          InfoEntry(label: 'Produit', value: prod),
+                          InfoEntry(label: 'Dépôt destination', value: dep),
                         ],
                       ),
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
+                      
+                      // Informations transport
+                      ModernInfoCard(
+                        title: 'Informations transport',
+                        subtitle: 'Transporteur, chauffeur et véhicule',
+                        icon: Icons.local_shipping_outlined,
+                        accentColor: Colors.green,
+                        entries: [
+                          InfoEntry(label: 'Transporteur', value: c.transporteur ?? '—'),
+                          InfoEntry(label: 'Chauffeur', value: c.chauffeur ?? '—'),
+                          InfoEntry(label: 'Plaque camion', value: c.plaqueCamion ?? '—'),
+                          InfoEntry(label: 'Plaque remorque', value: c.plaqueRemorque ?? '—'),
+                          InfoEntry(label: 'Pays', value: c.pays ?? '—'),
+                          InfoEntry(label: 'Date de chargement', value: fmtDate(c.dateChargement)),
+                          InfoEntry(label: 'Volume', value: fmtVolume(c.volume)),
+                        ],
+                      ),
 
-          // Note si présente
-          if ((c.note ?? '').trim().isNotEmpty)
-            Card(
-              margin: const EdgeInsets.only(bottom: 12),
-              child: ListTile(
-                title: const Text('Note'),
-                subtitle: Text(c.note!.trim()),
+                      // Actions principales
+                      ModernActionCard(
+                        title: 'Actions',
+                        subtitle: c.statut == StatutCours.decharge 
+                            ? 'Cours déchargé - Actions limitées'
+                            : 'Modifier ou supprimer le cours',
+                        icon: Icons.settings,
+                        accentColor: Colors.orange,
+                        actions: _buildActionButtons(context, ref, c, userRole),
+                      ),
+
+                      // Message informatif pour les cours déchargés
+                      if (c.statut == StatutCours.decharge && userRole?.isAdmin != true)
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 16),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.amber.withOpacity(0.3)),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.info_outline, color: Colors.amber.shade700, size: 20),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  'Ce cours a été déchargé. Seul un administrateur peut le modifier ou le supprimer.',
+                                  style: TextStyle(
+                                    color: Colors.amber.shade700,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                      // Note si présente
+                      if ((c.note ?? '').trim().isNotEmpty)
+                        ModernInfoCard(
+                          title: 'Note',
+                          subtitle: 'Informations complémentaires',
+                          icon: Icons.note_outlined,
+                          accentColor: Colors.purple,
+                          entries: [
+                            InfoEntry(
+                              label: 'Commentaire',
+                              value: c.note!.trim(),
+                            ),
+                          ],
+                        ),
+                    ],
+                  );
+                },
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+
+  /// Widget de chargement pour le header
+  Widget _buildHeaderLoading(CoursDeRoute c) {
+    return ModernDetailHeader(
+      title: 'Cours #${c.id.substring(0, 8)}',
+      subtitle: 'Détail du cours de route',
+      accentColor: _getStatutColor(c.statut),
+      statusWidget: _ModernStatutChip(statut: c.statut),
+      infoPills: [
+        InfoPill(
+          icon: Icons.local_gas_station,
+          label: 'Volume',
+          value: fmtVolume(c.volume),
+          color: Colors.blue,
+        ),
+        InfoPill(
+          icon: Icons.event,
+          label: 'Date',
+          value: fmtDate(c.dateChargement),
+          color: Colors.green,
+        ),
+        InfoPill(
+          icon: Icons.badge,
+          label: 'Camion',
+          value: c.plaqueCamion ?? '—',
+          color: Colors.orange,
+        ),
+        if ((c.plaqueRemorque ?? '').isNotEmpty)
+          InfoPill(
+            icon: Icons.badge_outlined,
+            label: 'Remorque',
+            value: c.plaqueRemorque!,
+            color: Colors.purple,
+          ),
+      ],
+    );
+  }
+
+  /// Widget d'erreur pour le header
+  Widget _buildHeaderError(CoursDeRoute c, Object error) {
+    return ModernDetailHeader(
+      title: 'Cours #${c.id.substring(0, 8)}',
+      subtitle: 'Détail du cours de route',
+      accentColor: _getStatutColor(c.statut),
+      statusWidget: _ModernStatutChip(statut: c.statut),
+      infoPills: [
+        InfoPill(
+          icon: Icons.business,
+          label: 'Fournisseur',
+          value: 'Erreur chargement',
+          color: Colors.red,
+        ),
+        InfoPill(
+          icon: Icons.local_gas_station,
+          label: 'Volume',
+          value: fmtVolume(c.volume),
+          color: Colors.blue,
+        ),
+        InfoPill(
+          icon: Icons.event,
+          label: 'Date',
+          value: fmtDate(c.dateChargement),
+          color: Colors.green,
+        ),
+        InfoPill(
+          icon: Icons.badge,
+          label: 'Camion',
+          value: c.plaqueCamion ?? '—',
+          color: Colors.orange,
+        ),
+        if ((c.plaqueRemorque ?? '').isNotEmpty)
+          InfoPill(
+            icon: Icons.badge_outlined,
+            label: 'Remorque',
+            value: c.plaqueRemorque!,
+            color: Colors.purple,
+          ),
+      ],
+    );
+  }
+
+  /// Widget de chargement
+  Widget _buildLoadingCard() {
+    return Container(
+      padding: const EdgeInsets.all(40),
+      child: const Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  /// Widget d'erreur
+  Widget _buildErrorCard(String message) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.red.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.red.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.error_outline, color: Colors.red),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(color: Colors.red.shade700),
             ),
+          ),
         ],
       ),
     );
   }
 
-  void _handleMenuAction(BuildContext context, WidgetRef ref, String action) {
+  /// Obtient la couleur associée au statut
+  Color _getStatutColor(StatutCours statut) {
+    switch (statut) {
+      case StatutCours.chargement:
+        return Colors.blue;
+      case StatutCours.transit:
+        return Colors.indigo;
+      case StatutCours.frontiere:
+        return Colors.amber;
+      case StatutCours.arrive:
+        return Colors.teal;
+      case StatutCours.decharge:
+        return Colors.grey;
+    }
+  }
+
+
+
+  /// Construit les éléments du menu en fonction des permissions
+  List<PopupMenuEntry<String>> _buildMenuItems(BuildContext context, WidgetRef ref, UserRole? userRole) {
+    final coursAsync = ref.watch(coursDeRouteByIdProvider(coursId));
+    
+    return coursAsync.when(
+      data: (cours) {
+        if (cours == null) return [];
+        
+        final canEdit = _canEditCours(cours, userRole);
+        final canDelete = _canDeleteCours(cours, userRole);
+        
+        final items = <PopupMenuEntry<String>>[];
+        
+        if (canEdit) {
+          items.add(const PopupMenuItem(
+            value: 'edit',
+            child: Row(children: [Icon(Icons.edit), SizedBox(width: 8), Text('Modifier')]),
+          ));
+        }
+        
+        if (canDelete) {
+          items.add(const PopupMenuItem(
+            value: 'delete',
+            child: Row(children: [Icon(Icons.delete, color: Colors.red), SizedBox(width: 8), Text('Supprimer', style: TextStyle(color: Colors.red))]),
+          ));
+        }
+        
+        return items;
+      },
+      loading: () => [],
+      error: (_, __) => [],
+    );
+  }
+
+  /// Construit les boutons d'action en fonction des permissions
+  List<ModernActionButton> _buildActionButtons(BuildContext context, WidgetRef ref, CoursDeRoute cours, UserRole? userRole) {
+    final canEdit = _canEditCours(cours, userRole);
+    final canDelete = _canDeleteCours(cours, userRole);
+    
+    final actions = <ModernActionButton>[];
+    
+    if (canEdit) {
+      actions.add(ModernActionButton(
+        label: 'Modifier',
+        icon: Icons.edit,
+        accentColor: Colors.blue,
+        onPressed: () => context.push('/cours/${cours.id}/edit'),
+      ));
+    } else {
+      // Bouton désactivé
+      actions.add(ModernActionButton(
+        label: 'Modifier',
+        icon: Icons.edit,
+        accentColor: Colors.grey,
+        onPressed: null,
+      ));
+    }
+    
+    if (canDelete) {
+      actions.add(ModernActionButton(
+        label: 'Supprimer',
+        icon: Icons.delete,
+        isDanger: true,
+        onPressed: () => _confirmDelete(context, ref, cours.id),
+      ));
+    } else {
+      // Bouton désactivé
+      actions.add(ModernActionButton(
+        label: 'Supprimer',
+        icon: Icons.delete,
+        isDanger: true,
+        onPressed: null,
+      ));
+    }
+    
+    return actions;
+  }
+
+  /// Vérifie si l'utilisateur peut modifier le cours
+  bool _canEditCours(CoursDeRoute cours, UserRole? userRole) {
+    // Fallback temporaire si userRole est null (pendant le chargement)
+    final effectiveRole = userRole ?? UserRole.lecture;
+    
+    debugPrint('🔍 _canEditCours: statut=${cours.statut.name}, userRole=$userRole, effectiveRole=$effectiveRole, isAdmin=${effectiveRole.isAdmin}');
+    
+    // Si le cours est déchargé, seul un admin peut le modifier
+    if (cours.statut == StatutCours.decharge) {
+      final canEdit = effectiveRole.isAdmin;
+      debugPrint('🔍 _canEditCours: cours déchargé, canEdit=$canEdit');
+      return canEdit;
+    }
+    
+    // Pour les autres statuts, tous les utilisateurs authentifiés peuvent modifier
+    final canEdit = userRole != null;
+    debugPrint('🔍 _canEditCours: cours non déchargé, canEdit=$canEdit');
+    return canEdit;
+  }
+
+  /// Vérifie si l'utilisateur peut supprimer le cours
+  bool _canDeleteCours(CoursDeRoute cours, UserRole? userRole) {
+    // Fallback temporaire si userRole est null (pendant le chargement)
+    final effectiveRole = userRole ?? UserRole.lecture;
+    
+    debugPrint('🔍 _canDeleteCours: statut=${cours.statut.name}, userRole=$userRole, effectiveRole=$effectiveRole, isAdmin=${effectiveRole.isAdmin}');
+    
+    // Si le cours est déchargé, seul un admin peut le supprimer
+    if (cours.statut == StatutCours.decharge) {
+      final canDelete = effectiveRole.isAdmin;
+      debugPrint('🔍 _canDeleteCours: cours déchargé, canDelete=$canDelete');
+      return canDelete;
+    }
+    
+    // Pour les autres statuts, tous les utilisateurs authentifiés peuvent supprimer
+    final canDelete = userRole != null;
+    debugPrint('🔍 _canDeleteCours: cours non déchargé, canDelete=$canDelete');
+    return canDelete;
+  }
+
+  void _handleMenuAction(BuildContext context, WidgetRef ref, String action, UserRole? userRole) {
     switch (action) {
       case 'edit':
         context.push('/cours/$coursId/edit');
@@ -259,223 +557,63 @@ class CoursRouteDetailScreen extends ConsumerWidget {
   }
 }
 
-class _InfoPill extends StatelessWidget {
-  final IconData icon; final String label;
-  const _InfoPill({required this.icon, required this.label});
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Theme.of(context).dividerColor),
-      ),
-      child: Row(mainAxisSize: MainAxisSize.min, children: [
-        Icon(icon, size: 16),
-        const SizedBox(width: 6),
-        Text(label),
-      ]),
-    );
-  }
-}
-
-class _StatutChip extends StatelessWidget {
+/// Widget moderne pour afficher le chip de statut
+class _ModernStatutChip extends StatelessWidget {
   final StatutCours statut;
-  const _StatutChip({required this.statut});
+  const _ModernStatutChip({required this.statut});
+  
   @override
   Widget build(BuildContext context) {
-    final Color color = switch (statut) {
-      StatutCours.chargement => Colors.blue,
-      StatutCours.transit => Colors.indigo,
-      StatutCours.frontiere => Colors.amber,
-      StatutCours.arrive => Colors.teal,
-      StatutCours.decharge => Colors.grey,
-    };
-    return Chip(
-      avatar: const Icon(Icons.local_shipping, size: 16, color: Colors.white),
-      label: Text(statut.label, style: const TextStyle(color: Colors.white)),
-      backgroundColor: color,
-    );
-  }
-}
-
-class _StatutTimeline extends StatelessWidget {
-  final StatutCours current;
-  const _StatutTimeline({required this.current});
-  @override
-  Widget build(BuildContext context) {
-    final steps = const [
-      StatutCours.chargement,
-      StatutCours.transit,
-      StatutCours.frontiere,
-      StatutCours.arrive,
-      StatutCours.decharge,
-    ];
-    return Wrap(
-      spacing: 12,
-      runSpacing: 8,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: steps.map((s) {
-        final done = steps.indexOf(s) <= steps.indexOf(current);
-        return Row(mainAxisSize: MainAxisSize.min, children: [
-          Icon(done ? Icons.check_circle : Icons.radio_button_unchecked, size: 18, color: done ? Theme.of(context).colorScheme.primary : null),
-          const SizedBox(width: 6),
-          Text(s.label),
-          if (s != steps.last)
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8),
-              child: Icon(Icons.chevron_right, size: 18),
-            ),
-        ]);
-      }).toList(),
-    );
-  }
-}
-
-class _InfoGrid extends StatelessWidget {
-  final List<(String, String)> entries;
-  const _InfoGrid({required this.entries});
-  @override
-  Widget build(BuildContext context) {
-    final isWide = MediaQuery.of(context).size.width >= 1024;
-    final cols = isWide ? 2 : 1;
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: cols,
-        mainAxisExtent: 52,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 8,
-      ),
-      itemCount: entries.length,
-      itemBuilder: (_, i) {
-        final (label, value) = entries[i];
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label, style: Theme.of(context).textTheme.labelMedium),
-            const SizedBox(height: 4),
-            SelectableText(value.isEmpty ? '—' : value),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _TransitionButtons extends ConsumerWidget {
-  final CoursDeRoute cours;
-  const _TransitionButtons({required this.cours});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // Mapping du statut actuel vers l'enum CdrEtat
-    final currentEtat = _mapStatutToEtat(cours.statut);
+    final color = _getStatutColor(statut);
     
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Gestion d\'état',
-          style: Theme.of(context).textTheme.titleMedium,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: color.withOpacity(0.3),
+          width: 1,
         ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: CdrEtat.values.map((etat) {
-            final isEnabled = currentEtat.canTransitionTo(etat);
-            final isCurrent = currentEtat == etat;
-            
-            return ElevatedButton.icon(
-              onPressed: isEnabled && !isCurrent 
-                  ? () => _handleTransition(context, ref, etat)
-                  : null,
-              icon: Icon(_getEtatIcon(etat)),
-              label: Text(_getEtatLabel(etat)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: isCurrent 
-                    ? Theme.of(context).colorScheme.primary
-                    : null,
-                foregroundColor: isCurrent 
-                    ? Theme.of(context).colorScheme.onPrimary
-                    : null,
-              ),
-            );
-          }).toList(),
-        ),
-      ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.local_shipping,
+            size: 16,
+            color: color,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            statut.label,
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.w600,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  CdrEtat _mapStatutToEtat(StatutCours statut) {
+  Color _getStatutColor(StatutCours statut) {
     switch (statut) {
       case StatutCours.chargement:
-        return CdrEtat.planifie;
+        return Colors.blue;
       case StatutCours.transit:
+        return Colors.indigo;
       case StatutCours.frontiere:
+        return Colors.amber;
       case StatutCours.arrive:
-        return CdrEtat.enCours;
+        return Colors.teal;
       case StatutCours.decharge:
-        return CdrEtat.termine;
-    }
-  }
-
-  IconData _getEtatIcon(CdrEtat etat) {
-    switch (etat) {
-      case CdrEtat.planifie:
-        return Icons.schedule;
-      case CdrEtat.enCours:
-        return Icons.local_shipping;
-      case CdrEtat.termine:
-        return Icons.check_circle;
-      case CdrEtat.annule:
-        return Icons.cancel;
-    }
-  }
-
-  String _getEtatLabel(CdrEtat etat) {
-    switch (etat) {
-      case CdrEtat.planifie:
-        return 'Planifier';
-      case CdrEtat.enCours:
-        return 'En cours';
-      case CdrEtat.termine:
-        return 'Terminer';
-      case CdrEtat.annule:
-        return 'Annuler';
-    }
-  }
-
-  Future<void> _handleTransition(BuildContext context, WidgetRef ref, CdrEtat toEtat) async {
-    final currentEtat = _mapStatutToEtat(cours.statut);
-    
-    try {
-      final service = ref.read(coursDeRouteServiceProvider);
-      final success = await service.applyTransition(
-        cdrId: cours.id,
-        from: currentEtat,
-        to: toEtat,
-        userId: 'current_user_id', // TODO: Récupérer l'ID utilisateur réel
-      );
-      
-      if (context.mounted) {
-        if (success) {
-          showAppToast(context, 'État mis à jour vers ${_getEtatLabel(toEtat)}', type: ToastType.success);
-          // Rafraîchir la fiche
-          ref.invalidate(coursDeRouteByIdProvider(cours.id));
-        } else {
-          showAppToast(context, 'Transition non autorisée', type: ToastType.error);
-        }
-      }
-    } catch (e) {
-      if (context.mounted) {
-        showAppToast(context, 'Erreur lors de la transition: $e', type: ToastType.error);
-      }
+        return Colors.grey;
     }
   }
 }
+
 
 Future<void> _confirmDelete(BuildContext context, WidgetRef ref, String id) async {
   final ok = await confirmAction(

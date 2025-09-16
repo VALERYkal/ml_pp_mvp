@@ -160,5 +160,192 @@ void main() {
       expect(find.text('Erreur lors du chargement des référentiels'), findsOneWidget);
       expect(find.text('Réessayer'), findsOneWidget);
     });
+
+    /// Test de validation des champs obligatoires
+    testWidgets('should validate required fields', (WidgetTester tester) async {
+      // Arrange
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            refDataProvider.overrideWith((ref) async => mockRefData),
+          ],
+          child: const MaterialApp(
+            home: CoursRouteFormScreen(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Act - Tenter de sauvegarder sans remplir les champs obligatoires
+      await tester.tap(find.text('Enregistrer'));
+      await tester.pump();
+
+      // Assert - Vérifier que les messages d'erreur apparaissent
+      expect(find.text('Fournisseur requis'), findsOneWidget);
+      expect(find.text('Produit requis'), findsOneWidget);
+      expect(find.text('Dépôt destination requis'), findsOneWidget);
+      expect(find.text('Pays requis'), findsOneWidget);
+      expect(find.text('Date requise'), findsOneWidget);
+      expect(find.text('Plaque camion requise'), findsOneWidget);
+      expect(find.text('Chauffeur requis'), findsOneWidget);
+      expect(find.text('Volume requis'), findsOneWidget);
+    });
+
+    /// Test de validation du volume
+    testWidgets('should validate volume constraints', (WidgetTester tester) async {
+      // Arrange
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            refDataProvider.overrideWith((ref) async => mockRefData),
+          ],
+          child: const MaterialApp(
+            home: CoursRouteFormScreen(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Act - Saisir un volume invalide
+      await tester.enterText(find.byKey(const Key('volume_field')), '-100');
+      await tester.pump();
+
+      // Assert
+      expect(find.text('Volume doit être positif'), findsOneWidget);
+    });
+
+    /// Test de validation de la date
+    testWidgets('should validate date constraints', (WidgetTester tester) async {
+      // Arrange
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            refDataProvider.overrideWith((ref) async => mockRefData),
+          ],
+          child: const MaterialApp(
+            home: CoursRouteFormScreen(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Act - Sélectionner une date future
+      await tester.tap(find.text('Date de chargement *'));
+      await tester.pump();
+
+      // Naviguer vers une date future
+      await tester.tap(find.text('OK'));
+      await tester.pump();
+
+      // Assert
+      expect(find.text('Date future interdite'), findsOneWidget);
+    });
+
+    /// Test de validation de la plaque camion
+    testWidgets('should validate plaque camion format', (WidgetTester tester) async {
+      // Arrange
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            refDataProvider.overrideWith((ref) async => mockRefData),
+          ],
+          child: const MaterialApp(
+            home: CoursRouteFormScreen(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Act - Saisir une plaque invalide
+      await tester.enterText(find.byKey(const Key('plaque_camion_field')), 'INVALID');
+      await tester.pump();
+
+      // Assert
+      expect(find.text('Format de plaque invalide'), findsOneWidget);
+    });
+
+    /// Test de sauvegarde réussie
+    testWidgets('should save cours successfully', (WidgetTester tester) async {
+      // Arrange
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            refDataProvider.overrideWith((ref) async => mockRefData),
+          ],
+          child: const MaterialApp(
+            home: CoursRouteFormScreen(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Act - Remplir le formulaire avec des données valides
+      await tester.tap(find.text('Fournisseur Test 1'));
+      await tester.pump();
+      await tester.tap(find.text('Fournisseur Test 1'));
+      await tester.pump();
+
+      await tester.tap(find.text('Essence'));
+      await tester.pump();
+      await tester.tap(find.text('Essence'));
+      await tester.pump();
+
+      await tester.tap(find.text('Dépôt Test 1'));
+      await tester.pump();
+      await tester.tap(find.text('Dépôt Test 1'));
+      await tester.pump();
+
+      await tester.enterText(find.byKey(const Key('pays_field')), 'RDC');
+      await tester.enterText(find.byKey(const Key('plaque_camion_field')), 'ABC123');
+      await tester.enterText(find.byKey(const Key('chauffeur_field')), 'Jean Dupont');
+      await tester.enterText(find.byKey(const Key('volume_field')), '50000');
+
+      // Sélectionner une date valide
+      await tester.tap(find.text('Date de chargement *'));
+      await tester.pump();
+      await tester.tap(find.text('OK'));
+      await tester.pump();
+
+      // Sauvegarder
+      await tester.tap(find.text('Enregistrer'));
+      await tester.pumpAndSettle();
+
+      // Assert - Vérifier le message de succès
+      expect(find.text('Cours créé avec succès'), findsOneWidget);
+    });
+
+    /// Test de gestion des erreurs de sauvegarde
+    testWidgets('should handle save errors', (WidgetTester tester) async {
+      // Arrange
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            refDataProvider.overrideWith((ref) async => mockRefData),
+          ],
+          child: const MaterialApp(
+            home: CoursRouteFormScreen(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Act - Remplir et sauvegarder (simuler une erreur)
+      await tester.enterText(find.byKey(const Key('pays_field')), 'RDC');
+      await tester.enterText(find.byKey(const Key('plaque_camion_field')), 'ABC123');
+      await tester.enterText(find.byKey(const Key('chauffeur_field')), 'Jean Dupont');
+      await tester.enterText(find.byKey(const Key('volume_field')), '50000');
+
+      await tester.tap(find.text('Enregistrer'));
+      await tester.pumpAndSettle();
+
+      // Assert - Vérifier que les erreurs de validation apparaissent
+      expect(find.text('Fournisseur requis'), findsOneWidget);
+    });
   });
 }

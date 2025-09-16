@@ -11,6 +11,7 @@ import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_route_providers.dart';
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_filters_provider.dart';
 import 'package:ml_pp_mvp/shared/providers/ref_data_provider.dart';
+import 'package:ml_pp_mvp/features/kpi/providers/cours_kpi_provider.dart';
 import 'package:ml_pp_mvp/features/cours_route/utils/cours_route_constants.dart';
 import 'package:ml_pp_mvp/shared/ui/toast.dart';
 import 'package:ml_pp_mvp/shared/ui/dialogs.dart';
@@ -523,6 +524,9 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
       ref.invalidate(coursDeRouteListProvider);
       ref.invalidate(coursDeRouteActifsProvider);
       ref.invalidate(filteredCoursProvider);
+      
+      // ► Invalider les providers KPI du dashboard pour mise à jour immédiate
+      ref.invalidate(coursKpiProvider);
       
       if (!mounted) return;
       showAppToast(context, 'Cours créé avec succès', type: ToastType.success);

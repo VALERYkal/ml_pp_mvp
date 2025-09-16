@@ -6,39 +6,39 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_route_providers.dart';
+import 'package:ml_pp_mvp/features/cours_route/providers/cours_sort_provider.dart';
 
 /// Modèle pour les filtres de cours de route
 /// 
-/// Contient tous les critères de filtrage possibles :
-/// - Statut : Filtre par statut spécifique
-/// - Produit : Filtre par produit spécifique
-/// - Recherche : Recherche textuelle dans plaque/chauffeur
+/// Contient les critères de filtrage simplifiés :
+/// - Fournisseur : Filtre par fournisseur spécifique
+/// - Volume : Filtre par plage de volume (0-100 000 L)
 class CoursFilters {
-  /// Statut à filtrer ('Tous' pour tous les statuts)
-  final String statut;
+  /// ID du fournisseur à filtrer (null pour tous les fournisseurs)
+  final String? fournisseurId;
   
-  /// ID du produit à filtrer (null pour tous les produits)
-  final String? produitId;
+  /// Volume minimum (par défaut 0)
+  final double volumeMin;
   
-  /// Requête de recherche textuelle
-  final String query;
+  /// Volume maximum (par défaut 100 000)
+  final double volumeMax;
   
   const CoursFilters({
-    this.statut = 'Tous',
-    this.produitId,
-    this.query = '',
+    this.fournisseurId,
+    this.volumeMin = 0,
+    this.volumeMax = 100000,
   });
 
   /// Crée une copie avec des modifications
   CoursFilters copyWith({
-    String? statut,
-    String? produitId,
-    String? query,
+    String? fournisseurId,
+    double? volumeMin,
+    double? volumeMax,
   }) {
     return CoursFilters(
-      statut: statut ?? this.statut,
-      produitId: produitId ?? this.produitId,
-      query: query ?? this.query,
+      fournisseurId: fournisseurId ?? this.fournisseurId,
+      volumeMin: volumeMin ?? this.volumeMin,
+      volumeMax: volumeMax ?? this.volumeMax,
     );
   }
 
@@ -46,17 +46,20 @@ class CoursFilters {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is CoursFilters &&
-        other.statut == statut &&
-        other.produitId == produitId &&
-        other.query == query;
+        other.fournisseurId == fournisseurId &&
+        other.volumeMin == volumeMin &&
+        other.volumeMax == volumeMax;
   }
 
   @override
-  int get hashCode => statut.hashCode ^ produitId.hashCode ^ query.hashCode;
+  int get hashCode => 
+      fournisseurId.hashCode ^ 
+      volumeMin.hashCode ^ 
+      volumeMax.hashCode;
 
   @override
   String toString() {
-    return 'CoursFilters(statut: $statut, produitId: $produitId, query: $query)';
+    return 'CoursFilters(fournisseurId: $fournisseurId, volumeMin: $volumeMin, volumeMax: $volumeMax)';
   }
 }
 
@@ -68,12 +71,12 @@ final coursFiltersProvider = StateProvider<CoursFilters>((ref) {
   return const CoursFilters();
 });
 
-/// Provider pour la liste filtrée des cours de route
+/// Provider pour la liste filtrée et triée des cours de route
 /// 
-/// Combine la liste brute des cours avec les filtres actuels
-/// pour fournir une liste filtrée réactive.
+/// Combine la liste brute des cours avec les filtres actuels et le tri
+/// pour fournir une liste filtrée et triée réactive.
 /// 
-/// Utilisé par les widgets d'affichage pour obtenir la liste filtrée.
+/// Utilisé par les widgets d'affichage pour obtenir la liste filtrée et triée.
 final filteredCoursProvider = Provider<List<CoursDeRoute>>((ref) {
   // Récupérer la liste brute des cours
   final coursAsync = ref.watch(coursDeRouteListProvider);
@@ -82,8 +85,12 @@ final filteredCoursProvider = Provider<List<CoursDeRoute>>((ref) {
   // Récupérer les filtres actuels
   final filters = ref.watch(coursFiltersProvider);
   
-  // Appliquer les filtres
-  return _applyFilters(cours, filters);
+  // Récupérer la configuration de tri
+  final sortConfig = ref.watch(coursSortProvider);
+  
+  // Appliquer les filtres puis le tri
+  final filtered = _applyFilters(cours, filters);
+  return sortCours(filtered, sortConfig);
 });
 
 /// Applique les filtres à une liste de cours de route
@@ -91,22 +98,23 @@ final filteredCoursProvider = Provider<List<CoursDeRoute>>((ref) {
 /// [cours] : Liste brute des cours
 /// [filters] : Filtres à appliquer
 /// 
-/// Retourne la liste filtrée selon les critères
+/// Retourne la liste filtrée selon les critères (fournisseur et volume uniquement)
 List<CoursDeRoute> _applyFilters(List<CoursDeRoute> cours, CoursFilters filters) {
-  final q = filters.query.trim().toLowerCase();
-  
   return cours.where((c) {
-    // Filtre par statut (utilise les noms enum normalisés: chargement/transit/frontiere/arrive/decharge)
-    final okStatut = (filters.statut == 'Tous') ? true : c.statut.name == filters.statut;
+    // Filtre par fournisseur
+    final okFournisseur = (filters.fournisseurId == null) ? true : c.fournisseurId == filters.fournisseurId;
     
-    // Filtre par produit
-    final okProd = (filters.produitId == null) ? true : c.produitId == filters.produitId;
+    // Filtre par volume (0-100 000 L)
+    bool okVolume = true;
+    if (c.volume != null) {
+      if (c.volume! < filters.volumeMin) {
+        okVolume = false;
+      }
+      if (c.volume! > filters.volumeMax) {
+        okVolume = false;
+      }
+    }
     
-    // Filtre par recherche textuelle
-    final okQuery = q.isEmpty ||
-        (c.plaqueCamion?.toLowerCase().contains(q) ?? false) ||
-        (c.chauffeur?.toLowerCase().contains(q) ?? false);
-    
-    return okStatut && okProd && okQuery;
+    return okFournisseur && okVolume;
   }).toList();
 }

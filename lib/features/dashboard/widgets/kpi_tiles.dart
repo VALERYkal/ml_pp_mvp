@@ -195,24 +195,212 @@ class KpiTilesWithStates extends ConsumerWidget {
   }
 }
 
-/// Widget KPI pour les cours de route par état
+/// Widget KPI pour les cours de route par catégorie métier - Version moderne
 class CdrKpiTiles extends ConsumerWidget {
   const CdrKpiTiles({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final kpisAsync = ref.watch(cdrKpiCountsProvider);
+    final kpisAsync = ref.watch(cdrKpiCountsByCategorieProvider);
+    
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Theme.of(context).dividerColor.withOpacity(0.1),
+        ),
+      ),
+      child: kpisAsync.when(
+        loading: () => _buildLoadingState(context),
+        error: (error, stack) => _buildErrorState(context, ref, error),
+        data: (kpis) => _buildDataState(context, kpis),
+      ),
+    );
+  }
+
+  Widget _buildLoadingState(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: List.generate(3, (index) => _buildShimmerCard(context)),
+      ),
+    );
+  }
+
+  Widget _buildShimmerCard(BuildContext context) {
+    return Container(
+      width: 120,
+      height: 100,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: const Center(
+        child: CircularProgressIndicator(strokeWidth: 2),
+      ),
+    );
+  }
+
+  Widget _buildErrorState(BuildContext context, WidgetRef ref, Object error) {
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.red.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.red.withOpacity(0.3)),
+        ),
+        child: Column(
+          children: [
+            Icon(Icons.error_outline, color: Colors.red, size: 32),
+            const SizedBox(height: 8),
+            Text(
+              'Erreur lors du chargement',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Colors.red,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              error.toString(),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Colors.red.shade700,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton.icon(
+              onPressed: () => ref.invalidate(cdrKpiCountsByCategorieProvider),
+              icon: const Icon(Icons.refresh, size: 16),
+              label: const Text('Réessayer'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDataState(BuildContext context, Map<String, int> kpis) {
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        children: [
+          Expanded(child: _buildModernKpiCard(
+            context,
+            'En route',
+            '${kpis['enRoute'] ?? 0}',
+            Icons.local_shipping_outlined,
+            Colors.blue,
+          )),
+          const SizedBox(width: 16),
+          Expanded(child: _buildModernKpiCard(
+            context,
+            'En attente',
+            '${kpis['enAttente'] ?? 0}',
+            Icons.hourglass_empty_outlined,
+            Colors.orange,
+          )),
+          const SizedBox(width: 16),
+          Expanded(child: _buildModernKpiCard(
+            context,
+            'Terminés',
+            '${kpis['termines'] ?? 0}',
+            Icons.check_circle_outline,
+            Colors.green,
+          )),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModernKpiCard(
+    BuildContext context,
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            color.withOpacity(0.1),
+            color.withOpacity(0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: color.withOpacity(0.2),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              icon,
+              color: color,
+              size: 24,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            title,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w500,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Widget KPI détaillé pour les cours de route par statut
+class CdrKpiTilesDetail extends ConsumerWidget {
+  const CdrKpiTilesDetail({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final kpisAsync = ref.watch(cdrKpiCountsByStatutProvider);
     
     return kpisAsync.when(
       loading: () => const Padding(
         padding: EdgeInsets.all(16),
-        child: ShimmerRow(count: 4),
+        child: ShimmerRow(count: 5),
       ),
       error: (error, stack) => Padding(
         padding: const EdgeInsets.all(16),
         child: ErrorTile(
-          'Erreur lors du chargement des KPIs CDR: $error',
-          retry: () => ref.invalidate(cdrKpiCountsProvider),
+          'Erreur lors du chargement des KPIs CDR détaillés: $error',
+          retry: () => ref.invalidate(cdrKpiCountsByStatutProvider),
         ),
       ),
       data: (kpis) => Padding(
@@ -222,24 +410,29 @@ class CdrKpiTiles extends ConsumerWidget {
           runSpacing: 16,
           children: [
             KpiCard(
-              title: 'Cours planifiés',
-              value: kpis[CdrEtat.planifie] ?? 0,
-              icon: Icons.schedule,
+              title: 'Chargement',
+              value: kpis['CHARGEMENT'] ?? 0,
+              icon: Icons.upload,
             ),
             KpiCard(
-              title: 'Cours en cours',
-              value: kpis[CdrEtat.enCours] ?? 0,
+              title: 'Transit',
+              value: kpis['TRANSIT'] ?? 0,
               icon: Icons.local_shipping,
             ),
             KpiCard(
-              title: 'Cours terminés',
-              value: kpis[CdrEtat.termine] ?? 0,
-              icon: Icons.check_circle,
+              title: 'Frontière',
+              value: kpis['FRONTIERE'] ?? 0,
+              icon: Icons.border_clear,
             ),
             KpiCard(
-              title: 'Cours annulés',
-              value: kpis[CdrEtat.annule] ?? 0,
-              icon: Icons.cancel,
+              title: 'Arrivé',
+              value: kpis['ARRIVE'] ?? 0,
+              icon: Icons.location_on,
+            ),
+            KpiCard(
+              title: 'Déchargé',
+              value: kpis['DECHARGE'] ?? 0,
+              icon: Icons.check_circle,
             ),
           ],
         ),

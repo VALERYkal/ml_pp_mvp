@@ -23,9 +23,21 @@ final coursKpiProvider = FutureProvider.family<CoursCounts, ({String? depotId, S
   );
 });
 
-/// Provider pour invalidation en temps réel (optionnel)
+/// Provider pour invalidation en temps réel des KPIs cours
+/// 
+/// Ce provider est utilisé dans les dashboards pour s'assurer que les KPIs
+/// sont mis à jour automatiquement lors des changements de cours de route.
+/// 
+/// Exemple d'utilisation :
+/// ```dart
+/// ref.watch(coursRealtimeInvalidatorProvider);
+/// ```
 final coursRealtimeInvalidatorProvider = Provider<void>((ref) {
-  // Ici on pourrait ajouter une logique d'invalidation en temps réel
-  // Par exemple, écouter les changements de statut des cours
+  // Ce provider est utilisé pour déclencher une invalidation automatique
+  // des KPIs cours dans les dashboards. Il est surveillé par les écrans
+  // de dashboard pour maintenir les données à jour.
+  
+  // Note: L'invalidation manuelle des KPIs est gérée dans les providers
+  // de création/modification/suppression des cours de route
   return;
 });

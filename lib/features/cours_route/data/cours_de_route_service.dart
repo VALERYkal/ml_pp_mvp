@@ -419,20 +419,52 @@ class CoursDeRouteService {
     return res != null;
   }
 
-  /// Compte les cours de route par état
+  /// Compte les cours de route par statut (utilise les vrais statuts DB)
   /// 
   /// Retourne :
-  /// - `Future<Map<CdrEtat, int>>` : Map avec le nombre de cours par état
-  Future<Map<CdrEtat, int>> countByEtat() async {
-    final out = <CdrEtat, int>{ for (final e in CdrEtat.values) e : 0 };
-    for (final etat in CdrEtat.values) {
-      // Use Supabase exact count without fetching all rows if available in this version:
+  /// - `Future<Map<String, int>>` : Map avec le nombre de cours par statut
+  Future<Map<String, int>> countByStatut() async {
+    final statuts = ['CHARGEMENT', 'TRANSIT', 'FRONTIERE', 'ARRIVE', 'DECHARGE'];
+    final out = <String, int>{};
+    
+    for (final statut in statuts) {
       final rows = await _supabase
           .from('cours_de_route')
-          .select<List<Map<String, dynamic>>>('id') // lightweight
-          .eq('etat', etat.name);
-      out[etat] = rows.length; // Fallback simple count; OK for P0.
+          .select<List<Map<String, dynamic>>>('id')
+          .eq('statut', statut); // ✅ Utilise 'statut' (nom correct de la colonne)
+      out[statut] = rows.length;
     }
+    return out;
+  }
+
+  /// Compte les cours de route par catégorie métier (groupement logique)
+  /// 
+  /// Retourne :
+  /// - `Future<Map<String, int>>` : Map avec les catégories métier
+  Future<Map<String, int>> countByCategorie() async {
+    final out = <String, int>{};
+    
+    // En route (chargement + transit + frontière)
+    final enRoute = await _supabase
+        .from('cours_de_route')
+        .select<List<Map<String, dynamic>>>('id')
+        .in_('statut', ['CHARGEMENT', 'TRANSIT', 'FRONTIERE']);
+    out['en_route'] = enRoute.length;
+    
+    // En attente de déchargement (arrivé)
+    final enAttente = await _supabase
+        .from('cours_de_route')
+        .select<List<Map<String, dynamic>>>('id')
+        .eq('statut', 'ARRIVE');
+    out['en_attente'] = enAttente.length;
+    
+    // Terminés (déchargé)
+    final termines = await _supabase
+        .from('cours_de_route')
+        .select<List<Map<String, dynamic>>>('id')
+        .eq('statut', 'DECHARGE');
+    out['termines'] = termines.length;
+    
     return out;
   }
 }
