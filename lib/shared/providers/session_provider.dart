@@ -43,13 +43,28 @@ final appAuthStateProvider = StreamProvider<AppAuthState>((ref) async* {
 /// Dérivé pratique : booléen d'authentification, avec fallback sur l'état instantané
 final isAuthenticatedProvider = Provider<bool>((ref) {
   final asyncState = ref.watch(appAuthStateProvider);
-  return asyncState.maybeWhen(
-    data: (s) => s.isAuthenticated,
-    orElse: () {
-      // fallback instantané si le stream n'a pas encore émis
-      return Supabase.instance.client.auth.currentSession != null;
+  final result = asyncState.when(
+    data: (s) {
+      final auth = s.isAuthenticated;
+      debugPrint('🔐 isAuthenticatedProvider: data state -> auth=$auth');
+      return auth;
+    },
+    loading: () {
+      // Pendant le chargement, vérifier l'état instantané
+      final fallback = Supabase.instance.client.auth.currentSession != null;
+      debugPrint('🔐 isAuthenticatedProvider: loading state -> fallback=$fallback');
+      return fallback;
+    },
+    error: (_, __) {
+      // En cas d'erreur, vérifier l'état instantané
+      final fallback = Supabase.instance.client.auth.currentSession != null;
+      debugPrint('🔐 isAuthenticatedProvider: error state -> fallback=$fallback');
+      return fallback;
     },
   );
+  
+  debugPrint('🔐 isAuthenticatedProvider: final result=$result');
+  return result;
 });
 
 /// Dérivé instantané : utilisateur courant à l'instant T (sans écouter le stream)

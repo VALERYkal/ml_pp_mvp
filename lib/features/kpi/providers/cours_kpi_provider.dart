@@ -1,3 +1,5 @@
+// ⚠️ DÉPRÉCIÉ - Utiliser kpiProvider à la place
+// Ce fichier sera supprimé dans la prochaine version majeure
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/repositories/repositories.dart';
 import '../../profil/providers/profil_provider.dart';

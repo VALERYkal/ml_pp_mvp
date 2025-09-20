@@ -14,13 +14,17 @@ class GoRouterCompositeRefresh extends ChangeNotifier {
     required Ref ref,
     required Stream<dynamic> authStream,
   }) {
-    _sub = authStream.asBroadcastStream().listen((_) => notifyListeners());
+    _sub = authStream.asBroadcastStream().listen((event) {
+      debugPrint('🔄 GoRouterCompositeRefresh: auth event received -> notifyListeners()');
+      notifyListeners();
+    });
 
     // Réveille aussi le router quand le rôle devient disponible
     // (évite de dépendre d'un nouvel event d'auth qui n'arrive jamais).
     _roleSub = ref.listen<UserRole?>(
       userRoleProvider,
       (prev, next) {
+        debugPrint('🔄 GoRouterCompositeRefresh: role changed $prev -> $next -> notifyListeners()');
         if (prev != next) notifyListeners();
       },
     );

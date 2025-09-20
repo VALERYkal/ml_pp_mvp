@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cdr_etat.dart';
 import 'package:ml_pp_mvp/features/cours_route/providers/cdr_kpi_provider.dart';
+import 'package:ml_pp_mvp/shared/formatters.dart';
+import 'package:ml_pp_mvp/features/kpi/providers/kpi_providers.dart';
 
 /// Carte KPI réutilisable
 class KpiCard extends StatelessWidget {
@@ -437,6 +439,39 @@ class CdrKpiTilesDetail extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+// Stock total — 15°C en primary, ambiant en secondaire, % d'utilisation
+class StockTotalTile extends ConsumerWidget {
+  const StockTotalTile({super.key});
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final total15c = ref.watch(kpiStocksProvider.select((s) => s.total15c ?? 0.0));
+    final totalAmb = ref.watch(kpiStocksProvider.select((s) => s.totalAmbient ?? 0.0));
+    final capacity = ref.watch(kpiStocksProvider.select((s) => s.capacityTotal ?? 0.0));
+    final usagePct = capacity <= 0 ? 0 : (totalAmb / capacity * 100);
+    return KpiCard(
+      title: 'Stock total',
+      value: total15c,
+      icon: Icons.inventory_2_outlined,
+    );
+  }
+}
+
+// Tendance 7 jours — net (réceptions - sorties) en primary
+class Trend7dTile extends ConsumerWidget {
+  const Trend7dTile({super.key});
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final sumIn = ref.watch(kpiTrend7dProvider.select((t) => t.sumReceptions15c7d ?? 0.0));
+    final sumOut = ref.watch(kpiTrend7dProvider.select((t) => t.sumSorties15c7d ?? 0.0));
+    final net = sumIn - sumOut;
+    return KpiCard(
+      title: 'Tendance 7 jours',
+      value: net,
+      icon: Icons.trending_up_rounded,
     );
   }
 }

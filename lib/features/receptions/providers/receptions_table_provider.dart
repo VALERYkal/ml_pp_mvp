@@ -18,8 +18,20 @@ final receptionsTableProvider = FutureProvider.autoDispose<List<ReceptionRowVM>>
   // 2) Référentiels (produits, citernes, fournisseurs)
   final prods = await ref.watch(refs.produitsRefProvider.future);
   final cits  = await ref.watch(refs.citernesActivesProvider.future);
-  // fournisseurs map via ref_data_provider alternative non dispo ici; fallback simple si nécessaire
-  final fMap = <String, String>{};
+  
+  // Récupérer les fournisseurs depuis Supabase
+  // Utiliser directement la table 'partenaires' qui semble être le nom correct
+  final fournisseursRows = await supa
+      .from('partenaires')
+      .select('id, nom');
+  
+  print('🔍 DEBUG: Récupération des fournisseurs depuis la table "partenaires"');
+  print('🔍 DEBUG: Nombre de fournisseurs trouvés: ${fournisseursRows.length}');
+  
+  final fMap = { 
+    for (final f in (fournisseursRows as List).cast<Map<String, dynamic>>()) 
+      f['id'] as String : f['nom'] as String 
+  };
 
   final pCode = { for (final p in prods) p.id : (p.code) };
   final pNom  = { for (final p in prods) p.id : p.nom };
@@ -36,6 +48,13 @@ final receptionsTableProvider = FutureProvider.autoDispose<List<ReceptionRowVM>>
     for (final m in (cdrRows as List).cast<Map<String, dynamic>>()) {
       cdrMap[m['id'] as String] = m;
     }
+  }
+
+  // Debug: Vérifier les données récupérées
+  print('🔍 DEBUG Fournisseurs récupérés: ${fMap.length} fournisseurs');
+  print('🔍 DEBUG CDR récupérés: ${cdrMap.length} cours de route');
+  for (final entry in fMap.entries.take(3)) {
+    print('🔍 DEBUG Fournisseur: ${entry.key} -> ${entry.value}');
   }
 
   // 4) Construire les VM
@@ -56,6 +75,16 @@ final receptionsTableProvider = FutureProvider.autoDispose<List<ReceptionRowVM>>
       cdr?['plaque_remorque'] as String?,
     ], ' / ');
 
+    // Récupération du nom du fournisseur avec debug
+    final fournisseurId = cdr?['fournisseur_id'] as String?;
+    final fournisseurNom = fournisseurId != null ? fMap[fournisseurId] : null;
+    
+    // Debug pour chaque réception
+    print('🔍 DEBUG Réception ${r['id']}: CDR=${cdrId}, fournisseurId=${fournisseurId}, fournisseurNom=${fournisseurNom}');
+    if (cdr != null) {
+      print('🔍 DEBUG CDR data: $cdr');
+    }
+
     out.add(ReceptionRowVM(
       id: r['id'] as String,
       dateReception: DateTime.tryParse((r['date_reception'] as String? ?? '')) ?? DateTime.now(),
@@ -66,7 +95,7 @@ final receptionsTableProvider = FutureProvider.autoDispose<List<ReceptionRowVM>>
       volAmb: (r['volume_ambiant']     as num?)?.toDouble(),
       cdrShort: cdrId != null ? '#${cdrId.substring(0, 8)}' : null,
       cdrPlaques: plaques.isEmpty ? null : plaques,
-      fournisseurNom: cdr != null ? fMap[(cdr['fournisseur_id'] as String? ?? '')] : null,
+      fournisseurNom: fournisseurNom,
     ));
   }
   return out;

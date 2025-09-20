@@ -1,3 +1,5 @@
+// ⚠️ DÉPRÉCIÉ - Utiliser kpiProvider à la place
+// Ce fichier sera supprimé dans la prochaine version majeure
 import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ml_pp_mvp/data/repositories/sorties_repository.dart';

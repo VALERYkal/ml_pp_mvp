@@ -105,7 +105,39 @@ class _ReceptionDataSource extends DataTableSource {
         DataCell(Text(_fmtVol(r.vol15))),
         DataCell(Text(_fmtVol(r.volAmb))),
         DataCell(Text(_cdrCell(r))),
-        DataCell(Text(r.fournisseurNom ?? '—')),
+        DataCell(
+          r.fournisseurNom != null && r.fournisseurNom!.isNotEmpty 
+              ? _ModernChip(text: r.fournisseurNom!, color: Theme.of(context).colorScheme.tertiary, icon: Icons.business)
+              : Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.business_outlined,
+                        size: 16,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Fournisseur inconnu',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+        ),
         DataCell(Row(children: [
           IconButton(tooltip: 'Voir', icon: const Icon(Icons.open_in_new), onPressed: () => onTap(r.id)),
         ])),
@@ -140,6 +172,56 @@ class _MiniChip extends StatelessWidget {
       padding: EdgeInsets.zero,
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       visualDensity: VisualDensity.compact,
+    );
+  }
+}
+
+class _ModernChip extends StatelessWidget {
+  final String text;
+  final Color color;
+  final IconData? icon;
+  
+  const _ModernChip({
+    required this.text,
+    required this.color,
+    this.icon,
+    super.key,
+  });
+  
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: color.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(
+              icon,
+              size: 14,
+              color: color,
+            ),
+            const SizedBox(width: 4),
+          ],
+          Text(
+            text,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

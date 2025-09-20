@@ -1,155 +1,26 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-
-// KPI 1
-import 'package:ml_pp_mvp/features/kpi/providers/cours_kpi_provider.dart';
-// KPI 2
-import 'package:ml_pp_mvp/features/kpi/providers/receptions_kpi_provider.dart';
-// KPI 3
-import 'package:ml_pp_mvp/features/kpi/providers/stocks_kpi_provider.dart';
-// KPI 4
-import 'package:ml_pp_mvp/features/kpi/providers/sorties_kpi_provider.dart';
-// KPI 5
-import 'package:ml_pp_mvp/features/kpi/providers/balance_kpi_provider.dart';
-
-import 'package:ml_pp_mvp/features/kpi/widgets/kpi_split_card.dart';
-import 'package:ml_pp_mvp/features/kpi/widgets/kpi_summary_card.dart';
+import 'package:ml_pp_mvp/features/kpi/providers/kpi_provider.dart';
 import 'package:ml_pp_mvp/features/kpi/models/kpi_models.dart';
-import 'package:ml_pp_mvp/shared/utils/formatters.dart';
-import 'package:ml_pp_mvp/features/dashboard/widgets/kpi_tiles.dart';
-
-// Nouveaux composants modernes
-import 'package:ml_pp_mvp/shared/ui/modern_components/dashboard_header.dart';
 import 'package:ml_pp_mvp/shared/ui/modern_components/modern_kpi_card.dart';
+import 'package:ml_pp_mvp/shared/ui/kpi_card.dart';
+import 'package:ml_pp_mvp/shared/formatters.dart';
 import 'package:ml_pp_mvp/shared/ui/modern_components/dashboard_grid.dart';
+import 'package:ml_pp_mvp/shared/ui/modern_components/dashboard_header.dart';
+import 'package:ml_pp_mvp/shared/dev/hot_reload_hooks.dart';
+import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart';
+import 'trucks_to_follow_card.dart';
 
 class RoleDashboard extends ConsumerWidget {
   const RoleDashboard({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // --- Realtime invalidators (no UI)
-    ref.watch(coursRealtimeInvalidatorProvider);
-    ref.watch(stocksRealtimeInvalidatorProvider);
-    ref.watch(sortiesRealtimeInvalidatorProvider);
+    final kpis = ref.watch(kpiProviderProvider);
 
-    // --- KPI 1: Camions (en route / attente + volumes)
-    final coursParam  = ref.watch(coursDefaultParamProvider);
-    final coursState  = ref.watch(coursKpiProvider(coursParam));
-
-    final kpiCamions = coursState.when(
-      data: (d) => ModernKpiCard(
-        title: 'Camions à suivre',
-        primaryValue: '${d.enRoute + d.attente}',
-        primaryLabel: 'Camions total',
-        secondaryValue: fmtLiters(d.enRouteLitres + d.attenteLitres),
-        secondaryLabel: 'Volume total prévu',
-        icon: Icons.local_shipping_outlined,
-        accentColor: Colors.blue,
-        metrics: [
-          KpiMetric(label: 'En route', value: '${d.enRoute}'),
-          KpiMetric(label: 'En attente', value: '${d.attente}'),
-          KpiMetric(label: 'Vol. en route', value: fmtLiters(d.enRouteLitres)),
-          KpiMetric(label: 'Vol. en attente', value: fmtLiters(d.attenteLitres)),
-        ],
-        onTap: () => context.go('/cours'),
-      ),
-      loading: () => _buildLoadingCard('Camions à suivre', Icons.local_shipping_outlined),
-      error: (_, __) => _buildErrorCard('Camions à suivre', Icons.local_shipping_outlined),
-    );
-
-    // --- KPI 2: Réceptions (jour)
-    final recParam   = ref.watch(receptionsTodayParamProvider);
-    final recState   = ref.watch(receptionsKpiProvider(recParam));
-
-    final kpiReceptions = recState.when(
-      data: (d) => ModernKpiCard(
-        title: 'Réceptions du jour',
-        primaryValue: '${d.nbCamions}',
-        primaryLabel: 'Camions reçus',
-        secondaryValue: fmtLiters(d.volAmbiant),
-        secondaryLabel: 'Volume ambiant',
-        icon: Icons.move_to_inbox_outlined,
-        accentColor: Colors.green,
-        metrics: [
-          KpiMetric(label: 'Volume 15°C', value: fmtLiters(d.vol15c)),
-        ],
-        onTap: () => context.go('/receptions'),
-      ),
-      loading: () => _buildLoadingCard('Réceptions', Icons.move_to_inbox_outlined),
-      error:  (_, __) => _buildErrorCard('Réceptions', Icons.move_to_inbox_outlined),
-    );
-
-    // --- KPI 3: Stock total (actuel)
-    final stkParam   = ref.watch(stocksDefaultParamProvider);
-    final stkState   = ref.watch(stocksTotalsProvider(stkParam));
-
-    final kpiStocks = stkState.when(
-      data: (s) => ModernKpiCard(
-        title: 'Stock total',
-        primaryValue: fmtLiters(s.totalAmbiant),
-        primaryLabel: 'Volume ambiant',
-        secondaryValue: fmtLiters(s.total15c),
-        secondaryLabel: 'Volume 15°C',
-        icon: Icons.inventory_2_outlined,
-        accentColor: Colors.orange,
-        metrics: s.lastDay != null ? [
-          KpiMetric(label: 'Dernière MAJ', value: fmtShortDate(s.lastDay!)),
-        ] : null,
-        onTap: () => context.go('/stocks'),
-      ),
-      loading: () => _buildLoadingCard('Stocks', Icons.inventory_2_outlined),
-      error:  (_, __) => _buildErrorCard('Stocks', Icons.inventory_2_outlined),
-    );
-
-    // --- KPI 4: Sorties (jour)
-    final sorParam   = ref.watch(sortiesTodayParamProvider);
-    final sorState   = ref.watch(sortiesKpiProvider(sorParam));
-
-    final kpiSorties = sorState.when(
-      data: (d) => ModernKpiCard(
-        title: 'Sorties du jour',
-        primaryValue: '${d.nbCamions}',
-        primaryLabel: 'Camions sortis',
-        secondaryValue: fmtLiters(d.volAmbiant),
-        secondaryLabel: 'Volume ambiant',
-        icon: Icons.outbox_outlined,
-        accentColor: Colors.red,
-        metrics: [
-          KpiMetric(label: 'Volume 15°C', value: fmtLiters(d.vol15c)),
-        ],
-        onTap: () => context.go('/sorties'),
-      ),
-      loading: () => _buildLoadingCard('Sorties', Icons.outbox_outlined),
-      error:  (_, __) => _buildErrorCard('Sorties', Icons.outbox_outlined),
-    );
-
-    // --- KPI 5: Balance (jour) = Réceptions - Sorties (ambiant & 15°C)
-    final balanceState = ref.watch(balanceTodayProvider);
-    final kpiBalance = balanceState.when(
-      data: (b) {
-        final isPositive = b.deltaAmbiant > 0;
-        final accentColor = isPositive ? Colors.teal : Colors.red;
-        
-        return ModernKpiCard(
-          title: 'Balance du jour',
-          primaryValue: fmtLitersSigned(b.deltaAmbiant),
-          primaryLabel: 'Δ Volume ambiant',
-          secondaryValue: fmtLitersSigned(b.delta15c),
-          secondaryLabel: 'Δ Volume 15°C',
-          icon: Icons.compare_arrows_outlined,
-          accentColor: accentColor,
-          trend: KpiTrend(value: b.deltaAmbiant > 0 ? 5.2 : -3.1),
-          onTap: () => context.go('/stocks'),
-        );
-      },
-      loading: () => _buildLoadingCard('Balance', Icons.compare_arrows_outlined),
-      error:  (_, __) => _buildErrorCard('Balance', Icons.compare_arrows_outlined),
-    );
-
-    // --- Mise en page moderne
-    return Scaffold(
+    final dashboardContent = Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       body: SafeArea(
         child: SingleChildScrollView(
@@ -160,28 +31,142 @@ class RoleDashboard extends ConsumerWidget {
               // Header avec salutation
               const DashboardHeader(),
               
-              // Section principale - KPIs essentiels
+              // Section principale - KPIs unifiés
               DashboardSection(
                 title: 'Vue d\'ensemble',
                 subtitle: 'Indicateurs clés de performance en temps réel',
-                child: DashboardGrid(
-                  children: [kpiCamions, kpiStocks, kpiBalance],
-                ),
-              ),
-              
-              // Section cours de route détaillée
-              DashboardSection(
-                title: 'Cours de route',
-                subtitle: 'Suivi détaillé des camions par statut',
-                child: const CdrKpiTiles(),
-              ),
-              
-              // Section activités du jour
-              DashboardSection(
-                title: 'Activités du jour',
-                subtitle: 'Réceptions et sorties',
-                child: DashboardGrid(
-                  children: [kpiReceptions, kpiSorties],
+                accentColor: KpiColorPalette.primary,
+                child: kpis.when(
+                       loading: () => const Center(child: CircularProgressIndicator()),
+                       error: (e, st) => Center(
+                         child: Column(
+                           mainAxisAlignment: MainAxisAlignment.center,
+                           children: [
+                             Icon(
+                               Icons.error_outline,
+                               size: 48,
+                               color: Theme.of(context).colorScheme.error,
+                             ),
+                             const SizedBox(height: 16),
+                             Text(
+                               'Erreur de chargement des KPIs',
+                               style: Theme.of(context).textTheme.titleMedium,
+                             ),
+                             const SizedBox(height: 8),
+                             Text(
+                               'Veuillez réessayer plus tard',
+                               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                 color: Theme.of(context).colorScheme.onSurfaceVariant,
+                               ),
+                             ),
+                           ],
+                         ),
+                       ),
+                       data: (KpiSnapshot data) => DashboardGrid(
+                           children: [
+                             // 1. Camions à suivre (priorité logistique)
+                             TrucksToFollowCard(
+                               data: data.trucksToFollow,
+                               onTap: () => context.go('/camions'),
+                             ),
+                             // 2. Réceptions du jour
+                             Builder(
+                               builder: (context) {
+                                 print('🔍 DEBUG Dashboard - Réceptions: count=${data.receptionsToday.count}, volume15c=${data.receptionsToday.volume15c}, volumeAmbient=${data.receptionsToday.volumeAmbient}');
+                                 print('🔍 DEBUG Dashboard - Formaté: volume15c=${fmtL(data.receptionsToday.volume15c)}, volumeAmbient=${fmtL(data.receptionsToday.volumeAmbient)}');
+                                 return KpiCard(
+                                   icon: Icons.move_to_inbox_outlined,
+                                   title: 'Réceptions du jour',
+                                   tintColor: const Color(0xFF4CAF50),
+                                   primaryValue: fmtL(data.receptionsToday.volume15c),
+                                   primaryLabel: 'Volume 15°C',
+                                   subLeftLabel: 'Nombre de camions',
+                                   subLeftValue: fmtCount(data.receptionsToday.count),
+                                   subRightLabel: 'Volume ambiant',
+                                   subRightValue: fmtL(data.receptionsToday.volumeAmbient),
+                                   onTap: () => context.go('/receptions'),
+                                 );
+                               },
+                             ),
+                             // 3. Sorties du jour
+                             Builder(
+                               builder: (context) {
+                                 return KpiCard(
+                                   icon: Icons.outbox_outlined,
+                                   title: 'Sorties du jour',
+                                   tintColor: const Color(0xFFF44336),
+                                   primaryValue: fmtL(data.sortiesToday.volume15c),
+                                   primaryLabel: 'Volume 15°C',
+                                   subLeftLabel: 'Nombre de camions',
+                                   subLeftValue: fmtCount(data.sortiesToday.count),
+                                   subRightLabel: 'Volume ambiant',
+                                   subRightValue: fmtL(data.sortiesToday.volumeAmbient),
+                                   onTap: () => context.go('/sorties'),
+                                 );
+                               },
+                             ),
+                             // 4. Stock total
+                             Builder(
+                               builder: (context) {
+                                 final usagePct = data.stocks.capacityTotal <= 0 ? 0 : (data.stocks.totalAmbient / data.stocks.capacityTotal * 100);
+                                 print('🔍 DEBUG Dashboard - Stock: total15c=${data.stocks.total15c}, totalAmbient=${data.stocks.totalAmbient}, capacity=${data.stocks.capacityTotal}');
+                                 print('🔍 DEBUG Dashboard - Stock formaté: total15c=${fmtL(data.stocks.total15c)}, totalAmbient=${fmtL(data.stocks.totalAmbient)}');
+                                 return KpiCard(
+                                   icon: Icons.inventory_2_outlined,
+                                   title: 'Stock total',
+                                   tintColor: const Color(0xFFFF9800),
+                                   primaryValue: fmtL(data.stocks.total15c),
+                                   primaryLabel: 'Volume 15°C',
+                                   subLeftLabel: 'Volume ambiant',
+                                   subLeftValue: fmtL(data.stocks.totalAmbient, fixed: 1),
+                                   subRightLabel: '${usagePct.toStringAsFixed(0)}% utilisation',
+                                   subRightValue: 'Capacité ${fmtL(data.stocks.capacityTotal, fixed: 0)}',
+                                   onTap: () => context.go('/stocks'),
+                                 );
+                               },
+                             ),
+                             // 5. Balance du jour
+                             Builder(
+                               builder: (context) {
+                                 print('🔍 DEBUG Dashboard - Balance: delta15c=${data.balanceToday.delta15c}, deltaAmbient=${data.balanceToday.deltaAmbient}');
+                                 print('🔍 DEBUG Dashboard - Balance formaté: delta15c=${fmtDelta(data.balanceToday.delta15c)}, deltaAmbient=${fmtDelta(data.balanceToday.deltaAmbient)}');
+                                 return KpiCard(
+                                   icon: Icons.compare_arrows_outlined,
+                                   title: 'Balance du jour',
+                                   tintColor: data.balanceToday.delta15c >= 0 ? const Color(0xFF009688) : const Color(0xFFF44336),
+                                   primaryValue: fmtDelta(data.balanceToday.delta15c),
+                                   primaryLabel: 'Δ Volume 15°C',
+                                   subLeftLabel: 'Réceptions 15°C',
+                                   subLeftValue: fmtL(data.balanceToday.receptions15c),
+                                   subRightLabel: 'Sorties 15°C',
+                                   subRightValue: fmtL(data.balanceToday.sorties15c),
+                                   onTap: () => context.go('/stocks'),
+                                 );
+                               },
+                             ),
+                             // 6. Tendance 7 jours
+                             Builder(
+                               builder: (context) {
+                                 final sumIn = data.trend7d.fold<double>(0, (s, p) => s + p.receptions15c);
+                                 final sumOut = data.trend7d.fold<double>(0, (s, p) => s + p.sorties15c);
+                                 final net = sumIn - sumOut;
+                                 print('🔍 DEBUG Dashboard - Tendance: sumIn=$sumIn, sumOut=$sumOut, net=$net');
+                                 return KpiCard(
+                                   icon: Icons.trending_up_rounded,
+                                   title: 'Tendance 7 jours',
+                                   tintColor: const Color(0xFF7C4DFF),
+                                   primaryValue: fmtL(net),
+                                   primaryLabel: 'Somme nette 15°C (7j)',
+                                   subLeftLabel: 'Somme réceptions (15°C)',
+                                   subLeftValue: fmtL(sumIn),
+                                   subRightLabel: 'Somme sorties (15°C)',
+                                   subRightValue: fmtL(sumOut),
+                                   onTap: () => context.go('/analytics/trends'),
+                                 );
+                               },
+                             ),
+                           ],
+                         ),
                 ),
               ),
             ],
@@ -189,26 +174,18 @@ class RoleDashboard extends ConsumerWidget {
         ),
       ),
     );
+
+    // Envelopper avec le hook d'invalidation Hot Reload en mode debug
+    if (kDebugMode) {
+      return HotReloadInvalidator(
+        child: dashboardContent,
+        providersToInvalidate: [
+          profilProvider,
+          kpiProviderProvider,
+        ],
+      );
+    }
+    return dashboardContent;
   }
 
-  /// Widget de chargement moderne
-  Widget _buildLoadingCard(String title, IconData icon) {
-    return ModernKpiCard(
-      title: title,
-      primaryValue: '...',
-      icon: icon,
-      accentColor: Colors.grey,
-    );
-  }
-
-  /// Widget d'erreur moderne
-  Widget _buildErrorCard(String title, IconData icon) {
-    return ModernKpiCard(
-      title: title,
-      primaryValue: 'Erreur',
-      primaryLabel: 'Données indisponibles',
-      icon: icon,
-      accentColor: Colors.red,
-    );
-  }
 }

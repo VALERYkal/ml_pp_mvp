@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +8,8 @@ import 'package:ml_pp_mvp/shared/providers/auth_service_provider.dart';
 import 'package:ml_pp_mvp/shared/providers/ref_data_provider.dart';
 import 'package:ml_pp_mvp/shared/navigation/nav_config.dart';
 import 'package:ml_pp_mvp/features/depots/providers/depots_provider.dart';
+import 'package:ml_pp_mvp/shared/dev/hot_reload_hooks.dart';
+import 'package:ml_pp_mvp/features/kpi/providers/kpi_providers.dart';
 
 /// Titre dynamique basé sur la route courante
 class _DashboardTitle extends ConsumerWidget {
@@ -148,7 +151,7 @@ class DashboardShell extends ConsumerWidget {
           ),
         );
 
-        return Scaffold(
+        final shell = Scaffold(
           appBar: AppBar(
             title: const _DashboardTitle(),
             centerTitle: false,
@@ -195,6 +198,22 @@ class DashboardShell extends ConsumerWidget {
           bottomNavigationBar: isWide ? null : bottom,
           drawer: isWide ? null : drawer,
         );
+
+        if (kDebugMode) {
+          return HotReloadInvalidator(
+            child: shell,
+            providersToInvalidate: [
+              currentProfilProvider,
+              userRoleProvider,
+              kpiProviderProvider,
+              stocksTotalsProvider,
+              receptionsKpiProvider,
+              sortiesKpiProvider,
+              camionsASuivreProvider,
+            ],
+          );
+        }
+        return shell;
       },
     );
   }

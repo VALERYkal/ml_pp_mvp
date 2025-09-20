@@ -9,9 +9,9 @@ class AreaChart extends StatelessWidget {
   // Helper pour formater les volumes intelligemment
   String _formatVolume(double volume) {
     if (volume >= 1000) {
-      return '${(volume / 1000).toStringAsFixed(1)}kL';
+      return '${(volume / 1000).toStringAsFixed(0)} 000 L';
     }
-    return '${volume.toStringAsFixed(0)}L';
+    return '${volume.toStringAsFixed(0)} L';
   }
 
   // Helper pour calculer la variation jour/jour

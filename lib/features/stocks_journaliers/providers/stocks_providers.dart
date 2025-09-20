@@ -30,6 +30,20 @@ class StockRowView {
   });
 }
 
+class StocksDataWithMeta {
+  final List<StockRowView> stocks;
+  final String requestedDate;
+  final String actualDataDate;
+  final bool isFallback;
+
+  const StocksDataWithMeta({
+    required this.stocks,
+    required this.requestedDate,
+    required this.actualDataDate,
+    required this.isFallback,
+  });
+}
+
 enum StockSortKey { ratio, stockAmbiant, stock15c, capaciteTotale }
 
 final stocksSortKeyProvider = Riverpod.StateProvider<StockSortKey>((ref) => StockSortKey.ratio);
@@ -39,7 +53,7 @@ final stocksSelectedDateProvider = Riverpod.StateProvider<DateTime>((ref) => Dat
 final stocksSelectedProduitIdProvider = Riverpod.StateProvider<String?>((ref) => null);
 final stocksSelectedCiterneIdProvider = Riverpod.StateProvider<String?>((ref) => null);
 
-final stocksListProvider = Riverpod.FutureProvider<List<StockRowView>>((ref) async {
+final stocksListProvider = Riverpod.FutureProvider<StocksDataWithMeta>((ref) async {
   final client = Supabase.instance.client;
   final date = ref.watch(stocksSelectedDateProvider);
   final produitId = ref.watch(stocksSelectedProduitIdProvider);
@@ -51,6 +65,7 @@ final stocksListProvider = Riverpod.FutureProvider<List<StockRowView>>((ref) asy
       '${d.year.toString().padLeft(4,'0')}-${d.month.toString().padLeft(2,'0')}-${d.day.toString().padLeft(2,'0')}';
 
   final dateStr = _fmtYmd(date);
+  debugPrint('🔍 DEBUG Stocks: Recherche pour la date: $dateStr');
   try {
     dynamic query = client
         .from('stocks_journaliers')
@@ -63,7 +78,48 @@ final stocksListProvider = Riverpod.FutureProvider<List<StockRowView>>((ref) asy
       query = query.eq('citerne_id', citerneId);
     }
     // L'ordre par created_at n'existe pas sur stocks_journaliers (pas de colonne) ; on trie en mémoire
-    final res = await query;
+    var res = await query;
+    debugPrint('🔍 DEBUG Stocks: Résultat direct pour $dateStr: ${(res as List).length} entrées');
+    
+    // Si pas de données pour la date exacte, chercher la date la plus récente précédente
+    if ((res as List).isEmpty) {
+      debugPrint('🔍 DEBUG Stocks: Aucune donnée pour $dateStr, recherche de la date précédente...');
+      dynamic fallbackQuery = client
+          .from('stocks_journaliers')
+          .select('id, date_jour, stock_ambiant, stock_15c, citerne_id, produit_id, citernes(id, nom, capacite_totale, capacite_securite), produits(id, nom)')
+          .lte('date_jour', dateStr)
+          .order('date_jour', ascending: false)
+          .limit(100); // Limite pour éviter de récupérer trop de données
+          
+      if (produitId != null) {
+        fallbackQuery = fallbackQuery.eq('produit_id', produitId);
+      }
+      if (citerneId != null) {
+        fallbackQuery = fallbackQuery.eq('citerne_id', citerneId);
+      }
+      
+      final fallbackRes = await fallbackQuery;
+      debugPrint('🔍 DEBUG Stocks: Résultat fallback: ${(fallbackRes as List).length} entrées');
+      
+      if ((fallbackRes as List).isNotEmpty) {
+        // Grouper par citerne/produit et prendre la date la plus récente pour chaque combinaison
+        final Map<String, Map<String, dynamic>> latestEntries = {};
+        for (final entry in fallbackRes) {
+          final m = entry as Map<String, dynamic>;
+          final key = '${m['citerne_id']}_${m['produit_id']}';
+          final entryDate = m['date_jour'] as String;
+          
+          if (!latestEntries.containsKey(key) || 
+              latestEntries[key]!['date_jour'].compareTo(entryDate) < 0) {
+            latestEntries[key] = m;
+          }
+        }
+        
+        debugPrint('🔍 DEBUG Stocks: Entrées les plus récentes trouvées: ${latestEntries.length} combinaisons citerne/produit');
+        // Remplacer le résultat par les entrées les plus récentes
+        res = latestEntries.values.toList();
+      }
+    }
     final list = (res as List<dynamic>).map((e) {
       final m = e as Map<String, dynamic>;
       final cit = (m['citernes'] ?? {}) as Map<String, dynamic>;
@@ -112,7 +168,26 @@ final stocksListProvider = Riverpod.FutureProvider<List<StockRowView>>((ref) asy
       return r;
     });
 
-    return list;
+    // Déterminer si on utilise des données de fallback
+    final isFallback = (res as List).isNotEmpty && 
+        (res as List).any((e) => (e as Map<String, dynamic>)['date_jour'] != dateStr);
+    
+    // Trouver la date la plus récente des données
+    String actualDataDate = dateStr;
+    if ((res as List).isNotEmpty) {
+      final dates = (res as List).map((e) => (e as Map<String, dynamic>)['date_jour'] as String).toList();
+      dates.sort((a, b) => b.compareTo(a)); // Tri décroissant
+      actualDataDate = dates.first;
+    }
+    
+    debugPrint('🔍 DEBUG Stocks: Données retournées - isFallback: $isFallback, actualDataDate: $actualDataDate, count: ${list.length}');
+    
+    return StocksDataWithMeta(
+      stocks: list,
+      requestedDate: dateStr,
+      actualDataDate: actualDataDate,
+      isFallback: isFallback,
+    );
   } on PostgrestException catch (e) {
     debugPrint('❌ stocksListProvider: ${e.message}');
     rethrow;

@@ -50,7 +50,7 @@ class VolumeFormatter {
     }
   }
 
-  /// Formate un volume en format compact (ex: "1.2k L")
+  /// Formate un volume en format compact (ex: "1 000 L")
   /// 
   /// [volume] : Volume à formater
   /// 
@@ -65,7 +65,7 @@ class VolumeFormatter {
       if (v == null || !v.isFinite) return '—';
       
       if (v >= 1000) {
-        return '${(v / 1000).toStringAsFixed(1)}k L';
+        return '${(v / 1000).toStringAsFixed(0)} 000 L';
       } else if (v >= 1) {
         return '${v.toStringAsFixed(1)} L';
       } else {
