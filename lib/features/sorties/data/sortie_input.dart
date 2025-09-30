@@ -39,5 +39,3 @@ class SortieInput {
     this.transporteur,
   });
 }
-
-
