@@ -6,7 +6,7 @@ on:
   pull_request:
     paths-ignore: ["README.md", "**/*.md", ".vscode/**"]
 
-# Évite de lancer plusieurs runs concurrents sur la même branche/PR
+# Empêche les runs concurrents sur la même ref
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -14,7 +14,7 @@ concurrency:
 jobs:
   analyze:
     name: Lints & Analyse
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Windows, X64]   # ← self-hosted
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
@@ -31,7 +31,6 @@ jobs:
       - name: Install deps
         run: flutter pub get
 
-      # Optionnel si l'analyse dépend de fichiers générés
       - name: Generate code (build_runner)
         run: dart run build_runner build --delete-conflicting-outputs
 
@@ -43,8 +42,7 @@ jobs:
 
   test:
     name: Tests unitaires
-    runs-on: ubuntu-latest
-    needs: test
+    runs-on: [self-hosted, Windows, X64]   # ← self-hosted
     steps:
       - uses: actions/checkout@v4
 
@@ -57,16 +55,15 @@ jobs:
       - name: Install deps
         run: flutter pub get
 
-      # Nécessaire dans ton projet (Freezed / json_serializable)
       - name: Generate code (build_runner)
         run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Run tests (verbose)
         run: flutter test -r expanded
 
-      # (Optionnel) Couverture : upload lcov.info comme artefact
       - name: Run tests with coverage
         run: flutter test --coverage
+
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
         with:
@@ -75,7 +72,7 @@ jobs:
 
   build_web:
     name: Build Web (smoke compile)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Windows, X64]   # ← self-hosted
     needs: test
     steps:
       - uses: actions/checkout@v4
@@ -95,7 +92,6 @@ jobs:
       - name: Build web (release)
         run: flutter build web --release
 
-      # Optionnel: garder l'artefact du build pour un preview
       - name: Upload web build
         uses: actions/upload-artifact@v4
         with:
