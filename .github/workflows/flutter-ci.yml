@@ -11,6 +11,11 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+defaults:
+  run:
+    shell: pwsh
+
+
 jobs:
   analyze:
     name: Lints & Analyse
