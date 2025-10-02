@@ -11,16 +11,14 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-defaults:
-  run:
-    shell: pwsh
-
-
 jobs:
   analyze:
     name: Lints & Analyse
-    runs-on: [self-hosted, Windows, X64]   # ← self-hosted
+    runs-on: [self-hosted, Windows, X64]
     continue-on-error: true
+    defaults:
+      run:
+        shell: powershell
     steps:
       - uses: actions/checkout@v4
 
@@ -47,7 +45,10 @@ jobs:
 
   test:
     name: Tests unitaires
-    runs-on: [self-hosted, Windows, X64]   # ← self-hosted
+    runs-on: [self-hosted, Windows, X64]
+    defaults:
+      run:
+        shell: powershell
     steps:
       - uses: actions/checkout@v4
 
@@ -70,6 +71,7 @@ jobs:
         run: flutter test --coverage
 
       - name: Upload coverage artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: coverage
@@ -77,8 +79,11 @@ jobs:
 
   build_web:
     name: Build Web (smoke compile)
-    runs-on: [self-hosted, Windows, X64]   # ← self-hosted
+    runs-on: [self-hosted, Windows, X64]
     needs: test
+    defaults:
+      run:
+        shell: powershell
     steps:
       - uses: actions/checkout@v4
 
@@ -98,6 +103,7 @@ jobs:
         run: flutter build web --release
 
       - name: Upload web build
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: web-build
