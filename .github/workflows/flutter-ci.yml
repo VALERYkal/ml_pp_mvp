@@ -15,63 +15,48 @@ jobs:
     name: Lints & Analyse
     runs-on: [self-hosted, Windows, X64]
     continue-on-error: true
+    defaults:
+      run:
+        shell: powershell
     steps:
       - uses: actions/checkout@v4
-
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
-
       - name: Flutter version
         run: flutter --version
-        shell: powershell
-
       - name: Install deps
         run: flutter pub get
-        shell: powershell
-
       - name: Generate code (build_runner)
         run: dart run build_runner build --delete-conflicting-outputs
-        shell: powershell
-
       - name: Format check
         run: dart format --output=none --set-exit-if-changed .
-        shell: powershell
-
       - name: Dart analyze
         run: flutter analyze
-        shell: powershell
 
   test:
     name: Tests unitaires
     runs-on: [self-hosted, Windows, X64]
+    defaults:
+      run:
+        shell: powershell
     steps:
       - uses: actions/checkout@v4
-
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
-
       - name: Install deps
         run: flutter pub get
-        shell: powershell
-
       - name: Generate code (build_runner)
         run: dart run build_runner build --delete-conflicting-outputs
-        shell: powershell
-
       - name: Run tests (verbose)
         run: flutter test -r expanded
-        shell: powershell
-
       - name: Run tests with coverage
         run: flutter test --coverage
-        shell: powershell
-
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
         with:
@@ -82,27 +67,22 @@ jobs:
     name: Build Web (smoke compile)
     runs-on: [self-hosted, Windows, X64]
     needs: test
+    defaults:
+      run:
+        shell: powershell
     steps:
       - uses: actions/checkout@v4
-
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
-
       - name: Install deps
         run: flutter pub get
-        shell: powershell
-
       - name: Generate code (build_runner)
         run: dart run build_runner build --delete-conflicting-outputs
-        shell: powershell
-
       - name: Build web (release)
         run: flutter build web --release
-        shell: powershell
-
       - name: Upload web build
         uses: actions/upload-artifact@v4
         with:
