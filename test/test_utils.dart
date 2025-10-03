@@ -15,10 +15,12 @@ import 'package:ml_pp_mvp/shared/providers/ref_data_provider.dart';
 
 /// Helper pour pomper un widget avec les providers nécessaires
 ///
+/// [tester] : Le WidgetTester à utiliser
 /// [widget] : Le widget à tester
 /// [overrides] : Overrides supplémentaires pour les providers
 /// [routerConfig] : Configuration du routeur (optionnel)
 Future<void> pumpWithProviders(
+  WidgetTester tester,
   Widget widget, {
   List<Override> overrides = const [],
   GoRouter? routerConfig,
@@ -26,7 +28,7 @@ Future<void> pumpWithProviders(
   final defaultOverrides = [
     // Providers par défaut pour les tests CDR
     userRoleProvider.overrideWith((ref) => UserRole.lecture),
-    refDataProvider.overrideWith((ref) => AsyncValue.data(FakeRefData())),
+    refDataProvider.overrideWith((ref) => FakeRefData()),
   ];
 
   final allOverrides = [...defaultOverrides, ...overrides];
@@ -34,11 +36,9 @@ Future<void> pumpWithProviders(
   await tester.pumpWidget(
     ProviderScope(
       overrides: allOverrides,
-      child: MaterialApp(
-        home: routerConfig != null
-            ? Router(routerConfig: routerConfig, child: widget)
-            : widget,
-      ),
+      child: routerConfig != null
+          ? MaterialApp.router(routerConfig: routerConfig)
+          : MaterialApp(home: widget),
     ),
   );
 }
@@ -239,7 +239,7 @@ class FakeCoursDeRouteService implements CoursDeRouteService {
   }) async => throw UnimplementedError();
 
   @override
-  Future<List<dynamic>> getByStatut(dynamic statut) async =>
+  Future<List<CoursDeRoute>> getByStatut(StatutCours statut) async =>
       throw UnimplementedError();
 
   @override
@@ -266,13 +266,15 @@ class FakeCoursDeRouteService implements CoursDeRouteService {
 
 /// Helper pour vérifier qu'un widget est affiché sans exception
 ///
+/// [tester] : Le WidgetTester à utiliser
 /// [widget] : Le widget à tester
 /// [overrides] : Overrides supplémentaires pour les providers
 Future<void> expectNoRenderException(
+  WidgetTester tester,
   Widget widget, {
   List<Override> overrides = const [],
 }) async {
-  await pumpWithProviders(widget, overrides: overrides);
+  await pumpWithProviders(tester, widget, overrides: overrides);
 
   // Vérifier qu'il n'y a pas d'exception de rendu
   expect(tester.takeException(), isNull);

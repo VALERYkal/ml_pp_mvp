@@ -14,8 +14,9 @@ class _App extends ConsumerWidget {
     final role = ref.watch(roleProvider);
     String? redirect(BuildContext _, GoRouterState s) {
       // /admin est réservé admin
-      if (s.matchedLocation == '/admin' && role != UserRole.admin)
+      if (s.matchedLocation == '/admin' && role != UserRole.admin) {
         return '/forbidden';
+      }
       return null;
     }
 
