@@ -24,12 +24,12 @@ jobs:
     continue-on-error: true
     defaults:
       run:
-        shell: pwsh
+        shell: powershell
 
     steps:
       - uses: actions/checkout@v4
 
-      # IMPORTANT : installer jq AVANT Setup Flutter
+      # 1) Installer jq (Windows)
       - name: Install jq (Windows)
         run: |
           if (Get-Command choco.exe -ErrorAction SilentlyContinue) {
@@ -44,10 +44,23 @@ jobs:
           }
           "C:\ProgramData\chocolatey\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           "C:\Program Files\Git\usr\bin"   | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-          Write-Host "jq version:"; jq --version
+          Write-Host "jq version (pwsh):"; jq --version
 
+      # 2) Vérifier jq côté Bash (même env que flutter-action)
+      - name: Verify jq (bash)
+        shell: bash
+        env:
+          PATH: C:\Program Files\Git\usr\bin;C:\ProgramData\chocolatey\bin;${{ env.PATH }}
+        run: |
+          echo "PATH=$PATH"
+          echo "which jq => $(which jq || true)"
+          jq --version
+
+      # 3) Installer Flutter (PATH forcé pour que bash voie jq)
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
+        env:
+          PATH: C:\Program Files\Git\usr\bin;C:\ProgramData\chocolatey\bin;${{ env.PATH }}
         with:
           channel: stable
           cache: true
@@ -72,7 +85,7 @@ jobs:
     runs-on: [self-hosted, Windows, X64]
     defaults:
       run:
-        shell: pwsh
+        shell: powershell
 
     steps:
       - uses: actions/checkout@v4
@@ -91,10 +104,20 @@ jobs:
           }
           "C:\ProgramData\chocolatey\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           "C:\Program Files\Git\usr\bin"   | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-          Write-Host "jq version:"; jq --version
+          Write-Host "jq version (pwsh):"; jq --version
+
+      - name: Verify jq (bash)
+        shell: bash
+        env:
+          PATH: C:\Program Files\Git\usr\bin;C:\ProgramData\chocolatey\bin;${{ env.PATH }}
+        run: |
+          echo "which jq => $(which jq || true)"
+          jq --version || exit 1
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
+        env:
+          PATH: C:\Program Files\Git\usr\bin;C:\ProgramData\chocolatey\bin;${{ env.PATH }}
         with:
           channel: stable
           cache: true
@@ -108,22 +131,13 @@ jobs:
       - name: Run tests (expanded)
         run: flutter test -r expanded
 
-      # (Optionnel) Couverture
-      # - name: Run tests with coverage
-      #   run: flutter test --coverage
-      # - name: Upload coverage artifact
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: coverage
-      #     path: coverage/lcov.info
-
   build_web:
     name: Build Web (smoke compile)
     runs-on: [self-hosted, Windows, X64]
     needs: test
     defaults:
       run:
-        shell: pwsh
+        shell: powershell
 
     steps:
       - uses: actions/checkout@v4
@@ -142,10 +156,20 @@ jobs:
           }
           "C:\ProgramData\chocolatey\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           "C:\Program Files\Git\usr\bin"   | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-          Write-Host "jq version:"; jq --version
+          Write-Host "jq version (pwsh):"; jq --version
+
+      - name: Verify jq (bash)
+        shell: bash
+        env:
+          PATH: C:\Program Files\Git\usr\bin;C:\ProgramData\chocolatey\bin;${{ env.PATH }}
+        run: |
+          echo "which jq => $(which jq || true)"
+          jq --version || exit 1
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
+        env:
+          PATH: C:\Program Files\Git\usr\bin;C:\ProgramData\chocolatey\bin;${{ env.PATH }}
         with:
           channel: stable
           cache: true
@@ -158,10 +182,3 @@ jobs:
 
       - name: Build web (release)
         run: flutter build web --release
-
-      # (Optionnel) Publier l’artefact du build
-      # - name: Upload web build
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: web-build
-      #     path: build/web
