@@ -16,10 +16,6 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# ---------- réutilisable : step bash qui installe jq dans un dossier temporaire, puis l'ajoute au PATH ----------
-# On duplique ce bloc dans chaque job (analyze/test/build_web) pour rester simple et robuste sur Windows service.
-# ---------------------------------------------------------------------------------------------------------------
-
 jobs:
   analyze:
     name: Lints & Analyse
@@ -27,7 +23,7 @@ jobs:
     continue-on-error: true
     defaults:
       run:
-        shell: pwsh
+        shell: powershell
     steps:
       - uses: actions/checkout@v4
 
@@ -49,10 +45,8 @@ jobs:
           BIN_DIR="$RUNNER_TEMP/jqbin"
           mkdir -p "$BIN_DIR"
           cp "$DST" "$BIN_DIR/jq.exe"
-          # Ajouter au PATH pour les *étapes suivantes*
           WIN_BIN_DIR="$(cygpath -w "$BIN_DIR")"
           echo "$WIN_BIN_DIR" >> "$GITHUB_PATH"
-          # Vérification immédiate dans cette étape
           "$BIN_DIR/jq.exe" --version
 
       - name: Verify jq (bash)
@@ -88,7 +82,7 @@ jobs:
     runs-on: [self-hosted, Windows, X64]
     defaults:
       run:
-        shell: pwsh
+        shell: powershell
     steps:
       - uses: actions/checkout@v4
 
@@ -141,7 +135,7 @@ jobs:
     needs: test
     defaults:
       run:
-        shell: pwsh
+        shell: powershell
     steps:
       - uses: actions/checkout@v4
 
@@ -149,7 +143,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if command -v jq >/dev/null 2}&1; then
+          if command -v jq >/dev/null 2>&1; then
             echo "jq already present: $(jq --version)"
             exit 0
           fi
