@@ -23,17 +23,17 @@ jobs:
     continue-on-error: true
     defaults:
       run:
-        shell: powershell
+        shell: cmd
     steps:
       - uses: actions/checkout@v4
 
+      # Installer jq en bash
       - name: Install jq (Windows via bash)
         shell: bash
         run: |
           set -euo pipefail
           if command -v jq >/dev/null 2>&1; then
-            echo "jq already present: $(jq --version)"
-            exit 0
+            echo "jq already present: $(jq --version)"; exit 0
           fi
           URL="https://github.com/stedolan/jq/releases/download/jq-1.7.1/jq-win64.exe"
           DST="$RUNNER_TEMP/jq.exe"
@@ -52,7 +52,6 @@ jobs:
       - name: Verify jq (bash)
         shell: bash
         run: |
-          echo "PATH=$PATH"
           echo "which jq => $(which jq || true)"
           jq --version
 
@@ -82,7 +81,7 @@ jobs:
     runs-on: [self-hosted, Windows, X64]
     defaults:
       run:
-        shell: powershell
+        shell: cmd
     steps:
       - uses: actions/checkout@v4
 
@@ -91,8 +90,7 @@ jobs:
         run: |
           set -euo pipefail
           if command -v jq >/dev/null 2>&1; then
-            echo "jq already present: $(jq --version)"
-            exit 0
+            echo "jq already present: $(jq --version)"; exit 0
           fi
           URL="https://github.com/stedolan/jq/releases/download/jq-1.7.1/jq-win64.exe"
           DST="$RUNNER_TEMP/jq.exe"
@@ -135,7 +133,7 @@ jobs:
     needs: test
     defaults:
       run:
-        shell: powershell
+        shell: cmd
     steps:
       - uses: actions/checkout@v4
 
@@ -144,8 +142,7 @@ jobs:
         run: |
           set -euo pipefail
           if command -v jq >/dev/null 2>&1; then
-            echo "jq already present: $(jq --version)"
-            exit 0
+            echo "jq already present: $(jq --version)"; exit 0
           fi
           URL="https://github.com/stedolan/jq/releases/download/jq-1.7.1/jq-win64.exe"
           DST="$RUNNER_TEMP/jq.exe"
