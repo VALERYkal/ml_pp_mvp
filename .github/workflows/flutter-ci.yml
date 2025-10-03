@@ -16,6 +16,10 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# ---------- réutilisable : step bash qui installe jq dans un dossier temporaire, puis l'ajoute au PATH ----------
+# On duplique ce bloc dans chaque job (analyze/test/build_web) pour rester simple et robuste sur Windows service.
+# ---------------------------------------------------------------------------------------------------------------
+
 jobs:
   analyze:
     name: Lints & Analyse
@@ -42,15 +46,19 @@ jobs:
           else
             wget -qO "$DST" "$URL"
           fi
-          GIT_USR_BIN="/c/Program Files/Git/usr/bin"
-          mkdir -p "$GIT_USR_BIN"
-          cp "$DST" "$GIT_USR_BIN/jq.exe"
-          echo 'C:\Program Files\Git\usr\bin' >> "$GITHUB_PATH"
-          echo "jq version:" && jq --version
+          BIN_DIR="$RUNNER_TEMP/jqbin"
+          mkdir -p "$BIN_DIR"
+          cp "$DST" "$BIN_DIR/jq.exe"
+          # Ajouter au PATH pour les *étapes suivantes*
+          WIN_BIN_DIR="$(cygpath -w "$BIN_DIR")"
+          echo "$WIN_BIN_DIR" >> "$GITHUB_PATH"
+          # Vérification immédiate dans cette étape
+          "$BIN_DIR/jq.exe" --version
 
       - name: Verify jq (bash)
         shell: bash
         run: |
+          echo "PATH=$PATH"
           echo "which jq => $(which jq || true)"
           jq --version
 
@@ -99,11 +107,12 @@ jobs:
           else
             wget -qO "$DST" "$URL"
           fi
-          GIT_USR_BIN="/c/Program Files/Git/usr/bin"
-          mkdir -p "$GIT_USR_BIN"
-          cp "$DST" "$GIT_USR_BIN/jq.exe"
-          echo 'C:\Program Files\Git\usr\bin' >> "$GITHUB_PATH"
-          echo "jq version:" && jq --version
+          BIN_DIR="$RUNNER_TEMP/jqbin"
+          mkdir -p "$BIN_DIR"
+          cp "$DST" "$BIN_DIR/jq.exe"
+          WIN_BIN_DIR="$(cygpath -w "$BIN_DIR")"
+          echo "$WIN_BIN_DIR" >> "$GITHUB_PATH"
+          "$BIN_DIR/jq.exe" --version
 
       - name: Verify jq (bash)
         shell: bash
@@ -140,7 +149,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if command -v jq >/dev/null 2>&1; then
+          if command -v jq >/dev/null 2}&1; then
             echo "jq already present: $(jq --version)"
             exit 0
           fi
@@ -151,11 +160,12 @@ jobs:
           else
             wget -qO "$DST" "$URL"
           fi
-          GIT_USR_BIN="/c/Program Files/Git/usr/bin"
-          mkdir -p "$GIT_USR_BIN"
-          cp "$DST" "$GIT_USR_BIN/jq.exe"
-          echo 'C:\Program Files\Git\usr\bin' >> "$GITHUB_PATH"
-          echo "jq version:" && jq --version
+          BIN_DIR="$RUNNER_TEMP/jqbin"
+          mkdir -p "$BIN_DIR"
+          cp "$DST" "$BIN_DIR/jq.exe"
+          WIN_BIN_DIR="$(cygpath -w "$BIN_DIR")"
+          echo "$WIN_BIN_DIR" >> "$GITHUB_PATH"
+          "$BIN_DIR/jq.exe" --version
 
       - name: Verify jq (bash)
         shell: bash
