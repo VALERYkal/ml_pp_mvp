@@ -176,10 +176,7 @@ void main() {
 
     test('should filter by volume range', () {
       // Arrange
-      const filters = CoursFilters(
-        volumeMin: 50000,
-        volumeMax: 100000,
-      );
+      const filters = CoursFilters(volumeMin: 50000, volumeMax: 100000);
 
       // Act
       final result = _applyFilters(sampleCours, filters);
@@ -192,10 +189,7 @@ void main() {
 
     test('should filter by volume range excluding high volumes', () {
       // Arrange
-      const filters = CoursFilters(
-        volumeMin: 0,
-        volumeMax: 100000,
-      );
+      const filters = CoursFilters(volumeMin: 0, volumeMax: 100000);
 
       // Act
       final result = _applyFilters(sampleCours, filters);
@@ -239,10 +233,7 @@ void main() {
         ),
       ];
 
-      const filters = CoursFilters(
-        volumeMin: 50000,
-        volumeMax: 100000,
-      );
+      const filters = CoursFilters(volumeMin: 50000, volumeMax: 100000);
 
       // Act
       final result = _applyFilters(coursWithNullVolume, filters);
@@ -310,11 +301,16 @@ void main() {
 
 // Helper function to test filter application
 // This mirrors the private _applyFilters function in cours_filters_provider.dart
-List<CoursDeRoute> _applyFilters(List<CoursDeRoute> cours, CoursFilters filters) {
+List<CoursDeRoute> _applyFilters(
+  List<CoursDeRoute> cours,
+  CoursFilters filters,
+) {
   return cours.where((c) {
     // Filtre par fournisseur
-    final okFournisseur = (filters.fournisseurId == null) ? true : c.fournisseurId == filters.fournisseurId;
-    
+    final okFournisseur = (filters.fournisseurId == null)
+        ? true
+        : c.fournisseurId == filters.fournisseurId;
+
     // Filtre par volume (0-100 000 L)
     bool okVolume = true;
     if (c.volume != null) {
@@ -325,7 +321,7 @@ List<CoursDeRoute> _applyFilters(List<CoursDeRoute> cours, CoursFilters filters)
         okVolume = false;
       }
     }
-    
+
     return okFournisseur && okVolume;
   }).toList();
 }

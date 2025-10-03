@@ -3,18 +3,21 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 // no riverpod import here; provider is defined in providers/sortie_providers.dart
 
 /// Type pour l'injection de dépendance des appels RPC
-typedef RpcRunner = Future<Map<String, dynamic>?> Function(
-  String fn, {
-  Map<String, dynamic>? params,
-});
+typedef RpcRunner =
+    Future<Map<String, dynamic>?> Function(
+      String fn, {
+      Map<String, dynamic>? params,
+    });
 
 class SortieService {
   final RpcRunner _rpc;
-  
+
   SortieService({RpcRunner? rpc})
-      : _rpc = rpc ?? ((fn, {params}) => Supabase.instance.client
-            .rpc(fn, params: params)
-            .then((r) => r as Map<String, dynamic>?));
+    : _rpc =
+          rpc ??
+          ((fn, {params}) => Supabase.instance.client
+              .rpc(fn, params: params)
+              .then((r) => r as Map<String, dynamic>?));
 
   /// Insert direct "validée" (ne PAS envoyer 'statut' → défaut DB = 'validee').
   /// Les triggers DB calculent volume_ambiant si besoin, débitent le stock et loggent.
@@ -71,7 +74,7 @@ class SortieService {
     try {
       // Utilisation de l'injection de dépendance pour les tests
       final res = await _rpc('create_sortie', params: payload);
-      
+
       if (res == null || res['id'] == null) {
         throw StateError('Réponse invalide du serveur');
       }

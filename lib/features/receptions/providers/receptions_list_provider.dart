@@ -21,4 +21,3 @@ final receptionsListProvider = FutureProvider<List<Reception>>((ref) async {
       .map((e) => Reception.fromJson(e as Map<String, dynamic>))
       .toList();
 });
-

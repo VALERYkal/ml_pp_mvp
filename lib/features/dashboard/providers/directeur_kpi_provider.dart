@@ -9,7 +9,8 @@ class DirecteurKpiData {
   final int citernesSousSeuil;
   final int totalCiternes;
   final double ratioUtilisation; // 0..1
-  final double volumeTotalReceptions; // unité = ce que tu affiches (v15 si dispo, sinon ambiant)
+  final double
+  volumeTotalReceptions; // unité = ce que tu affiches (v15 si dispo, sinon ambiant)
   final double volumeTotalSorties;
   const DirecteurKpiData({
     required this.receptionsJour,

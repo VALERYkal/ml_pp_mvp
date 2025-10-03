@@ -95,7 +95,10 @@ void main() {
         // Assert
         expect(profil.id, equals('test-id'));
         expect(profil.userId, equals('user-123'));
-        expect(profil.role, equals(UserRole.lecture)); // Should default to 'lecture'
+        expect(
+          profil.role,
+          equals(UserRole.lecture),
+        ); // Should default to 'lecture'
         expect(profil.nomComplet, equals('Test User'));
         expect(profil.email, equals('test@example.com'));
         expect(profil.depotId, equals('depot-1'));
@@ -188,10 +191,7 @@ void main() {
     group('Profil model validation', () {
       test('should create Profil with required fields only', () {
         // Arrange & Act
-        final profil = Profil(
-          id: 'test-id',
-          role: UserRole.lecture,
-        );
+        final profil = Profil(id: 'test-id', role: UserRole.lecture);
 
         // Assert
         expect(profil.id, equals('test-id'));

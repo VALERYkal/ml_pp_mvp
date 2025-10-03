@@ -8,10 +8,10 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:ml_pp_mvp/core/models/user_role.dart';
 
 /// Convertisseur JSON pour l'enum UserRole
-/// 
+///
 /// Permet la sérialisation/désérialisation automatique
 /// de l'enum UserRole avec json_serializable.
-/// 
+///
 /// Utilisé par :
 /// - Le modèle Profil pour le champ role
 /// - Les autres modèles qui utilisent UserRole

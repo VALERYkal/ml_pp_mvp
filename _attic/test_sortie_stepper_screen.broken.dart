@@ -11,8 +11,8 @@ void main() {
     final citernesOverride = refs.citernesActivesProvider.overrideWith(
       (ref) => Future.value(<refs.CiterneRef>[
         refs.CiterneRef(
-          id: 'c1', 
-          nom: 'C1', 
+          id: 'c1',
+          nom: 'C1',
           produitId: 'p1',
           capaciteTotale: 1000.0,
           capaciteSecurite: 100.0,
@@ -50,19 +50,19 @@ void main() {
 
     // Saisies indices / T° / densité -> preview réagit
     final allTextFields = find.byType(TextField);
-    
+
     // Index avant (2ème TextField de l'étape 2)
     await tester.enterText(allTextFields.at(1), '1000');
     await tester.pumpAndSettle();
-    
+
     // Index après (3ème TextField)
     await tester.enterText(allTextFields.at(2), '1100');
     await tester.pumpAndSettle();
-    
+
     // Température (4ème TextField)
     await tester.enterText(allTextFields.at(3), '30');
     await tester.pumpAndSettle();
-    
+
     // Densité (5ème TextField)
     await tester.enterText(allTextFields.at(4), '0.835');
     await tester.pumpAndSettle();
@@ -75,6 +75,4 @@ void main() {
     expect(find.text('Température (°C)'), findsOneWidget);
     expect(find.text('Densité @15°C'), findsOneWidget);
   });
-
-
 }

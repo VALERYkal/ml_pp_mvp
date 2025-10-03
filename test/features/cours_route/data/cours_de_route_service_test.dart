@@ -45,17 +45,19 @@ void main() {
         when(mockSupabase.from('cours_de_route')).thenReturn(mockQueryBuilder);
         when(mockQueryBuilder.insert(any)).thenReturn(mockQueryBuilder);
         when(mockQueryBuilder.select()).thenReturn(mockQueryBuilder);
-        when(mockQueryBuilder.single()).thenAnswer((_) async => {
-          'id': 'new-id',
-          'fournisseur_id': 'fournisseur-1',
-          'produit_id': 'produit-1',
-          'depot_destination_id': 'depot-1',
-          'plaque_camion': 'ABC123',
-          'chauffeur_nom': 'Jean Dupont',
-          'volume': 50000,
-          'depart_pays': 'RDC',
-          'statut': 'CHARGEMENT',
-        });
+        when(mockQueryBuilder.single()).thenAnswer(
+          (_) async => {
+            'id': 'new-id',
+            'fournisseur_id': 'fournisseur-1',
+            'produit_id': 'produit-1',
+            'depot_destination_id': 'depot-1',
+            'plaque_camion': 'ABC123',
+            'chauffeur_nom': 'Jean Dupont',
+            'volume': 50000,
+            'depart_pays': 'RDC',
+            'statut': 'CHARGEMENT',
+          },
+        );
 
         // Act
         await service.create(cours);
@@ -91,7 +93,9 @@ void main() {
         when(mockSupabase.from('cours_de_route')).thenReturn(mockQueryBuilder);
         when(mockQueryBuilder.insert(any)).thenReturn(mockQueryBuilder);
         when(mockQueryBuilder.select()).thenReturn(mockQueryBuilder);
-        when(mockQueryBuilder.single()).thenThrow(PostgrestException('Database error'));
+        when(
+          mockQueryBuilder.single(),
+        ).thenThrow(PostgrestException('Database error'));
 
         // Act & Assert
         expect(() => service.create(cours), throwsException);
@@ -120,7 +124,9 @@ void main() {
 
         when(mockSupabase.from('cours_de_route')).thenReturn(mockQueryBuilder);
         when(mockQueryBuilder.select()).thenReturn(mockQueryBuilder);
-        when(mockQueryBuilder.order('created_at', ascending: false)).thenReturn(mockQueryBuilder);
+        when(
+          mockQueryBuilder.order('created_at', ascending: false),
+        ).thenReturn(mockQueryBuilder);
         when(mockQueryBuilder).thenAnswer((_) async => mockData);
 
         // Act
@@ -156,8 +162,12 @@ void main() {
 
         when(mockSupabase.from('cours_de_route')).thenReturn(mockQueryBuilder);
         when(mockQueryBuilder.select()).thenReturn(mockQueryBuilder);
-        when(mockQueryBuilder.neq('statut', 'DECHARGE')).thenReturn(mockQueryBuilder);
-        when(mockQueryBuilder.order('created_at', ascending: false)).thenReturn(mockQueryBuilder);
+        when(
+          mockQueryBuilder.neq('statut', 'DECHARGE'),
+        ).thenReturn(mockQueryBuilder);
+        when(
+          mockQueryBuilder.order('created_at', ascending: false),
+        ).thenReturn(mockQueryBuilder);
         when(mockQueryBuilder).thenAnswer((_) async => mockData);
 
         // Act
@@ -174,13 +184,14 @@ void main() {
       test('should update statut successfully', () async {
         // Arrange
         when(mockSupabase.from('cours_de_route')).thenReturn(mockQueryBuilder);
-        when(mockQueryBuilder.update({'statut': 'TRANSIT'})).thenReturn(mockQueryBuilder);
+        when(
+          mockQueryBuilder.update({'statut': 'TRANSIT'}),
+        ).thenReturn(mockQueryBuilder);
         when(mockQueryBuilder.eq('id', 'test-id')).thenReturn(mockQueryBuilder);
         when(mockQueryBuilder.select()).thenReturn(mockQueryBuilder);
-        when(mockQueryBuilder.single()).thenAnswer((_) async => {
-          'id': 'test-id',
-          'statut': 'TRANSIT',
-        });
+        when(
+          mockQueryBuilder.single(),
+        ).thenAnswer((_) async => {'id': 'test-id', 'statut': 'TRANSIT'});
 
         // Act
         await service.updateStatut(
@@ -194,14 +205,21 @@ void main() {
         verify(mockQueryBuilder.eq('id', 'test-id')).called(1);
       });
 
-      test('should throw ArgumentError for invalid statut transition', () async {
-        // Act & Assert
-        expect(() => service.updateStatut(
-          id: 'test-id',
-          to: StatutCours.decharge,
-          fromReception: false, // Invalid - can't go to decharge without reception
-        ), throwsArgumentError);
-      });
+      test(
+        'should throw ArgumentError for invalid statut transition',
+        () async {
+          // Act & Assert
+          expect(
+            () => service.updateStatut(
+              id: 'test-id',
+              to: StatutCours.decharge,
+              fromReception:
+                  false, // Invalid - can't go to decharge without reception
+            ),
+            throwsArgumentError,
+          );
+        },
+      );
     });
 
     group('delete', () {

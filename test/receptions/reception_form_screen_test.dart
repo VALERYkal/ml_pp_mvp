@@ -12,12 +12,12 @@ void main() {
         refs.ProduitRef(id: 'p1', code: 'ESS', nom: 'Essence'),
       ]),
     );
-    
+
     final citernes = refs.citernesActivesProvider.overrideWith(
       (ref) => Future.value([
         refs.CiterneRef(
-          id: 'c1', 
-          nom: 'Citerne 1', 
+          id: 'c1',
+          nom: 'Citerne 1',
           produitId: 'p1',
           capaciteTotale: 1000.0,
           capaciteSecurite: 100.0,
@@ -26,9 +26,7 @@ void main() {
       ]),
     );
 
-    final role = userRoleProvider.overrideWith(
-      (ref) => Future.value('admin'),
-    );
+    final role = userRoleProvider.overrideWith((ref) => Future.value('admin'));
 
     await tester.pumpWidget(
       ProviderScope(
@@ -52,7 +50,10 @@ void main() {
     expect(find.text('[ Step 2/3 ]  Mesures & Citerne'), findsOneWidget);
 
     // Vérifier que les éléments de base sont présents
-    expect(find.text('Citerne * (active, filtrée par produit)'), findsOneWidget);
+    expect(
+      find.text('Citerne * (active, filtrée par produit)'),
+      findsOneWidget,
+    );
     expect(find.text('Index avant *'), findsOneWidget);
     expect(find.text('Index après *'), findsOneWidget);
     expect(find.text('Température (°C)'), findsOneWidget);
@@ -66,20 +67,20 @@ void main() {
         refs.ProduitRef(id: 'p2', code: 'AGO', nom: 'Gasoil'),
       ]),
     );
-    
+
     final citernes = refs.citernesActivesProvider.overrideWith(
       (ref) => Future.value([
         refs.CiterneRef(
-          id: 'c1', 
-          nom: 'Citerne Essence', 
+          id: 'c1',
+          nom: 'Citerne Essence',
           produitId: 'p1',
           capaciteTotale: 1000.0,
           capaciteSecurite: 100.0,
           statut: 'active',
         ),
         refs.CiterneRef(
-          id: 'c2', 
-          nom: 'Citerne Gasoil', 
+          id: 'c2',
+          nom: 'Citerne Gasoil',
           produitId: 'p2',
           capaciteTotale: 1000.0,
           capaciteSecurite: 100.0,
@@ -88,9 +89,7 @@ void main() {
       ]),
     );
 
-    final role = userRoleProvider.overrideWith(
-      (ref) => Future.value('admin'),
-    );
+    final role = userRoleProvider.overrideWith((ref) => Future.value('admin'));
 
     await tester.pumpWidget(
       ProviderScope(
@@ -110,7 +109,12 @@ void main() {
     await tester.pumpAndSettle();
 
     // Vérifier que le sélecteur de cours de route est présent
-    expect(find.text('Si MONALUXE → sélectionnez Cours de route (statut = "arrivé") *'), findsOneWidget);
+    expect(
+      find.text(
+        'Si MONALUXE → sélectionnez Cours de route (statut = "arrivé") *',
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('Sélection Partenaire', (tester) async {
@@ -120,20 +124,20 @@ void main() {
         refs.ProduitRef(id: 'p2', code: 'AGO', nom: 'Gasoil'),
       ]),
     );
-    
+
     final citernes = refs.citernesActivesProvider.overrideWith(
       (ref) => Future.value([
         refs.CiterneRef(
-          id: 'c1', 
-          nom: 'Citerne Essence', 
+          id: 'c1',
+          nom: 'Citerne Essence',
           produitId: 'p1',
           capaciteTotale: 1000.0,
           capaciteSecurite: 100.0,
           statut: 'active',
         ),
         refs.CiterneRef(
-          id: 'c2', 
-          nom: 'Citerne Gasoil', 
+          id: 'c2',
+          nom: 'Citerne Gasoil',
           produitId: 'p2',
           capaciteTotale: 1000.0,
           capaciteSecurite: 100.0,
@@ -142,9 +146,7 @@ void main() {
       ]),
     );
 
-    final role = userRoleProvider.overrideWith(
-      (ref) => Future.value('admin'),
-    );
+    final role = userRoleProvider.overrideWith((ref) => Future.value('admin'));
 
     await tester.pumpWidget(
       ProviderScope(
@@ -166,7 +168,10 @@ void main() {
     expect(find.text('[ Step 2/3 ]  Mesures & Citerne'), findsOneWidget);
 
     // Vérifier que les éléments de base sont présents
-    expect(find.text('Citerne * (active, filtrée par produit)'), findsOneWidget);
+    expect(
+      find.text('Citerne * (active, filtrée par produit)'),
+      findsOneWidget,
+    );
     expect(find.text('Index avant *'), findsOneWidget);
     expect(find.text('Index après *'), findsOneWidget);
     expect(find.text('Température (°C)'), findsOneWidget);

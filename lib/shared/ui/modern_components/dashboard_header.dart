@@ -10,7 +10,7 @@ class DashboardHeader extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final profilAsync = ref.watch(profilProvider);
     final theme = Theme.of(context);
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 32),
       padding: const EdgeInsets.all(24),
@@ -167,10 +167,30 @@ class DashboardHeader extends ConsumerWidget {
 
   String _getCurrentDate() {
     final now = DateTime.now();
-    final weekdays = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
-    final months = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 
-                   'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
-    
+    final weekdays = [
+      'Lundi',
+      'Mardi',
+      'Mercredi',
+      'Jeudi',
+      'Vendredi',
+      'Samedi',
+      'Dimanche',
+    ];
+    final months = [
+      'janvier',
+      'février',
+      'mars',
+      'avril',
+      'mai',
+      'juin',
+      'juillet',
+      'août',
+      'septembre',
+      'octobre',
+      'novembre',
+      'décembre',
+    ];
+
     return '${weekdays[now.weekday - 1]} ${now.day} ${months[now.month - 1]} ${now.year}';
   }
 

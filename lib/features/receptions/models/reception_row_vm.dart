@@ -23,4 +23,3 @@ class ReceptionRowVM {
     this.fournisseurNom,
   });
 }
-

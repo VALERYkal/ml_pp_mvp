@@ -31,7 +31,10 @@ class PartenaireAutocomplete extends ConsumerWidget {
           fieldViewBuilder: (ctx, ctrl, focus, onSubmit) => TextField(
             controller: ctrl,
             focusNode: focus,
-            decoration: const InputDecoration(labelText: 'Partenaire', hintText: 'Rechercher partenaire…'),
+            decoration: const InputDecoration(
+              labelText: 'Partenaire',
+              hintText: 'Rechercher partenaire…',
+            ),
           ),
           optionsViewBuilder: (ctx, onSelect, opts) => Align(
             alignment: Alignment.topLeft,
@@ -54,5 +57,3 @@ class PartenaireAutocomplete extends ConsumerWidget {
     );
   }
 }
-
-

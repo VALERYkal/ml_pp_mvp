@@ -8,8 +8,10 @@ import 'package:flutter_test/flutter_test.dart';
 // Import de tous les tests
 import 'features/kpi/models/kpi_models_test.dart' as kpi_models_test;
 import 'features/kpi/providers/kpi_provider_test.dart' as kpi_provider_test;
-import 'features/dashboard/widgets/role_dashboard_test.dart' as role_dashboard_test;
-import 'features/dashboard/screens/dashboard_screens_smoke_test.dart' as dashboard_screens_test;
+import 'features/dashboard/widgets/role_dashboard_test.dart'
+    as role_dashboard_test;
+import 'features/dashboard/screens/dashboard_screens_smoke_test.dart'
+    as dashboard_screens_test;
 
 void main() {
   group('🚀 KPI Unified System Test Suite', () {

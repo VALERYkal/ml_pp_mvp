@@ -21,15 +21,13 @@ class ModernActionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final accentColor = this.accentColor ?? theme.colorScheme.primary;
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: theme.dividerColor.withOpacity(0.1),
-        ),
+        border: Border.all(color: theme.dividerColor.withOpacity(0.1)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.03),
@@ -53,11 +51,7 @@ class ModernActionCard extends StatelessWidget {
                       color: accentColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(
-                      icon!,
-                      color: accentColor,
-                      size: 20,
-                    ),
+                    child: Icon(icon!, color: accentColor, size: 20),
                   ),
                   const SizedBox(width: 12),
                 ],
@@ -87,7 +81,7 @@ class ModernActionCard extends StatelessWidget {
               ],
             ),
           ),
-          
+
           // Actions
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
@@ -107,25 +101,27 @@ class ModernActionCard extends StatelessWidget {
     } else if (actions.length == 2) {
       return Row(
         children: [
-          Expanded(
-            child: _buildActionButton(context, theme, actions[0]),
-          ),
+          Expanded(child: _buildActionButton(context, theme, actions[0])),
           const SizedBox(width: 12),
-          Expanded(
-            child: _buildActionButton(context, theme, actions[1]),
-          ),
+          Expanded(child: _buildActionButton(context, theme, actions[1])),
         ],
       );
     } else {
       return Wrap(
         spacing: 8,
         runSpacing: 8,
-        children: actions.map((action) => _buildActionButton(context, theme, action)).toList(),
+        children: actions
+            .map((action) => _buildActionButton(context, theme, action))
+            .toList(),
       );
     }
   }
 
-  Widget _buildActionButton(BuildContext context, ThemeData theme, ModernActionButton action) {
+  Widget _buildActionButton(
+    BuildContext context,
+    ThemeData theme,
+    ModernActionButton action,
+  ) {
     if (action.isDanger) {
       return OutlinedButton.icon(
         onPressed: action.onPressed,
@@ -174,4 +170,3 @@ class ModernActionButton {
     this.accentColor,
   });
 }
-

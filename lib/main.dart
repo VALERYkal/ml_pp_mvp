@@ -10,7 +10,7 @@ import 'package:intl/date_symbol_data_local.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
-  
+
   // Initialiser le formatage des dates pour le package intl
   await initializeDateFormatting('fr', null);
 
@@ -29,10 +29,7 @@ Future<void> main() async {
     'Supabase URL/KEY manquants (définis via --dart-define ou .env)',
   );
 
-  await Supabase.initialize(
-    url: supabaseUrl,
-    anonKey: supabaseAnonKey,
-  );
+  await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
 
   runApp(const ProviderScope(child: MyApp()));
 }
@@ -43,10 +40,10 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
-    
+
     // ⚠️ CORRECTIF : S'assurer que profilAuthSyncProvider est lu au boot
     ref.watch(profilAuthSyncProvider);
-    
+
     return MaterialApp.router(
       title: 'ML_PP MVP',
       debugShowCheckedModeBanner: false,

@@ -18,10 +18,20 @@ import 'package:ml_pp_mvp/features/receptions/data/reception_input.dart';
 import 'package:ml_pp_mvp/features/receptions/data/reception_service.dart';
 import 'package:ml_pp_mvp/features/receptions/widgets/cours_arrive_selector.dart';
 import 'package:ml_pp_mvp/features/receptions/data/citerne_info_provider.dart';
-import 'package:ml_pp_mvp/features/receptions/providers/receptions_list_provider.dart' show receptionsListProvider, receptionsPageProvider, receptionsPageSizeProvider;
-import 'package:ml_pp_mvp/features/cours_route/providers/cours_route_providers.dart' show coursDeRouteListProvider, coursDeRouteActifsProvider, coursDeRouteArrivesProvider;
-import 'package:ml_pp_mvp/features/citernes/providers/citerne_providers.dart' show citernesWithStockProvider;
-import 'package:ml_pp_mvp/features/stocks_journaliers/providers/stocks_providers.dart' show stocksListProvider;
+import 'package:ml_pp_mvp/features/receptions/providers/receptions_list_provider.dart'
+    show
+        receptionsListProvider,
+        receptionsPageProvider,
+        receptionsPageSizeProvider;
+import 'package:ml_pp_mvp/features/cours_route/providers/cours_route_providers.dart'
+    show
+        coursDeRouteListProvider,
+        coursDeRouteActifsProvider,
+        coursDeRouteArrivesProvider;
+import 'package:ml_pp_mvp/features/citernes/providers/citerne_providers.dart'
+    show citernesWithStockProvider;
+import 'package:ml_pp_mvp/features/stocks_journaliers/providers/stocks_providers.dart'
+    show stocksListProvider;
 import 'package:ml_pp_mvp/features/receptions/widgets/partenaire_autocomplete.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -31,29 +41,31 @@ enum OwnerType { monaluxe, partenaire }
 class ModernReceptionFormScreen extends ConsumerStatefulWidget {
   final String? coursDeRouteId;
   const ModernReceptionFormScreen({super.key, this.coursDeRouteId});
-  
+
   @override
-  ConsumerState<ModernReceptionFormScreen> createState() => _ModernReceptionFormScreenState();
+  ConsumerState<ModernReceptionFormScreen> createState() =>
+      _ModernReceptionFormScreenState();
 }
 
-class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormScreen>
+class _ModernReceptionFormScreenState
+    extends ConsumerState<ModernReceptionFormScreen>
     with TickerProviderStateMixin {
   // Animation controllers
   late AnimationController _fadeController;
   late AnimationController _slideController;
   late AnimationController _scaleController;
   late AnimationController _progressController;
-  
+
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
   late Animation<double> _scaleAnimation;
   late Animation<double> _progressAnimation;
-  
+
   // Form state
   int currentStep = 0;
   bool isLoading = false;
   bool isSubmitting = false;
-  
+
   // Owner selection
   OwnerType _owner = OwnerType.monaluxe;
   String? partenaireId;
@@ -63,18 +75,18 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
   CoursDeRoute? _selectedCours;
   String? get _selectedCoursId => _selectedCours?.id;
   String? _produitId;
-  
+
   // Product and tank selection
   String? _selectedProduitId;
   String? _selectedCiterneId;
-  
+
   // Form controllers
   final ctrlAvant = TextEditingController();
   final ctrlApres = TextEditingController();
   final ctrlTemp = TextEditingController(text: '15');
   final ctrlDens = TextEditingController(text: '0.83');
   final ctrlNote = TextEditingController();
-  
+
   // Form keys for validation
   final _formKey = GlobalKey<FormState>();
   final _stepKeys = [
@@ -82,17 +94,17 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
     GlobalKey<FormState>(),
     GlobalKey<FormState>(),
   ];
-  
+
   // Validation state
   final Map<String, bool> _validationState = {};
-  
+
   @override
   void initState() {
     super.initState();
     _initializeAnimations();
     _loadInitialData();
   }
-  
+
   void _initializeAnimations() {
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 600),
@@ -110,33 +122,34 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _fadeController, curve: Curves.easeOutCubic),
     );
-    _slideAnimation = Tween<Offset>(begin: const Offset(0.3, 0), end: Offset.zero).animate(
-      CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
-    );
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0.3, 0), end: Offset.zero).animate(
+          CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
+        );
     _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(parent: _scaleController, curve: Curves.elasticOut),
     );
     _progressAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _progressController, curve: Curves.easeInOut),
     );
-    
+
     // Start animations
     _fadeController.forward();
     _slideController.forward();
     _scaleController.forward();
     _progressController.forward();
   }
-  
+
   void _loadInitialData() {
     if (widget.coursDeRouteId != null && widget.coursDeRouteId!.isNotEmpty) {
       _loadCoursFromRoute(widget.coursDeRouteId!);
     }
   }
-  
+
   @override
   void dispose() {
     _fadeController.dispose();
@@ -150,7 +163,7 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
     ctrlNote.dispose();
     super.dispose();
   }
-  
+
   Future<void> _loadCoursFromRoute(String id) async {
     try {
       final data = await Supabase.instance.client
@@ -176,13 +189,13 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
       }
     } catch (_) {}
   }
-  
+
   void _onOwnerChange(OwnerType val) {
     setState(() {
       _owner = val;
       _selectedCiterneId = null;
       _validationState.clear();
-      
+
       if (_owner == OwnerType.partenaire) {
         _selectedCours = null;
         selectedCoursId = null;
@@ -193,7 +206,7 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
       }
     });
   }
-  
+
   void _onCoursSelected(CoursDeRoute c) {
     setState(() {
       _selectedCours = c;
@@ -210,25 +223,29 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
       partenaireId = null;
     });
   }
-  
+
   void _unlinkCours() {
     setState(() {
       _selectedCours = null;
       selectedCoursId = null;
       _selectedCiterneId = null;
-      _selectedProduitId = (_owner == OwnerType.monaluxe) ? null : _selectedProduitId;
+      _selectedProduitId = (_owner == OwnerType.monaluxe)
+          ? null
+          : _selectedProduitId;
       _validationState.remove('cours');
     });
   }
-  
-  double? _num(String s) => double.tryParse(s.replaceAll(RegExp(r'[^\d\-,\.]'), '').replaceAll(',', '.'));
+
+  double? _num(String s) => double.tryParse(
+    s.replaceAll(RegExp(r'[^\d\-,\.]'), '').replaceAll(',', '.'),
+  );
   bool get isMonaluxe => _owner == OwnerType.monaluxe;
   bool get isPartenaire => _owner == OwnerType.partenaire;
-  
+
   bool canValidate(String role) {
     return ['admin', 'directeur', 'gerant'].contains(role.toLowerCase());
   }
-  
+
   void _nextStep() {
     if (currentStep < 2) {
       setState(() {
@@ -237,7 +254,7 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
       _animateStepTransition();
     }
   }
-  
+
   void _previousStep() {
     if (currentStep > 0) {
       setState(() {
@@ -246,54 +263,62 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
       _animateStepTransition();
     }
   }
-  
+
   void _animateStepTransition() {
     _slideController.reset();
     _slideController.forward();
   }
-  
+
   Future<void> _submitReception() async {
     if (!_validateForm()) return;
-    
+
     setState(() => isSubmitting = true);
-    
+
     try {
       final avant = _num(ctrlAvant.text) ?? 0;
       final apres = _num(ctrlApres.text) ?? 0;
       final temp = _num(ctrlTemp.text);
       final dens = _num(ctrlDens.text);
       final volAmb = computeVolumeAmbiant(avant, apres);
-      final vol15 = calcV15(volumeObserveL: volAmb, temperatureC: temp ?? 15.0, densiteA15: dens ?? 0.83);
-      
-      final id = await ref.read(receptionServiceProvider).createValidated(
-        coursDeRouteId: isMonaluxe ? (_selectedCoursId ?? widget.coursDeRouteId) : null,
-        citerneId: _selectedCiterneId!,
-        produitId: _selectedProduitId!,
-        indexAvant: avant,
-        indexApres: apres,
-        temperatureCAmb: temp,
-        densiteA15: dens,
-        volumeCorrige15C: vol15,
-        proprietaireType: isMonaluxe ? 'MONALUXE' : 'PARTENAIRE',
-        partenaireId: isPartenaire ? partenaireId : null,
-        dateReception: DateTime.now(),
-        note: ctrlNote.text.isEmpty ? null : ctrlNote.text.trim(),
+      final vol15 = calcV15(
+        volumeObserveL: volAmb,
+        temperatureC: temp ?? 15.0,
+        densiteA15: dens ?? 0.83,
       );
-      
+
+      final id = await ref
+          .read(receptionServiceProvider)
+          .createValidated(
+            coursDeRouteId: isMonaluxe
+                ? (_selectedCoursId ?? widget.coursDeRouteId)
+                : null,
+            citerneId: _selectedCiterneId!,
+            produitId: _selectedProduitId!,
+            indexAvant: avant,
+            indexApres: apres,
+            temperatureCAmb: temp,
+            densiteA15: dens,
+            volumeCorrige15C: vol15,
+            proprietaireType: isMonaluxe ? 'MONALUXE' : 'PARTENAIRE',
+            partenaireId: isPartenaire ? partenaireId : null,
+            dateReception: DateTime.now(),
+            note: ctrlNote.text.isEmpty ? null : ctrlNote.text.trim(),
+          );
+
       if (mounted) {
         // Success animation
         _scaleController.forward();
-        
+
         // Show success message
         showAppToast(
-          context, 
-          'Réception enregistrée avec succès', 
+          context,
+          'Réception enregistrée avec succès',
           type: ToastType.success,
         );
-        
+
         // Invalidate providers
         _invalidateProviders();
-        
+
         // Navigate back
         Future.delayed(const Duration(milliseconds: 1500), () {
           if (mounted) context.go('/receptions');
@@ -307,47 +332,71 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
     } catch (e, st) {
       debugPrint('[ModernReceptionForm] UnknownError: $e');
       if (mounted) {
-        showAppToast(context, 'Erreur inattendue: ${e.toString()}', type: ToastType.error);
+        showAppToast(
+          context,
+          'Erreur inattendue: ${e.toString()}',
+          type: ToastType.error,
+        );
       }
     } finally {
       if (mounted) setState(() => isSubmitting = false);
     }
   }
-  
+
   bool _validateForm() {
     // Validate current step
     if (!_stepKeys[currentStep].currentState!.validate()) {
       return false;
     }
-    
+
     // Additional business logic validation
     if (_selectedProduitId == null) {
-      showAppToast(context, 'Sélectionnez un produit.', type: ToastType.warning);
+      showAppToast(
+        context,
+        'Sélectionnez un produit.',
+        type: ToastType.warning,
+      );
       return false;
     }
     if (_selectedCiterneId == null) {
-      showAppToast(context, 'Sélectionnez une citerne.', type: ToastType.warning);
+      showAppToast(
+        context,
+        'Sélectionnez une citerne.',
+        type: ToastType.warning,
+      );
       return false;
     }
     if (isMonaluxe && (selectedCoursId ?? widget.coursDeRouteId) == null) {
-      showAppToast(context, 'Choisissez un cours "arrivé"', type: ToastType.warning);
+      showAppToast(
+        context,
+        'Choisissez un cours "arrivé"',
+        type: ToastType.warning,
+      );
       return false;
     }
     if (isPartenaire && (partenaireId == null || partenaireId!.isEmpty)) {
-      showAppToast(context, 'Choisissez un partenaire', type: ToastType.warning);
+      showAppToast(
+        context,
+        'Choisissez un partenaire',
+        type: ToastType.warning,
+      );
       return false;
     }
-    
+
     final avant = _num(ctrlAvant.text) ?? 0;
     final apres = _num(ctrlApres.text) ?? 0;
     if (apres <= avant) {
-      showAppToast(context, 'Indices incohérents (après ≤ avant)', type: ToastType.warning);
+      showAppToast(
+        context,
+        'Indices incohérents (après ≤ avant)',
+        type: ToastType.warning,
+      );
       return false;
     }
-    
+
     return true;
   }
-  
+
   void _invalidateProviders() {
     try {
       ref.invalidate(receptionsListProvider);
@@ -358,12 +407,12 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
       ref.invalidate(stocksListProvider);
     } catch (_) {}
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final progress = (currentStep + 1) / 3;
-    
+
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
       appBar: _buildAppBar(theme),
@@ -377,9 +426,7 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
               child: Column(
                 children: [
                   _buildProgressIndicator(theme, progress),
-                  Expanded(
-                    child: _buildStepContent(theme),
-                  ),
+                  Expanded(child: _buildStepContent(theme)),
                   _buildNavigationButtons(theme),
                 ],
               ),
@@ -389,7 +436,7 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
       ),
     );
   }
-  
+
   PreferredSizeWidget _buildAppBar(ThemeData theme) {
     return AppBar(
       backgroundColor: Colors.transparent,
@@ -418,14 +465,16 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
               height: 24,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  theme.colorScheme.primary,
+                ),
               ),
             ),
           ),
       ],
     );
   }
-  
+
   Widget _buildProgressIndicator(ThemeData theme, double progress) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -457,7 +506,9 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
               return LinearProgressIndicator(
                 value: progress * _progressAnimation.value,
                 backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  theme.colorScheme.primary,
+                ),
                 minHeight: 8,
               );
             },
@@ -466,14 +517,14 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
       ),
     );
   }
-  
+
   Widget _buildStepContent(ThemeData theme) {
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 300),
       child: _getStepWidget(theme),
     );
   }
-  
+
   Widget _getStepWidget(ThemeData theme) {
     switch (currentStep) {
       case 0:
@@ -486,7 +537,7 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
         return _buildStep1(theme);
     }
   }
-  
+
   Widget _buildStep1(ThemeData theme) {
     return SingleChildScrollView(
       key: const ValueKey('step1'),
@@ -513,7 +564,7 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
       ),
     );
   }
-  
+
   Widget _buildStep2(ThemeData theme) {
     return SingleChildScrollView(
       key: const ValueKey('step2'),
@@ -539,7 +590,7 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
       ),
     );
   }
-  
+
   Widget _buildStep3(ThemeData theme) {
     return SingleChildScrollView(
       key: const ValueKey('step3'),
@@ -565,24 +616,24 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
       ),
     );
   }
-  
-  Widget _buildStepHeader(ThemeData theme, String title, String subtitle, IconData icon, Color color) {
+
+  Widget _buildStepHeader(
+    ThemeData theme,
+    String title,
+    String subtitle,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            color.withOpacity(0.1),
-            color.withOpacity(0.05),
-          ],
+          colors: [color.withOpacity(0.1), color.withOpacity(0.05)],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: color.withOpacity(0.2),
-          width: 1,
-        ),
+        border: Border.all(color: color.withOpacity(0.2), width: 1),
       ),
       child: Row(
         children: [
@@ -592,11 +643,7 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
               color: color.withOpacity(0.15),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(
-              icon,
-              color: color,
-              size: 24,
-            ),
+            child: Icon(icon, color: color, size: 24),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -624,7 +671,7 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
       ),
     );
   }
-  
+
   Widget _buildOwnerSelection(ThemeData theme) {
     return _buildModernCard(
       theme,
@@ -666,40 +713,48 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
       ),
     );
   }
-  
-  Widget _buildOwnerOption(ThemeData theme, String title, String subtitle, IconData icon, OwnerType type) {
+
+  Widget _buildOwnerOption(
+    ThemeData theme,
+    String title,
+    String subtitle,
+    IconData icon,
+    OwnerType type,
+  ) {
     final isSelected = _owner == type;
-    final color = isSelected ? theme.colorScheme.primary : theme.colorScheme.outline;
-    
+    final color = isSelected
+        ? theme.colorScheme.primary
+        : theme.colorScheme.outline;
+
     return GestureDetector(
       onTap: () => _onOwnerChange(type),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected 
+          color: isSelected
               ? theme.colorScheme.primaryContainer.withOpacity(0.3)
               : theme.colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? theme.colorScheme.primary : theme.colorScheme.outline.withOpacity(0.3),
+            color: isSelected
+                ? theme.colorScheme.primary
+                : theme.colorScheme.outline.withOpacity(0.3),
             width: isSelected ? 2 : 1,
           ),
-          boxShadow: isSelected ? [
-            BoxShadow(
-              color: theme.colorScheme.primary.withOpacity(0.1),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
-          ] : null,
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: theme.colorScheme.primary.withOpacity(0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
         ),
         child: Column(
           children: [
-            Icon(
-              icon,
-              color: color,
-              size: 32,
-            ),
+            Icon(icon, color: color, size: 32),
             const SizedBox(height: 8),
             Text(
               title,
@@ -721,7 +776,7 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
       ),
     );
   }
-  
+
   Widget _buildCoursSelection(ThemeData theme) {
     return _buildModernCard(
       theme,
@@ -755,7 +810,7 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
       ),
     );
   }
-  
+
   Widget _buildPartenaireSelection(ThemeData theme) {
     return _buildModernCard(
       theme,
@@ -793,7 +848,7 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
       ),
     );
   }
-  
+
   Widget _buildProductSelection(ThemeData theme) {
     return _buildModernCard(
       theme,
@@ -839,7 +894,7 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
       ),
     );
   }
-  
+
   Widget _buildTankSelection(ThemeData theme) {
     return _buildModernCard(
       theme,
@@ -885,7 +940,7 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
       ),
     );
   }
-  
+
   Widget _buildMeasurementsForm(ThemeData theme) {
     return _buildModernCard(
       theme,
@@ -989,7 +1044,7 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
       ),
     );
   }
-  
+
   Widget _buildSummaryCard(ThemeData theme) {
     return _buildModernCard(
       theme,
@@ -1014,15 +1069,23 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
             ],
           ),
           const SizedBox(height: 16),
-          _buildSummaryItem(theme, 'Propriétaire', isMonaluxe ? 'Monaluxe' : 'Partenaire'),
+          _buildSummaryItem(
+            theme,
+            'Propriétaire',
+            isMonaluxe ? 'Monaluxe' : 'Partenaire',
+          ),
           _buildSummaryItem(theme, 'Produit', 'ESS (à implémenter)'),
           _buildSummaryItem(theme, 'Citerne', 'Citerne A (à implémenter)'),
-          _buildSummaryItem(theme, 'Volume brut', '${_num(ctrlApres.text) ?? 0 - _num(ctrlAvant.text) ?? 0} L'),
+          _buildSummaryItem(
+            theme,
+            'Volume brut',
+            '${_num(ctrlApres.text) ?? 0 - _num(ctrlAvant.text) ?? 0} L',
+          ),
         ],
       ),
     );
   }
-  
+
   Widget _buildSummaryItem(ThemeData theme, String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -1046,7 +1109,7 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
       ),
     );
   }
-  
+
   Widget _buildModernTextField(
     ThemeData theme, {
     required TextEditingController controller,
@@ -1076,23 +1139,18 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: theme.colorScheme.primary,
-            width: 2,
-          ),
+          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: theme.colorScheme.error,
-          ),
+          borderSide: BorderSide(color: theme.colorScheme.error),
         ),
         filled: true,
         fillColor: theme.colorScheme.surfaceContainerHighest,
       ),
     );
   }
-  
+
   Widget _buildModernCard(ThemeData theme, {required Widget child}) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -1114,7 +1172,7 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
       child: child,
     );
   }
-  
+
   Widget _buildNavigationButtons(ThemeData theme) {
     return Container(
       padding: const EdgeInsets.all(24),
@@ -1161,14 +1219,14 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
                       height: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.onPrimary),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          theme.colorScheme.onPrimary,
+                        ),
                       ),
                     )
                   : Text(
                       currentStep < 2 ? 'Suivant' : 'Enregistrer',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: TextStyle(fontWeight: FontWeight.w600),
                     ),
             ),
           ),

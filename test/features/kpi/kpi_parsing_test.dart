@@ -22,7 +22,7 @@ void main() {
     test('no fallback 15C -> ambient', () {
       final receptions = KpiNumberVolume.fromNullable(
         count: 1,
-        volume15c: _toD(null),      // 0
+        volume15c: _toD(null), // 0
         volumeAmbient: _toD(10000), // 10k
       );
       expect(receptions.volume15c, 0.0); // ✅ pas 10k
@@ -32,7 +32,7 @@ void main() {
     test('correct 15C values are preserved', () {
       final receptions = KpiNumberVolume.fromNullable(
         count: 1,
-        volume15c: _toD(9954.5),    // 9954.5
+        volume15c: _toD(9954.5), // 9954.5
         volumeAmbient: _toD(10000), // 10k
       );
       expect(receptions.volume15c, 9954.5);
@@ -55,7 +55,7 @@ void main() {
     test('stocks with null 15C should not fallback to ambient', () {
       final stocks = KpiStocks.fromNullable(
         totalAmbient: _toD(10000.0),
-        total15c: _toD(null),       // 0
+        total15c: _toD(null), // 0
         capacityTotal: _toD(50000.0),
       );
       expect(stocks.totalAmbient, 10000.0);

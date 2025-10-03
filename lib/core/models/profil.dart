@@ -20,7 +20,7 @@ class Profil with _$Profil {
   }) = _Profil;
 
   factory Profil.fromJson(Map<String, dynamic> json) => _$ProfilFromJson(json);
-  
+
   /// Factory avec parsing robuste du rôle
   factory Profil.fromMap(Map<String, dynamic> map) {
     return Profil(
@@ -30,7 +30,7 @@ class Profil with _$Profil {
       role: UserRoleX.fromStringOrDefault(map['role'] as String?),
       depotId: map['depot_id'] as String?,
       email: map['email'] as String?,
-      createdAt: map['created_at'] != null 
+      createdAt: map['created_at'] != null
           ? DateTime.parse(map['created_at'] as String)
           : null,
     );

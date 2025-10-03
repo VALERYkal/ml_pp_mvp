@@ -2,7 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ml_pp_mvp/features/dashboard/models/activite_recente.dart';
 
-final activitesRecentesProvider = FutureProvider<List<ActiviteRecente>>((ref) async {
+final activitesRecentesProvider = FutureProvider<List<ActiviteRecente>>((
+  ref,
+) async {
   final supa = Supabase.instance.client;
   final now = DateTime.now().toUtc();
   final start = now.subtract(const Duration(hours: 24));

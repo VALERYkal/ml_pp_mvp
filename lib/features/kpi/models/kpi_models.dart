@@ -13,11 +13,11 @@ class KpiNumberVolume {
   final int count;
   final double volume15c;
   final double volumeAmbient;
-  
+
   const KpiNumberVolume({
-    required this.count, 
-    required this.volume15c, 
-    required this.volumeAmbient
+    required this.count,
+    required this.volume15c,
+    required this.volumeAmbient,
   });
 
   /// Constructeur factory pour valeurs nullable depuis Supabase
@@ -43,11 +43,11 @@ class KpiStocks {
   final double totalAmbient;
   final double total15c;
   final double capacityTotal;
-  
+
   const KpiStocks({
-    required this.totalAmbient, 
-    required this.total15c, 
-    required this.capacityTotal
+    required this.totalAmbient,
+    required this.total15c,
+    required this.capacityTotal,
   });
 
   /// Constructeur factory pour valeurs nullable depuis Supabase
@@ -62,9 +62,10 @@ class KpiStocks {
       capacityTotal: _nz(capacityTotal),
     );
   }
-  
+
   /// Ratio d'utilisation (0.0 à 1.0)
-  double get utilizationRatio => capacityTotal == 0 ? 0 : (total15c / capacityTotal);
+  double get utilizationRatio =>
+      capacityTotal == 0 ? 0 : (total15c / capacityTotal);
 
   /// Instance vide pour les cas d'erreur
   static const zero = KpiStocks(totalAmbient: 0, total15c: 0, capacityTotal: 0);
@@ -77,9 +78,9 @@ class KpiBalanceToday {
   final double sorties15c;
   final double receptionsAmbient;
   final double sortiesAmbient;
-  
+
   const KpiBalanceToday({
-    required this.receptions15c, 
+    required this.receptions15c,
     required this.sorties15c,
     required this.receptionsAmbient,
     required this.sortiesAmbient,
@@ -99,19 +100,19 @@ class KpiBalanceToday {
       sortiesAmbient: _nz(sortiesAmbient),
     );
   }
-  
+
   /// Delta calculé (réceptions - sorties) à 15°C
   double get delta15c => receptions15c - sorties15c;
-  
+
   /// Delta calculé (réceptions - sorties) ambiant
   double get deltaAmbient => receptionsAmbient - sortiesAmbient;
 
   /// Instance vide pour les cas d'erreur
   static const zero = KpiBalanceToday(
-    receptions15c: 0, 
-    sorties15c: 0, 
-    receptionsAmbient: 0, 
-    sortiesAmbient: 0
+    receptions15c: 0,
+    sorties15c: 0,
+    receptionsAmbient: 0,
+    sortiesAmbient: 0,
   );
 }
 
@@ -122,12 +123,12 @@ class KpiCiterneAlerte {
   final String libelle;
   final double stock15c;
   final double capacity;
-  
+
   const KpiCiterneAlerte({
-    required this.citerneId, 
-    required this.libelle, 
-    required this.stock15c, 
-    required this.capacity
+    required this.citerneId,
+    required this.libelle,
+    required this.stock15c,
+    required this.capacity,
   });
 
   /// Constructeur factory pour valeurs nullable depuis Supabase
@@ -152,11 +153,11 @@ class KpiTrendPoint {
   final DateTime day;
   final double receptions15c;
   final double sorties15c;
-  
+
   const KpiTrendPoint({
-    required this.day, 
-    required this.receptions15c, 
-    required this.sorties15c
+    required this.day,
+    required this.receptions15c,
+    required this.sorties15c,
   });
 
   /// Constructeur factory pour valeurs nullable depuis Supabase
@@ -182,7 +183,7 @@ class KpiTrucksToFollow {
   final int trucksEnAttente;
   final double volumeEnRoute;
   final double volumeEnAttente;
-  
+
   const KpiTrucksToFollow({
     required this.totalTrucks,
     required this.totalPlannedVolume,
@@ -231,7 +232,7 @@ class KpiSnapshot {
   final KpiBalanceToday balanceToday;
   final KpiTrucksToFollow trucksToFollow;
   final List<KpiTrendPoint> trend7d;
-  
+
   const KpiSnapshot({
     required this.receptionsToday,
     required this.sortiesToday,
@@ -281,6 +282,7 @@ class CamionsASuivreData {
 class ReceptionsFilter {
   /// Jour en UTC (hh:mm:ss ignorés). Null => aujourd'hui (UTC).
   final DateTime? dayUtc;
+
   /// Filtre optionnel par dépôt (via citernes.depot_id)
   final String? depotId;
   const ReceptionsFilter({this.dayUtc, this.depotId});
@@ -294,9 +296,9 @@ class ReceptionsFilter {
 
 @immutable
 class ReceptionsStats {
-  final int nbCamions;           // nb réceptions validées
-  final double volAmbiant;       // Σ volume_ambiant
-  final double vol15c;           // Σ volume_corrige_15c (null => 0)
+  final int nbCamions; // nb réceptions validées
+  final double volAmbiant; // Σ volume_ambiant
+  final double vol15c; // Σ volume_corrige_15c (null => 0)
   const ReceptionsStats({
     required this.nbCamions,
     required this.volAmbiant,
@@ -306,10 +308,10 @@ class ReceptionsStats {
 
 @immutable
 class CoursCounts {
-  final int enRoute;             // CHARGEMENT + TRANSIT + FRONTIERE
-  final int attente;             // ARRIVE
-  final double enRouteLitres;    // somme(volume) pour enRoute
-  final double attenteLitres;    // somme(volume) pour attente
+  final int enRoute; // CHARGEMENT + TRANSIT + FRONTIERE
+  final int attente; // ARRIVE
+  final double enRouteLitres; // somme(volume) pour enRoute
+  final double attenteLitres; // somme(volume) pour attente
   const CoursCounts({
     required this.enRoute,
     required this.attente,

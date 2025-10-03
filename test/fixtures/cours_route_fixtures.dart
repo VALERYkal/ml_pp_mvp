@@ -37,7 +37,9 @@ class CoursRouteFixtures {
       produitId: '', // Invalid - empty
       depotDestinationId: '', // Invalid - empty
       volume: -100, // Invalid - negative
-      dateChargement: DateTime.now().add(const Duration(days: 1)), // Invalid - future date
+      dateChargement: DateTime.now().add(
+        const Duration(days: 1),
+      ), // Invalid - future date
     );
   }
 
@@ -161,7 +163,10 @@ class CoursRouteFixtures {
   }
 
   /// Crée une liste de cours dans une plage de volume
-  static List<CoursDeRoute> coursByVolumeRange(double minVolume, double maxVolume) {
+  static List<CoursDeRoute> coursByVolumeRange(
+    double minVolume,
+    double maxVolume,
+  ) {
     return sampleList().where((c) {
       if (c.volume == null) return false;
       return c.volume! >= minVolume && c.volume! <= maxVolume;
@@ -224,7 +229,7 @@ class CoursRouteFixtures {
       'produit_id': 'produit-1',
       'depot_destination_id': 'depot-1',
       'chauffeur_nom': 'Jean Dupont', // Legacy field
-      'depart_pays': 'RDC',           // Legacy field
+      'depart_pays': 'RDC', // Legacy field
       'statut': 'CHARGEMENT',
     };
   }

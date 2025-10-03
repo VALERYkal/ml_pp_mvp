@@ -14,7 +14,7 @@ import 'package:ml_pp_mvp/features/kpi/providers/kpi_providers.dart';
 /// Titre dynamique basé sur la route courante
 class _DashboardTitle extends ConsumerWidget {
   const _DashboardTitle();
-  
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final role = ref.watch(userRoleProvider);
@@ -28,9 +28,9 @@ class _DashboardTitle extends ConsumerWidget {
 class _RoleDepotChips extends StatelessWidget {
   final UserRole role;
   final String depotName;
-  
+
   const _RoleDepotChips({required this.role, required this.depotName});
-  
+
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -59,17 +59,16 @@ class DashboardShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final role = ref.watch(userRoleProvider);
-    final profil = ref.watch(profilProvider).maybeWhen(
-      data: (p) => p,
-      orElse: () => null,
-    );
-    
+    final profil = ref
+        .watch(profilProvider)
+        .maybeWhen(data: (p) => p, orElse: () => null);
+
     // Warmup des référentiels
     ref.watch(refDataProvider);
-    
+
     // Safe role pour l'UI (fallback vers lecture si null)
     final safeRole = role ?? UserRole.lecture;
-    
+
     final depotNameAsync = ref.watch(currentDepotNameProvider);
     final depotLabel = depotNameAsync.when(
       data: (name) => name ?? '—',
@@ -77,7 +76,7 @@ class DashboardShell extends ConsumerWidget {
       error: (_, __) => '—',
     );
     final items = NavConfig.getItemsForRole(role);
-    
+
     // Sélection active depuis la route
     final location = GoRouterState.of(context).uri.toString();
     final selectedIndex = _selectedIndexFor(location, items, role);
@@ -89,7 +88,8 @@ class DashboardShell extends ConsumerWidget {
         // NavigationRail pour desktop
         final rail = NavigationRail(
           selectedIndex: selectedIndex,
-          onDestinationSelected: (i) => context.go(effectivePath(items[i], role)),
+          onDestinationSelected: (i) =>
+              context.go(effectivePath(items[i], role)),
           extended: isWide,
           destinations: [
             for (final item in items)
@@ -104,13 +104,11 @@ class DashboardShell extends ConsumerWidget {
         // BottomNavigationBar pour mobile
         final bottom = NavigationBar(
           selectedIndex: selectedIndex,
-          onDestinationSelected: (i) => context.go(effectivePath(items[i], role)),
+          onDestinationSelected: (i) =>
+              context.go(effectivePath(items[i], role)),
           destinations: [
             for (final item in items)
-              NavigationDestination(
-                icon: Icon(item.icon),
-                label: item.title,
-              ),
+              NavigationDestination(icon: Icon(item.icon), label: item.title),
           ],
         );
 
@@ -174,9 +172,9 @@ class DashboardShell extends ConsumerWidget {
                   await ref.read(authServiceProvider).signOut();
                   if (context.mounted) {
                     context.go('/login');
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Déconnecté')),
-                    );
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(const SnackBar(content: Text('Déconnecté')));
                   }
                 },
                 icon: const Icon(Icons.logout),

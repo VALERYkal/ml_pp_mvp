@@ -24,12 +24,14 @@ class SortiesRepository {
     String? depotId,
   }) async {
     // colonnes communes
-    String baseCols = 'id, statut, volume_ambiant, volume_corrige_15c, date_sortie';
+    String baseCols =
+        'id, statut, volume_ambiant, volume_corrige_15c, date_sortie';
     var query = _supa.from('sorties_produit').select(baseCols);
 
     // join citernes si filtre dépôt
     if (depotId != null && depotId.isNotEmpty) {
-      query = _supa.from('sorties_produit')
+      query = _supa
+          .from('sorties_produit')
           .select('$baseCols, citernes!inner(depot_id)')
           .eq('citernes.depot_id', depotId);
     }
@@ -44,13 +46,15 @@ class SortiesRepository {
     for (final m in (rows as List)) {
       count++;
       sAmb += (m['volume_ambiant'] as num?)?.toDouble() ?? 0.0;
-      s15  += (m['volume_corrige_15c'] as num?)?.toDouble() ?? 0.0;
+      s15 += (m['volume_corrige_15c'] as num?)?.toDouble() ?? 0.0;
     }
 
     if (kDebugMode) {
       // ignore: avoid_print
-      print('📤 Sorties(jour) ${depotId!=null?'depot=$depotId ':''}'
-            '>= $startUtcIso < $endUtcIso  => nb=$count, amb=$sAmb, 15C=$s15');
+      print(
+        '📤 Sorties(jour) ${depotId != null ? 'depot=$depotId ' : ''}'
+        '>= $startUtcIso < $endUtcIso  => nb=$count, amb=$sAmb, 15C=$s15',
+      );
     }
 
     return SortiesStats(nbCamions: count, volAmbiant: sAmb, vol15c: s15);

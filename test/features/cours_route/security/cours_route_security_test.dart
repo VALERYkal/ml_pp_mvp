@@ -25,20 +25,22 @@ void main() {
     });
 
     group('Role-Based Access Control', () {
-      testWidgets('should restrict CDR creation to authorized roles', (WidgetTester tester) async {
+      testWidgets('should restrict CDR creation to authorized roles', (
+        WidgetTester tester,
+      ) async {
         // Arrange - Utilisateur avec rôle LECTURE
         await tester.pumpWidget(
           ProviderScope(
             parent: container,
             overrides: [
-              authProvider.overrideWith((ref) => AuthState(
-                user: MockUser(role: UserRole.lecture),
-                isAuthenticated: true,
-              )),
+              authProvider.overrideWith(
+                (ref) => AuthState(
+                  user: MockUser(role: UserRole.lecture),
+                  isAuthenticated: true,
+                ),
+              ),
             ],
-            child: const MaterialApp(
-              home: CoursRouteListScreen(),
-            ),
+            child: const MaterialApp(home: CoursRouteListScreen()),
           ),
         );
 
@@ -48,20 +50,22 @@ void main() {
         expect(find.text('Nouveau cours'), findsNothing);
       });
 
-      testWidgets('should allow CDR creation for authorized roles', (WidgetTester tester) async {
+      testWidgets('should allow CDR creation for authorized roles', (
+        WidgetTester tester,
+      ) async {
         // Arrange - Utilisateur avec rôle ADMIN
         await tester.pumpWidget(
           ProviderScope(
             parent: container,
             overrides: [
-              authProvider.overrideWith((ref) => AuthState(
-                user: MockUser(role: UserRole.admin),
-                isAuthenticated: true,
-              )),
+              authProvider.overrideWith(
+                (ref) => AuthState(
+                  user: MockUser(role: UserRole.admin),
+                  isAuthenticated: true,
+                ),
+              ),
             ],
-            child: const MaterialApp(
-              home: CoursRouteListScreen(),
-            ),
+            child: const MaterialApp(home: CoursRouteListScreen()),
           ),
         );
 
@@ -71,16 +75,20 @@ void main() {
         expect(find.text('Nouveau cours'), findsOneWidget);
       });
 
-      testWidgets('should restrict CDR modification to authorized roles', (WidgetTester tester) async {
+      testWidgets('should restrict CDR modification to authorized roles', (
+        WidgetTester tester,
+      ) async {
         // Arrange - Utilisateur avec rôle LECTURE
         await tester.pumpWidget(
           ProviderScope(
             parent: container,
             overrides: [
-              authProvider.overrideWith((ref) => AuthState(
-                user: MockUser(role: UserRole.lecture),
-                isAuthenticated: true,
-              )),
+              authProvider.overrideWith(
+                (ref) => AuthState(
+                  user: MockUser(role: UserRole.lecture),
+                  isAuthenticated: true,
+                ),
+              ),
             ],
             child: const MaterialApp(
               home: CoursRouteDetailScreen(coursId: 'test-id'),
@@ -96,16 +104,20 @@ void main() {
         expect(find.text('Avancer statut'), findsNothing);
       });
 
-      testWidgets('should allow CDR modification for authorized roles', (WidgetTester tester) async {
+      testWidgets('should allow CDR modification for authorized roles', (
+        WidgetTester tester,
+      ) async {
         // Arrange - Utilisateur avec rôle ADMIN
         await tester.pumpWidget(
           ProviderScope(
             parent: container,
             overrides: [
-              authProvider.overrideWith((ref) => AuthState(
-                user: MockUser(role: UserRole.admin),
-                isAuthenticated: true,
-              )),
+              authProvider.overrideWith(
+                (ref) => AuthState(
+                  user: MockUser(role: UserRole.admin),
+                  isAuthenticated: true,
+                ),
+              ),
             ],
             child: const MaterialApp(
               home: CoursRouteDetailScreen(coursId: 'test-id'),
@@ -123,23 +135,22 @@ void main() {
     });
 
     group('Data Filtering by Depot', () {
-      testWidgets('should filter CDR by user depot for non-admin users', (WidgetTester tester) async {
+      testWidgets('should filter CDR by user depot for non-admin users', (
+        WidgetTester tester,
+      ) async {
         // Arrange - Utilisateur avec rôle OPERATEUR et dépôt spécifique
         await tester.pumpWidget(
           ProviderScope(
             parent: container,
             overrides: [
-              authProvider.overrideWith((ref) => AuthState(
-                user: MockUser(
-                  role: UserRole.operateur,
-                  depotId: 'depot-1',
+              authProvider.overrideWith(
+                (ref) => AuthState(
+                  user: MockUser(role: UserRole.operateur, depotId: 'depot-1'),
+                  isAuthenticated: true,
                 ),
-                isAuthenticated: true,
-              )),
+              ),
             ],
-            child: const MaterialApp(
-              home: CoursRouteListScreen(),
-            ),
+            child: const MaterialApp(home: CoursRouteListScreen()),
           ),
         );
 
@@ -154,20 +165,22 @@ void main() {
         }
       });
 
-      testWidgets('should show all CDR for admin users', (WidgetTester tester) async {
+      testWidgets('should show all CDR for admin users', (
+        WidgetTester tester,
+      ) async {
         // Arrange - Utilisateur avec rôle ADMIN
         await tester.pumpWidget(
           ProviderScope(
             parent: container,
             overrides: [
-              authProvider.overrideWith((ref) => AuthState(
-                user: MockUser(role: UserRole.admin),
-                isAuthenticated: true,
-              )),
+              authProvider.overrideWith(
+                (ref) => AuthState(
+                  user: MockUser(role: UserRole.admin),
+                  isAuthenticated: true,
+                ),
+              ),
             ],
-            child: const MaterialApp(
-              home: CoursRouteListScreen(),
-            ),
+            child: const MaterialApp(home: CoursRouteListScreen()),
           ),
         );
 
@@ -188,16 +201,13 @@ void main() {
         final service = CoursDeRouteService.withClient(mockSupabaseClient);
 
         // Act & Assert - Tenter d'accéder aux données sans authentification
-        expect(
-          () => service.getAll(),
-          throwsA(isA<PostgrestException>()),
-        );
+        expect(() => service.getAll(), throwsA(isA<PostgrestException>()));
       });
 
       test('should enforce depot-based RLS for non-admin users', () async {
         // Arrange - Utilisateur avec dépôt spécifique
         final service = CoursDeRouteService.withClient(mockSupabaseClient);
-        
+
         // Act - Tenter d'accéder aux cours d'un autre dépôt
         final cours = await service.getByDepot('other-depot-id');
 
@@ -371,12 +381,14 @@ void main() {
         await service.create(cours);
 
         // Assert - Vérifier que l'opération est loggée
-        verify(mockAuditLogger.logOperation(
-          operation: 'CREATE',
-          table: 'cours_de_route',
-          userId: 'test-user-id',
-          data: any,
-        )).called(1);
+        verify(
+          mockAuditLogger.logOperation(
+            operation: 'CREATE',
+            table: 'cours_de_route',
+            userId: 'test-user-id',
+            data: any,
+          ),
+        ).called(1);
       });
 
       test('should log statut changes with timestamps', () async {
@@ -391,13 +403,15 @@ void main() {
         );
 
         // Assert - Vérifier que le changement de statut est loggé
-        verify(mockAuditLogger.logStatutChange(
-          coursId: 'test-id',
-          fromStatut: 'CHARGEMENT',
-          toStatut: 'TRANSIT',
-          userId: 'test-user-id',
-          timestamp: any,
-        )).called(1);
+        verify(
+          mockAuditLogger.logStatutChange(
+            coursId: 'test-id',
+            fromStatut: 'CHARGEMENT',
+            toStatut: 'TRANSIT',
+            userId: 'test-user-id',
+            timestamp: any,
+          ),
+        ).called(1);
       });
     });
   });

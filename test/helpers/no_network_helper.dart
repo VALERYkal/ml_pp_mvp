@@ -8,7 +8,7 @@ class NoNetworkHelper {
   static void blockNetwork() {
     // Pas d'action nécessaire - les tests utilisent l'injection de dépendance
   }
-  
+
   /// Restaure les overrides HTTP originaux
   static void restoreNetwork() {
     // Pas d'action nécessaire - les tests utilisent l'injection de dépendance

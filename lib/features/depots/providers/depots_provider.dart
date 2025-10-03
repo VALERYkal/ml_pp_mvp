@@ -7,7 +7,10 @@ final depotsRepoProvider = riverpod.Provider<DepotsRepository>((ref) {
   return DepotsRepository(Supabase.instance.client);
 });
 
-final depotNameProvider = riverpod.FutureProvider.family<String?, String>((ref, depotId) async {
+final depotNameProvider = riverpod.FutureProvider.family<String?, String>((
+  ref,
+  depotId,
+) async {
   if (depotId.isEmpty) return null;
   final repo = ref.watch(depotsRepoProvider);
   return repo.getDepotNameById(depotId);

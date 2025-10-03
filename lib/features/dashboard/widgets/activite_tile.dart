@@ -6,20 +6,16 @@ class ActiviteTile extends StatelessWidget {
   final ActiviteRecente activite;
   final VoidCallback? onTap;
 
-  const ActiviteTile({
-    super.key,
-    required this.activite,
-    this.onTap,
-  });
+  const ActiviteTile({super.key, required this.activite, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     // Déterminer l'icône et la couleur selon le niveau
     IconData icon;
     Color color;
-    
+
     switch (activite.niveau.toUpperCase()) {
       case 'CRITICAL':
         icon = Icons.error;
@@ -37,11 +33,7 @@ class ActiviteTile extends StatelessWidget {
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: color.withValues(alpha: 0.1),
-        child: Icon(
-          icon,
-          color: color,
-          size: 20,
-        ),
+        child: Icon(icon, color: color, size: 20),
       ),
       title: Text(
         '${activite.module} • ${activite.action}',
@@ -92,7 +84,7 @@ class ActivitesList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Card(
       elevation: 1,
       child: Column(
@@ -102,11 +94,7 @@ class ActivitesList extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                Icon(
-                  Icons.history,
-                  color: theme.colorScheme.primary,
-                  size: 20,
-                ),
+                Icon(Icons.history, color: theme.colorScheme.primary, size: 20),
                 const SizedBox(width: 8),
                 Text(
                   'Activités récentes',
@@ -146,7 +134,9 @@ class ActivitesList extends StatelessWidget {
                 final activite = activites[index];
                 return ActiviteTile(
                   activite: activite,
-                  onTap: onActiviteTap != null ? () => onActiviteTap!(activite) : null,
+                  onTap: onActiviteTap != null
+                      ? () => onActiviteTap!(activite)
+                      : null,
                 );
               },
             ),

@@ -14,7 +14,9 @@ import 'package:ml_pp_mvp/features/profil/models/profil.dart';
 
 void main() {
   group('RoleDashboard Golden Tests', () {
-    testWidgets('should render loading state correctly', (WidgetTester tester) async {
+    testWidgets('should render loading state correctly', (
+      WidgetTester tester,
+    ) async {
       // Arrange
       final container = ProviderContainer(
         overrides: [
@@ -26,27 +28,26 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
-            home: Scaffold(
-              body: const RoleDashboard(),
-            ),
-          ),
+          child: MaterialApp(home: Scaffold(body: const RoleDashboard())),
         ),
       );
 
       // Assert
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       expect(find.text('Vue d\'ensemble'), findsOneWidget);
-      
+
       container.dispose();
     });
 
-    testWidgets('should render error state correctly', (WidgetTester tester) async {
+    testWidgets('should render error state correctly', (
+      WidgetTester tester,
+    ) async {
       // Arrange
       final container = ProviderContainer(
         overrides: [
-          kpiProviderProvider.overrideWith((ref) => 
-            AsyncValue.error('Test error', StackTrace.current)),
+          kpiProviderProvider.overrideWith(
+            (ref) => AsyncValue.error('Test error', StackTrace.current),
+          ),
         ],
       );
 
@@ -54,21 +55,19 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
-            home: Scaffold(
-              body: const RoleDashboard(),
-            ),
-          ),
+          child: MaterialApp(home: Scaffold(body: const RoleDashboard())),
         ),
       );
 
       // Assert
       expect(find.text('Erreur chargement KPIs: Test error'), findsOneWidget);
-      
+
       container.dispose();
     });
 
-    testWidgets('should render data state correctly', (WidgetTester tester) async {
+    testWidgets('should render data state correctly', (
+      WidgetTester tester,
+    ) async {
       // Arrange - Données de test
       final testData = KpiSnapshot(
         receptionsToday: const KpiNumberVolume(
@@ -122,11 +121,7 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
-            home: Scaffold(
-              body: const RoleDashboard(),
-            ),
-          ),
+          child: MaterialApp(home: Scaffold(body: const RoleDashboard())),
         ),
       );
 
@@ -148,7 +143,9 @@ void main() {
       container.dispose();
     });
 
-    testWidgets('should handle empty citernes sous seuil', (WidgetTester tester) async {
+    testWidgets('should handle empty citernes sous seuil', (
+      WidgetTester tester,
+    ) async {
       // Arrange - Données sans alertes
       final testData = KpiSnapshot(
         receptionsToday: const KpiNumberVolume(
@@ -184,18 +181,14 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
-            home: Scaffold(
-              body: const RoleDashboard(),
-            ),
-          ),
+          child: MaterialApp(home: Scaffold(body: const RoleDashboard())),
         ),
       );
 
       // Assert
       expect(find.text('0'), findsOneWidget); // 0 citernes sous seuil
       expect(find.text('Aucune alerte'), findsOneWidget);
-      
+
       container.dispose();
     });
 
@@ -235,17 +228,13 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
-            home: Scaffold(
-              body: const RoleDashboard(),
-            ),
-          ),
+          child: MaterialApp(home: Scaffold(body: const RoleDashboard())),
         ),
       );
 
       // Assert
       expect(find.text('-700 L'), findsOneWidget); // Balance négative
-      
+
       container.dispose();
     });
   });

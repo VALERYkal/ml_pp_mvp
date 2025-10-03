@@ -14,7 +14,7 @@ import 'package:ml_pp_mvp/core/models/user_role.dart';
 import 'package:ml_pp_mvp/shared/providers/ref_data_provider.dart';
 
 /// Helper pour pomper un widget avec les providers nécessaires
-/// 
+///
 /// [widget] : Le widget à tester
 /// [overrides] : Overrides supplémentaires pour les providers
 /// [routerConfig] : Configuration du routeur (optionnel)
@@ -35,7 +35,7 @@ Future<void> pumpWithProviders(
     ProviderScope(
       overrides: allOverrides,
       child: MaterialApp(
-        home: routerConfig != null 
+        home: routerConfig != null
             ? Router(routerConfig: routerConfig, child: widget)
             : widget,
       ),
@@ -53,26 +53,27 @@ class FakeRefData {
     Map<String, String>? fournisseurs,
     Map<String, String>? produits,
     Map<String, String>? depots,
-  }) : fournisseurs = fournisseurs ?? {
-          'fournisseur-1': 'Fournisseur Test 1',
-          'fournisseur-2': 'Fournisseur Test 2',
-          'fournisseur-3': 'Fournisseur Test 3',
-        },
-       produits = produits ?? {
-          'produit-1': 'Essence',
-          'produit-2': 'Diesel',
-          'produit-3': 'Kérosène',
-        },
-       depots = depots ?? {
-          'depot-1': 'Dépôt Central',
-          'depot-2': 'Dépôt Nord',
-        };
+  }) : fournisseurs =
+           fournisseurs ??
+           {
+             'fournisseur-1': 'Fournisseur Test 1',
+             'fournisseur-2': 'Fournisseur Test 2',
+             'fournisseur-3': 'Fournisseur Test 3',
+           },
+       produits =
+           produits ??
+           {
+             'produit-1': 'Essence',
+             'produit-2': 'Diesel',
+             'produit-3': 'Kérosène',
+           },
+       depots = depots ?? {'depot-1': 'Dépôt Central', 'depot-2': 'Dépôt Nord'};
 }
 
 /// Builder pour créer des cours de route de test
-/// 
+///
 /// [overrides] : Valeurs à surcharger dans le cours de route
-/// 
+///
 /// Retourne :
 /// - `CoursDeRoute` : Un cours de route avec des valeurs par défaut
 CoursDeRoute fakeCdr({
@@ -104,7 +105,8 @@ CoursDeRoute fakeCdr({
     chauffeur: chauffeur ?? 'Jean Dupont',
     volume: volume ?? 50000.0,
     dateChargement: dateChargement ?? DateTime.parse('2025-01-27T10:00:00Z'),
-    dateArriveePrevue: dateArriveePrevue ?? DateTime.parse('2025-01-28T10:00:00Z'),
+    dateArriveePrevue:
+        dateArriveePrevue ?? DateTime.parse('2025-01-28T10:00:00Z'),
     pays: pays ?? 'RDC',
     statut: statut ?? StatutCours.chargement,
     note: note ?? 'Cours de test',
@@ -114,9 +116,9 @@ CoursDeRoute fakeCdr({
 }
 
 /// Builder pour créer un cours de route déchargé
-/// 
+///
 /// [overrides] : Valeurs à surcharger dans le cours de route
-/// 
+///
 /// Retourne :
 /// - `CoursDeRoute` : Un cours de route avec statut déchargé
 CoursDeRoute fakeCdrDecharge({
@@ -157,16 +159,13 @@ CoursDeRoute fakeCdrDecharge({
 }
 
 /// Builder pour créer une liste de cours de route de test
-/// 
+///
 /// [count] : Nombre de cours à créer
 /// [statuts] : Liste des statuts à utiliser (répétés si nécessaire)
-/// 
+///
 /// Retourne :
 /// - `List<CoursDeRoute>` : Liste de cours de route
-List<CoursDeRoute> fakeCdrList({
-  int count = 4,
-  List<StatutCours>? statuts,
-}) {
+List<CoursDeRoute> fakeCdrList({int count = 4, List<StatutCours>? statuts}) {
   final defaultStatuts = [
     StatutCours.chargement,
     StatutCours.transit,
@@ -174,9 +173,9 @@ List<CoursDeRoute> fakeCdrList({
     StatutCours.arrive,
     StatutCours.decharge,
   ];
-  
+
   final effectiveStatuts = statuts ?? defaultStatuts;
-  
+
   return List.generate(count, (index) {
     final statutIndex = index % effectiveStatuts.length;
     return fakeCdr(
@@ -199,11 +198,9 @@ class FakeCoursDeRouteService implements CoursDeRouteService {
   final List<CoursDeRoute> _cours;
   final CoursDeRoute? _coursById;
 
-  FakeCoursDeRouteService({
-    List<CoursDeRoute>? cours,
-    CoursDeRoute? coursById,
-  }) : _cours = cours ?? fakeCdrList(),
-       _coursById = coursById;
+  FakeCoursDeRouteService({List<CoursDeRoute>? cours, CoursDeRoute? coursById})
+    : _cours = cours ?? fakeCdrList(),
+      _coursById = coursById;
 
   @override
   Future<List<CoursDeRoute>> getAll() async {
@@ -217,35 +214,40 @@ class FakeCoursDeRouteService implements CoursDeRouteService {
 
   @override
   Future<CoursDeRoute?> getById(String id) async {
-    return _coursById ?? _cours.firstWhere((c) => c.id == id, orElse: () => throw StateError('Not found'));
+    return _coursById ??
+        _cours.firstWhere(
+          (c) => c.id == id,
+          orElse: () => throw StateError('Not found'),
+        );
   }
 
   // Méthodes non utilisées dans les tests - implémentation minimale
   @override
   Future<void> create(dynamic cours) async => throw UnimplementedError();
-  
+
   @override
   Future<void> update(dynamic cours) async => throw UnimplementedError();
-  
+
   @override
   Future<void> delete(String id) async => throw UnimplementedError();
-  
+
   @override
   Future<void> updateStatut({
     required String id,
     required dynamic to,
     bool fromReception = false,
   }) async => throw UnimplementedError();
-  
+
   @override
-  Future<List<dynamic>> getByStatut(dynamic statut) async => throw UnimplementedError();
-  
+  Future<List<dynamic>> getByStatut(dynamic statut) async =>
+      throw UnimplementedError();
+
   @override
   Future<bool> canTransition({
     required dynamic from,
     required dynamic to,
   }) async => throw UnimplementedError();
-  
+
   @override
   Future<bool> applyTransition({
     required String cdrId,
@@ -253,16 +255,17 @@ class FakeCoursDeRouteService implements CoursDeRouteService {
     required dynamic to,
     String? userId,
   }) async => throw UnimplementedError();
-  
+
   @override
   Future<Map<String, int>> countByStatut() async => throw UnimplementedError();
-  
+
   @override
-  Future<Map<String, int>> countByCategorie() async => throw UnimplementedError();
+  Future<Map<String, int>> countByCategorie() async =>
+      throw UnimplementedError();
 }
 
 /// Helper pour vérifier qu'un widget est affiché sans exception
-/// 
+///
 /// [widget] : Le widget à tester
 /// [overrides] : Overrides supplémentaires pour les providers
 Future<void> expectNoRenderException(
@@ -270,19 +273,19 @@ Future<void> expectNoRenderException(
   List<Override> overrides = const [],
 }) async {
   await pumpWithProviders(widget, overrides: overrides);
-  
+
   // Vérifier qu'il n'y a pas d'exception de rendu
   expect(tester.takeException(), isNull);
-  
+
   // Attendre que le widget soit construit
   await tester.pumpAndSettle();
-  
+
   // Vérifier qu'il n'y a toujours pas d'exception
   expect(tester.takeException(), isNull);
 }
 
 /// Helper pour vérifier qu'un texte est affiché
-/// 
+///
 /// [text] : Le texte à chercher
 /// [finds] : Le nombre d'occurrences attendues
 void expectTextFound(String text, {int finds = 1}) {
@@ -290,14 +293,14 @@ void expectTextFound(String text, {int finds = 1}) {
 }
 
 /// Helper pour vérifier qu'un texte n'est pas affiché
-/// 
+///
 /// [text] : Le texte à vérifier qu'il n'est pas présent
 void expectTextNotFound(String text) {
   expect(find.text(text), findsNothing);
 }
 
 /// Helper pour vérifier qu'un widget est présent
-/// 
+///
 /// [widget] : Le widget à chercher
 /// [finds] : Le nombre d'occurrences attendues
 void expectWidgetFound(Widget widget, {int finds = 1}) {
@@ -305,7 +308,7 @@ void expectWidgetFound(Widget widget, {int finds = 1}) {
 }
 
 /// Helper pour vérifier qu'un widget n'est pas présent
-/// 
+///
 /// [widget] : Le widget à vérifier qu'il n'est pas présent
 void expectWidgetNotFound(Widget widget) {
   expect(find.byWidget(widget), findsNothing);

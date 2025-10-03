@@ -23,7 +23,9 @@ class ReceptionsRepository {
         // Filtrage par dépôt via citernes
         rows = await _supa
             .from('receptions')
-            .select('id, statut, volume_corrige_15c, volume_ambiant, citernes!inner(depot_id)')
+            .select(
+              'id, statut, volume_corrige_15c, volume_ambiant, citernes!inner(depot_id)',
+            )
             .eq('statut', 'validee')
             .eq('date_reception', eqDay)
             .eq('citernes.depot_id', depotId);
@@ -45,12 +47,14 @@ class ReceptionsRepository {
         final amb = (m['volume_ambiant'] as num?)?.toDouble() ?? 0.0;
         final v15 = (m['volume_corrige_15c'] as num?)?.toDouble() ?? 0.0;
         sAmb += amb;
-        s15  += v15;
+        s15 += v15;
       }
 
       // Debug non intrusif (retire-les si OK)
       if (kDebugMode) {
-        print('🔎 Réceptions(${eqDay}${depotId != null ? ' depot=' + depotId : ''}) => nb=$count, amb=$sAmb, 15C=$s15');
+        print(
+          '🔎 Réceptions(${eqDay}${depotId != null ? ' depot=' + depotId : ''}) => nb=$count, amb=$sAmb, 15C=$s15',
+        );
       }
 
       return (nbCamions: count, volAmbiant: sAmb, vol15c: s15);

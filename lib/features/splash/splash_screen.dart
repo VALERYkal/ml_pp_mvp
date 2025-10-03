@@ -9,18 +9,19 @@ class SplashScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.listen<UserRole?>(
-      userRoleProvider,
-      (prev, next) {
-        if (next != null && context.mounted) {
-          context.go(next.dashboardPath);
-        }
-      },
-    );
+    ref.listen<UserRole?>(userRoleProvider, (prev, next) {
+      if (next != null && context.mounted) {
+        context.go(next.dashboardPath);
+      }
+    });
 
     return const Scaffold(
       body: Center(
-        child: SizedBox(height: 72, width: 72, child: CircularProgressIndicator()),
+        child: SizedBox(
+          height: 72,
+          width: 72,
+          child: CircularProgressIndicator(),
+        ),
       ),
     );
   }

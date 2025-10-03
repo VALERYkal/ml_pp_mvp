@@ -46,11 +46,13 @@ class ReferentielsRepo {
         .select('id, code, nom, actif')
         .eq('actif', true);
     _produits = (rows as List)
-        .map((m) => ProduitRef(
-              id: m['id'] as String,
-              code: (m['code'] ?? '') as String,
-              nom: (m['nom'] ?? '') as String,
-            ))
+        .map(
+          (m) => ProduitRef(
+            id: m['id'] as String,
+            code: (m['code'] ?? '') as String,
+            nom: (m['nom'] ?? '') as String,
+          ),
+        )
         .toList();
     return _produits!;
   }
@@ -60,17 +62,21 @@ class ReferentielsRepo {
     if (_citernes != null) return _citernes!;
     final rows = await client
         .from('citernes')
-        .select('id, nom, produit_id, capacite_totale, capacite_securite, statut')
+        .select(
+          'id, nom, produit_id, capacite_totale, capacite_securite, statut',
+        )
         .eq('statut', 'active');
     _citernes = (rows as List)
-        .map((m) => CiterneRef(
-              id: m['id'] as String,
-              nom: (m['nom'] ?? '') as String,
-              produitId: m['produit_id'] as String,
-              capaciteTotale: (m['capacite_totale'] as num).toDouble(),
-              capaciteSecurite: (m['capacite_securite'] as num).toDouble(),
-              statut: (m['statut'] ?? 'inactive') as String,
-            ))
+        .map(
+          (m) => CiterneRef(
+            id: m['id'] as String,
+            nom: (m['nom'] ?? '') as String,
+            produitId: m['produit_id'] as String,
+            capaciteTotale: (m['capacite_totale'] as num).toDouble(),
+            capaciteSecurite: (m['capacite_securite'] as num).toDouble(),
+            statut: (m['statut'] ?? 'inactive') as String,
+          ),
+        )
         .toList();
     return _citernes!;
   }
@@ -112,12 +118,14 @@ final referentielsRepoProvider = Riverpod.Provider<ReferentielsRepo>((ref) {
   return ReferentielsRepo(Supabase.instance.client);
 });
 
-final produitsRefProvider = Riverpod.FutureProvider<List<ProduitRef>>((ref) async {
+final produitsRefProvider = Riverpod.FutureProvider<List<ProduitRef>>((
+  ref,
+) async {
   return ref.read(referentielsRepoProvider).loadProduits();
 });
 
-final citernesActivesProvider = Riverpod.FutureProvider<List<CiterneRef>>((ref) async {
+final citernesActivesProvider = Riverpod.FutureProvider<List<CiterneRef>>((
+  ref,
+) async {
   return ref.read(referentielsRepoProvider).loadCiternesActives();
 });
-
-

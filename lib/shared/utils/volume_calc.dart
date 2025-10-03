@@ -33,7 +33,7 @@ double computeV15({
   required double volumeAmbiant,
   required double? temperatureC,
   required double? densiteA15, // réservé pour calculs réglementaires futurs
-  required String produitCode,  // 'ESS' | 'AGO'
+  required String produitCode, // 'ESS' | 'AGO'
 }) {
   if (temperatureC == null) return volumeAmbiant;
   final alpha = (produitCode.toUpperCase() == 'ESS') ? 0.00100 : 0.00085;
@@ -42,5 +42,3 @@ double computeV15({
 
 /// Format SQL 'date' (yyyy-MM-dd) sans dépendance externe.
 String formatSqlDate(DateTime dt) => dt.toIso8601String().split('T').first;
-
-

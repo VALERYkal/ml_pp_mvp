@@ -34,22 +34,22 @@ class CiterneService {
 
   /// Formate une date en YYYY-MM-DD pour la base de données
   String _fmtYmd(DateTime d) =>
-      '${d.year.toString().padLeft(4,'0')}-${d.month.toString().padLeft(2,'0')}-${d.day.toString().padLeft(2,'0')}';
+      '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
   /// Récupère le stock actuel pour une citerne et un produit à une date donnée
-  /// 
+  ///
   /// [citerneId] : ID de la citerne
   /// [produitId] : ID du produit
   /// [date] : Date optionnelle (par défaut aujourd'hui)
-  /// 
+  ///
   /// Retourne : Map avec 'ambiant' et 'c15' (volumes en litres)
   Future<Map<String, double>> getStockActuel(
-    String citerneId, 
-    String produitId, 
-    {DateTime? date}
-  ) async {
+    String citerneId,
+    String produitId, {
+    DateTime? date,
+  }) async {
     final dateJour = _fmtYmd(date ?? DateTime.now());
-    
+
     try {
       final res = await _client
           .from('stock_actuel')
@@ -84,5 +84,3 @@ class CiterneService {
     return CiterneInfo.fromMap(res as Map<String, dynamic>);
   }
 }
-
-

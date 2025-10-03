@@ -6,9 +6,9 @@ import 'package:postgrest/postgrest.dart';
 /// Utilitaires pour humaniser les erreurs de base de données
 class ErrorHumanizer {
   /// Humanise une erreur PostgrestException
-  /// 
+  ///
   /// [e] : L'exception PostgrestException
-  /// 
+  ///
   /// Retourne :
   /// - `String` : Message d'erreur humanisé en français
   static String humanizePostgrest(PostgrestException e) {
@@ -17,12 +17,14 @@ class ErrorHumanizer {
     final hint = e.hint?.toString().toLowerCase() ?? '';
 
     // Erreurs d'authentification et permissions
-    if (message.contains('permission denied') || message.contains('row level security')) {
+    if (message.contains('permission denied') ||
+        message.contains('row level security')) {
       return 'Accès refusé. Vérifiez vos permissions.';
     }
 
     // Erreurs de contraintes de clés étrangères
-    if (message.contains('foreign key') || message.contains('violates foreign key')) {
+    if (message.contains('foreign key') ||
+        message.contains('violates foreign key')) {
       if (details.contains('citerne_id')) {
         return 'Citerne introuvable ou inactive.';
       }
@@ -42,7 +44,8 @@ class ErrorHumanizer {
     }
 
     // Erreurs de contraintes CHECK
-    if (message.contains('check constraint') || message.contains('violates check constraint')) {
+    if (message.contains('check constraint') ||
+        message.contains('violates check constraint')) {
       if (details.contains('index_apres') || details.contains('index_avant')) {
         return 'Indices incohérents : l\'index après doit être supérieur à l\'index avant.';
       }
@@ -55,22 +58,27 @@ class ErrorHumanizer {
       if (details.contains('proprietaire_type')) {
         return 'Type de propriétaire invalide.';
       }
-      if (details.contains('beneficiaire') || details.contains('client_id') || details.contains('partenaire_id')) {
+      if (details.contains('beneficiaire') ||
+          details.contains('client_id') ||
+          details.contains('partenaire_id')) {
         return 'Bénéficiaire requis : sélectionnez un client ou un partenaire.';
       }
       return 'Données invalides. Vérifiez les valeurs saisies.';
     }
 
     // Erreurs de contraintes UNIQUE
-    if (message.contains('duplicate key') || message.contains('unique constraint')) {
-      if (details.contains('plaque_camion') || details.contains('date_chargement')) {
+    if (message.contains('duplicate key') ||
+        message.contains('unique constraint')) {
+      if (details.contains('plaque_camion') ||
+          details.contains('date_chargement')) {
         return 'Un cours de route existe déjà avec cette plaque et cette date de chargement.';
       }
       return 'Cette entrée existe déjà.';
     }
 
     // Erreurs de contraintes NOT NULL
-    if (message.contains('null value') || message.contains('not null constraint')) {
+    if (message.contains('null value') ||
+        message.contains('not null constraint')) {
       if (details.contains('citerne_id')) {
         return 'Citerne requise.';
       }
@@ -126,9 +134,9 @@ class ErrorHumanizer {
   }
 
   /// Humanise une erreur générique
-  /// 
+  ///
   /// [error] : L'erreur à humaniser
-  /// 
+  ///
   /// Retourne :
   /// - `String` : Message d'erreur humanisé
   static String humanizeError(dynamic error) {
@@ -163,35 +171,34 @@ class ErrorHumanizer {
   }
 
   /// Obtient le niveau de sévérité d'une erreur
-  /// 
+  ///
   /// [error] : L'erreur à analyser
-  /// 
+  ///
   /// Retourne :
   /// - `String` : Niveau de sévérité ('INFO', 'WARNING', 'ERROR', 'CRITICAL')
   static String getErrorSeverity(dynamic error) {
     if (error is PostgrestException) {
       final message = error.message.toLowerCase();
-      
+
       // Erreurs critiques
-      if (message.contains('permission denied') || 
+      if (message.contains('permission denied') ||
           message.contains('internal server error')) {
         return 'CRITICAL';
       }
-      
+
       // Erreurs d'erreur
-      if (message.contains('foreign key') || 
+      if (message.contains('foreign key') ||
           message.contains('check constraint') ||
           message.contains('validation')) {
         return 'ERROR';
       }
-      
+
       // Erreurs d'avertissement
-      if (message.contains('timeout') || 
-          message.contains('network')) {
+      if (message.contains('timeout') || message.contains('network')) {
         return 'WARNING';
       }
     }
-    
+
     return 'ERROR';
   }
 }

@@ -12,41 +12,41 @@ void main() {
       test('should allow chargement → transit', () {
         expect(
           CoursDeRouteStateMachine.canTransition(
-            StatutCours.chargement, 
-            StatutCours.transit
-          ), 
-          true
+            StatutCours.chargement,
+            StatutCours.transit,
+          ),
+          true,
         );
       });
 
       test('should allow transit → frontiere', () {
         expect(
           CoursDeRouteStateMachine.canTransition(
-            StatutCours.transit, 
-            StatutCours.frontiere
-          ), 
-          true
+            StatutCours.transit,
+            StatutCours.frontiere,
+          ),
+          true,
         );
       });
 
       test('should allow frontiere → arrive', () {
         expect(
           CoursDeRouteStateMachine.canTransition(
-            StatutCours.frontiere, 
-            StatutCours.arrive
-          ), 
-          true
+            StatutCours.frontiere,
+            StatutCours.arrive,
+          ),
+          true,
         );
       });
 
       test('should allow arrive → decharge (with reception)', () {
         expect(
           CoursDeRouteStateMachine.canTransition(
-            StatutCours.arrive, 
+            StatutCours.arrive,
             StatutCours.decharge,
-            fromReception: true
-          ), 
-          true
+            fromReception: true,
+          ),
+          true,
         );
       });
     });
@@ -55,51 +55,51 @@ void main() {
       test('should not allow chargement → arrive (skip transit)', () {
         expect(
           CoursDeRouteStateMachine.canTransition(
-            StatutCours.chargement, 
-            StatutCours.arrive
-          ), 
-          false
+            StatutCours.chargement,
+            StatutCours.arrive,
+          ),
+          false,
         );
       });
 
       test('should not allow decharge → transit (backward)', () {
         expect(
           CoursDeRouteStateMachine.canTransition(
-            StatutCours.decharge, 
-            StatutCours.transit
-          ), 
-          false
+            StatutCours.decharge,
+            StatutCours.transit,
+          ),
+          false,
         );
       });
 
       test('should not allow arrive → decharge without reception', () {
         expect(
           CoursDeRouteStateMachine.canTransition(
-            StatutCours.arrive, 
+            StatutCours.arrive,
             StatutCours.decharge,
-            fromReception: false
-          ), 
-          false
+            fromReception: false,
+          ),
+          false,
         );
       });
 
       test('should not allow chargement → frontiere (skip transit)', () {
         expect(
           CoursDeRouteStateMachine.canTransition(
-            StatutCours.chargement, 
-            StatutCours.frontiere
-          ), 
-          false
+            StatutCours.chargement,
+            StatutCours.frontiere,
+          ),
+          false,
         );
       });
 
       test('should not allow transit → decharge (skip steps)', () {
         expect(
           CoursDeRouteStateMachine.canTransition(
-            StatutCours.transit, 
-            StatutCours.decharge
-          ), 
-          false
+            StatutCours.transit,
+            StatutCours.decharge,
+          ),
+          false,
         );
       });
     });
@@ -156,23 +156,20 @@ void main() {
       test('should return allowed next statuses', () {
         expect(
           CoursDeRouteStateMachine.getAllowedNext(StatutCours.chargement),
-          {StatutCours.transit}
+          {StatutCours.transit},
         );
-        expect(
-          CoursDeRouteStateMachine.getAllowedNext(StatutCours.transit),
-          {StatutCours.frontiere}
-        );
-        expect(
-          CoursDeRouteStateMachine.getAllowedNext(StatutCours.frontiere),
-          {StatutCours.arrive}
-        );
-        expect(
-          CoursDeRouteStateMachine.getAllowedNext(StatutCours.arrive),
-          {StatutCours.decharge}
-        );
+        expect(CoursDeRouteStateMachine.getAllowedNext(StatutCours.transit), {
+          StatutCours.frontiere,
+        });
+        expect(CoursDeRouteStateMachine.getAllowedNext(StatutCours.frontiere), {
+          StatutCours.arrive,
+        });
+        expect(CoursDeRouteStateMachine.getAllowedNext(StatutCours.arrive), {
+          StatutCours.decharge,
+        });
         expect(
           CoursDeRouteStateMachine.getAllowedNext(StatutCours.decharge),
-          <StatutCours>{}
+          <StatutCours>{},
         );
       });
     });
@@ -185,7 +182,9 @@ void main() {
       });
 
       test('should handle empty allowed next for final status', () {
-        final allowed = CoursDeRouteStateMachine.getAllowedNext(StatutCours.decharge);
+        final allowed = CoursDeRouteStateMachine.getAllowedNext(
+          StatutCours.decharge,
+        );
         expect(allowed, isEmpty);
       });
 
@@ -201,18 +200,23 @@ void main() {
         for (int i = 0; i < sequence.length - 1; i++) {
           final current = sequence[i];
           final next = sequence[i + 1];
-          
+
           if (next == StatutCours.decharge) {
             expect(
-              CoursDeRouteStateMachine.canTransition(current, next, fromReception: true),
+              CoursDeRouteStateMachine.canTransition(
+                current,
+                next,
+                fromReception: true,
+              ),
               true,
-              reason: 'Transition from $current to $next should be allowed with reception'
+              reason:
+                  'Transition from $current to $next should be allowed with reception',
             );
           } else {
             expect(
               CoursDeRouteStateMachine.canTransition(current, next),
               true,
-              reason: 'Transition from $current to $next should be allowed'
+              reason: 'Transition from $current to $next should be allowed',
             );
           }
         }

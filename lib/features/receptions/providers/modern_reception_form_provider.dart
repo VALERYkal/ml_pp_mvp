@@ -18,7 +18,7 @@ class ModernReceptionFormState {
   final bool isSubmitting;
   final String? errorMessage;
   final String? successMessage;
-  
+
   // Données du formulaire
   final String? ownerType;
   final String? coursDeRouteId;
@@ -30,17 +30,17 @@ class ModernReceptionFormState {
   final double? temperature;
   final double? densite;
   final String? note;
-  
+
   // État de validation
   final Map<String, FieldValidationResult> fieldValidations;
   final ValidationResult? globalValidation;
-  
+
   // Données de référence
   final List<CoursDeRoute> availableCours;
   final List<Map<String, dynamic>> availableProducts;
   final List<Map<String, dynamic>> availableTanks;
   final List<Map<String, dynamic>> availablePartenaires;
-  
+
   // Cours sélectionné
   final CoursDeRoute? selectedCours;
 
@@ -129,12 +129,16 @@ class ModernReceptionFormState {
           return partenaireId != null && partenaireId!.isNotEmpty;
         }
       case 1: // Produit et citerne
-        return produitId != null && produitId!.isNotEmpty &&
-               citerneId != null && citerneId!.isNotEmpty;
+        return produitId != null &&
+            produitId!.isNotEmpty &&
+            citerneId != null &&
+            citerneId!.isNotEmpty;
       case 2: // Mesures
-        return indexAvant != null && indexApres != null &&
-               temperature != null && densite != null &&
-               indexApres! > indexAvant!;
+        return indexAvant != null &&
+            indexApres != null &&
+            temperature != null &&
+            densite != null &&
+            indexApres! > indexAvant!;
       default:
         return false;
     }
@@ -194,13 +198,14 @@ class ModernReceptionFormState {
 }
 
 /// Notifier pour gérer l'état du formulaire moderne
-class ModernReceptionFormNotifier extends StateNotifier<ModernReceptionFormState> {
+class ModernReceptionFormNotifier
+    extends StateNotifier<ModernReceptionFormState> {
   ModernReceptionFormNotifier() : super(const ModernReceptionFormState());
 
   /// Charge les données initiales
   Future<void> loadInitialData({String? coursDeRouteId}) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
-    
+
     try {
       // Charger les cours de route disponibles
       final coursData = await Supabase.instance.client
@@ -208,30 +213,32 @@ class ModernReceptionFormNotifier extends StateNotifier<ModernReceptionFormState
           .select('*')
           .eq('statut', 'arrive')
           .order('created_at', ascending: false);
-      
-      final cours = coursData.map((data) => CoursDeRoute.fromMap(data)).toList();
-      
+
+      final cours = coursData
+          .map((data) => CoursDeRoute.fromMap(data))
+          .toList();
+
       // Charger les produits disponibles
       final produitsData = await Supabase.instance.client
           .from('produits')
           .select('*')
           .eq('actif', true)
           .order('libelle');
-      
+
       // Charger les citernes disponibles
       final citernesData = await Supabase.instance.client
           .from('citernes')
           .select('*, stocks_journaliers(stock_15c, capacity)')
           .eq('actif', true)
           .order('libelle');
-      
+
       // Charger les partenaires disponibles
       final partenairesData = await Supabase.instance.client
           .from('partenaires')
           .select('*')
           .eq('actif', true)
           .order('nom');
-      
+
       // Si un cours de route est fourni, le charger
       CoursDeRoute? selectedCours;
       if (coursDeRouteId != null && coursDeRouteId.isNotEmpty) {
@@ -241,7 +248,7 @@ class ModernReceptionFormNotifier extends StateNotifier<ModernReceptionFormState
               .select('*')
               .eq('id', coursDeRouteId)
               .maybeSingle();
-          
+
           if (coursData != null) {
             selectedCours = CoursDeRoute.fromMap(coursData);
           }
@@ -249,7 +256,7 @@ class ModernReceptionFormNotifier extends StateNotifier<ModernReceptionFormState
           // Ignorer l'erreur si le cours n'existe pas
         }
       }
-      
+
       state = state.copyWith(
         isLoading: false,
         availableCours: cours,
@@ -274,7 +281,9 @@ class ModernReceptionFormNotifier extends StateNotifier<ModernReceptionFormState
       ownerType: ownerType,
       coursDeRouteId: ownerType == 'MONALUXE' ? state.coursDeRouteId : null,
       partenaireId: ownerType == 'PARTENAIRE' ? state.partenaireId : null,
-      produitId: ownerType == 'MONALUXE' ? state.selectedCours?.produitId : null,
+      produitId: ownerType == 'MONALUXE'
+          ? state.selectedCours?.produitId
+          : null,
       citerneId: null,
       fieldValidations: {},
     );
@@ -286,7 +295,7 @@ class ModernReceptionFormNotifier extends StateNotifier<ModernReceptionFormState
       (c) => c.id == coursId,
       orElse: () => state.selectedCours!,
     );
-    
+
     state = state.copyWith(
       coursDeRouteId: coursId,
       selectedCours: cours,
@@ -316,23 +325,22 @@ class ModernReceptionFormNotifier extends StateNotifier<ModernReceptionFormState
 
   /// Met à jour la citerne sélectionnée
   void updateCiterne(String? citerneId) {
-    state = state.copyWith(
-      citerneId: citerneId,
-      fieldValidations: {},
-    );
+    state = state.copyWith(citerneId: citerneId, fieldValidations: {});
   }
 
   /// Met à jour un champ de mesure
   void updateMeasurementField(String field, double? value) {
-    Map<String, FieldValidationResult> newValidations = Map.from(state.fieldValidations);
-    
+    Map<String, FieldValidationResult> newValidations = Map.from(
+      state.fieldValidations,
+    );
+
     // Valider le champ
     final validation = ModernReceptionValidationService.validateField(
       fieldName: field,
       value: value,
     );
     newValidations[field] = validation;
-    
+
     // Mettre à jour l'état
     switch (field) {
       case 'indexAvant':
@@ -360,7 +368,7 @@ class ModernReceptionFormNotifier extends StateNotifier<ModernReceptionFormState
         );
         break;
     }
-    
+
     // Valider la cohérence globale si nécessaire
     if (field == 'indexAvant' || field == 'indexApres') {
       _validateGlobalConsistency();
@@ -370,8 +378,10 @@ class ModernReceptionFormNotifier extends StateNotifier<ModernReceptionFormState
   /// Valide la cohérence globale des indices
   void _validateGlobalConsistency() {
     if (state.indexAvant != null && state.indexApres != null) {
-      Map<String, FieldValidationResult> newValidations = Map.from(state.fieldValidations);
-      
+      Map<String, FieldValidationResult> newValidations = Map.from(
+        state.fieldValidations,
+      );
+
       if (state.indexApres! <= state.indexAvant!) {
         newValidations['indexApres'] = FieldValidationResult(
           isValid: false,
@@ -388,7 +398,7 @@ class ModernReceptionFormNotifier extends StateNotifier<ModernReceptionFormState
           );
         }
       }
-      
+
       state = state.copyWith(fieldValidations: newValidations);
     }
   }
@@ -425,7 +435,7 @@ class ModernReceptionFormNotifier extends StateNotifier<ModernReceptionFormState
       temperature: state.temperature,
       densite: state.densite,
     );
-    
+
     state = state.copyWith(globalValidation: validation);
     return validation;
   }
@@ -434,22 +444,22 @@ class ModernReceptionFormNotifier extends StateNotifier<ModernReceptionFormState
   Future<String?> submitReception() async {
     final validation = validateForm();
     if (!validation.isValid) {
-      state = state.copyWith(
-        errorMessage: validation.primaryErrorMessage,
-      );
+      state = state.copyWith(errorMessage: validation.primaryErrorMessage);
       return null;
     }
-    
+
     state = state.copyWith(isSubmitting: true, errorMessage: null);
-    
+
     try {
       final receptionService = ReceptionService.withClient(
         Supabase.instance.client,
         refRepo: ref.read(refs.referentielsRepoProvider),
       );
-      
+
       final id = await receptionService.createValidated(
-        coursDeRouteId: state.ownerType == 'MONALUXE' ? state.coursDeRouteId : null,
+        coursDeRouteId: state.ownerType == 'MONALUXE'
+            ? state.coursDeRouteId
+            : null,
         citerneId: state.citerneId!,
         produitId: state.produitId!,
         indexAvant: state.indexAvant!,
@@ -458,16 +468,18 @@ class ModernReceptionFormNotifier extends StateNotifier<ModernReceptionFormState
         densiteA15: state.densite,
         volumeCorrige15C: state.volume15c,
         proprietaireType: state.ownerType!,
-        partenaireId: state.ownerType == 'PARTENAIRE' ? state.partenaireId : null,
+        partenaireId: state.ownerType == 'PARTENAIRE'
+            ? state.partenaireId
+            : null,
         dateReception: DateTime.now(),
         note: state.note,
       );
-      
+
       state = state.copyWith(
         isSubmitting: false,
         successMessage: 'Réception enregistrée avec succès',
       );
-      
+
       return id;
     } catch (e) {
       state = state.copyWith(
@@ -485,17 +497,18 @@ class ModernReceptionFormNotifier extends StateNotifier<ModernReceptionFormState
 
   /// Efface les messages
   void clearMessages() {
-    state = state.copyWith(
-      errorMessage: null,
-      successMessage: null,
-    );
+    state = state.copyWith(errorMessage: null, successMessage: null);
   }
 }
 
 /// Provider pour l'état du formulaire moderne
-final modernReceptionFormProvider = StateNotifierProvider<ModernReceptionFormNotifier, ModernReceptionFormState>((ref) {
-  return ModernReceptionFormNotifier();
-});
+final modernReceptionFormProvider =
+    StateNotifierProvider<
+      ModernReceptionFormNotifier,
+      ModernReceptionFormState
+    >((ref) {
+      return ModernReceptionFormNotifier();
+    });
 
 /// Provider pour charger les données initiales
 final modernReceptionFormDataProvider = FutureProvider<void>((ref) async {

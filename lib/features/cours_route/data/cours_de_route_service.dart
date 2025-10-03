@@ -10,11 +10,11 @@ import 'package:ml_pp_mvp/features/cours_route/models/cdr_etat.dart';
 import 'package:ml_pp_mvp/features/cours_route/data/cdr_logs_service.dart';
 
 /// Service de gestion des cours de route avec Supabase
-/// 
+///
 /// Ce service encapsule toutes les opérations CRUD sur la table `cours_de_route`.
 /// Il gère la communication avec Supabase, la conversion des données,
 /// et la gestion des erreurs.
-/// 
+///
 /// Utilisé pour :
 /// - Récupérer la liste des cours de route
 /// - Créer, modifier, supprimer des cours
@@ -23,14 +23,14 @@ import 'package:ml_pp_mvp/features/cours_route/data/cdr_logs_service.dart';
 class CoursDeRouteService {
   /// Client Supabase injecté via le constructeur
   final SupabaseClient _supabase;
-  
+
   /// Service de logging des transitions
   late final CdrLogsService _logsService;
-  
+
   /// Constructeur avec injection du client Supabase
-  /// 
+  ///
   /// [client] : Instance du client Supabase configuré
-  /// 
+  ///
   /// Exemple d'utilisation :
   /// ```dart
   /// final service = CoursDeRouteService.withClient(Supabase.instance.client);
@@ -38,16 +38,16 @@ class CoursDeRouteService {
   CoursDeRouteService.withClient(this._supabase) {
     _logsService = CdrLogsService.withClient(_supabase);
   }
-  
+
   /// Récupère tous les cours de route
-  /// 
+  ///
   /// Retourne :
   /// - `Future<List<CoursDeRoute>>` : Liste de tous les cours de route
-  /// 
+  ///
   /// Gestion d'erreur :
   /// - `PostgrestException` : Erreur de communication avec Supabase
   /// - `Exception` : Erreur de conversion des données
-  /// 
+  ///
   /// Exemple d'utilisation :
   /// ```dart
   /// final cours = await service.getAll();
@@ -58,7 +58,7 @@ class CoursDeRouteService {
           .from('cours_de_route')
           .select<List<Map<String, dynamic>>>('*')
           .order('created_at', ascending: false);
-      
+
       return response.map((data) {
         // Harmonisation des clés côté UI/modèle
         if (data.containsKey('chauffeur_nom') && data['chauffeur'] == null) {
@@ -71,17 +71,19 @@ class CoursDeRouteService {
         return CoursDeRoute.fromMap(data);
       }).toList();
     } on PostgrestException catch (e) {
-      throw Exception('Erreur lors de la récupération des cours de route: ${e.message}');
+      throw Exception(
+        'Erreur lors de la récupération des cours de route: ${e.message}',
+      );
     } catch (e) {
       throw Exception('Erreur inattendue: $e');
     }
   }
-  
+
   /// Récupère les cours de route actifs (non déchargés)
-  /// 
+  ///
   /// Retourne :
   /// - `Future<List<CoursDeRoute>>` : Liste des cours actifs
-  /// 
+  ///
   /// Utilisé pour :
   /// - Afficher les cours en cours dans l'interface
   /// - Filtrer les cours terminés
@@ -92,7 +94,7 @@ class CoursDeRouteService {
           .select<List<Map<String, dynamic>>>('*')
           .neq('statut', StatutCours.decharge.db)
           .order('created_at', ascending: false);
-      
+
       return response.map((data) {
         // Harmonisation des clés côté UI/modèle
         if (data.containsKey('chauffeur_nom') && data['chauffeur'] == null) {
@@ -105,19 +107,21 @@ class CoursDeRouteService {
         return CoursDeRoute.fromMap(data);
       }).toList();
     } on PostgrestException catch (e) {
-      throw Exception('Erreur lors de la récupération des cours actifs: ${e.message}');
+      throw Exception(
+        'Erreur lors de la récupération des cours actifs: ${e.message}',
+      );
     } catch (e) {
       throw Exception('Erreur inattendue: $e');
     }
   }
-  
+
   /// Récupère un cours de route par son ID
-  /// 
+  ///
   /// [id] : Identifiant unique du cours de route
-  /// 
+  ///
   /// Retourne :
   /// - `Future<CoursDeRoute?>` : Le cours de route ou null si non trouvé
-  /// 
+  ///
   /// Exemple d'utilisation :
   /// ```dart
   /// final cours = await service.getById('uuid-123');
@@ -129,11 +133,12 @@ class CoursDeRouteService {
           .select<Map<String, dynamic>>('*')
           .eq('id', id)
           .maybeSingle();
-      
+
       if (response == null) return null;
 
       // Harmonisation des clés côté UI/modèle
-      if (response.containsKey('chauffeur_nom') && response['chauffeur'] == null) {
+      if (response.containsKey('chauffeur_nom') &&
+          response['chauffeur'] == null) {
         response['chauffeur'] = response['chauffeur_nom'];
       }
       if (response.containsKey('depart_pays') && response['pays'] == null) {
@@ -147,18 +152,18 @@ class CoursDeRouteService {
       throw Exception('Erreur inattendue: $e');
     }
   }
-  
+
   /// Crée un nouveau cours de route
-  /// 
+  ///
   /// [cours] : Le cours de route à créer
-  /// 
+  ///
   /// Retourne :
   /// - `Future<void>` : Succès de l'opération
-  /// 
+  ///
   /// Gestion d'erreur :
   /// - `PostgrestException` : Erreur de validation ou contrainte
   /// - `Exception` : Erreur de communication
-  /// 
+  ///
   /// Exemple d'utilisation :
   /// ```dart
   /// final nouveauCours = CoursDeRoute(...);
@@ -166,8 +171,12 @@ class CoursDeRouteService {
   /// ```
   Future<void> create(CoursDeRoute cours) async {
     // Validations de création
-    if (cours.fournisseurId.isEmpty || cours.depotDestinationId.isEmpty || cours.produitId.isEmpty) {
-      throw ArgumentError('fournisseur, dépôt destination et produit sont requis.');
+    if (cours.fournisseurId.isEmpty ||
+        cours.depotDestinationId.isEmpty ||
+        cours.produitId.isEmpty) {
+      throw ArgumentError(
+        'fournisseur, dépôt destination et produit sont requis.',
+      );
     }
     if (cours.volume != null && cours.volume! <= 0) {
       throw ArgumentError('volume must be > 0');
@@ -183,7 +192,10 @@ class CoursDeRouteService {
         'chauffeur_nom': cours.chauffeur,
         'transporteur': cours.transporteur,
         'depart_pays': cours.pays,
-        'date_chargement': cours.dateChargement?.toIso8601String().substring(0, 10),
+        'date_chargement': cours.dateChargement?.toIso8601String().substring(
+          0,
+          10,
+        ),
         'volume': cours.volume,
         'statut': cours.statut.db,
         'note': cours.note,
@@ -195,18 +207,18 @@ class CoursDeRouteService {
       throw Exception('Erreur inattendue: $e');
     }
   }
-  
+
   /// Met à jour un cours de route existant
-  /// 
+  ///
   /// [cours] : Le cours de route avec les nouvelles données
-  /// 
+  ///
   /// Retourne :
   /// - `Future<void>` : Succès de l'opération
-  /// 
+  ///
   /// Gestion d'erreur :
   /// - `PostgrestException` : Erreur de validation ou contrainte
   /// - `Exception` : Erreur de communication
-  /// 
+  ///
   /// Exemple d'utilisation :
   /// ```dart
   /// final coursModifie = cours.copyWith(statut: StatutCours.transit);
@@ -228,7 +240,10 @@ class CoursDeRouteService {
         'chauffeur_nom': cours.chauffeur,
         'transporteur': cours.transporteur,
         'depart_pays': cours.pays,
-        'date_chargement': cours.dateChargement?.toIso8601String().substring(0, 10),
+        'date_chargement': cours.dateChargement?.toIso8601String().substring(
+          0,
+          10,
+        ),
         'volume': cours.volume,
         'statut': cours.statut.db,
         'note': cours.note,
@@ -240,48 +255,45 @@ class CoursDeRouteService {
       throw Exception('Erreur inattendue: $e');
     }
   }
-  
+
   /// Supprime un cours de route
-  /// 
+  ///
   /// [id] : Identifiant unique du cours de route à supprimer
-  /// 
+  ///
   /// Retourne :
   /// - `Future<void>` : Succès de l'opération
-  /// 
+  ///
   /// Gestion d'erreur :
   /// - `PostgrestException` : Erreur de contrainte ou permission
   /// - `Exception` : Erreur de communication
-  /// 
+  ///
   /// Exemple d'utilisation :
   /// ```dart
   /// await service.delete('uuid-123');
   /// ```
   Future<void> delete(String id) async {
     try {
-      await _supabase
-          .from('cours_de_route')
-          .delete()
-          .eq('id', id);
+      await _supabase.from('cours_de_route').delete().eq('id', id);
     } on PostgrestException catch (e) {
       throw Exception('Erreur lors de la suppression du cours: ${e.message}');
     } catch (e) {
       throw Exception('Erreur inattendue: $e');
     }
   }
-  
+
   /// Met à jour le statut d'un cours de route avec validation des transitions
-  /// 
+  ///
   /// [id] : Identifiant du cours de route
   /// [to] : Nouveau statut à appliquer
   /// [fromReception] : Si la transition vers déchargé provient d'une réception validée
-  /// 
+  ///
   /// Retourne :
   /// - `Future<void>` : Succès de l'opération
-  /// 
+  ///
   /// Gestion d'erreur :
   /// - `StateError` : Transition non autorisée
   /// - `PostgrestException` : Erreur de communication avec Supabase
-  /// 
+  ///
   /// Exemple d'utilisation :
   /// ```dart
   /// await service.updateStatut(id: 'uuid-123', to: StatutCours.transit);
@@ -307,14 +319,14 @@ class CoursDeRouteService {
         .select<Map<String, dynamic>>('id')
         .single();
   }
-  
+
   /// Récupère les cours de route par statut
-  /// 
+  ///
   /// [statut] : Statut à filtrer
-  /// 
+  ///
   /// Retourne :
   /// - `Future<List<CoursDeRoute>>` : Liste des cours avec le statut spécifié
-  /// 
+  ///
   /// Exemple d'utilisation :
   /// ```dart
   /// final coursEnTransit = await service.getByStatut(StatutCours.transit);
@@ -326,20 +338,22 @@ class CoursDeRouteService {
           .select<List<Map<String, dynamic>>>()
           .eq('statut', StatutCoursConverter.toDb(statut))
           .order('created_at', ascending: false);
-      
+
       return response.map((data) => CoursDeRoute.fromMap(data)).toList();
     } on PostgrestException catch (e) {
-      throw Exception('Erreur lors de la récupération par statut: ${e.message}');
+      throw Exception(
+        'Erreur lors de la récupération par statut: ${e.message}',
+      );
     } catch (e) {
       throw Exception('Erreur inattendue: $e');
     }
   }
 
   /// Vérifie si une transition d'état est autorisée
-  /// 
+  ///
   /// [from] : État de départ
   /// [to] : État d'arrivée
-  /// 
+  ///
   /// Retourne :
   /// - `Future<bool>` : true si la transition est autorisée
   Future<bool> canTransition({
@@ -351,12 +365,12 @@ class CoursDeRouteService {
   }
 
   /// Applique une transition d'état avec validation
-  /// 
+  ///
   /// [cdrId] : Identifiant du cours de route
   /// [from] : État de départ
   /// [to] : État d'arrivée
   /// [userId] : Identifiant de l'utilisateur qui effectue la transition
-  /// 
+  ///
   /// Retourne :
   /// - `Future<bool>` : true si la transition a été appliquée avec succès
   Future<bool> applyTransition({
@@ -366,14 +380,14 @@ class CoursDeRouteService {
     String? userId,
   }) async {
     if (!from.canTransitionTo(to)) return false;
-    
+
     // Pré-validations métier (soft guards)
-    
+
     // Si from==planifie && to==termine → return false (interdit)
     if (from == CdrEtat.planifie && to == CdrEtat.termine) {
       return false;
     }
-    
+
     // Si to==enCours, vérifier que les champs requis sont non-nuls
     if (to == CdrEtat.enCours) {
       final current = await _supabase
@@ -381,17 +395,17 @@ class CoursDeRouteService {
           .select<Map<String, dynamic>>('id, chauffeur_nom, citerne_id')
           .eq('id', cdrId)
           .maybeSingle();
-      
+
       if (current == null) return false;
-      
+
       // Vérifier les champs requis (ajuster selon le schéma réel)
       final chauffeurNom = current['chauffeur_nom'] as String?;
       final citerneId = current['citerne_id'] as String?;
-      
+
       if (chauffeurNom == null || chauffeurNom.trim().isEmpty) return false;
       if (citerneId == null || citerneId.trim().isEmpty) return false;
     }
-    
+
     // DB write is intentionally minimal; adjust table/column names to the existing ones.
     // IMPORTANT: keep exact column names already used in this service for CDR.
     final res = await _supabase
@@ -400,7 +414,7 @@ class CoursDeRouteService {
         .eq('id', cdrId)
         .select<Map<String, dynamic>>()
         .maybeSingle();
-    
+
     if (res != null && userId != null) {
       // Enregistrer le log de transition (best-effort)
       try {
@@ -415,56 +429,65 @@ class CoursDeRouteService {
         print('Erreur lors du logging de la transition CDR: $e');
       }
     }
-    
+
     return res != null;
   }
 
   /// Compte les cours de route par statut (utilise les vrais statuts DB)
-  /// 
+  ///
   /// Retourne :
   /// - `Future<Map<String, int>>` : Map avec le nombre de cours par statut
   Future<Map<String, int>> countByStatut() async {
-    final statuts = ['CHARGEMENT', 'TRANSIT', 'FRONTIERE', 'ARRIVE', 'DECHARGE'];
+    final statuts = [
+      'CHARGEMENT',
+      'TRANSIT',
+      'FRONTIERE',
+      'ARRIVE',
+      'DECHARGE',
+    ];
     final out = <String, int>{};
-    
+
     for (final statut in statuts) {
       final rows = await _supabase
           .from('cours_de_route')
           .select<List<Map<String, dynamic>>>('id')
-          .eq('statut', statut); // ✅ Utilise 'statut' (nom correct de la colonne)
+          .eq(
+            'statut',
+            statut,
+          ); // ✅ Utilise 'statut' (nom correct de la colonne)
       out[statut] = rows.length;
     }
     return out;
   }
 
   /// Compte les cours de route par catégorie métier (groupement logique)
-  /// 
+  ///
   /// Retourne :
   /// - `Future<Map<String, int>>` : Map avec les catégories métier
   Future<Map<String, int>> countByCategorie() async {
     final out = <String, int>{};
-    
+
     // En route (chargement + transit + frontière)
     final enRoute = await _supabase
         .from('cours_de_route')
         .select<List<Map<String, dynamic>>>('id')
         .in_('statut', ['CHARGEMENT', 'TRANSIT', 'FRONTIERE']);
     out['en_route'] = enRoute.length;
-    
+
     // En attente de déchargement (arrivé)
     final enAttente = await _supabase
         .from('cours_de_route')
         .select<List<Map<String, dynamic>>>('id')
         .eq('statut', 'ARRIVE');
     out['en_attente'] = enAttente.length;
-    
+
     // Terminés (déchargé)
     final termines = await _supabase
         .from('cours_de_route')
         .select<List<Map<String, dynamic>>>('id')
         .eq('statut', 'DECHARGE');
     out['termines'] = termines.length;
-    
+
     return out;
   }
 }

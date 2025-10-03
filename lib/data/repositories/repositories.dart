@@ -7,7 +7,9 @@ final supabaseClientProvider = riverpod.Provider<SupabaseClient>((ref) {
   return Supabase.instance.client;
 });
 
-final coursDeRouteRepoProvider = riverpod.Provider<CoursDeRouteRepository>((ref) {
+final coursDeRouteRepoProvider = riverpod.Provider<CoursDeRouteRepository>((
+  ref,
+) {
   final supa = ref.watch(supabaseClientProvider);
   return CoursDeRouteRepository(supa);
 });

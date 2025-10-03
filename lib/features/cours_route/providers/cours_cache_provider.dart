@@ -44,13 +44,15 @@ final coursCacheProvider = StateProvider<CoursCache?>((ref) => null);
 /// Ce provider gère la mise à jour du cache de manière appropriée
 final coursCacheUpdaterProvider = Provider<void>((ref) {
   final coursAsync = ref.watch(coursDeRouteListProvider);
-  
+
   coursAsync.whenOrNull(
     data: (cours) {
       // Mettre à jour le cache de manière asynchrone
       Future.microtask(() {
         final currentCache = ref.read(coursCacheProvider);
-        if (currentCache == null || !currentCache.isValid || currentCache.cours.length != cours.length) {
+        if (currentCache == null ||
+            !currentCache.isValid ||
+            currentCache.cours.length != cours.length) {
           ref.read(coursCacheProvider.notifier).state = CoursCache(
             cours: cours,
             lastUpdated: DateTime.now(),
@@ -107,18 +109,23 @@ final cachedFilteredCoursProvider = Provider<List<CoursDeRoute>>((ref) {
   final cours = ref.watch(cachedCoursProvider);
   final filters = ref.watch(coursFiltersProvider);
   final sortConfig = ref.watch(coursSortProvider);
-  
+
   // Appliquer les filtres et le tri
   final filtered = _applyFilters(cours, filters);
   return sortCours(filtered, sortConfig);
 });
 
 /// Applique les filtres à une liste de cours de route (version simplifiée)
-List<CoursDeRoute> _applyFilters(List<CoursDeRoute> cours, CoursFilters filters) {
+List<CoursDeRoute> _applyFilters(
+  List<CoursDeRoute> cours,
+  CoursFilters filters,
+) {
   return cours.where((c) {
     // Filtre par fournisseur
-    final okFournisseur = (filters.fournisseurId == null) ? true : c.fournisseurId == filters.fournisseurId;
-    
+    final okFournisseur = (filters.fournisseurId == null)
+        ? true
+        : c.fournisseurId == filters.fournisseurId;
+
     // Filtre par volume (0-100 000 L)
     bool okVolume = true;
     if (c.volume != null) {
@@ -129,7 +136,7 @@ List<CoursDeRoute> _applyFilters(List<CoursDeRoute> cours, CoursFilters filters)
         okVolume = false;
       }
     }
-    
+
     return okFournisseur && okVolume;
   }).toList();
 }
@@ -137,10 +144,10 @@ List<CoursDeRoute> _applyFilters(List<CoursDeRoute> cours, CoursFilters filters)
 /// Fonction de tri des cours (copié depuis cours_sort_provider.dart)
 List<CoursDeRoute> sortCours(List<CoursDeRoute> cours, CoursSortConfig config) {
   final sorted = List<CoursDeRoute>.from(cours);
-  
+
   sorted.sort((a, b) {
     int comparison = 0;
-    
+
     switch (config.column) {
       case CoursSortColumn.fournisseur:
         comparison = (a.fournisseurId ?? '').compareTo(b.fournisseurId ?? '');
@@ -178,9 +185,11 @@ List<CoursDeRoute> sortCours(List<CoursDeRoute> cours, CoursSortConfig config) {
         comparison = a.statut.index.compareTo(b.statut.index);
         break;
     }
-    
-    return config.direction == SortDirection.ascending ? comparison : -comparison;
+
+    return config.direction == SortDirection.ascending
+        ? comparison
+        : -comparison;
   });
-  
+
   return sorted;
 }

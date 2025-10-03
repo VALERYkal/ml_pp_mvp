@@ -65,36 +65,43 @@ class SortieListScreen extends ConsumerWidget {
                 return DataRow(
                   cells: [
                     DataCell(Text(date)),
-                    DataCell(Chip(
-                      label: Text(prop),
-                      backgroundColor: prop == 'MONALUXE' 
-                          ? colorScheme.primaryContainer.withOpacity(0.3)
-                          : colorScheme.secondaryContainer.withOpacity(0.3),
-                    )),
+                    DataCell(
+                      Chip(
+                        label: Text(prop),
+                        backgroundColor: prop == 'MONALUXE'
+                            ? colorScheme.primaryContainer.withOpacity(0.3)
+                            : colorScheme.secondaryContainer.withOpacity(0.3),
+                      ),
+                    ),
                     DataCell(Text(prod)),
                     DataCell(Text(cit)),
                     DataCell(Text(v15)),
                     DataCell(Text(vAmb)),
-                    DataCell(benef.isNotEmpty 
-                        ? Chip(
-                            label: Text(benef),
-                            avatar: Icon(
-                              Icons.person,
-                              size: 16,
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                            backgroundColor: colorScheme.surfaceVariant.withOpacity(0.5),
-                          )
-                        : const Text('—')),
-                    DataCell(IconButton(
-                      onPressed: () {
-                        // TODO: Navigation vers détail
-                      },
-                      icon: Icon(
-                        Icons.open_in_new,
-                        color: colorScheme.primary,
+                    DataCell(
+                      benef.isNotEmpty
+                          ? Chip(
+                              label: Text(benef),
+                              avatar: Icon(
+                                Icons.person,
+                                size: 16,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                              backgroundColor: colorScheme.surfaceVariant
+                                  .withOpacity(0.5),
+                            )
+                          : const Text('—'),
+                    ),
+                    DataCell(
+                      IconButton(
+                        onPressed: () {
+                          // TODO: Navigation vers détail
+                        },
+                        icon: Icon(
+                          Icons.open_in_new,
+                          color: colorScheme.primary,
+                        ),
                       ),
-                    )),
+                    ),
                   ],
                 );
               }).toList(),
@@ -107,4 +114,3 @@ class SortieListScreen extends ConsumerWidget {
     );
   }
 }
-

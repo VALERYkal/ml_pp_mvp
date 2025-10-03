@@ -23,31 +23,33 @@ void main() {
       // Mock du provider KPI avec des données de test
       container = ProviderContainer(
         overrides: [
-          kpiProviderProvider.overrideWith((ref) => AsyncValue.data(
-            const KpiSnapshot(
-              receptionsToday: KpiNumberVolume(
-                count: 3,
-                volume15c: 1500.0,
-                volumeAmbient: 1600.0,
+          kpiProviderProvider.overrideWith(
+            (ref) => AsyncValue.data(
+              const KpiSnapshot(
+                receptionsToday: KpiNumberVolume(
+                  count: 3,
+                  volume15c: 1500.0,
+                  volumeAmbient: 1600.0,
+                ),
+                sortiesToday: KpiNumberVolume(
+                  count: 2,
+                  volume15c: 1200.0,
+                  volumeAmbient: 1300.0,
+                ),
+                stocks: KpiStocks(
+                  totalAmbient: 10000.0,
+                  total15c: 9500.0,
+                  capacityTotal: 15000.0,
+                ),
+                balanceToday: KpiBalanceToday(
+                  receptions15c: 1500.0,
+                  sorties15c: 1200.0,
+                ),
+                citernesSousSeuil: [],
+                trend7d: [],
               ),
-              sortiesToday: KpiNumberVolume(
-                count: 2,
-                volume15c: 1200.0,
-                volumeAmbient: 1300.0,
-              ),
-              stocks: KpiStocks(
-                totalAmbient: 10000.0,
-                total15c: 9500.0,
-                capacityTotal: 15000.0,
-              ),
-              balanceToday: KpiBalanceToday(
-                receptions15c: 1500.0,
-                sorties15c: 1200.0,
-              ),
-              citernesSousSeuil: [],
-              trend7d: [],
             ),
-          )),
+          ),
         ],
       );
     });
@@ -56,14 +58,14 @@ void main() {
       container.dispose();
     });
 
-    testWidgets('DashboardAdminScreen should build without errors', (WidgetTester tester) async {
+    testWidgets('DashboardAdminScreen should build without errors', (
+      WidgetTester tester,
+    ) async {
       // Act
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
-            home: const DashboardAdminScreen(),
-          ),
+          child: MaterialApp(home: const DashboardAdminScreen()),
         ),
       );
 
@@ -78,14 +80,14 @@ void main() {
       expect(find.text('Tendance 7 jours'), findsOneWidget);
     });
 
-    testWidgets('DashboardOperateurScreen should build without errors', (WidgetTester tester) async {
+    testWidgets('DashboardOperateurScreen should build without errors', (
+      WidgetTester tester,
+    ) async {
       // Act
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
-            home: const DashboardOperateurScreen(),
-          ),
+          child: MaterialApp(home: const DashboardOperateurScreen()),
         ),
       );
 
@@ -100,14 +102,14 @@ void main() {
       expect(find.text('Tendance 7 jours'), findsOneWidget);
     });
 
-    testWidgets('DashboardDirecteurScreen should build without errors', (WidgetTester tester) async {
+    testWidgets('DashboardDirecteurScreen should build without errors', (
+      WidgetTester tester,
+    ) async {
       // Act
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
-            home: const DashboardDirecteurScreen(),
-          ),
+          child: MaterialApp(home: const DashboardDirecteurScreen()),
         ),
       );
 
@@ -122,14 +124,14 @@ void main() {
       expect(find.text('Tendance 7 jours'), findsOneWidget);
     });
 
-    testWidgets('DashboardGerantScreen should build without errors', (WidgetTester tester) async {
+    testWidgets('DashboardGerantScreen should build without errors', (
+      WidgetTester tester,
+    ) async {
       // Act
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
-            home: const DashboardGerantScreen(),
-          ),
+          child: MaterialApp(home: const DashboardGerantScreen()),
         ),
       );
 
@@ -144,14 +146,14 @@ void main() {
       expect(find.text('Tendance 7 jours'), findsOneWidget);
     });
 
-    testWidgets('DashboardPcaScreen should build without errors', (WidgetTester tester) async {
+    testWidgets('DashboardPcaScreen should build without errors', (
+      WidgetTester tester,
+    ) async {
       // Act
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
-            home: const DashboardPcaScreen(),
-          ),
+          child: MaterialApp(home: const DashboardPcaScreen()),
         ),
       );
 
@@ -166,14 +168,14 @@ void main() {
       expect(find.text('Tendance 7 jours'), findsOneWidget);
     });
 
-    testWidgets('DashboardLectureScreen should build without errors', (WidgetTester tester) async {
+    testWidgets('DashboardLectureScreen should build without errors', (
+      WidgetTester tester,
+    ) async {
       // Act
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
-            home: const DashboardLectureScreen(),
-          ),
+          child: MaterialApp(home: const DashboardLectureScreen()),
         ),
       );
 
@@ -188,7 +190,9 @@ void main() {
       expect(find.text('Tendance 7 jours'), findsOneWidget);
     });
 
-    testWidgets('All dashboard screens should render identical content', (WidgetTester tester) async {
+    testWidgets('All dashboard screens should render identical content', (
+      WidgetTester tester,
+    ) async {
       // Arrange - Liste de tous les écrans de dashboard
       final screens = [
         const DashboardAdminScreen(),
@@ -204,9 +208,7 @@ void main() {
         await tester.pumpWidget(
           UncontrolledProviderScope(
             container: container,
-            child: MaterialApp(
-              home: screen,
-            ),
+            child: MaterialApp(home: screen),
           ),
         );
 

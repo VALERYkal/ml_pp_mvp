@@ -32,10 +32,12 @@ class InfiniteScrollCoursList extends ConsumerStatefulWidget {
   final void Function(CoursDeRoute) onCreateReception;
 
   @override
-  ConsumerState<InfiniteScrollCoursList> createState() => _InfiniteScrollCoursListState();
+  ConsumerState<InfiniteScrollCoursList> createState() =>
+      _InfiniteScrollCoursListState();
 }
 
-class _InfiniteScrollCoursListState extends ConsumerState<InfiniteScrollCoursList> {
+class _InfiniteScrollCoursListState
+    extends ConsumerState<InfiniteScrollCoursList> {
   final ScrollController _scrollController = ScrollController();
   bool _isLoadingMore = false;
 
@@ -53,7 +55,7 @@ class _InfiniteScrollCoursListState extends ConsumerState<InfiniteScrollCoursLis
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= 
+    if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
       _loadMore();
     }
@@ -61,19 +63,20 @@ class _InfiniteScrollCoursListState extends ConsumerState<InfiniteScrollCoursLis
 
   Future<void> _loadMore() async {
     if (_isLoadingMore) return;
-    
+
     final hasMore = ref.read(hasMorePagesProvider);
     if (!hasMore) return;
 
     setState(() => _isLoadingMore = true);
-    
+
     // Simuler un délai de chargement
     await Future.delayed(const Duration(milliseconds: 500));
-    
+
     final currentPage = ref.read(coursPaginationProvider).currentPage;
-    ref.read(coursPaginationProvider.notifier).state = 
-        ref.read(coursPaginationProvider).copyWith(currentPage: currentPage + 1);
-    
+    ref.read(coursPaginationProvider.notifier).state = ref
+        .read(coursPaginationProvider)
+        .copyWith(currentPage: currentPage + 1);
+
     setState(() => _isLoadingMore = false);
   }
 
@@ -92,7 +95,7 @@ class _InfiniteScrollCoursListState extends ConsumerState<InfiniteScrollCoursLis
           // Indicateur de chargement en bas
           return _LoadingIndicator(isLoading: _isLoadingMore);
         }
-        
+
         final c = cours[index];
         return _CoursCard(
           cours: c,
@@ -143,7 +146,11 @@ class _CoursCard extends StatelessWidget {
     }
 
     // Helper pour le libellé du produit
-    String produitLabel(CoursDeRoute c, Map<String, String> produits, Map<String, String> produitCodes) {
+    String produitLabel(
+      CoursDeRoute c,
+      Map<String, String> produits,
+      Map<String, String> produitCodes,
+    ) {
       final code = (c.produitCode ?? '').trim();
       final nom = (c.produitNom ?? '').trim();
       if (code.isNotEmpty) return code;
@@ -204,7 +211,7 @@ class _ActionButtons extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final nextStatut = StatutCoursDb.next(cours.statut);
-    
+
     if (nextStatut == null) {
       return const SizedBox.shrink();
     }

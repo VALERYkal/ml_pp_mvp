@@ -93,10 +93,7 @@ void main() {
     group('KpiBalanceToday', () {
       test('should create KpiBalanceToday with correct values', () {
         // Arrange & Act
-        const kpi = KpiBalanceToday(
-          receptions15c: 2500.0,
-          sorties15c: 1800.0,
-        );
+        const kpi = KpiBalanceToday(receptions15c: 2500.0, sorties15c: 1800.0);
 
         // Assert
         expect(kpi.receptions15c, equals(2500.0));
@@ -105,10 +102,7 @@ void main() {
 
       test('should calculate positive delta correctly', () {
         // Arrange & Act
-        const kpi = KpiBalanceToday(
-          receptions15c: 2500.0,
-          sorties15c: 1800.0,
-        );
+        const kpi = KpiBalanceToday(receptions15c: 2500.0, sorties15c: 1800.0);
 
         // Assert
         expect(kpi.delta15c, equals(700.0)); // 2500 - 1800 = 700
@@ -116,10 +110,7 @@ void main() {
 
       test('should calculate negative delta correctly', () {
         // Arrange & Act
-        const kpi = KpiBalanceToday(
-          receptions15c: 1000.0,
-          sorties15c: 1500.0,
-        );
+        const kpi = KpiBalanceToday(receptions15c: 1000.0, sorties15c: 1500.0);
 
         // Assert
         expect(kpi.delta15c, equals(-500.0)); // 1000 - 1500 = -500
@@ -127,10 +118,7 @@ void main() {
 
       test('should handle zero delta', () {
         // Arrange & Act
-        const kpi = KpiBalanceToday(
-          receptions15c: 1000.0,
-          sorties15c: 1000.0,
-        );
+        const kpi = KpiBalanceToday(receptions15c: 1000.0, sorties15c: 1000.0);
 
         // Assert
         expect(kpi.delta15c, equals(0.0)); // 1000 - 1000 = 0
@@ -251,10 +239,7 @@ void main() {
             total15c: 0.0,
             capacityTotal: 0.0,
           ),
-          balanceToday: KpiBalanceToday(
-            receptions15c: 0.0,
-            sorties15c: 0.0,
-          ),
+          balanceToday: KpiBalanceToday(receptions15c: 0.0, sorties15c: 0.0),
           citernesSousSeuil: [],
           trend7d: [],
         );

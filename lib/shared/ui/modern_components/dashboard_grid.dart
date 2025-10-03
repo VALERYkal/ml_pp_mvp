@@ -23,13 +23,17 @@ class DashboardGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    
+
     // Calculer le nombre de colonnes en fonction de la largeur d'écran
     int columns = crossAxisCount ?? _calculateColumns(screenWidth);
-    
+
     // Ajuster l'aspect ratio selon la taille d'écran
-    double aspectRatio = _calculateAspectRatio(screenWidth, screenHeight, columns);
-    
+    double aspectRatio = _calculateAspectRatio(
+      screenWidth,
+      screenHeight,
+      columns,
+    );
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return GridView.builder(
@@ -61,10 +65,7 @@ class DashboardGrid extends StatelessWidget {
       builder: (context, value, child) {
         return Transform.translate(
           offset: Offset(0, 20 * (1 - value)),
-          child: Opacity(
-            opacity: value,
-            child: child,
-          ),
+          child: Opacity(opacity: value, child: child),
         );
       },
       child: child,
@@ -74,11 +75,15 @@ class DashboardGrid extends StatelessWidget {
   int _calculateColumns(double screenWidth) {
     if (screenWidth >= 1600) return 4; // Très large écran
     if (screenWidth >= 1200) return 3; // Desktop large
-    if (screenWidth >= 900) return 2;  // Desktop/Tablet
+    if (screenWidth >= 900) return 2; // Desktop/Tablet
     return 1; // Mobile
   }
 
-  double _calculateAspectRatio(double screenWidth, double screenHeight, int columns) {
+  double _calculateAspectRatio(
+    double screenWidth,
+    double screenHeight,
+    int columns,
+  ) {
     // Ajuster l'aspect ratio selon le nombre de colonnes et la taille d'écran
     if (columns == 1) return 1.3; // Mobile : plus haut
     if (columns == 2) return 1.1; // Tablet : équilibré
@@ -110,7 +115,7 @@ class DashboardSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final accent = accentColor ?? theme.colorScheme.primary;
-    
+
     return Container(
       margin: padding ?? const EdgeInsets.only(bottom: 40),
       child: Column(
@@ -157,7 +162,9 @@ class DashboardSection extends StatelessWidget {
                   Text(
                     subtitle!,
                     style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant.withOpacity(0.8),
+                      color: theme.colorScheme.onSurfaceVariant.withOpacity(
+                        0.8,
+                      ),
                       fontWeight: FontWeight.w400,
                       letterSpacing: 0.1,
                     ),
@@ -166,10 +173,7 @@ class DashboardSection extends StatelessWidget {
               ],
             ),
           ),
-          if (action != null) ...[
-            const SizedBox(width: 16),
-            action!,
-          ],
+          if (action != null) ...[const SizedBox(width: 16), action!],
         ],
       ),
     );
@@ -179,19 +183,19 @@ class DashboardSection extends StatelessWidget {
 /// Palette de couleurs professionnelle pour les KPIs
 class KpiColorPalette {
   // Couleurs principales avec variations
-  static const Color primary = Color(0xFF2563EB);      // Bleu professionnel
-  static const Color success = Color(0xFF059669);      // Vert succès
-  static const Color warning = Color(0xFFD97706);      // Orange attention
-  static const Color danger = Color(0xFFDC2626);       // Rouge danger
-  static const Color info = Color(0xFF0891B2);         // Cyan info
-  static const Color purple = Color(0xFF7C3AED);       // Violet premium
-  
+  static const Color primary = Color(0xFF2563EB); // Bleu professionnel
+  static const Color success = Color(0xFF059669); // Vert succès
+  static const Color warning = Color(0xFFD97706); // Orange attention
+  static const Color danger = Color(0xFFDC2626); // Rouge danger
+  static const Color info = Color(0xFF0891B2); // Cyan info
+  static const Color purple = Color(0xFF7C3AED); // Violet premium
+
   // Couleurs secondaires
-  static const Color teal = Color(0xFF0D9488);         // Teal élégant
-  static const Color indigo = Color(0xFF4F46E5);      // Indigo moderne
-  static const Color emerald = Color(0xFF10B981);      // Emerald frais
-  static const Color rose = Color(0xFFE11D48);         // Rose moderne
-  
+  static const Color teal = Color(0xFF0D9488); // Teal élégant
+  static const Color indigo = Color(0xFF4F46E5); // Indigo moderne
+  static const Color emerald = Color(0xFF10B981); // Emerald frais
+  static const Color rose = Color(0xFFE11D48); // Rose moderne
+
   // Couleurs neutres
   static const Color neutral50 = Color(0xFFF8FAFC);
   static const Color neutral100 = Color(0xFFF1F5F9);
@@ -203,7 +207,7 @@ class KpiColorPalette {
   static const Color neutral700 = Color(0xFF334155);
   static const Color neutral800 = Color(0xFF1E293B);
   static const Color neutral900 = Color(0xFF0F172A);
-  
+
   /// Retourne une couleur d'accent basée sur le type de KPI
   static Color getAccentColor(String kpiType) {
     switch (kpiType.toLowerCase()) {
@@ -228,7 +232,7 @@ class KpiColorPalette {
         return primary;
     }
   }
-  
+
   /// Retourne une couleur avec opacité pour les arrière-plans
   static Color withOpacity(Color color, double opacity) {
     return color.withOpacity(opacity);

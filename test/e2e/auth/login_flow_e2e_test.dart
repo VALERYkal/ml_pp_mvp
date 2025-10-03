@@ -15,6 +15,7 @@ import 'package:mockito/mockito.dart';
 
 // On réutilise la même logique rôle que le test d'intégration
 enum UserRole { admin, directeur, gerant, operateur, pca, lecture }
+
 final isLoggedInProvider = StateProvider<bool>((_) => false);
 final roleProvider = StateProvider<UserRole?>((_) => null);
 
@@ -51,12 +52,30 @@ class _TestApp extends ConsumerWidget {
       redirect: redirectFn,
       routes: [
         GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
-        GoRoute(path: '/admin', builder: (_, __) => const _Screen('ADMIN', 'screen_admin')),
-        GoRoute(path: '/directeur', builder: (_, __) => const _Screen('DIRECTEUR', 'screen_directeur')),
-        GoRoute(path: '/gerant', builder: (_, __) => const _Screen('GERANT', 'screen_gerant')),
-        GoRoute(path: '/operateur', builder: (_, __) => const _Screen('OPERATEUR', 'screen_operateur')),
-        GoRoute(path: '/pca', builder: (_, __) => const _Screen('PCA', 'screen_pca')),
-        GoRoute(path: '/lecture', builder: (_, __) => const _Screen('LECTURE', 'screen_lecture')),
+        GoRoute(
+          path: '/admin',
+          builder: (_, __) => const _Screen('ADMIN', 'screen_admin'),
+        ),
+        GoRoute(
+          path: '/directeur',
+          builder: (_, __) => const _Screen('DIRECTEUR', 'screen_directeur'),
+        ),
+        GoRoute(
+          path: '/gerant',
+          builder: (_, __) => const _Screen('GERANT', 'screen_gerant'),
+        ),
+        GoRoute(
+          path: '/operateur',
+          builder: (_, __) => const _Screen('OPERATEUR', 'screen_operateur'),
+        ),
+        GoRoute(
+          path: '/pca',
+          builder: (_, __) => const _Screen('PCA', 'screen_pca'),
+        ),
+        GoRoute(
+          path: '/lecture',
+          builder: (_, __) => const _Screen('LECTURE', 'screen_lecture'),
+        ),
       ],
     );
 
@@ -69,7 +88,9 @@ class _Screen extends StatelessWidget {
   final String keyName;
   const _Screen(this.label, this.keyName, {super.key});
   @override
-  Widget build(BuildContext context) => Scaffold(body: Center(key: Key(keyName), child: Text(label)));
+  Widget build(BuildContext context) => Scaffold(
+    body: Center(key: Key(keyName), child: Text(label)),
+  );
 }
 
 void main() {
@@ -85,8 +106,7 @@ void main() {
           authServiceProvider.overrideWith((ref) {
             final mock = MockAuthService();
             // Quand LoginScreen appelle signIn(...), on marque l'état connecté
-            when(mock.signIn(any, any))
-                .thenAnswer((_) async {
+            when(mock.signIn(any, any)).thenAnswer((_) async {
               ref.read(isLoggedInProvider.notifier).state = true;
               return MockUser();
             });
@@ -121,21 +141,13 @@ void main() {
   }
 
   testWidgets('E2E: login → admin dashboard', (tester) async {
-    await _pumpLoginApp(
-      tester,
-      role: UserRole.admin,
-      onMounted: (_) {},
-    );
+    await _pumpLoginApp(tester, role: UserRole.admin, onMounted: (_) {});
     await _performLogin(tester);
     expect(find.byKey(const Key('screen_admin')), findsOneWidget);
   });
 
   testWidgets('E2E: login → opérateur dashboard', (tester) async {
-    await _pumpLoginApp(
-      tester,
-      role: UserRole.operateur,
-      onMounted: (_) {},
-    );
+    await _pumpLoginApp(tester, role: UserRole.operateur, onMounted: (_) {});
     await _performLogin(tester);
     expect(find.byKey(const Key('screen_operateur')), findsOneWidget);
   });

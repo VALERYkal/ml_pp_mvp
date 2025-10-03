@@ -141,21 +141,14 @@ class _VolumeDisplayItem extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: color.withOpacity(0.3),
-          width: 1,
-        ),
+        border: Border.all(color: color.withOpacity(0.3), width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                icon,
-                size: 16,
-                color: color,
-              ),
+              Icon(icon, size: 16, color: color),
               const SizedBox(width: 6),
               Text(
                 label,
@@ -198,11 +191,7 @@ class _InfoItem extends StatelessWidget {
 
     return Row(
       children: [
-        Icon(
-          icon,
-          size: 14,
-          color: colorScheme.onSurfaceVariant,
-        ),
+        Icon(icon, size: 14, color: colorScheme.onSurfaceVariant),
         const SizedBox(width: 6),
         Text(
           '$label: ',

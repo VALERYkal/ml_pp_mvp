@@ -65,7 +65,14 @@ const List<MenuDestination> _allDestinations = [
     label: 'Cours',
     icon: Icons.local_shipping,
     route: '/cours',
-    visibleForRoles: [UserRole.admin, UserRole.directeur, UserRole.gerant, UserRole.operateur, UserRole.lecture, UserRole.pca],
+    visibleForRoles: [
+      UserRole.admin,
+      UserRole.directeur,
+      UserRole.gerant,
+      UserRole.operateur,
+      UserRole.lecture,
+      UserRole.pca,
+    ],
     order: 9,
   ),
   // Commun modules
@@ -73,28 +80,50 @@ const List<MenuDestination> _allDestinations = [
     label: 'Stocks',
     icon: Icons.inventory_2,
     route: '/stocks',
-    visibleForRoles: [UserRole.admin, UserRole.directeur, UserRole.gerant, UserRole.operateur, UserRole.lecture, UserRole.pca],
+    visibleForRoles: [
+      UserRole.admin,
+      UserRole.directeur,
+      UserRole.gerant,
+      UserRole.operateur,
+      UserRole.lecture,
+      UserRole.pca,
+    ],
     order: 10,
   ),
   MenuDestination(
     label: 'Citernes',
     icon: Icons.local_gas_station,
     route: '/citernes',
-    visibleForRoles: [UserRole.admin, UserRole.gerant, UserRole.operateur, UserRole.lecture],
+    visibleForRoles: [
+      UserRole.admin,
+      UserRole.gerant,
+      UserRole.operateur,
+      UserRole.lecture,
+    ],
     order: 11,
   ),
   MenuDestination(
     label: 'Réceptions',
     icon: Icons.call_received,
     route: '/receptions',
-    visibleForRoles: [UserRole.admin, UserRole.gerant, UserRole.operateur, UserRole.lecture],
+    visibleForRoles: [
+      UserRole.admin,
+      UserRole.gerant,
+      UserRole.operateur,
+      UserRole.lecture,
+    ],
     order: 12,
   ),
   MenuDestination(
     label: 'Sorties',
     icon: Icons.call_made,
     route: '/sorties',
-    visibleForRoles: [UserRole.admin, UserRole.gerant, UserRole.operateur, UserRole.lecture],
+    visibleForRoles: [
+      UserRole.admin,
+      UserRole.gerant,
+      UserRole.operateur,
+      UserRole.lecture,
+    ],
     order: 13,
   ),
   MenuDestination(
@@ -106,12 +135,14 @@ const List<MenuDestination> _allDestinations = [
   ),
 ];
 
-final menuDestinationsForRoleProvider = Riverpod.Provider.family<List<MenuDestination>, UserRole?>((ref, role) {
-  if (role == null) {
-    return const [];
-  }
-  final list = _allDestinations.where((d) => d.visibleForRoles.contains(role)).toList();
-  list.sort((a, b) => a.order.compareTo(b.order));
-  return list;
-});
-
+final menuDestinationsForRoleProvider =
+    Riverpod.Provider.family<List<MenuDestination>, UserRole?>((ref, role) {
+      if (role == null) {
+        return const [];
+      }
+      final list = _allDestinations
+          .where((d) => d.visibleForRoles.contains(role))
+          .toList();
+      list.sort((a, b) => a.order.compareTo(b.order));
+      return list;
+    });

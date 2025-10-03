@@ -26,12 +26,12 @@ class CiterneSelectionCard extends StatelessWidget {
         curve: Curves.easeInOut,
         margin: const EdgeInsets.only(bottom: 8),
         decoration: BoxDecoration(
-          color: selected 
+          color: selected
               ? colorScheme.primaryContainer.withOpacity(0.1)
               : Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: selected 
+            color: selected
                 ? colorScheme.primary
                 : colorScheme.outline.withOpacity(0.2),
             width: selected ? 2 : 1,
@@ -55,7 +55,7 @@ class CiterneSelectionCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: selected 
+                      color: selected
                           ? colorScheme.primary.withOpacity(0.1)
                           : colorScheme.surfaceVariant,
                       borderRadius: BorderRadius.circular(6),
@@ -63,7 +63,7 @@ class CiterneSelectionCard extends StatelessWidget {
                     child: Icon(
                       Icons.storage,
                       size: 16,
-                      color: selected 
+                      color: selected
                           ? colorScheme.primary
                           : colorScheme.onSurfaceVariant,
                     ),
@@ -77,7 +77,7 @@ class CiterneSelectionCard extends StatelessWidget {
                           citerne.nom,
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
-                            color: selected 
+                            color: selected
                                 ? colorScheme.primary
                                 : colorScheme.onSurface,
                           ),
@@ -110,7 +110,7 @@ class CiterneSelectionCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              
+
               // Informations de stock
               if (citerne.stockAmbiant != null || citerne.stock15c != null) ...[
                 Row(
@@ -119,7 +119,8 @@ class CiterneSelectionCard extends StatelessWidget {
                       Expanded(
                         child: _StockInfo(
                           label: 'Stock ambiant',
-                          value: '${citerne.stockAmbiant!.toStringAsFixed(1)} L',
+                          value:
+                              '${citerne.stockAmbiant!.toStringAsFixed(1)} L',
                           icon: Icons.water_drop,
                           color: Colors.blue,
                         ),
@@ -138,7 +139,7 @@ class CiterneSelectionCard extends StatelessWidget {
                     ],
                   ],
                 ),
-                
+
                 if (citerne.date != null) ...[
                   const SizedBox(height: 8),
                   Row(
@@ -205,21 +206,14 @@ class _StockInfo extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(
-          color: color.withOpacity(0.3),
-          width: 1,
-        ),
+        border: Border.all(color: color.withOpacity(0.3), width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                icon,
-                size: 12,
-                color: color,
-              ),
+              Icon(icon, size: 12, color: color),
               const SizedBox(width: 4),
               Expanded(
                 child: Text(

@@ -194,10 +194,7 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Colors.white,
-              colorScheme.surface.withOpacity(0.5),
-            ],
+            colors: [Colors.white, colorScheme.surface.withOpacity(0.5)],
           ),
         ),
         child: ListView(
@@ -238,7 +235,7 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
                   ],
                 ),
                 const SizedBox(height: 20),
-                
+
                 // Sélection du bénéficiaire
                 if (_owner == OwnerType.monaluxe) ...[
                   ModernTextField(
@@ -265,11 +262,8 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
                         height: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       ),
-                      error: (e, _) => Icon(
-                        Icons.error,
-                        color: colorScheme.error,
-                        size: 20,
-                      ),
+                      error: (e, _) =>
+                          Icon(Icons.error, color: colorScheme.error, size: 20),
                     ),
                     onChanged: (value) {
                       // Géré par le dropdown
@@ -300,11 +294,8 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
                         height: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       ),
-                      error: (e, _) => Icon(
-                        Icons.error,
-                        color: colorScheme.error,
-                        size: 20,
-                      ),
+                      error: (e, _) =>
+                          Icon(Icons.error, color: colorScheme.error, size: 20),
                     ),
                     onChanged: (value) {
                       // Géré par le dropdown
@@ -337,7 +328,8 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
                     runSpacing: 8,
                     children: list.map<Widget>((p) {
                       final id = p['id'] as String;
-                      final label = '${p['code'] ?? ''} ${p['nom'] ?? ''}'.trim();
+                      final label = '${p['code'] ?? ''} ${p['nom'] ?? ''}'
+                          .trim();
                       final sel = _produitId == id;
                       return ModernChoiceChip(
                         label: label,
@@ -366,7 +358,7 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
                     ),
                   ),
                 ),
-                
+
                 if (_produitId != null) ...[
                   const SizedBox(height: 20),
                   Text(
@@ -416,11 +408,15 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
                         );
                       }
                       return Column(
-                        children: citernes.map((c) => CiterneSelectionCard(
-                          citerne: c,
-                          selected: _citerneId == c.id,
-                          onTap: () => setState(() => _citerneId = c.id),
-                        )).toList(),
+                        children: citernes
+                            .map(
+                              (c) => CiterneSelectionCard(
+                                citerne: c,
+                                selected: _citerneId == c.id,
+                                onTap: () => setState(() => _citerneId = c.id),
+                              ),
+                            )
+                            .toList(),
                       );
                     },
                   ),
@@ -443,9 +439,12 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
                         label: 'Index avant *',
                         initialValue: _indexAvant?.toString(),
                         hint: '0.0',
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
                         prefixIcon: const Icon(Icons.trending_down),
-                        onChanged: (v) => setState(() => _indexAvant = double.tryParse(v)),
+                        onChanged: (v) =>
+                            setState(() => _indexAvant = double.tryParse(v)),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -454,9 +453,12 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
                         label: 'Index après *',
                         initialValue: _indexApres?.toString(),
                         hint: '0.0',
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
                         prefixIcon: const Icon(Icons.trending_up),
-                        onChanged: (v) => setState(() => _indexApres = double.tryParse(v)),
+                        onChanged: (v) =>
+                            setState(() => _indexApres = double.tryParse(v)),
                       ),
                     ),
                   ],
@@ -469,9 +471,12 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
                         label: 'Température (°C)',
                         initialValue: _tempC.toString(),
                         hint: '15.0',
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
                         prefixIcon: const Icon(Icons.thermostat),
-                        onChanged: (v) => setState(() => _tempC = double.tryParse(v) ?? 15),
+                        onChanged: (v) =>
+                            setState(() => _tempC = double.tryParse(v) ?? 15),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -480,14 +485,18 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
                         label: 'Densité @15°C',
                         initialValue: _densA15.toString(),
                         hint: '0.830',
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
                         prefixIcon: const Icon(Icons.scale),
-                        onChanged: (v) => setState(() => _densA15 = double.tryParse(v) ?? 0.83),
+                        onChanged: (v) => setState(
+                          () => _densA15 = double.tryParse(v) ?? 0.83,
+                        ),
                       ),
                     ),
                   ],
                 ),
-                
+
                 if (_indexAvant != null && _indexApres != null) ...[
                   const SizedBox(height: 16),
                   VolumeCalculationCard(
@@ -527,39 +536,48 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
               height: 56,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
-                gradient: _canSubmit 
+                gradient: _canSubmit
                     ? LinearGradient(
-                        colors: [colorScheme.primary, colorScheme.primary.withOpacity(0.8)],
+                        colors: [
+                          colorScheme.primary,
+                          colorScheme.primary.withOpacity(0.8),
+                        ],
                       )
                     : null,
                 color: _canSubmit ? null : colorScheme.surfaceVariant,
-                boxShadow: _canSubmit ? [
-                  BoxShadow(
-                    color: colorScheme.primary.withOpacity(0.3),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ] : null,
+                boxShadow: _canSubmit
+                    ? [
+                        BoxShadow(
+                          color: colorScheme.primary.withOpacity(0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ]
+                    : null,
               ),
               child: ElevatedButton.icon(
                 key: UiKeys.sortieSave,
                 onPressed: _canSubmit ? _submit : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent,
-                  foregroundColor: _canSubmit ? Colors.white : colorScheme.onSurfaceVariant,
+                  foregroundColor: _canSubmit
+                      ? Colors.white
+                      : colorScheme.onSurfaceVariant,
                   shadowColor: Colors.transparent,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
                 ),
-                icon: _submitting 
+                icon: _submitting
                     ? SizedBox(
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           valueColor: AlwaysStoppedAnimation<Color>(
-                            _canSubmit ? Colors.white : colorScheme.onSurfaceVariant,
+                            _canSubmit
+                                ? Colors.white
+                                : colorScheme.onSurfaceVariant,
                           ),
                         ),
                       )
@@ -573,7 +591,7 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 24),
           ],
         ),
@@ -592,5 +610,4 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
         _indexApres! > _indexAvant!;
     return !_submitting && hasBenef && hasProdCit && idxOk;
   }
-
 }

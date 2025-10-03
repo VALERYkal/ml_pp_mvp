@@ -27,14 +27,13 @@ void main() {
       statut: StatutCours.transit,
     );
 
-    when(mockService.getByStatut(StatutCours.transit))
-        .thenAnswer((_) async => [transitItem]);
+    when(
+      mockService.getByStatut(StatutCours.transit),
+    ).thenAnswer((_) async => [transitItem]);
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [
-          coursDeRouteServiceProvider.overrideWithValue(mockService),
-        ],
+        overrides: [coursDeRouteServiceProvider.overrideWithValue(mockService)],
         child: const MaterialApp(home: CoursRouteListScreen()),
       ),
     );
@@ -63,9 +62,7 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [
-          coursDeRouteServiceProvider.overrideWithValue(mockService),
-        ],
+        overrides: [coursDeRouteServiceProvider.overrideWithValue(mockService)],
         child: const MaterialApp(home: CoursRouteListScreen()),
       ),
     );
@@ -86,5 +83,3 @@ void main() {
     verify(mockService.getActifs()).called(greaterThanOrEqualTo(1));
   });
 }
-
-

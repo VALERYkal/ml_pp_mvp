@@ -3,7 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 Future<void> initSupabaseForTests() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Pour les tests, on évite l'initialisation complète de Supabase
   // qui nécessite des plugins natifs non disponibles en test
   // On utilise une approche mockée ou on skip l'initialisation

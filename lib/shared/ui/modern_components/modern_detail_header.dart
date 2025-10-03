@@ -21,23 +21,17 @@ class ModernDetailHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final accentColor = this.accentColor ?? theme.colorScheme.primary;
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            accentColor.withOpacity(0.1),
-            accentColor.withOpacity(0.05),
-          ],
+          colors: [accentColor.withOpacity(0.1), accentColor.withOpacity(0.05)],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: accentColor.withOpacity(0.2),
-          width: 1,
-        ),
+        border: Border.all(color: accentColor.withOpacity(0.2), width: 1),
       ),
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -90,12 +84,16 @@ class ModernDetailHeader extends StatelessWidget {
               Wrap(
                 spacing: 12,
                 runSpacing: 8,
-                children: infoPills!.map((pill) => _ModernInfoPill(
-                  icon: pill.icon,
-                  label: pill.label,
-                  value: pill.value,
-                  color: pill.color,
-                )).toList(),
+                children: infoPills!
+                    .map(
+                      (pill) => _ModernInfoPill(
+                        icon: pill.icon,
+                        label: pill.label,
+                        value: pill.value,
+                        color: pill.color,
+                      ),
+                    )
+                    .toList(),
               ),
             ],
           ],
@@ -123,25 +121,18 @@ class _ModernInfoPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final color = this.color ?? theme.colorScheme.primary;
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: color.withOpacity(0.3),
-          width: 1,
-        ),
+        border: Border.all(color: color.withOpacity(0.3), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            icon,
-            size: 16,
-            color: color,
-          ),
+          Icon(icon, size: 16, color: color),
           const SizedBox(width: 6),
           Text(
             label,

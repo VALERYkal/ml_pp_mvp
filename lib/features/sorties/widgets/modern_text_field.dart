@@ -58,8 +58,8 @@ class ModernTextField extends StatelessWidget {
             prefixIcon: prefixIcon,
             suffixIcon: suffixIcon,
             filled: true,
-            fillColor: enabled 
-                ? colorScheme.surface 
+            fillColor: enabled
+                ? colorScheme.surface
                 : colorScheme.surfaceVariant.withOpacity(0.5),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -77,24 +77,15 @@ class ModernTextField extends StatelessWidget {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: colorScheme.primary,
-                width: 2,
-              ),
+              borderSide: BorderSide(color: colorScheme.primary, width: 2),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: colorScheme.error,
-                width: 1,
-              ),
+              borderSide: BorderSide(color: colorScheme.error, width: 1),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: colorScheme.error,
-                width: 2,
-              ),
+              borderSide: BorderSide(color: colorScheme.error, width: 2),
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
@@ -105,7 +96,9 @@ class ModernTextField extends StatelessWidget {
             ),
           ),
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: enabled ? colorScheme.onSurface : colorScheme.onSurfaceVariant,
+            color: enabled
+                ? colorScheme.onSurface
+                : colorScheme.onSurfaceVariant,
           ),
         ),
       ],

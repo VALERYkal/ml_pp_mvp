@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 enum UserRole { admin, operateur }
+
 final roleProvider = StateProvider<UserRole>((_) => UserRole.operateur);
 
 class _App extends ConsumerWidget {
@@ -13,7 +14,8 @@ class _App extends ConsumerWidget {
     final role = ref.watch(roleProvider);
     String? redirect(BuildContext _, GoRouterState s) {
       // /admin est réservé admin
-      if (s.matchedLocation == '/admin' && role != UserRole.admin) return '/forbidden';
+      if (s.matchedLocation == '/admin' && role != UserRole.admin)
+        return '/forbidden';
       return null;
     }
 
@@ -21,8 +23,14 @@ class _App extends ConsumerWidget {
       initialLocation: '/admin',
       redirect: redirect,
       routes: [
-        GoRoute(path: '/admin', builder: (_, __) => const _Screen('ADMIN', 'screen_admin')),
-        GoRoute(path: '/forbidden', builder: (_, __) => const _Screen('FORBIDDEN', 'screen_forbidden')),
+        GoRoute(
+          path: '/admin',
+          builder: (_, __) => const _Screen('ADMIN', 'screen_admin'),
+        ),
+        GoRoute(
+          path: '/forbidden',
+          builder: (_, __) => const _Screen('FORBIDDEN', 'screen_forbidden'),
+        ),
       ],
     );
     return MaterialApp.router(routerConfig: router);
@@ -30,9 +38,13 @@ class _App extends ConsumerWidget {
 }
 
 class _Screen extends StatelessWidget {
-  final String label; final String keyName;
+  final String label;
+  final String keyName;
   const _Screen(this.label, this.keyName, {super.key});
-  @override Widget build(BuildContext context)=>Scaffold(body: Center(key: Key(keyName), child: Text(label)));
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    body: Center(key: Key(keyName), child: Text(label)),
+  );
 }
 
 void main() {
@@ -43,10 +55,12 @@ void main() {
   });
 
   testWidgets('admin accède à /admin', (tester) async {
-    await tester.pumpWidget(ProviderScope(
-      overrides: [roleProvider.overrideWith((_) => UserRole.admin)],
-      child: const _App(),
-    ));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [roleProvider.overrideWith((_) => UserRole.admin)],
+        child: const _App(),
+      ),
+    );
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('screen_admin')), findsOneWidget);
   });

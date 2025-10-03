@@ -51,10 +51,7 @@ void main() {
         indexApres: 900, // KO
       );
 
-      expect(
-        () => service.createDraft(input),
-        throwsA(isA<Exception>()),
-      );
+      expect(() => service.createDraft(input), throwsA(isA<Exception>()));
     });
 
     test('ERREUR: capacité insuffisante', () async {
@@ -80,10 +77,7 @@ void main() {
       final id = await service.createDraft(input);
       expect(id, isNotEmpty);
 
-      expect(
-        () => service.validateReception(id),
-        throwsA(isA<Exception>()),
-      );
+      expect(() => service.validateReception(id), throwsA(isA<Exception>()));
     });
 
     test('ERREUR: produit incompatible (citerne ESS, saisie AGO)', () async {
@@ -95,10 +89,7 @@ void main() {
         indexApres: 1060,
       );
 
-      expect(
-        () => service.createDraft(input),
-        throwsA(isA<Exception>()),
-      );
+      expect(() => service.createDraft(input), throwsA(isA<Exception>()));
     });
 
     test('ERREUR: cours non "arrivé"', () async {
@@ -123,10 +114,7 @@ void main() {
       final id = await service.createDraft(input);
       expect(id, isNotEmpty);
 
-      expect(
-        () => service.validateReception(id),
-        throwsA(isA<Exception>()),
-      );
+      expect(() => service.validateReception(id), throwsA(isA<Exception>()));
     });
 
     test('ERREUR: PARTENAIRE sans partenaire_id', () async {
@@ -142,12 +130,7 @@ void main() {
       final id = await service.createDraft(input);
       expect(id, isNotEmpty);
 
-      expect(
-        () => service.validateReception(id),
-        throwsA(isA<Exception>()),
-      );
+      expect(() => service.validateReception(id), throwsA(isA<Exception>()));
     });
   });
 }
-
-

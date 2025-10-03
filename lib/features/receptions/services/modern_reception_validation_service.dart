@@ -24,127 +24,161 @@ class ModernReceptionValidationService {
 
     // Validation du propriétaire
     if (ownerType == null || ownerType.isEmpty) {
-      errors.add(ValidationError(
-        field: 'ownerType',
-        message: 'Le type de propriétaire est requis',
-        code: 'OWNER_REQUIRED',
-      ));
+      errors.add(
+        ValidationError(
+          field: 'ownerType',
+          message: 'Le type de propriétaire est requis',
+          code: 'OWNER_REQUIRED',
+        ),
+      );
     }
 
     // Validation spécifique selon le type de propriétaire
     if (ownerType == 'MONALUXE') {
       if (coursDeRouteId == null || coursDeRouteId.isEmpty) {
-        errors.add(ValidationError(
-          field: 'coursDeRouteId',
-          message: 'Un cours de route est requis pour les réceptions Monaluxe',
-          code: 'COURS_REQUIRED',
-        ));
+        errors.add(
+          ValidationError(
+            field: 'coursDeRouteId',
+            message:
+                'Un cours de route est requis pour les réceptions Monaluxe',
+            code: 'COURS_REQUIRED',
+          ),
+        );
       }
     } else if (ownerType == 'PARTENAIRE') {
       if (partenaireId == null || partenaireId.isEmpty) {
-        errors.add(ValidationError(
-          field: 'partenaireId',
-          message: 'Un partenaire est requis pour les réceptions externes',
-          code: 'PARTNER_REQUIRED',
-        ));
+        errors.add(
+          ValidationError(
+            field: 'partenaireId',
+            message: 'Un partenaire est requis pour les réceptions externes',
+            code: 'PARTNER_REQUIRED',
+          ),
+        );
       }
     }
 
     // Validation du produit
     if (produitId == null || produitId.isEmpty) {
-      errors.add(ValidationError(
-        field: 'produitId',
-        message: 'Un produit doit être sélectionné',
-        code: 'PRODUCT_REQUIRED',
-      ));
+      errors.add(
+        ValidationError(
+          field: 'produitId',
+          message: 'Un produit doit être sélectionné',
+          code: 'PRODUCT_REQUIRED',
+        ),
+      );
     }
 
     // Validation de la citerne
     if (citerneId == null || citerneId.isEmpty) {
-      errors.add(ValidationError(
-        field: 'citerneId',
-        message: 'Une citerne doit être sélectionnée',
-        code: 'TANK_REQUIRED',
-      ));
+      errors.add(
+        ValidationError(
+          field: 'citerneId',
+          message: 'Une citerne doit être sélectionnée',
+          code: 'TANK_REQUIRED',
+        ),
+      );
     }
 
     // Validation des indices
     if (indexAvant == null) {
-      errors.add(ValidationError(
-        field: 'indexAvant',
-        message: 'L\'index avant est requis',
-        code: 'INDEX_BEFORE_REQUIRED',
-      ));
+      errors.add(
+        ValidationError(
+          field: 'indexAvant',
+          message: 'L\'index avant est requis',
+          code: 'INDEX_BEFORE_REQUIRED',
+        ),
+      );
     } else if (indexAvant < 0) {
-      errors.add(ValidationError(
-        field: 'indexAvant',
-        message: 'L\'index avant ne peut pas être négatif',
-        code: 'INDEX_BEFORE_NEGATIVE',
-      ));
+      errors.add(
+        ValidationError(
+          field: 'indexAvant',
+          message: 'L\'index avant ne peut pas être négatif',
+          code: 'INDEX_BEFORE_NEGATIVE',
+        ),
+      );
     }
 
     if (indexApres == null) {
-      errors.add(ValidationError(
-        field: 'indexApres',
-        message: 'L\'index après est requis',
-        code: 'INDEX_AFTER_REQUIRED',
-      ));
+      errors.add(
+        ValidationError(
+          field: 'indexApres',
+          message: 'L\'index après est requis',
+          code: 'INDEX_AFTER_REQUIRED',
+        ),
+      );
     } else if (indexApres < 0) {
-      errors.add(ValidationError(
-        field: 'indexApres',
-        message: 'L\'index après ne peut pas être négatif',
-        code: 'INDEX_AFTER_NEGATIVE',
-      ));
+      errors.add(
+        ValidationError(
+          field: 'indexApres',
+          message: 'L\'index après ne peut pas être négatif',
+          code: 'INDEX_AFTER_NEGATIVE',
+        ),
+      );
     }
 
     // Validation de cohérence des indices
     if (indexAvant != null && indexApres != null) {
       if (indexApres <= indexAvant) {
-        errors.add(ValidationError(
-          field: 'indexApres',
-          message: 'L\'index après doit être supérieur à l\'index avant',
-          code: 'INDEX_INCONSISTENT',
-        ));
+        errors.add(
+          ValidationError(
+            field: 'indexApres',
+            message: 'L\'index après doit être supérieur à l\'index avant',
+            code: 'INDEX_INCONSISTENT',
+          ),
+        );
       } else {
         final volumeBrut = indexApres - indexAvant;
         if (volumeBrut > 50000) {
-          warnings.add(ValidationWarning(
-            field: 'volumeBrut',
-            message: 'Volume brut très élevé (${volumeBrut.toStringAsFixed(0)} L). Vérifiez les indices.',
-            code: 'HIGH_VOLUME',
-          ));
+          warnings.add(
+            ValidationWarning(
+              field: 'volumeBrut',
+              message:
+                  'Volume brut très élevé (${volumeBrut.toStringAsFixed(0)} L). Vérifiez les indices.',
+              code: 'HIGH_VOLUME',
+            ),
+          );
         }
       }
     }
 
     // Validation de la température
     if (temperature == null) {
-      errors.add(ValidationError(
-        field: 'temperature',
-        message: 'La température est requise',
-        code: 'TEMPERATURE_REQUIRED',
-      ));
+      errors.add(
+        ValidationError(
+          field: 'temperature',
+          message: 'La température est requise',
+          code: 'TEMPERATURE_REQUIRED',
+        ),
+      );
     } else if (temperature < -20 || temperature > 50) {
-      warnings.add(ValidationWarning(
-        field: 'temperature',
-        message: 'Température inhabituelle (${temperature.toStringAsFixed(1)}°C). Vérifiez la mesure.',
-        code: 'UNUSUAL_TEMPERATURE',
-      ));
+      warnings.add(
+        ValidationWarning(
+          field: 'temperature',
+          message:
+              'Température inhabituelle (${temperature.toStringAsFixed(1)}°C). Vérifiez la mesure.',
+          code: 'UNUSUAL_TEMPERATURE',
+        ),
+      );
     }
 
     // Validation de la densité
     if (densite == null) {
-      errors.add(ValidationError(
-        field: 'densite',
-        message: 'La densité est requise',
-        code: 'DENSITY_REQUIRED',
-      ));
+      errors.add(
+        ValidationError(
+          field: 'densite',
+          message: 'La densité est requise',
+          code: 'DENSITY_REQUIRED',
+        ),
+      );
     } else if (densite < 0.7 || densite > 1.0) {
-      warnings.add(ValidationWarning(
-        field: 'densite',
-        message: 'Densité inhabituelle (${densite.toStringAsFixed(3)}). Vérifiez la mesure.',
-        code: 'UNUSUAL_DENSITY',
-      ));
+      warnings.add(
+        ValidationWarning(
+          field: 'densite',
+          message:
+              'Densité inhabituelle (${densite.toStringAsFixed(3)}). Vérifiez la mesure.',
+          code: 'UNUSUAL_DENSITY',
+        ),
+      );
     }
 
     return ValidationResult(

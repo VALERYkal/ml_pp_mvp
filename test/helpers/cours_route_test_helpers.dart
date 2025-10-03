@@ -88,7 +88,7 @@ class CoursRouteTestHelpers {
     if (filters.containsKey('volumeMin') || filters.containsKey('volumeMax')) {
       await tester.tap(find.text('Modifier volume'));
       await tester.pump();
-      
+
       // Ajuster le slider (simulation)
       await tester.tap(find.text('OK'));
       await tester.pump();
@@ -158,16 +158,22 @@ class CoursRouteTestHelpers {
     MockSupabaseClient mockSupabase,
   ) {
     // Configuration des mocks selon les besoins des tests
-    when(mockService.getAll()).thenAnswer((_) async => CoursRouteFixtures.sampleList());
-    when(mockService.getActifs()).thenAnswer((_) async => CoursRouteFixtures.activeCoursList());
+    when(
+      mockService.getAll(),
+    ).thenAnswer((_) async => CoursRouteFixtures.sampleList());
+    when(
+      mockService.getActifs(),
+    ).thenAnswer((_) async => CoursRouteFixtures.activeCoursList());
     when(mockService.create(any)).thenAnswer((_) async {});
     when(mockService.update(any)).thenAnswer((_) async {});
     when(mockService.delete(any)).thenAnswer((_) async {});
-    when(mockService.updateStatut(
-      id: anyNamed('id'),
-      to: anyNamed('to'),
-      fromReception: anyNamed('fromReception'),
-    )).thenAnswer((_) async {});
+    when(
+      mockService.updateStatut(
+        id: anyNamed('id'),
+        to: anyNamed('to'),
+        fromReception: anyNamed('fromReception'),
+      ),
+    ).thenAnswer((_) async {});
   }
 
   /// Crée un ProviderContainer avec les overrides nécessaires
@@ -185,10 +191,12 @@ class CoursRouteTestHelpers {
         if (refData != null)
           refDataProvider.overrideWith((ref) async => refData),
         if (userRole != null)
-          authProvider.overrideWith((ref) => AuthState(
-            user: MockUser(role: userRole, depotId: depotId),
-            isAuthenticated: true,
-          )),
+          authProvider.overrideWith(
+            (ref) => AuthState(
+              user: MockUser(role: userRole, depotId: depotId),
+              isAuthenticated: true,
+            ),
+          ),
       ],
     );
   }
@@ -229,11 +237,11 @@ class CoursRouteTestHelpers {
   /// Vérifie les transitions de statut
   static void verifyStatutTransitions() {
     final transitions = CoursRouteFixtures.statutTransitions();
-    
+
     for (final entry in transitions.entries) {
       final currentStatut = entry.key;
       final nextStatut = entry.value;
-      
+
       if (nextStatut != null) {
         expect(CoursDeRouteUtils.getStatutSuivant(currentStatut), nextStatut);
         expect(CoursDeRouteUtils.peutProgresser(currentStatut), true);
@@ -247,11 +255,11 @@ class CoursRouteTestHelpers {
   /// Vérifie la validation des plaques
   static void verifyPlaqueValidation() {
     final validationData = CoursRouteFixtures.plaqueValidationData();
-    
+
     for (final entry in validationData.entries) {
       final plaque = entry.key;
       final isValid = entry.value;
-      
+
       // Dans un vrai test, on appellerait la fonction de validation
       // expect(CoursDeRouteUtils.isValidPlaque(plaque), isValid);
     }
@@ -260,11 +268,11 @@ class CoursRouteTestHelpers {
   /// Vérifie la validation des volumes
   static void verifyVolumeValidation() {
     final validationData = CoursRouteFixtures.volumeValidationData();
-    
+
     for (final entry in validationData.entries) {
       final volume = entry.key;
       final isValid = entry.value;
-      
+
       // Dans un vrai test, on appellerait la fonction de validation
       // expect(CoursDeRouteUtils.isValidVolume(volume), isValid);
     }
@@ -273,11 +281,11 @@ class CoursRouteTestHelpers {
   /// Vérifie la validation des dates
   static void verifyDateValidation() {
     final validationData = CoursRouteFixtures.dateValidationData();
-    
+
     for (final entry in validationData.entries) {
       final date = entry.key;
       final isValid = entry.value;
-      
+
       // Dans un vrai test, on appellerait la fonction de validation
       // expect(CoursDeRouteUtils.isValidDateChargement(date), isValid);
     }
@@ -286,7 +294,7 @@ class CoursRouteTestHelpers {
   /// Attendre que les données se chargent
   static Future<void> waitForDataLoad(WidgetTester tester) async {
     await tester.pumpAndSettle();
-    
+
     // Attendre que les indicateurs de chargement disparaissent
     while (find.byType(CircularProgressIndicator).evaluate().isNotEmpty) {
       await tester.pump(const Duration(milliseconds: 100));
@@ -305,7 +313,10 @@ class CoursRouteTestHelpers {
 }
 
 /// Helper pour remplir le formulaire de cours
-Future<void> _fillCoursForm(WidgetTester tester, Map<String, String> data) async {
+Future<void> _fillCoursForm(
+  WidgetTester tester,
+  Map<String, String> data,
+) async {
   if (data.containsKey('fournisseur')) {
     await tester.tap(find.text(data['fournisseur']!));
     await tester.pump();
@@ -332,19 +343,31 @@ Future<void> _fillCoursForm(WidgetTester tester, Map<String, String> data) async
   }
 
   if (data.containsKey('plaque')) {
-    await tester.enterText(find.byKey(const Key('plaque_camion_field')), data['plaque']!);
+    await tester.enterText(
+      find.byKey(const Key('plaque_camion_field')),
+      data['plaque']!,
+    );
   }
 
   if (data.containsKey('chauffeur')) {
-    await tester.enterText(find.byKey(const Key('chauffeur_field')), data['chauffeur']!);
+    await tester.enterText(
+      find.byKey(const Key('chauffeur_field')),
+      data['chauffeur']!,
+    );
   }
 
   if (data.containsKey('volume')) {
-    await tester.enterText(find.byKey(const Key('volume_field')), data['volume']!);
+    await tester.enterText(
+      find.byKey(const Key('volume_field')),
+      data['volume']!,
+    );
   }
 
   if (data.containsKey('transporteur')) {
-    await tester.enterText(find.byKey(const Key('transporteur_field')), data['transporteur']!);
+    await tester.enterText(
+      find.byKey(const Key('transporteur_field')),
+      data['transporteur']!,
+    );
   }
 
   if (data.containsKey('note')) {

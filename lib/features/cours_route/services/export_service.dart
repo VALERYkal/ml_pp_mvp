@@ -12,16 +12,19 @@ import 'package:ml_pp_mvp/shared/ui/format.dart';
 /// Service d'export des cours de route
 class CoursExportService {
   /// Export CSV des cours de route
-  static String exportToCsv(List<CoursDeRoute> cours, {
+  static String exportToCsv(
+    List<CoursDeRoute> cours, {
     Map<String, String>? fournisseurs,
     Map<String, String>? produits,
     Map<String, String>? produitCodes,
   }) {
     final buffer = StringBuffer();
-    
+
     // En-têtes CSV
-    buffer.writeln('ID,Fournisseur,Produit,Plaque Camion,Plaque Remorque,Chauffeur,Transporteur,Volume,Dépôt,Date Chargement,Statut');
-    
+    buffer.writeln(
+      'ID,Fournisseur,Produit,Plaque Camion,Plaque Remorque,Chauffeur,Transporteur,Volume,Dépôt,Date Chargement,Statut',
+    );
+
     // Données
     for (final c in cours) {
       final fournisseur = fournisseurs?[c.fournisseurId] ?? c.fournisseurId;
@@ -32,62 +35,82 @@ class CoursExportService {
       final transporteur = c.transporteur ?? '';
       final volume = c.volume?.toString() ?? '';
       final depot = c.depotDestinationId;
-      final dateChargement = c.dateChargement != null ? fmtDate(c.dateChargement!) : '';
+      final dateChargement = c.dateChargement != null
+          ? fmtDate(c.dateChargement!)
+          : '';
       final statut = c.statut.label;
-      
-      buffer.writeln('$fournisseur,$produit,$plaqueCamion,$plaqueRemorque,$chauffeur,$transporteur,$volume,$depot,$dateChargement,$statut');
+
+      buffer.writeln(
+        '$fournisseur,$produit,$plaqueCamion,$plaqueRemorque,$chauffeur,$transporteur,$volume,$depot,$dateChargement,$statut',
+      );
     }
-    
+
     return buffer.toString();
   }
-  
+
   /// Export JSON des cours de route
-  static String exportToJson(List<CoursDeRoute> cours, {
+  static String exportToJson(
+    List<CoursDeRoute> cours, {
     Map<String, String>? fournisseurs,
     Map<String, String>? produits,
     Map<String, String>? produitCodes,
   }) {
-    final data = cours.map((c) => {
-      'id': c.id,
-      'fournisseur': fournisseurs?[c.fournisseurId] ?? c.fournisseurId,
-      'produit': _getProduitLabel(c, produits, produitCodes),
-      'plaqueCamion': c.plaqueCamion,
-      'plaqueRemorque': c.plaqueRemorque,
-      'chauffeur': c.chauffeur,
-      'transporteur': c.transporteur,
-      'volume': c.volume,
-      'depot': c.depotDestinationId,
-      'dateChargement': c.dateChargement?.toIso8601String(),
-      'statut': c.statut.label,
-      'statutCode': c.statut.name,
-    }).toList();
-    
+    final data = cours
+        .map(
+          (c) => {
+            'id': c.id,
+            'fournisseur': fournisseurs?[c.fournisseurId] ?? c.fournisseurId,
+            'produit': _getProduitLabel(c, produits, produitCodes),
+            'plaqueCamion': c.plaqueCamion,
+            'plaqueRemorque': c.plaqueRemorque,
+            'chauffeur': c.chauffeur,
+            'transporteur': c.transporteur,
+            'volume': c.volume,
+            'depot': c.depotDestinationId,
+            'dateChargement': c.dateChargement?.toIso8601String(),
+            'statut': c.statut.label,
+            'statutCode': c.statut.name,
+          },
+        )
+        .toList();
+
     return const JsonEncoder.withIndent('  ').convert(data);
   }
-  
+
   /// Export Excel (format simplifié en CSV avec en-têtes Excel)
-  static String exportToExcel(List<CoursDeRoute> cours, {
+  static String exportToExcel(
+    List<CoursDeRoute> cours, {
     Map<String, String>? fournisseurs,
     Map<String, String>? produits,
     Map<String, String>? produitCodes,
   }) {
     // Pour l'instant, on utilise CSV avec en-têtes Excel
     // Dans une vraie implémentation, on utiliserait un package comme excel
-    return exportToCsv(cours, fournisseurs: fournisseurs, produits: produits, produitCodes: produitCodes);
+    return exportToCsv(
+      cours,
+      fournisseurs: fournisseurs,
+      produits: produits,
+      produitCodes: produitCodes,
+    );
   }
-  
+
   /// Génère un nom de fichier avec timestamp
   static String generateFileName(String prefix, String extension) {
     final now = DateTime.now();
-    final timestamp = '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}_${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}';
+    final timestamp =
+        '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}_${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}';
     return '${prefix}_$timestamp.$extension';
   }
-  
+
   /// Helper pour obtenir le libellé du produit
-  static String _getProduitLabel(CoursDeRoute c, Map<String, String>? produits, Map<String, String>? produitCodes) {
+  static String _getProduitLabel(
+    CoursDeRoute c,
+    Map<String, String>? produits,
+    Map<String, String>? produitCodes,
+  ) {
     final code = (c.produitCode ?? '').trim();
     final nom = (c.produitNom ?? '').trim();
-    
+
     if (code.isNotEmpty) return code;
     if (nom.isNotEmpty) return nom;
     if (produitCodes != null && produitCodes.containsKey(c.produitId)) {
@@ -154,7 +177,7 @@ class CoursExportWidget extends StatelessWidget {
     String content;
     String extension;
     String mimeType;
-    
+
     switch (format) {
       case 'csv':
         content = CoursExportService.exportToCsv(
@@ -189,15 +212,23 @@ class CoursExportWidget extends StatelessWidget {
       default:
         return;
     }
-    
-    final fileName = CoursExportService.generateFileName('cours_route', extension);
-    
+
+    final fileName = CoursExportService.generateFileName(
+      'cours_route',
+      extension,
+    );
+
     // Dans une vraie implémentation, on utiliserait un package comme file_picker
     // Pour l'instant, on affiche le contenu dans un dialog
     _showExportDialog(context, fileName, content, mimeType);
   }
 
-  void _showExportDialog(BuildContext context, String fileName, String content, String mimeType) {
+  void _showExportDialog(
+    BuildContext context,
+    String fileName,
+    String content,
+    String mimeType,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -216,7 +247,10 @@ class CoursExportWidget extends StatelessWidget {
                 child: SingleChildScrollView(
                   child: SelectableText(
                     content,
-                    style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                    style: const TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 12,
+                    ),
                   ),
                 ),
               ),
@@ -234,7 +268,9 @@ class CoursExportWidget extends StatelessWidget {
               // Clipboard.setData(ClipboardData(text: content));
               Navigator.of(context).pop();
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Contenu copié dans le presse-papiers')),
+                const SnackBar(
+                  content: Text('Contenu copié dans le presse-papiers'),
+                ),
               );
             },
             child: const Text('Copier'),

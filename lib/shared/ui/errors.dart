@@ -7,11 +7,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ml_pp_mvp/shared/utils/error_humanizer.dart';
 
 /// Transforme les erreurs techniques en messages user-friendly
-/// 
+///
 /// [e] : L'erreur à humaniser
-/// 
+///
 /// Retourne un message d'erreur compréhensible par l'utilisateur
-/// 
+///
 /// Exemple d'utilisation :
 /// ```dart
 /// try {

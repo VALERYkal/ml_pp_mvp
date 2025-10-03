@@ -21,9 +21,7 @@ void main() {
     setUp(() {
       mockService = MockCoursDeRouteService();
       container = ProviderContainer(
-        overrides: [
-          coursDeRouteServiceProvider.overrideWithValue(mockService),
-        ],
+        overrides: [coursDeRouteServiceProvider.overrideWithValue(mockService)],
       );
     });
 
@@ -125,7 +123,7 @@ void main() {
 
         // Assert
         verify(mockService.create(cours)).called(1);
-        
+
         // Vérifier que les providers sont invalidés
         // Note: Dans un vrai test, on vérifierait que les providers sont rechargés
       });
@@ -191,21 +189,25 @@ void main() {
           'fromReception': false,
         };
 
-        when(mockService.updateStatut(
-          id: 'test-id',
-          to: StatutCours.transit,
-          fromReception: false,
-        )).thenAnswer((_) async {});
+        when(
+          mockService.updateStatut(
+            id: 'test-id',
+            to: StatutCours.transit,
+            fromReception: false,
+          ),
+        ).thenAnswer((_) async {});
 
         // Act
         await container.read(updateStatutCoursDeRouteProvider(params).future);
 
         // Assert
-        verify(mockService.updateStatut(
-          id: 'test-id',
-          to: StatutCours.transit,
-          fromReception: false,
-        )).called(1);
+        verify(
+          mockService.updateStatut(
+            id: 'test-id',
+            to: StatutCours.transit,
+            fromReception: false,
+          ),
+        ).called(1);
       });
     });
 
@@ -222,7 +224,9 @@ void main() {
         when(mockService.getById('test-id')).thenAnswer((_) async => cours);
 
         // Act
-        final result = await container.read(coursDeRouteByIdProvider('test-id').future);
+        final result = await container.read(
+          coursDeRouteByIdProvider('test-id').future,
+        );
 
         // Assert
         expect(result, cours);
@@ -234,7 +238,9 @@ void main() {
         when(mockService.getById('non-existent')).thenAnswer((_) async => null);
 
         // Act
-        final result = await container.read(coursDeRouteByIdProvider('non-existent').future);
+        final result = await container.read(
+          coursDeRouteByIdProvider('non-existent').future,
+        );
 
         // Assert
         expect(result, null);
@@ -254,10 +260,14 @@ void main() {
           ),
         ];
 
-        when(mockService.getByStatut(StatutCours.chargement)).thenAnswer((_) async => mockCours);
+        when(
+          mockService.getByStatut(StatutCours.chargement),
+        ).thenAnswer((_) async => mockCours);
 
         // Act
-        final result = await container.read(coursDeRouteByStatutProvider(StatutCours.chargement).future);
+        final result = await container.read(
+          coursDeRouteByStatutProvider(StatutCours.chargement).future,
+        );
 
         // Assert
         expect(result, mockCours);

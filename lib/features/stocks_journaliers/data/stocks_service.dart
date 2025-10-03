@@ -8,7 +8,7 @@ class StocksService {
 
   /// Formate une date en YYYY-MM-DD pour la base de données
   String _fmtYmd(DateTime d) =>
-      '${d.year.toString().padLeft(4,'0')}-${d.month.toString().padLeft(2,'0')}-${d.day.toString().padLeft(2,'0')}';
+      '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
   /// Incrémente (ou crée) la ligne de stock pour (date du jour, citerne, produit)
   Future<void> increment({
@@ -30,7 +30,8 @@ class StocksService {
 
     if (existing != null) {
       final current = existing as Map<String, dynamic>;
-      final newAmb = (current['stock_ambiant'] as num).toDouble() + volumeAmbiant;
+      final newAmb =
+          (current['stock_ambiant'] as num).toDouble() + volumeAmbiant;
       final new15 = (current['stock_15c'] as num).toDouble() + volume15c;
       await _client
           .from('stocks_journaliers')
@@ -102,5 +103,3 @@ class StocksService {
     return v.isFinite ? v : 0.0;
   }
 }
-
-

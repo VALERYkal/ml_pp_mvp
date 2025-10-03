@@ -13,7 +13,8 @@ import 'package:ml_pp_mvp/shared/utils/volume_formatter.dart';
 class ReceptionListScreen extends ConsumerStatefulWidget {
   const ReceptionListScreen({super.key});
   @override
-  ConsumerState<ReceptionListScreen> createState() => _ReceptionListScreenState();
+  ConsumerState<ReceptionListScreen> createState() =>
+      _ReceptionListScreenState();
 }
 
 class _ReceptionListScreenState extends ConsumerState<ReceptionListScreen> {
@@ -33,11 +34,18 @@ class _ReceptionListScreenState extends ConsumerState<ReceptionListScreen> {
       ),
       body: asyncRows.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, st) => Padding(padding: const EdgeInsets.all(16), child: Text('Erreur chargement: $e')),
+        error: (e, st) => Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text('Erreur chargement: $e'),
+        ),
         data: (rows) {
           final sorted = [...rows];
           if (_sortColumnIndex == 0) {
-            sorted.sort((a, b) => a.dateReception.compareTo(b.dateReception) * (_sortAsc ? 1 : -1));
+            sorted.sort(
+              (a, b) =>
+                  a.dateReception.compareTo(b.dateReception) *
+                  (_sortAsc ? 1 : -1),
+            );
           } else if (_sortColumnIndex == 4) {
             double v(x) => x.vol15 ?? -1;
             sorted.sort((a, b) => v(a).compareTo(v(b)) * (_sortAsc ? 1 : -1));
@@ -55,13 +63,18 @@ class _ReceptionListScreenState extends ConsumerState<ReceptionListScreen> {
               header: const Text('Réceptions'),
               showCheckboxColumn: false,
               rowsPerPage: _rowsPerPage,
-              onRowsPerPageChanged: (v) { if (v != null) setState(() => _rowsPerPage = v); },
+              onRowsPerPageChanged: (v) {
+                if (v != null) setState(() => _rowsPerPage = v);
+              },
               sortAscending: _sortAsc,
               sortColumnIndex: _sortColumnIndex,
               columns: [
                 DataColumn(
                   label: const Text('Date'),
-                  onSort: (_, asc) => setState(() { _sortColumnIndex = 0; _sortAsc = asc; }),
+                  onSort: (_, asc) => setState(() {
+                    _sortColumnIndex = 0;
+                    _sortAsc = asc;
+                  }),
                 ),
                 const DataColumn(label: Text('Propriété')),
                 const DataColumn(label: Text('Produit')),
@@ -69,7 +82,10 @@ class _ReceptionListScreenState extends ConsumerState<ReceptionListScreen> {
                 DataColumn(
                   label: const Text('Vol @15°C'),
                   numeric: true,
-                  onSort: (_, asc) => setState(() { _sortColumnIndex = 4; _sortAsc = asc; }),
+                  onSort: (_, asc) => setState(() {
+                    _sortColumnIndex = 4;
+                    _sortAsc = asc;
+                  }),
                 ),
                 const DataColumn(label: Text('Vol ambiant'), numeric: true),
                 const DataColumn(label: Text('CDR')),
@@ -89,7 +105,11 @@ class _ReceptionDataSource extends DataTableSource {
   final BuildContext context;
   final List<dynamic> rows; // ReceptionRowVM
   final void Function(String id) onTap;
-  _ReceptionDataSource({required this.context, required this.rows, required this.onTap});
+  _ReceptionDataSource({
+    required this.context,
+    required this.rows,
+    required this.onTap,
+  });
 
   @override
   DataRow? getRow(int index) {
@@ -106,15 +126,26 @@ class _ReceptionDataSource extends DataTableSource {
         DataCell(Text(_fmtVol(r.volAmb))),
         DataCell(Text(_cdrCell(r))),
         DataCell(
-          r.fournisseurNom != null && r.fournisseurNom!.isNotEmpty 
-              ? _ModernChip(text: r.fournisseurNom!, color: Theme.of(context).colorScheme.tertiary, icon: Icons.business)
+          r.fournisseurNom != null && r.fournisseurNom!.isNotEmpty
+              ? _ModernChip(
+                  text: r.fournisseurNom!,
+                  color: Theme.of(context).colorScheme.tertiary,
+                  icon: Icons.business,
+                )
               : Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceVariant.withOpacity(0.5),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.outline.withOpacity(0.3),
                       width: 1,
                     ),
                   ),
@@ -138,9 +169,17 @@ class _ReceptionDataSource extends DataTableSource {
                   ),
                 ),
         ),
-        DataCell(Row(children: [
-          IconButton(tooltip: 'Voir', icon: const Icon(Icons.open_in_new), onPressed: () => onTap(r.id)),
-        ])),
+        DataCell(
+          Row(
+            children: [
+              IconButton(
+                tooltip: 'Voir',
+                icon: const Icon(Icons.open_in_new),
+                onPressed: () => onTap(r.id),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -180,37 +219,30 @@ class _ModernChip extends StatelessWidget {
   final String text;
   final Color color;
   final IconData? icon;
-  
+
   const _ModernChip({
     required this.text,
     required this.color,
     this.icon,
     super.key,
   });
-  
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: color.withOpacity(0.3),
-          width: 1,
-        ),
+        border: Border.all(color: color.withOpacity(0.3), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
-            Icon(
-              icon,
-              size: 14,
-              color: color,
-            ),
+            Icon(icon, size: 14, color: color),
             const SizedBox(width: 4),
           ],
           Text(
@@ -225,4 +257,3 @@ class _ModernChip extends StatelessWidget {
     );
   }
 }
-

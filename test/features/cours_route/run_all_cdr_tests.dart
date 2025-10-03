@@ -7,22 +7,24 @@ import 'dart:io';
 
 void main(List<String> args) async {
   print('🚀 Exécution de tous les tests CDR...\n');
-  
+
   final testSuites = [
     {
       'name': 'Tests Modèles (Transitions)',
-      'path': 'test/features/cours_route/models/cours_de_route_transitions_test.dart',
-      'description': 'Tests des transitions de statuts CDR'
+      'path':
+          'test/features/cours_route/models/cours_de_route_transitions_test.dart',
+      'description': 'Tests des transitions de statuts CDR',
     },
     {
       'name': 'Tests Provider KPI',
       'path': 'test/features/cours_route/providers/cdr_kpi_provider_test.dart',
-      'description': 'Tests des providers KPI avec fake service'
+      'description': 'Tests des providers KPI avec fake service',
     },
     {
       'name': 'Tests Widget Détail',
-      'path': 'test/features/cours_route/screens/cdr_detail_decharge_simple_test.dart',
-      'description': 'Tests widget détail avec statut déchargé'
+      'path':
+          'test/features/cours_route/screens/cdr_detail_decharge_simple_test.dart',
+      'description': 'Tests widget détail avec statut déchargé',
     },
   ];
 
@@ -34,24 +36,26 @@ void main(List<String> args) async {
     print('📋 ${suite['name']}');
     print('   ${suite['description']}');
     print('   Chemin: ${suite['path']}');
-    
+
     try {
-      final result = await Process.run(
-        'flutter',
-        ['test', suite['path']!, '-r', 'expanded'],
-        workingDirectory: Directory.current.path,
-      );
-      
+      final result = await Process.run('flutter', [
+        'test',
+        suite['path']!,
+        '-r',
+        'expanded',
+      ], workingDirectory: Directory.current.path);
+
       if (result.exitCode == 0) {
         print('   ✅ SUCCÈS - Tous les tests passent\n');
-        
+
         // Compter les tests (approximation basée sur les lignes "All tests passed!")
         final lines = result.stdout.toString().split('\n');
         for (final line in lines) {
           if (line.contains('All tests passed!')) {
             // Chercher le nombre de tests dans la ligne précédente
             for (int i = lines.indexOf(line) - 1; i >= 0; i--) {
-              if (lines[i].contains('+') && lines[i].contains('All tests passed!')) {
+              if (lines[i].contains('+') &&
+                  lines[i].contains('All tests passed!')) {
                 final match = RegExp(r'\+(\d+)').firstMatch(lines[i]);
                 if (match != null) {
                   final testCount = int.parse(match.group(1)!);
@@ -86,7 +90,7 @@ void main(List<String> args) async {
   print('🧪 Tests exécutés: $totalTests');
   print('✅ Tests réussis: $passedTests');
   print('❌ Tests échoués: ${totalTests - passedTests}');
-  
+
   if (failedSuites == 0) {
     print('\n🎉 TOUS LES TESTS CDR PASSENT !');
     print('🎯 Objectifs atteints:');
@@ -98,7 +102,7 @@ void main(List<String> args) async {
     print('\n⚠️  CERTAINS TESTS ONT ÉCHOUÉ');
     print('🔧 Vérifiez les erreurs ci-dessus');
   }
-  
+
   print('\n📚 Pour plus de détails, consultez:');
   print('   - test/features/cours_route/IMPLEMENTATION_SUMMARY.md');
   print('   - test/features/cours_route/README.md');

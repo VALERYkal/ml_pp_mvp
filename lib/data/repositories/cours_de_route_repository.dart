@@ -7,7 +7,9 @@ class CoursDeRouteRepository {
   CoursDeRouteRepository(this._supa);
 
   /// Retourne {enRoute, enAttente} pour un depotId (optionnel) - COMPATIBILITÉ
-  Future<({int enRoute, int enAttente})> countsCamionsASuivre({String? depotId}) async {
+  Future<({int enRoute, int enAttente})> countsCamionsASuivre({
+    String? depotId,
+  }) async {
     final counts = await countsEnRouteEtAttente(depotId: depotId);
     return (enRoute: counts.enRoute, enAttente: counts.attente);
   }
@@ -24,8 +26,10 @@ class CoursDeRouteRepository {
         .from('cours_de_route')
         .select('id, statut, volume, depot_destination_id, produit_id');
 
-    if (depotId != null && depotId.isNotEmpty) query.eq('depot_destination_id', depotId);
-    if (produitId != null && produitId.isNotEmpty) query.eq('produit_id', produitId);
+    if (depotId != null && depotId.isNotEmpty)
+      query.eq('depot_destination_id', depotId);
+    if (produitId != null && produitId.isNotEmpty)
+      query.eq('produit_id', produitId);
 
     final rows = await query;
 
@@ -48,8 +52,10 @@ class CoursDeRouteRepository {
 
     // Debug (retirable)
     if (kDebugMode) {
-      print('🚚 KPI1: enRoute=$enRoute (${enRouteL}L), attente=$attente (${attenteL}L)'
-            '${depotId != null ? ' depot=' + depotId : ''}${produitId != null ? ' produit=' + produitId : ''}');
+      print(
+        '🚚 KPI1: enRoute=$enRoute (${enRouteL}L), attente=$attente (${attenteL}L)'
+        '${depotId != null ? ' depot=' + depotId : ''}${produitId != null ? ' produit=' + produitId : ''}',
+      );
     }
 
     return CoursCounts(
@@ -60,4 +66,3 @@ class CoursDeRouteRepository {
     );
   }
 }
-

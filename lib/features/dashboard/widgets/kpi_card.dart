@@ -27,8 +27,8 @@ class KpiCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final foreground = warning 
-        ? theme.colorScheme.error 
+    final foreground = warning
+        ? theme.colorScheme.error
         : color ?? theme.colorScheme.primary;
     final formatted = unit == null
         ? VolumeFormatter.formatVolumeCompact(value) // 12 345 → 12.3k

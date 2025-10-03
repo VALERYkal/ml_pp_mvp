@@ -28,7 +28,10 @@ class SimpleCdrDetailWidget extends StatelessWidget {
                 children: [
                   const Text('Statut: '),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.grey.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(20),
@@ -112,28 +115,28 @@ void main() {
       );
     });
 
-    testWidgets('should render without exceptions for déchargé status', (WidgetTester tester) async {
+    testWidgets('should render without exceptions for déchargé status', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
-        ProviderScope(
-          child: SimpleCdrDetailWidget(cours: coursDecharge),
-        ),
+        ProviderScope(child: SimpleCdrDetailWidget(cours: coursDecharge)),
       );
 
       // Vérifier qu'il n'y a pas d'exception de rendu
       expect(tester.takeException(), isNull);
-      
+
       // Attendre que le widget soit construit
       await tester.pumpAndSettle();
-      
+
       // Vérifier qu'il n'y a toujours pas d'exception
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('should display déchargé status chip', (WidgetTester tester) async {
+    testWidgets('should display déchargé status chip', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
-        ProviderScope(
-          child: SimpleCdrDetailWidget(cours: coursDecharge),
-        ),
+        ProviderScope(child: SimpleCdrDetailWidget(cours: coursDecharge)),
       );
 
       await tester.pumpAndSettle();
@@ -146,11 +149,11 @@ void main() {
       expect(find.textContaining('Statut'), findsOneWidget);
     });
 
-    testWidgets('should show informative message for déchargé status', (WidgetTester tester) async {
+    testWidgets('should show informative message for déchargé status', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
-        ProviderScope(
-          child: SimpleCdrDetailWidget(cours: coursDecharge),
-        ),
+        ProviderScope(child: SimpleCdrDetailWidget(cours: coursDecharge)),
       );
 
       await tester.pumpAndSettle();
@@ -163,11 +166,11 @@ void main() {
       expect(find.byIcon(Icons.info_outline), findsOneWidget);
     });
 
-    testWidgets('should display course information correctly', (WidgetTester tester) async {
+    testWidgets('should display course information correctly', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
-        ProviderScope(
-          child: SimpleCdrDetailWidget(cours: coursDecharge),
-        ),
+        ProviderScope(child: SimpleCdrDetailWidget(cours: coursDecharge)),
       );
 
       await tester.pumpAndSettle();
@@ -179,13 +182,13 @@ void main() {
       expect(find.textContaining('50000'), findsOneWidget);
     });
 
-    testWidgets('should not show informative message for non-déchargé status', (WidgetTester tester) async {
+    testWidgets('should not show informative message for non-déchargé status', (
+      WidgetTester tester,
+    ) async {
       final coursTransit = coursDecharge.copyWith(statut: StatutCours.transit);
 
       await tester.pumpWidget(
-        ProviderScope(
-          child: SimpleCdrDetailWidget(cours: coursTransit),
-        ),
+        ProviderScope(child: SimpleCdrDetailWidget(cours: coursTransit)),
       );
 
       await tester.pumpAndSettle();
@@ -198,7 +201,9 @@ void main() {
       expect(find.text('Transit'), findsOneWidget);
     });
 
-    testWidgets('should handle different statuses correctly', (WidgetTester tester) async {
+    testWidgets('should handle different statuses correctly', (
+      WidgetTester tester,
+    ) async {
       final statuts = [
         StatutCours.chargement,
         StatutCours.transit,
@@ -211,9 +216,7 @@ void main() {
         final cours = coursDecharge.copyWith(statut: statut);
 
         await tester.pumpWidget(
-          ProviderScope(
-            child: SimpleCdrDetailWidget(cours: cours),
-          ),
+          ProviderScope(child: SimpleCdrDetailWidget(cours: cours)),
         );
 
         await tester.pumpAndSettle();

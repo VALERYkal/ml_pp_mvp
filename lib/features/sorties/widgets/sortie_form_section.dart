@@ -21,7 +21,7 @@ class SortieFormSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -58,7 +58,9 @@ class SortieFormSection extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: (iconColor ?? colorScheme.primary).withOpacity(0.1),
+                      color: (iconColor ?? colorScheme.primary).withOpacity(
+                        0.1,
+                      ),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(

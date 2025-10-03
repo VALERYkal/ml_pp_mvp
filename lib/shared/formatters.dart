@@ -22,5 +22,5 @@ String fmtPct(num? v) {
 }
 
 String fmtCount(int? n) {
-  return _int0.format((n ?? 0).clamp(0, 1<<31));
+  return _int0.format((n ?? 0).clamp(0, 1 << 31));
 }
