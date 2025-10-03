@@ -28,7 +28,7 @@ Future<void> pumpWithProviders(
   final defaultOverrides = [
     // Providers par défaut pour les tests CDR
     userRoleProvider.overrideWith((ref) => UserRole.lecture),
-    refDataProvider.overrideWith((ref) => FakeRefData()),
+    refDataProvider.overrideWith((ref) => FakeRefData() as RefDataCache),
   ];
 
   final allOverrides = [...defaultOverrides, ...overrides];
