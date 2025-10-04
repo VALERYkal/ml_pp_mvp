@@ -29,10 +29,31 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Create .env for CI (Windows)
+        shell: pwsh
         run: |
-          echo SUPABASE_URL=http://localhost> .env
-          echo SUPABASE_ANON_KEY=dummy>> .env
-          type .env
+          if (-not (Test-Path .env)) {
+            "SUPABASE_URL=http://localhost" | Out-File -FilePath .env -Encoding ascii
+            "SUPABASE_ANON_KEY=dummy"       | Out-File -FilePath .env -Append -Encoding ascii
+          }
+          Write-Host "CI .env:"
+          Get-Content .env
+
+      - name: Install jq (Windows via bash)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if command -v jq >/dev/null 2>&1; then
+            echo "jq already present: $(jq --version)"; exit 0
+          fi
+          URL="https://github.com/stedolan/jq/releases/download/jq-1.7.1/jq-win64.exe"
+          DST="$RUNNER_TEMP/jq.exe"
+          curl -fsSL "$URL" -o "$DST"
+          BIN_DIR="$RUNNER_TEMP/jqbin"
+          mkdir -p "$BIN_DIR"
+          cp "$DST" "$BIN_DIR/jq.exe"
+          WIN_BIN_DIR="$(cygpath -w "$BIN_DIR")"
+          echo "$WIN_BIN_DIR" >> "$GITHUB_PATH"
+          "$BIN_DIR/jq.exe" --version
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -75,10 +96,31 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Create .env for CI (Windows)
+        shell: pwsh
         run: |
-          echo SUPABASE_URL=http://localhost> .env
-          echo SUPABASE_ANON_KEY=dummy>> .env
-          type .env
+          if (-not (Test-Path .env)) {
+            "SUPABASE_URL=http://localhost" | Out-File -FilePath .env -Encoding ascii
+            "SUPABASE_ANON_KEY=dummy"       | Out-File -FilePath .env -Append -Encoding ascii
+          }
+          Write-Host "CI .env:"
+          Get-Content .env
+
+      - name: Install jq (Windows via bash)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if command -v jq >/dev/null 2>&1; then
+            echo "jq already present: $(jq --version)"; exit 0
+          fi
+          URL="https://github.com/stedolan/jq/releases/download/jq-1.7.1/jq-win64.exe"
+          DST="$RUNNER_TEMP/jq.exe"
+          curl -fsSL "$URL" -o "$DST"
+          BIN_DIR="$RUNNER_TEMP/jqbin"
+          mkdir -p "$BIN_DIR"
+          cp "$DST" "$BIN_DIR/jq.exe"
+          WIN_BIN_DIR="$(cygpath -w "$BIN_DIR")"
+          echo "$WIN_BIN_DIR" >> "$GITHUB_PATH"
+          "$BIN_DIR/jq.exe" --version
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -106,10 +148,31 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Create .env for CI (Windows)
+        shell: pwsh
         run: |
-          echo SUPABASE_URL=http://localhost> .env
-          echo SUPABASE_ANON_KEY=dummy>> .env
-          type .env
+          if (-not (Test-Path .env)) {
+            "SUPABASE_URL=http://localhost" | Out-File -FilePath .env -Encoding ascii
+            "SUPABASE_ANON_KEY=dummy"       | Out-File -FilePath .env -Append -Encoding ascii
+          }
+          Write-Host "CI .env:"
+          Get-Content .env
+
+      - name: Install jq (Windows via bash)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if command -v jq >/dev/null 2>&1; then
+            echo "jq already present: $(jq --version)"; exit 0
+          fi
+          URL="https://github.com/stedolan/jq/releases/download/jq-1.7.1/jq-win64.exe"
+          DST="$RUNNER_TEMP/jq.exe"
+          curl -fsSL "$URL" -o "$DST"
+          BIN_DIR="$RUNNER_TEMP/jqbin"
+          mkdir -p "$BIN_DIR"
+          cp "$DST" "$BIN_DIR/jq.exe"
+          WIN_BIN_DIR="$(cygpath -w "$BIN_DIR")"
+          echo "$WIN_BIN_DIR" >> "$GITHUB_PATH"
+          "$BIN_DIR/jq.exe" --version
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
