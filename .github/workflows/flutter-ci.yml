@@ -124,8 +124,8 @@ jobs:
       - name: Generate code (build_runner)
         run: dart run build_runner build --delete-conflicting-outputs
 
-      - name: Run tests (expanded)
-        run: flutter test -r expanded --exclude-tags=e2e,integration,needs-refactor
+      - name: Run tests (expanded, unit only)
+        run: flutter test -r expanded --exclude-tags=e2e,integration
 
   build_web:
     name: Build Web (smoke compile)
