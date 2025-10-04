@@ -10,10 +10,9 @@ import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 import 'package:ml_pp_mvp/features/cours_route/screens/cours_route_form_screen.dart';
 import 'package:ml_pp_mvp/features/cours_route/screens/cours_route_list_screen.dart';
 import 'package:ml_pp_mvp/features/cours_route/screens/cours_route_detail_screen.dart';
-import 'package:ml_pp_mvp/shared/providers/ref_data_provider.dart';
-import 'package:ml_pp_mvp/shared/models/ref_data_cache.dart';
-import 'package:ml_pp_mvp/features/auth/models/user_role.dart';
-import 'package:ml_pp_mvp/features/auth/providers/auth_provider.dart';
+import 'package:ml_pp_mvp/shared/providers/ref_data_provider.dart' show RefDataCache;
+import 'package:ml_pp_mvp/core/models/user_role.dart';
+import 'package:ml_pp_mvp/shared/providers/session_provider.dart' show sessionProvider;
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_route_providers.dart';
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_filters_provider.dart';
 import 'package:ml_pp_mvp/features/cours_route/data/cours_de_route_service.dart';
@@ -164,9 +163,9 @@ class CoursRouteTestHelpers {
     when(
       mockService.getActifs(),
     ).thenAnswer((_) async => CoursRouteFixtures.activeCoursList());
-    when(mockService.create(any)).thenAnswer((_) async {});
-    when(mockService.update(any)).thenAnswer((_) async {});
-    when(mockService.delete(any)).thenAnswer((_) async {});
+    when(mockService.create(any<CoursDeRoute>())).thenAnswer((_) async {});
+    when(mockService.update(any<CoursDeRoute>())).thenAnswer((_) async {});
+    when(mockService.delete(any<String>())).thenAnswer((_) async {});
     when(
       mockService.updateStatut(
         id: anyNamed('id'),
@@ -191,7 +190,7 @@ class CoursRouteTestHelpers {
         if (refData != null)
           refDataProvider.overrideWith((ref) async => refData),
         if (userRole != null)
-          authProvider.overrideWith(
+          sessionProvider.overrideWith(
             (ref) => AuthState(
               user: MockUser(role: userRole, depotId: depotId),
               isAuthenticated: true,

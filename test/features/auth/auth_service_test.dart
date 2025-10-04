@@ -9,16 +9,8 @@ import 'package:mockito/annotations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ml_pp_mvp/core/services/auth_service.dart';
 
-import 'mocks.mocks.dart';
+import '../../_mocks.mocks.dart';
 
-@GenerateMocks([
-  SupabaseClient,
-  GoTrueClient,
-  AuthResponse,
-  User,
-  Session,
-  AuthState,
-])
 void main() {
   group('AuthService Unit Tests', () {
     late AuthService authService;

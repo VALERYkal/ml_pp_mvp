@@ -1,3 +1,4 @@
+@Tags(['integration'])
 // 📌 Module : Cours de Route - Tests Providers
 // 🧑 Auteur : Valery Kalonga
 // 📅 Date : 2025-01-27
@@ -116,7 +117,7 @@ void main() {
           depotDestinationId: 'depot-1',
         );
 
-        when(mockService.create(any)).thenAnswer((_) async {});
+        when(mockService.create(any<CoursDeRoute>())).thenAnswer((_) async {});
 
         // Act
         await container.read(createCoursDeRouteProvider(cours).future);
@@ -137,7 +138,7 @@ void main() {
           depotDestinationId: 'depot-1',
         );
 
-        when(mockService.create(any)).thenThrow(Exception('Creation failed'));
+        when(mockService.create(any<CoursDeRoute>())).thenThrow(Exception('Creation failed'));
 
         // Act & Assert
         expect(
@@ -157,7 +158,7 @@ void main() {
           depotDestinationId: 'depot-1',
         );
 
-        when(mockService.update(any)).thenAnswer((_) async {});
+        when(mockService.update(any<CoursDeRoute>())).thenAnswer((_) async {});
 
         // Act
         await container.read(updateCoursDeRouteProvider(cours).future);

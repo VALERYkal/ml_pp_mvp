@@ -1,3 +1,4 @@
+@Tags(['e2e'])
 // 📌 Module : Cours de Route - Tests E2E Critiques
 // 🧑 Auteur : Valery Kalonga
 // 📅 Date : 2025-01-27

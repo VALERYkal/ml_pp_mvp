@@ -1,3 +1,4 @@
+@Tags(['integration'])
 // 📌 Module : Cours de Route - Tests Service
 // 🧑 Auteur : Valery Kalonga
 // 📅 Date : 2025-08-07
@@ -10,21 +11,48 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ml_pp_mvp/features/cours_route/data/cours_de_route_service.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 
-import 'cours_de_route_service_test.mocks.dart';
+import '../../_mocks.mocks.dart';
 
-@GenerateMocks([SupabaseClient, PostgrestQueryBuilder, PostgrestFilterBuilder])
 void main() {
   group('CoursDeRouteService', () {
     late MockSupabaseClient mockSupabase;
-    late MockPostgrestQueryBuilder mockQueryBuilder;
-    late MockPostgrestFilterBuilder mockFilterBuilder;
+    late MockSupabaseQueryBuilder mockTable; // <- from(...)
+    late MockPostgrestFilterBuilder<dynamic> mockFilter; // <- insert()/eq()/order()/etc
+    late MockPostgrestTransformBuilder<dynamic> mockTransform; // <- select().single()/maybeSingle()
     late CoursDeRouteService service;
 
     setUp(() {
       mockSupabase = MockSupabaseClient();
-      mockQueryBuilder = MockPostgrestQueryBuilder();
-      mockFilterBuilder = MockPostgrestFilterBuilder();
+      mockTable = MockSupabaseQueryBuilder();
+      mockFilter = MockPostgrestFilterBuilder<dynamic>();
+      mockTransform = MockPostgrestTransformBuilder<dynamic>();
       service = CoursDeRouteService.withClient(mockSupabase);
+
+      when(mockSupabase.from('cours_de_route')).thenReturn(mockTable);
+
+      // insert / delete / update / eq / order -> renvoient généralement un FilterBuilder
+      when(mockTable.insert(any)).thenReturn(mockFilter);
+      when(mockTable.delete()).thenReturn(mockFilter);
+      when(mockTable.update(any)).thenReturn(mockFilter);
+      when(mockFilter.eq(any, any)).thenReturn(mockFilter);
+      when(mockFilter.neq(any, any)).thenReturn(mockFilter);
+      when(mockFilter.order(any, ascending: anyNamed('ascending'))).thenReturn(mockFilter);
+
+      // select -> renvoie un TransformBuilder (sur lequel on peut appeler single()/maybeSingle())
+      when(mockTable.select()).thenReturn(mockTransform);
+
+      // Exemple de stub de résultat .single() (adapte la forme à ton service)
+      when(mockTransform.single()).thenAnswer((_) async => {
+        'id': 'test-id',
+        'fournisseur_id': 'fournisseur-1',
+        'produit_id': 'produit-1',
+        'depot_destination_id': 'depot-1',
+        'plaque_camion': 'ABC123',
+        'chauffeur_nom': 'Jean Dupont',
+        'volume': 50000,
+        'depart_pays': 'RDC',
+        'statut': 'CHARGEMENT',
+      });
     });
 
     group('create', () {
@@ -42,29 +70,12 @@ void main() {
           dateChargement: DateTime.now(),
         );
 
-        when(mockSupabase.from('cours_de_route')).thenReturn(mockQueryBuilder);
-        when(mockQueryBuilder.insert(any)).thenReturn(mockQueryBuilder);
-        when(mockQueryBuilder.select()).thenReturn(mockQueryBuilder);
-        when(mockQueryBuilder.single()).thenAnswer(
-          (_) async => {
-            'id': 'new-id',
-            'fournisseur_id': 'fournisseur-1',
-            'produit_id': 'produit-1',
-            'depot_destination_id': 'depot-1',
-            'plaque_camion': 'ABC123',
-            'chauffeur_nom': 'Jean Dupont',
-            'volume': 50000,
-            'depart_pays': 'RDC',
-            'statut': 'CHARGEMENT',
-          },
-        );
-
         // Act
         await service.create(cours);
 
         // Assert
         verify(mockSupabase.from('cours_de_route')).called(1);
-        verify(mockQueryBuilder.insert(any)).called(1);
+        verify(mockTable.insert(any)).called(1);
       });
 
       test('should throw ArgumentError for invalid cours', () async {
@@ -95,7 +106,12 @@ void main() {
         when(mockQueryBuilder.select()).thenReturn(mockQueryBuilder);
         when(
           mockQueryBuilder.single(),
-        ).thenThrow(PostgrestException('Database error'));
+        ).thenThrow(PostgrestException(
+          message: 'Database error',
+          code: 'DB_ERROR',
+          details: null,
+          hint: null,
+        ));
 
         // Act & Assert
         expect(() => service.create(cours), throwsException);

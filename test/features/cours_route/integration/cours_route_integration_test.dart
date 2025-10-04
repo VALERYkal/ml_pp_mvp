@@ -1,3 +1,4 @@
+@Tags(['integration'])
 // 📌 Module : Cours de Route - Tests d'Intégration
 // 🧑 Auteur : Valery Kalonga
 // 📅 Date : 2025-01-27
@@ -13,6 +14,7 @@ import 'package:ml_pp_mvp/features/cours_route/providers/cours_route_providers.d
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_filters_provider.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 import 'package:ml_pp_mvp/shared/providers/ref_data_provider.dart';
+import 'package:ml_pp_mvp/test_map_extensions.dart';
 
 void main() {
   group('Cours de Route Integration Tests', () {

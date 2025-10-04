@@ -1,3 +1,4 @@
+@Tags(['integration'])
 // 📌 Module : Auth Tests - Integration Tests
 // 🧑 Auteur : Valery Kalonga
 // 📅 Date : 2025-01-27

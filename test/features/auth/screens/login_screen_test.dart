@@ -13,9 +13,8 @@ import 'package:ml_pp_mvp/core/services/auth_service.dart';
 import 'package:ml_pp_mvp/features/auth/screens/login_screen.dart';
 import 'package:ml_pp_mvp/shared/providers/auth_service_provider.dart';
 
-import '../mocks.mocks.dart';
+import '../../_mocks.mocks.dart';
 
-@GenerateMocks([AuthService, User])
 void main() {
   group('LoginScreen Widget Tests', () {
     late MockAuthService mockAuthService;

@@ -11,9 +11,8 @@ import 'package:ml_pp_mvp/features/profil/data/profil_service.dart';
 import 'package:ml_pp_mvp/core/models/profil.dart';
 import 'package:ml_pp_mvp/core/models/user_role.dart';
 
-import 'mocks.mocks.dart';
+import '../../_mocks.mocks.dart';
 
-@GenerateMocks([SupabaseClient, User])
 void main() {
   group('ProfilService Unit Tests', () {
     late ProfilService profilService;

@@ -1,3 +1,4 @@
+@Tags(['e2e'])
 // test/e2e/auth/login_flow_e2e_test.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';

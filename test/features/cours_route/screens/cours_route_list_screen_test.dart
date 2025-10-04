@@ -1,3 +1,4 @@
+@Tags(['integration'])
 // 📌 Module : Cours de Route - Tests Widget Liste
 // 🧑 Auteur : Valery Kalonga
 // 📅 Date : 2025-01-27

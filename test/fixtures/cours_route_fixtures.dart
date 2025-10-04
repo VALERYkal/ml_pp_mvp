@@ -4,7 +4,7 @@
 // 🧭 Description : Fixtures et données de test pour le module CDR
 
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
-import 'package:ml_pp_mvp/shared/models/ref_data_cache.dart';
+import 'package:ml_pp_mvp/shared/providers/ref_data_provider.dart' show RefDataCache;
 
 /// Fixtures pour les tests du module Cours de Route
 class CoursRouteFixtures {
