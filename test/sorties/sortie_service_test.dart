@@ -8,14 +8,10 @@ class FakeStocksService {
   int decrements = 0;
   Map<String, dynamic>? lastArgs;
 
-  Future<double> getAmbientForToday({
-    required String citerneId,
-    required String produitId,
-  }) async => ambientToday;
-  Future<double> getV15ForToday({
-    required String citerneId,
-    required String produitId,
-  }) async => v15Today;
+  Future<double> getAmbientForToday({required String citerneId, required String produitId}) async =>
+      ambientToday;
+  Future<double> getV15ForToday({required String citerneId, required String produitId}) async =>
+      v15Today;
 
   Future<void> decrement({
     required String citerneId,
@@ -38,17 +34,11 @@ void main() {
     final fakeStocks = FakeStocksService();
 
     // Test getAmbientForToday
-    final ambient = await fakeStocks.getAmbientForToday(
-      citerneId: 'c1',
-      produitId: 'p1',
-    );
+    final ambient = await fakeStocks.getAmbientForToday(citerneId: 'c1', produitId: 'p1');
     expect(ambient, 1000.0);
 
     // Test getV15ForToday
-    final v15 = await fakeStocks.getV15ForToday(
-      citerneId: 'c1',
-      produitId: 'p1',
-    );
+    final v15 = await fakeStocks.getV15ForToday(citerneId: 'c1', produitId: 'p1');
     expect(v15, 1000.0);
 
     // Test decrement
@@ -69,14 +59,8 @@ void main() {
     fakeStocks.ambientToday = 50; // Stock faible
     fakeStocks.v15Today = 48;
 
-    final ambient = await fakeStocks.getAmbientForToday(
-      citerneId: 'c1',
-      produitId: 'p1',
-    );
-    final v15 = await fakeStocks.getV15ForToday(
-      citerneId: 'c1',
-      produitId: 'p1',
-    );
+    final ambient = await fakeStocks.getAmbientForToday(citerneId: 'c1', produitId: 'p1');
+    final v15 = await fakeStocks.getV15ForToday(citerneId: 'c1', produitId: 'p1');
 
     expect(ambient, 50.0);
     expect(v15, 48.0);

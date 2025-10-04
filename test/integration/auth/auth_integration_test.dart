@@ -46,9 +46,7 @@ void main() {
     }
 
     group('Role-based Redirection', () {
-      testWidgets('should redirect admin to admin dashboard', (
-        WidgetTester tester,
-      ) async {
+      testWidgets('should redirect admin to admin dashboard', (WidgetTester tester) async {
         // Arrange
         final adminProfil = Profil(
           id: 'profil-id',
@@ -73,9 +71,7 @@ void main() {
         expect(find.text('Gestion des utilisateurs'), findsOneWidget);
       });
 
-      testWidgets('should redirect directeur to directeur dashboard', (
-        WidgetTester tester,
-      ) async {
+      testWidgets('should redirect directeur to directeur dashboard', (WidgetTester tester) async {
         // Arrange
         final directeurProfil = Profil(
           id: 'profil-id',
@@ -100,9 +96,7 @@ void main() {
         expect(find.text('Validation des mouvements'), findsOneWidget);
       });
 
-      testWidgets('should redirect gerant to gerant dashboard', (
-        WidgetTester tester,
-      ) async {
+      testWidgets('should redirect gerant to gerant dashboard', (WidgetTester tester) async {
         // Arrange
         final gerantProfil = Profil(
           id: 'profil-id',
@@ -127,9 +121,7 @@ void main() {
         expect(find.text('Gestion des stocks'), findsOneWidget);
       });
 
-      testWidgets('should redirect operateur to operateur dashboard', (
-        WidgetTester tester,
-      ) async {
+      testWidgets('should redirect operateur to operateur dashboard', (WidgetTester tester) async {
         // Arrange
         final operateurProfil = Profil(
           id: 'profil-id',
@@ -155,9 +147,7 @@ void main() {
         expect(find.text('Réceptions'), findsOneWidget);
       });
 
-      testWidgets('should redirect pca to pca dashboard', (
-        WidgetTester tester,
-      ) async {
+      testWidgets('should redirect pca to pca dashboard', (WidgetTester tester) async {
         // Arrange
         final pcaProfil = Profil(
           id: 'profil-id',
@@ -182,9 +172,7 @@ void main() {
         expect(find.text('Rapports'), findsOneWidget);
       });
 
-      testWidgets('should redirect lecture to lecture dashboard', (
-        WidgetTester tester,
-      ) async {
+      testWidgets('should redirect lecture to lecture dashboard', (WidgetTester tester) async {
         // Arrange
         final lectureProfil = Profil(
           id: 'profil-id',
@@ -211,9 +199,7 @@ void main() {
     });
 
     group('Menu Conformity by Role', () {
-      testWidgets('admin should see all menu items', (
-        WidgetTester tester,
-      ) async {
+      testWidgets('admin should see all menu items', (WidgetTester tester) async {
         // Arrange
         final adminProfil = Profil(
           id: 'profil-id',
@@ -242,9 +228,7 @@ void main() {
         expect(find.text('Paramètres'), findsOneWidget);
       });
 
-      testWidgets('directeur should see management menu items', (
-        WidgetTester tester,
-      ) async {
+      testWidgets('directeur should see management menu items', (WidgetTester tester) async {
         // Arrange
         final directeurProfil = Profil(
           id: 'profil-id',
@@ -273,9 +257,7 @@ void main() {
         expect(find.text('Utilisateurs'), findsNothing);
       });
 
-      testWidgets('operateur should see operational menu items only', (
-        WidgetTester tester,
-      ) async {
+      testWidgets('operateur should see operational menu items only', (WidgetTester tester) async {
         // Arrange
         final operateurProfil = Profil(
           id: 'profil-id',
@@ -303,9 +285,7 @@ void main() {
         expect(find.text('Rapports'), findsNothing);
       });
 
-      testWidgets('lecture should see read-only menu items', (
-        WidgetTester tester,
-      ) async {
+      testWidgets('lecture should see read-only menu items', (WidgetTester tester) async {
         // Arrange
         final lectureProfil = Profil(
           id: 'profil-id',
@@ -337,9 +317,7 @@ void main() {
     });
 
     group('Authentication Flow', () {
-      testWidgets('should redirect to login when not authenticated', (
-        WidgetTester tester,
-      ) async {
+      testWidgets('should redirect to login when not authenticated', (WidgetTester tester) async {
         // Arrange
         when(mockAuthService.isAuthenticated).thenReturn(false);
         when(mockAuthService.getCurrentUser()).thenReturn(null);
@@ -352,9 +330,7 @@ void main() {
         expect(find.text('Connexion ML_PP MVP'), findsOneWidget);
       });
 
-      testWidgets('should redirect to login when profil is null', (
-        WidgetTester tester,
-      ) async {
+      testWidgets('should redirect to login when profil is null', (WidgetTester tester) async {
         // Arrange
         when(mockAuthService.isAuthenticated).thenReturn(true);
         when(mockAuthService.getCurrentUser()).thenReturn(mockUser);
@@ -366,9 +342,7 @@ void main() {
         expect(find.byType(LoginScreen), findsOneWidget);
       });
 
-      testWidgets('should handle profil loading state', (
-        WidgetTester tester,
-      ) async {
+      testWidgets('should handle profil loading state', (WidgetTester tester) async {
         // Arrange
         when(mockAuthService.isAuthenticated).thenReturn(true);
         when(mockAuthService.getCurrentUser()).thenReturn(mockUser);
@@ -378,9 +352,7 @@ void main() {
             overrides: [
               authServiceProvider.overrideWithValue(mockAuthService),
               profilServiceProvider.overrideWithValue(mockProfilService),
-              currentProfilProvider.overrideWith(
-                (ref) => const AsyncValue.loading(),
-              ),
+              currentProfilProvider.overrideWith((ref) => const AsyncValue.loading()),
             ],
             child: MaterialApp.router(routerConfig: AppRouter.router),
           ),
@@ -391,9 +363,7 @@ void main() {
         expect(find.byType(CircularProgressIndicator), findsOneWidget);
       });
 
-      testWidgets('should handle profil error state', (
-        WidgetTester tester,
-      ) async {
+      testWidgets('should handle profil error state', (WidgetTester tester) async {
         // Arrange
         when(mockAuthService.isAuthenticated).thenReturn(true);
         when(mockAuthService.getCurrentUser()).thenReturn(mockUser);
@@ -482,9 +452,7 @@ void main() {
     });
 
     group('Logout Flow', () {
-      testWidgets('should redirect to login after logout', (
-        WidgetTester tester,
-      ) async {
+      testWidgets('should redirect to login after logout', (WidgetTester tester) async {
         // Arrange
         final adminProfil = Profil(
           id: 'profil-id',

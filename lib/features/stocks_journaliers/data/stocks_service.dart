@@ -30,8 +30,7 @@ class StocksService {
 
     if (existing != null) {
       final current = existing as Map<String, dynamic>;
-      final newAmb =
-          (current['stock_ambiant'] as num).toDouble() + volumeAmbiant;
+      final newAmb = (current['stock_ambiant'] as num).toDouble() + volumeAmbiant;
       final new15 = (current['stock_15c'] as num).toDouble() + volume15c;
       await _client
           .from('stocks_journaliers')

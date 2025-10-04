@@ -4,11 +4,7 @@ class StocksTotals {
   final double totalAmbiant;
   final double total15c;
   final DateTime? lastDay;
-  const StocksTotals({
-    required this.totalAmbiant,
-    required this.total15c,
-    required this.lastDay,
-  });
+  const StocksTotals({required this.totalAmbiant, required this.total15c, required this.lastDay});
 }
 
 class StocksRepository {
@@ -18,17 +14,11 @@ class StocksRepository {
   /// Somme des stocks actuels depuis la vue v_citerne_stock_actuel.
   /// - Si [depotId] est renseigné, on filtre via les citernes du dépôt.
   /// - [produitId] optionnel (pour réutilisation ultérieure).
-  Future<StocksTotals> totauxActuels({
-    String? depotId,
-    String? produitId,
-  }) async {
+  Future<StocksTotals> totauxActuels({String? depotId, String? produitId}) async {
     // 1) Si on filtre par dépôt => récupérer les citerne_id correspondants
     List<String>? citerneIds;
     if (depotId != null && depotId.isNotEmpty) {
-      final citRows = await _supa
-          .from('citernes')
-          .select('id')
-          .eq('depot_id', depotId);
+      final citRows = await _supa.from('citernes').select('id').eq('depot_id', depotId);
       citerneIds = (citRows as List).map((e) => e['id'] as String).toList();
       if (citerneIds.isEmpty) {
         return const StocksTotals(totalAmbiant: 0, total15c: 0, lastDay: null);

@@ -18,11 +18,6 @@ final partenairesProvider = FutureProvider<List<PartenaireItem>>((ref) async {
   final client = Supabase.instance.client;
   final rows = await client.from('partenaires').select('id, nom').order('nom');
   return (rows as List)
-      .map(
-        (m) => PartenaireItem(
-          id: m['id'] as String,
-          nom: (m['nom']?.toString() ?? '').trim(),
-        ),
-      )
+      .map((m) => PartenaireItem(id: m['id'] as String, nom: (m['nom']?.toString() ?? '').trim()))
       .toList();
 });

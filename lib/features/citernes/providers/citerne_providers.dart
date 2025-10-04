@@ -25,8 +25,7 @@ class CiterneRow {
   });
 
   bool get belowSecurity =>
-      capaciteSecurite != null &&
-      (stock15c ?? stockAmbiant ?? 0.0) < capaciteSecurite!;
+      capaciteSecurite != null && (stock15c ?? stockAmbiant ?? 0.0) < capaciteSecurite!;
   double get ratioFill => capaciteTotale != null && capaciteTotale! > 0
       ? ((stock15c ?? stockAmbiant ?? 0.0) / capaciteTotale!).clamp(0.0, 1.0)
       : 0.0;
@@ -40,19 +39,16 @@ final citerneServiceProvider = Riverpod.Provider<CiterneService>((ref) {
 /// Provider pour récupérer le stock actuel d'une citerne/produit
 /// Clé : (citerneId, produitId)
 /// Retourne : Map<String, double> avec 'ambiant' et 'c15'
-final stockActuelProvider =
-    Riverpod.FutureProvider.family<Map<String, double>, (String, String)>((
-      ref,
-      params,
-    ) async {
-      final (citerneId, produitId) = params;
-      final service = ref.read(citerneServiceProvider);
-      return await service.getStockActuel(citerneId, produitId);
-    });
-
-final citernesWithStockProvider = Riverpod.FutureProvider<List<CiterneRow>>((
+final stockActuelProvider = Riverpod.FutureProvider.family<Map<String, double>, (String, String)>((
   ref,
+  params,
 ) async {
+  final (citerneId, produitId) = params;
+  final service = ref.read(citerneServiceProvider);
+  return await service.getStockActuel(citerneId, produitId);
+});
+
+final citernesWithStockProvider = Riverpod.FutureProvider<List<CiterneRow>>((ref) async {
   final sb = Supabase.instance.client;
 
   // 1) Citernes (toutes) — adapte si tu filtres par dépôt/produit/actif
@@ -77,9 +73,7 @@ final citernesWithStockProvider = Riverpod.FutureProvider<List<CiterneRow>>((
   final stocks =
       await sb
               .from('stock_actuel')
-              .select(
-                'citerne_id, produit_id, stock_ambiant, stock_15c, date_jour',
-              )
+              .select('citerne_id, produit_id, stock_ambiant, stock_15c, date_jour')
               .in_('citerne_id', ids)
               .in_('produit_id', prodIds)
           as List;

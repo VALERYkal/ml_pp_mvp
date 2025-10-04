@@ -11,30 +11,21 @@ void main() {
     group('Valid Transitions', () {
       test('should allow chargement → transit', () {
         expect(
-          CoursDeRouteStateMachine.canTransition(
-            StatutCours.chargement,
-            StatutCours.transit,
-          ),
+          CoursDeRouteStateMachine.canTransition(StatutCours.chargement, StatutCours.transit),
           true,
         );
       });
 
       test('should allow transit → frontiere', () {
         expect(
-          CoursDeRouteStateMachine.canTransition(
-            StatutCours.transit,
-            StatutCours.frontiere,
-          ),
+          CoursDeRouteStateMachine.canTransition(StatutCours.transit, StatutCours.frontiere),
           true,
         );
       });
 
       test('should allow frontiere → arrive', () {
         expect(
-          CoursDeRouteStateMachine.canTransition(
-            StatutCours.frontiere,
-            StatutCours.arrive,
-          ),
+          CoursDeRouteStateMachine.canTransition(StatutCours.frontiere, StatutCours.arrive),
           true,
         );
       });
@@ -54,20 +45,14 @@ void main() {
     group('Invalid Transitions', () {
       test('should not allow chargement → arrive (skip transit)', () {
         expect(
-          CoursDeRouteStateMachine.canTransition(
-            StatutCours.chargement,
-            StatutCours.arrive,
-          ),
+          CoursDeRouteStateMachine.canTransition(StatutCours.chargement, StatutCours.arrive),
           false,
         );
       });
 
       test('should not allow decharge → transit (backward)', () {
         expect(
-          CoursDeRouteStateMachine.canTransition(
-            StatutCours.decharge,
-            StatutCours.transit,
-          ),
+          CoursDeRouteStateMachine.canTransition(StatutCours.decharge, StatutCours.transit),
           false,
         );
       });
@@ -85,20 +70,14 @@ void main() {
 
       test('should not allow chargement → frontiere (skip transit)', () {
         expect(
-          CoursDeRouteStateMachine.canTransition(
-            StatutCours.chargement,
-            StatutCours.frontiere,
-          ),
+          CoursDeRouteStateMachine.canTransition(StatutCours.chargement, StatutCours.frontiere),
           false,
         );
       });
 
       test('should not allow transit → decharge (skip steps)', () {
         expect(
-          CoursDeRouteStateMachine.canTransition(
-            StatutCours.transit,
-            StatutCours.decharge,
-          ),
+          CoursDeRouteStateMachine.canTransition(StatutCours.transit, StatutCours.decharge),
           false,
         );
       });
@@ -154,23 +133,17 @@ void main() {
       });
 
       test('should return allowed next statuses', () {
-        expect(
-          CoursDeRouteStateMachine.getAllowedNext(StatutCours.chargement),
-          {StatutCours.transit},
-        );
+        expect(CoursDeRouteStateMachine.getAllowedNext(StatutCours.chargement), {
+          StatutCours.transit,
+        });
         expect(CoursDeRouteStateMachine.getAllowedNext(StatutCours.transit), {
           StatutCours.frontiere,
         });
         expect(CoursDeRouteStateMachine.getAllowedNext(StatutCours.frontiere), {
           StatutCours.arrive,
         });
-        expect(CoursDeRouteStateMachine.getAllowedNext(StatutCours.arrive), {
-          StatutCours.decharge,
-        });
-        expect(
-          CoursDeRouteStateMachine.getAllowedNext(StatutCours.decharge),
-          <StatutCours>{},
-        );
+        expect(CoursDeRouteStateMachine.getAllowedNext(StatutCours.arrive), {StatutCours.decharge});
+        expect(CoursDeRouteStateMachine.getAllowedNext(StatutCours.decharge), <StatutCours>{});
       });
     });
 
@@ -182,9 +155,7 @@ void main() {
       });
 
       test('should handle empty allowed next for final status', () {
-        final allowed = CoursDeRouteStateMachine.getAllowedNext(
-          StatutCours.decharge,
-        );
+        final allowed = CoursDeRouteStateMachine.getAllowedNext(StatutCours.decharge);
         expect(allowed, isEmpty);
       });
 
@@ -203,14 +174,9 @@ void main() {
 
           if (next == StatutCours.decharge) {
             expect(
-              CoursDeRouteStateMachine.canTransition(
-                current,
-                next,
-                fromReception: true,
-              ),
+              CoursDeRouteStateMachine.canTransition(current, next, fromReception: true),
               true,
-              reason:
-                  'Transition from $current to $next should be allowed with reception',
+              reason: 'Transition from $current to $next should be allowed with reception',
             );
           } else {
             expect(

@@ -41,10 +41,7 @@ class ReferentielsRepo {
   /// Charge les produits actifs (id, code, nom). Mémoïsé.
   Future<List<ProduitRef>> loadProduits() async {
     if (_produits != null) return _produits!;
-    final rows = await client
-        .from('produits')
-        .select('id, code, nom, actif')
-        .eq('actif', true);
+    final rows = await client.from('produits').select('id, code, nom, actif').eq('actif', true);
     _produits = (rows as List)
         .map(
           (m) => ProduitRef(
@@ -62,9 +59,7 @@ class ReferentielsRepo {
     if (_citernes != null) return _citernes!;
     final rows = await client
         .from('citernes')
-        .select(
-          'id, nom, produit_id, capacite_totale, capacite_securite, statut',
-        )
+        .select('id, nom, produit_id, capacite_totale, capacite_securite, statut')
         .eq('statut', 'active');
     _citernes = (rows as List)
         .map(
@@ -118,14 +113,10 @@ final referentielsRepoProvider = Riverpod.Provider<ReferentielsRepo>((ref) {
   return ReferentielsRepo(Supabase.instance.client);
 });
 
-final produitsRefProvider = Riverpod.FutureProvider<List<ProduitRef>>((
-  ref,
-) async {
+final produitsRefProvider = Riverpod.FutureProvider<List<ProduitRef>>((ref) async {
   return ref.read(referentielsRepoProvider).loadProduits();
 });
 
-final citernesActivesProvider = Riverpod.FutureProvider<List<CiterneRef>>((
-  ref,
-) async {
+final citernesActivesProvider = Riverpod.FutureProvider<List<CiterneRef>>((ref) async {
   return ref.read(referentielsRepoProvider).loadCiternesActives();
 });

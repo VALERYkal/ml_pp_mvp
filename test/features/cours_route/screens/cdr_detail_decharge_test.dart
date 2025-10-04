@@ -50,14 +50,11 @@ class FakeCoursDeRouteService implements CoursDeRouteService {
   }) async => throw UnimplementedError();
 
   @override
-  Future<List<dynamic>> getByStatut(dynamic statut) async =>
-      throw UnimplementedError();
+  Future<List<dynamic>> getByStatut(dynamic statut) async => throw UnimplementedError();
 
   @override
-  Future<bool> canTransition({
-    required dynamic from,
-    required dynamic to,
-  }) async => throw UnimplementedError();
+  Future<bool> canTransition({required dynamic from, required dynamic to}) async =>
+      throw UnimplementedError();
 
   @override
   Future<bool> applyTransition({
@@ -71,8 +68,7 @@ class FakeCoursDeRouteService implements CoursDeRouteService {
   Future<Map<String, int>> countByStatut() async => throw UnimplementedError();
 
   @override
-  Future<Map<String, int>> countByCategorie() async =>
-      throw UnimplementedError();
+  Future<Map<String, int>> countByCategorie() async => throw UnimplementedError();
 }
 
 /// Fake ref data pour les tests
@@ -131,9 +127,7 @@ void main() {
             userRoleProvider.overrideWith((ref) => UserRole.lecture),
             refDataProvider.overrideWith((ref) => AsyncValue.data(fakeRefData)),
           ],
-          child: MaterialApp(
-            home: CoursRouteDetailScreen(coursId: coursDecharge.id),
-          ),
+          child: MaterialApp(home: CoursRouteDetailScreen(coursId: coursDecharge.id)),
         ),
       );
 
@@ -147,9 +141,7 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('should display déchargé status chip', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('should display déchargé status chip', (WidgetTester tester) async {
       final fakeService = FakeCoursDeRouteService(cours: coursDecharge);
       final fakeRefData = FakeRefData();
 
@@ -163,9 +155,7 @@ void main() {
             userRoleProvider.overrideWith((ref) => UserRole.lecture),
             refDataProvider.overrideWith((ref) => AsyncValue.data(fakeRefData)),
           ],
-          child: MaterialApp(
-            home: CoursRouteDetailScreen(coursId: coursDecharge.id),
-          ),
+          child: MaterialApp(home: CoursRouteDetailScreen(coursId: coursDecharge.id)),
         ),
       );
 
@@ -183,9 +173,7 @@ void main() {
       expect(chipWidget, isNotNull);
     });
 
-    testWidgets('should show limited actions for déchargé status', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('should show limited actions for déchargé status', (WidgetTester tester) async {
       final fakeService = FakeCoursDeRouteService(cours: coursDecharge);
       final fakeRefData = FakeRefData();
 
@@ -196,14 +184,10 @@ void main() {
             coursDeRouteByIdProvider(
               coursDecharge.id,
             ).overrideWith((ref) => AsyncValue.data(coursDecharge)),
-            userRoleProvider.overrideWith(
-              (ref) => UserRole.lecture,
-            ), // Non-admin
+            userRoleProvider.overrideWith((ref) => UserRole.lecture), // Non-admin
             refDataProvider.overrideWith((ref) => AsyncValue.data(fakeRefData)),
           ],
-          child: MaterialApp(
-            home: CoursRouteDetailScreen(coursId: coursDecharge.id),
-          ),
+          child: MaterialApp(home: CoursRouteDetailScreen(coursId: coursDecharge.id)),
         ),
       );
 
@@ -221,9 +205,7 @@ void main() {
       expect(supprimerButton, findsOneWidget);
     });
 
-    testWidgets('should allow admin actions for déchargé status', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('should allow admin actions for déchargé status', (WidgetTester tester) async {
       final fakeService = FakeCoursDeRouteService(cours: coursDecharge);
       final fakeRefData = FakeRefData();
 
@@ -237,9 +219,7 @@ void main() {
             userRoleProvider.overrideWith((ref) => UserRole.admin), // Admin
             refDataProvider.overrideWith((ref) => AsyncValue.data(fakeRefData)),
           ],
-          child: MaterialApp(
-            home: CoursRouteDetailScreen(coursId: coursDecharge.id),
-          ),
+          child: MaterialApp(home: CoursRouteDetailScreen(coursId: coursDecharge.id)),
         ),
       );
 
@@ -257,9 +237,7 @@ void main() {
       expect(supprimerButton, findsOneWidget);
     });
 
-    testWidgets('should display course information correctly', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('should display course information correctly', (WidgetTester tester) async {
       final fakeService = FakeCoursDeRouteService(cours: coursDecharge);
       final fakeRefData = FakeRefData();
 
@@ -273,9 +251,7 @@ void main() {
             userRoleProvider.overrideWith((ref) => UserRole.lecture),
             refDataProvider.overrideWith((ref) => AsyncValue.data(fakeRefData)),
           ],
-          child: MaterialApp(
-            home: CoursRouteDetailScreen(coursId: coursDecharge.id),
-          ),
+          child: MaterialApp(home: CoursRouteDetailScreen(coursId: coursDecharge.id)),
         ),
       );
 
@@ -304,9 +280,7 @@ void main() {
             userRoleProvider.overrideWith((ref) => UserRole.lecture),
             refDataProvider.overrideWith((ref) => const AsyncValue.loading()),
           ],
-          child: MaterialApp(
-            home: CoursRouteDetailScreen(coursId: coursDecharge.id),
-          ),
+          child: MaterialApp(home: CoursRouteDetailScreen(coursId: coursDecharge.id)),
         ),
       );
 
@@ -323,17 +297,15 @@ void main() {
         ProviderScope(
           overrides: [
             coursDeRouteServiceProvider.overrideWithValue(fakeService),
-            coursDeRouteByIdProvider(coursDecharge.id).overrideWith(
-              (ref) => AsyncValue.error('Test error', StackTrace.current),
-            ),
+            coursDeRouteByIdProvider(
+              coursDecharge.id,
+            ).overrideWith((ref) => AsyncValue.error('Test error', StackTrace.current)),
             userRoleProvider.overrideWith((ref) => UserRole.lecture),
             refDataProvider.overrideWith(
               (ref) => AsyncValue.error('Ref data error', StackTrace.current),
             ),
           ],
-          child: MaterialApp(
-            home: CoursRouteDetailScreen(coursId: coursDecharge.id),
-          ),
+          child: MaterialApp(home: CoursRouteDetailScreen(coursId: coursDecharge.id)),
         ),
       );
 
@@ -351,17 +323,11 @@ void main() {
         ProviderScope(
           overrides: [
             coursDeRouteServiceProvider.overrideWithValue(fakeService),
-            coursDeRouteByIdProvider(
-              coursDecharge.id,
-            ).overrideWith((ref) => AsyncValue.data(null)),
+            coursDeRouteByIdProvider(coursDecharge.id).overrideWith((ref) => AsyncValue.data(null)),
             userRoleProvider.overrideWith((ref) => UserRole.lecture),
-            refDataProvider.overrideWith(
-              (ref) => AsyncValue.data(FakeRefData()),
-            ),
+            refDataProvider.overrideWith((ref) => AsyncValue.data(FakeRefData())),
           ],
-          child: MaterialApp(
-            home: CoursRouteDetailScreen(coursId: coursDecharge.id),
-          ),
+          child: MaterialApp(home: CoursRouteDetailScreen(coursId: coursDecharge.id)),
         ),
       );
 

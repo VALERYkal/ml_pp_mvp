@@ -61,8 +61,7 @@ mixin _$Reception {
   /// Create a copy of Reception
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $ReceptionCopyWith<Reception> get copyWith =>
-      throw _privateConstructorUsedError;
+  $ReceptionCopyWith<Reception> get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
@@ -82,9 +81,7 @@ abstract class $ReceptionCopyWith<$Res> {
     @JsonKey(name: 'densite_a_15') double? densiteA15,
     @JsonKey(name: 'volume_corrige_15c') double? volumeCorrige15c,
     @JsonKey(name: 'volume_ambiant') double? volumeAmbiant,
-    @JsonKey(name: 'proprietaire_type')
-    @OwnerTypeConverter()
-    OwnerType proprietaireType,
+    @JsonKey(name: 'proprietaire_type') @OwnerTypeConverter() OwnerType proprietaireType,
     String? note,
     @JsonKey(name: 'created_at') DateTime? createdAt,
     @JsonKey(name: 'statut') String? statut,
@@ -94,8 +91,7 @@ abstract class $ReceptionCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$ReceptionCopyWithImpl<$Res, $Val extends Reception>
-    implements $ReceptionCopyWith<$Res> {
+class _$ReceptionCopyWithImpl<$Res, $Val extends Reception> implements $ReceptionCopyWith<$Res> {
   _$ReceptionCopyWithImpl(this._value, this._then);
 
   // ignore: unused_field
@@ -203,12 +199,9 @@ class _$ReceptionCopyWithImpl<$Res, $Val extends Reception>
 }
 
 /// @nodoc
-abstract class _$$ReceptionImplCopyWith<$Res>
-    implements $ReceptionCopyWith<$Res> {
-  factory _$$ReceptionImplCopyWith(
-    _$ReceptionImpl value,
-    $Res Function(_$ReceptionImpl) then,
-  ) = __$$ReceptionImplCopyWithImpl<$Res>;
+abstract class _$$ReceptionImplCopyWith<$Res> implements $ReceptionCopyWith<$Res> {
+  factory _$$ReceptionImplCopyWith(_$ReceptionImpl value, $Res Function(_$ReceptionImpl) then) =
+      __$$ReceptionImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({
@@ -223,9 +216,7 @@ abstract class _$$ReceptionImplCopyWith<$Res>
     @JsonKey(name: 'densite_a_15') double? densiteA15,
     @JsonKey(name: 'volume_corrige_15c') double? volumeCorrige15c,
     @JsonKey(name: 'volume_ambiant') double? volumeAmbiant,
-    @JsonKey(name: 'proprietaire_type')
-    @OwnerTypeConverter()
-    OwnerType proprietaireType,
+    @JsonKey(name: 'proprietaire_type') @OwnerTypeConverter() OwnerType proprietaireType,
     String? note,
     @JsonKey(name: 'created_at') DateTime? createdAt,
     @JsonKey(name: 'statut') String? statut,
@@ -235,13 +226,10 @@ abstract class _$$ReceptionImplCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$ReceptionImplCopyWithImpl<$Res>
-    extends _$ReceptionCopyWithImpl<$Res, _$ReceptionImpl>
+class __$$ReceptionImplCopyWithImpl<$Res> extends _$ReceptionCopyWithImpl<$Res, _$ReceptionImpl>
     implements _$$ReceptionImplCopyWith<$Res> {
-  __$$ReceptionImplCopyWithImpl(
-    _$ReceptionImpl _value,
-    $Res Function(_$ReceptionImpl) _then,
-  ) : super(_value, _then);
+  __$$ReceptionImplCopyWithImpl(_$ReceptionImpl _value, $Res Function(_$ReceptionImpl) _then)
+    : super(_value, _then);
 
   /// Create a copy of Reception
   /// with the given fields replaced by the non-null parameter values.
@@ -356,9 +344,7 @@ class _$ReceptionImpl implements _Reception {
     @JsonKey(name: 'densite_a_15') this.densiteA15,
     @JsonKey(name: 'volume_corrige_15c') this.volumeCorrige15c,
     @JsonKey(name: 'volume_ambiant') this.volumeAmbiant,
-    @JsonKey(name: 'proprietaire_type')
-    @OwnerTypeConverter()
-    required this.proprietaireType,
+    @JsonKey(name: 'proprietaire_type') @OwnerTypeConverter() required this.proprietaireType,
     this.note,
     @JsonKey(name: 'created_at') this.createdAt,
     @JsonKey(name: 'statut') this.statut,
@@ -366,8 +352,7 @@ class _$ReceptionImpl implements _Reception {
     @JsonKey(name: 'validated_by') this.validatedBy,
   });
 
-  factory _$ReceptionImpl.fromJson(Map<String, dynamic> json) =>
-      _$$ReceptionImplFromJson(json);
+  factory _$ReceptionImpl.fromJson(Map<String, dynamic> json) => _$$ReceptionImplFromJson(json);
 
   @override
   final String id;
@@ -433,20 +418,14 @@ class _$ReceptionImpl implements _Reception {
             (identical(other.id, id) || other.id == id) &&
             (identical(other.coursDeRouteId, coursDeRouteId) ||
                 other.coursDeRouteId == coursDeRouteId) &&
-            (identical(other.citerneId, citerneId) ||
-                other.citerneId == citerneId) &&
-            (identical(other.produitId, produitId) ||
-                other.produitId == produitId) &&
-            (identical(other.partenaireId, partenaireId) ||
-                other.partenaireId == partenaireId) &&
-            (identical(other.indexAvant, indexAvant) ||
-                other.indexAvant == indexAvant) &&
-            (identical(other.indexApres, indexApres) ||
-                other.indexApres == indexApres) &&
+            (identical(other.citerneId, citerneId) || other.citerneId == citerneId) &&
+            (identical(other.produitId, produitId) || other.produitId == produitId) &&
+            (identical(other.partenaireId, partenaireId) || other.partenaireId == partenaireId) &&
+            (identical(other.indexAvant, indexAvant) || other.indexAvant == indexAvant) &&
+            (identical(other.indexApres, indexApres) || other.indexApres == indexApres) &&
             (identical(other.temperatureAmbianteC, temperatureAmbianteC) ||
                 other.temperatureAmbianteC == temperatureAmbianteC) &&
-            (identical(other.densiteA15, densiteA15) ||
-                other.densiteA15 == densiteA15) &&
+            (identical(other.densiteA15, densiteA15) || other.densiteA15 == densiteA15) &&
             (identical(other.volumeCorrige15c, volumeCorrige15c) ||
                 other.volumeCorrige15c == volumeCorrige15c) &&
             (identical(other.volumeAmbiant, volumeAmbiant) ||
@@ -454,13 +433,10 @@ class _$ReceptionImpl implements _Reception {
             (identical(other.proprietaireType, proprietaireType) ||
                 other.proprietaireType == proprietaireType) &&
             (identical(other.note, note) || other.note == note) &&
-            (identical(other.createdAt, createdAt) ||
-                other.createdAt == createdAt) &&
+            (identical(other.createdAt, createdAt) || other.createdAt == createdAt) &&
             (identical(other.statut, statut) || other.statut == statut) &&
-            (identical(other.createdBy, createdBy) ||
-                other.createdBy == createdBy) &&
-            (identical(other.validatedBy, validatedBy) ||
-                other.validatedBy == validatedBy));
+            (identical(other.createdBy, createdBy) || other.createdBy == createdBy) &&
+            (identical(other.validatedBy, validatedBy) || other.validatedBy == validatedBy));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -523,8 +499,7 @@ abstract class _Reception implements Reception {
     @JsonKey(name: 'validated_by') final String? validatedBy,
   }) = _$ReceptionImpl;
 
-  factory _Reception.fromJson(Map<String, dynamic> json) =
-      _$ReceptionImpl.fromJson;
+  factory _Reception.fromJson(Map<String, dynamic> json) = _$ReceptionImpl.fromJson;
 
   @override
   String get id;
@@ -581,6 +556,5 @@ abstract class _Reception implements Reception {
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$ReceptionImplCopyWith<_$ReceptionImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  _$$ReceptionImplCopyWith<_$ReceptionImpl> get copyWith => throw _privateConstructorUsedError;
 }

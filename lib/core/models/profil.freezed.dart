@@ -61,8 +61,7 @@ abstract class $ProfilCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$ProfilCopyWithImpl<$Res, $Val extends Profil>
-    implements $ProfilCopyWith<$Res> {
+class _$ProfilCopyWithImpl<$Res, $Val extends Profil> implements $ProfilCopyWith<$Res> {
   _$ProfilCopyWithImpl(this._value, this._then);
 
   // ignore: unused_field
@@ -121,10 +120,8 @@ class _$ProfilCopyWithImpl<$Res, $Val extends Profil>
 
 /// @nodoc
 abstract class _$$ProfilImplCopyWith<$Res> implements $ProfilCopyWith<$Res> {
-  factory _$$ProfilImplCopyWith(
-    _$ProfilImpl value,
-    $Res Function(_$ProfilImpl) then,
-  ) = __$$ProfilImplCopyWithImpl<$Res>;
+  factory _$$ProfilImplCopyWith(_$ProfilImpl value, $Res Function(_$ProfilImpl) then) =
+      __$$ProfilImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({
@@ -139,13 +136,10 @@ abstract class _$$ProfilImplCopyWith<$Res> implements $ProfilCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$ProfilImplCopyWithImpl<$Res>
-    extends _$ProfilCopyWithImpl<$Res, _$ProfilImpl>
+class __$$ProfilImplCopyWithImpl<$Res> extends _$ProfilCopyWithImpl<$Res, _$ProfilImpl>
     implements _$$ProfilImplCopyWith<$Res> {
-  __$$ProfilImplCopyWithImpl(
-    _$ProfilImpl _value,
-    $Res Function(_$ProfilImpl) _then,
-  ) : super(_value, _then);
+  __$$ProfilImplCopyWithImpl(_$ProfilImpl _value, $Res Function(_$ProfilImpl) _then)
+    : super(_value, _then);
 
   /// Create a copy of Profil
   /// with the given fields replaced by the non-null parameter values.
@@ -208,8 +202,7 @@ class _$ProfilImpl implements _Profil {
     @JsonKey(name: 'created_at') this.createdAt,
   });
 
-  factory _$ProfilImpl.fromJson(Map<String, dynamic> json) =>
-      _$$ProfilImplFromJson(json);
+  factory _$ProfilImpl.fromJson(Map<String, dynamic> json) => _$$ProfilImplFromJson(json);
 
   @override
   final String id;
@@ -244,27 +237,17 @@ class _$ProfilImpl implements _Profil {
             other is _$ProfilImpl &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.userId, userId) || other.userId == userId) &&
-            (identical(other.nomComplet, nomComplet) ||
-                other.nomComplet == nomComplet) &&
+            (identical(other.nomComplet, nomComplet) || other.nomComplet == nomComplet) &&
             (identical(other.role, role) || other.role == role) &&
             (identical(other.depotId, depotId) || other.depotId == depotId) &&
             (identical(other.email, email) || other.email == email) &&
-            (identical(other.createdAt, createdAt) ||
-                other.createdAt == createdAt));
+            (identical(other.createdAt, createdAt) || other.createdAt == createdAt));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-    runtimeType,
-    id,
-    userId,
-    nomComplet,
-    role,
-    depotId,
-    email,
-    createdAt,
-  );
+  int get hashCode =>
+      Object.hash(runtimeType, id, userId, nomComplet, role, depotId, email, createdAt);
 
   /// Create a copy of Profil
   /// with the given fields replaced by the non-null parameter values.
@@ -318,6 +301,5 @@ abstract class _Profil implements Profil {
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$ProfilImplCopyWith<_$ProfilImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  _$$ProfilImplCopyWith<_$ProfilImpl> get copyWith => throw _privateConstructorUsedError;
 }

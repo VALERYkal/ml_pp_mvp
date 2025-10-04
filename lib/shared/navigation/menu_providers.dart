@@ -94,36 +94,21 @@ const List<MenuDestination> _allDestinations = [
     label: 'Citernes',
     icon: Icons.local_gas_station,
     route: '/citernes',
-    visibleForRoles: [
-      UserRole.admin,
-      UserRole.gerant,
-      UserRole.operateur,
-      UserRole.lecture,
-    ],
+    visibleForRoles: [UserRole.admin, UserRole.gerant, UserRole.operateur, UserRole.lecture],
     order: 11,
   ),
   MenuDestination(
     label: 'Réceptions',
     icon: Icons.call_received,
     route: '/receptions',
-    visibleForRoles: [
-      UserRole.admin,
-      UserRole.gerant,
-      UserRole.operateur,
-      UserRole.lecture,
-    ],
+    visibleForRoles: [UserRole.admin, UserRole.gerant, UserRole.operateur, UserRole.lecture],
     order: 12,
   ),
   MenuDestination(
     label: 'Sorties',
     icon: Icons.call_made,
     route: '/sorties',
-    visibleForRoles: [
-      UserRole.admin,
-      UserRole.gerant,
-      UserRole.operateur,
-      UserRole.lecture,
-    ],
+    visibleForRoles: [UserRole.admin, UserRole.gerant, UserRole.operateur, UserRole.lecture],
     order: 13,
   ),
   MenuDestination(
@@ -135,14 +120,14 @@ const List<MenuDestination> _allDestinations = [
   ),
 ];
 
-final menuDestinationsForRoleProvider =
-    Riverpod.Provider.family<List<MenuDestination>, UserRole?>((ref, role) {
-      if (role == null) {
-        return const [];
-      }
-      final list = _allDestinations
-          .where((d) => d.visibleForRoles.contains(role))
-          .toList();
-      list.sort((a, b) => a.order.compareTo(b.order));
-      return list;
-    });
+final menuDestinationsForRoleProvider = Riverpod.Provider.family<List<MenuDestination>, UserRole?>((
+  ref,
+  role,
+) {
+  if (role == null) {
+    return const [];
+  }
+  final list = _allDestinations.where((d) => d.visibleForRoles.contains(role)).toList();
+  list.sort((a, b) => a.order.compareTo(b.order));
+  return list;
+});

@@ -70,41 +70,27 @@ void main() {
       expect(v15, isNot(equals(va))); // Ne doit pas être égal à l'ambiant
     });
 
-    test(
-      'KpiNumberVolume.fromNullable should handle null values correctly',
-      () {
-        // Test du constructeur factory
-        final kpi = KpiNumberVolume.fromNullable(
-          count: 1,
-          volume15c: null,
-          volumeAmbient: 10000.0,
-        );
+    test('KpiNumberVolume.fromNullable should handle null values correctly', () {
+      // Test du constructeur factory
+      final kpi = KpiNumberVolume.fromNullable(count: 1, volume15c: null, volumeAmbient: 10000.0);
 
-        // Vérifier que volume15c = 0.0 et non 10000.0
-        expect(kpi.count, equals(1));
-        expect(kpi.volume15c, equals(0.0));
-        expect(kpi.volumeAmbient, equals(10000.0));
-        expect(kpi.volume15c, isNot(equals(kpi.volumeAmbient)));
-      },
-    );
+      // Vérifier que volume15c = 0.0 et non 10000.0
+      expect(kpi.count, equals(1));
+      expect(kpi.volume15c, equals(0.0));
+      expect(kpi.volumeAmbient, equals(10000.0));
+      expect(kpi.volume15c, isNot(equals(kpi.volumeAmbient)));
+    });
 
-    test(
-      'KpiNumberVolume.fromNullable should handle valid values correctly',
-      () {
-        // Test du constructeur factory avec valeurs valides
-        final kpi = KpiNumberVolume.fromNullable(
-          count: 1,
-          volume15c: 9954.5,
-          volumeAmbient: 10000.0,
-        );
+    test('KpiNumberVolume.fromNullable should handle valid values correctly', () {
+      // Test du constructeur factory avec valeurs valides
+      final kpi = KpiNumberVolume.fromNullable(count: 1, volume15c: 9954.5, volumeAmbient: 10000.0);
 
-        // Vérifier que les valeurs sont correctes
-        expect(kpi.count, equals(1));
-        expect(kpi.volume15c, equals(9954.5));
-        expect(kpi.volumeAmbient, equals(10000.0));
-        expect(kpi.volume15c, isNot(equals(kpi.volumeAmbient)));
-      },
-    );
+      // Vérifier que les valeurs sont correctes
+      expect(kpi.count, equals(1));
+      expect(kpi.volume15c, equals(9954.5));
+      expect(kpi.volumeAmbient, equals(10000.0));
+      expect(kpi.volume15c, isNot(equals(kpi.volumeAmbient)));
+    });
 
     test('KpiStocks.fromNullable should handle null values correctly', () {
       // Test du constructeur factory pour les stocks

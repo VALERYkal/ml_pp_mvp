@@ -88,9 +88,7 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
       _snack('Sélectionnez un partenaire', err: true);
       return;
     }
-    if (_indexAvant != null &&
-        _indexApres != null &&
-        _indexApres! <= _indexAvant!) {
+    if (_indexAvant != null && _indexApres != null && _indexApres! <= _indexAvant!) {
       _snack('Index incohérents (après ≤ avant)', err: true);
       return;
     }
@@ -107,9 +105,7 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
             temperatureCAmb: _tempC,
             densiteA15: _densA15,
             volumeCorrige15C: _vol15C, // DB fallback sinon
-            proprietaireType: _owner == OwnerType.monaluxe
-                ? 'MONALUXE'
-                : 'PARTENAIRE',
+            proprietaireType: _owner == OwnerType.monaluxe ? 'MONALUXE' : 'PARTENAIRE',
             clientId: _owner == OwnerType.monaluxe ? _clientId : null,
             partenaireId: _owner == OwnerType.partenaire ? _partenaireId : null,
             dateSortie: _date,
@@ -134,12 +130,9 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
   }
 
   void _snack(String m, {bool err = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(m),
-        backgroundColor: err ? Colors.red : Colors.green,
-      ),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(m), backgroundColor: err ? Colors.red : Colors.green));
   }
 
   @override
@@ -181,9 +174,7 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
               style: OutlinedButton.styleFrom(
                 foregroundColor: colorScheme.primary,
                 side: BorderSide(color: colorScheme.primary.withOpacity(0.3)),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
             ),
           ),
@@ -262,8 +253,7 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
                         height: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       ),
-                      error: (e, _) =>
-                          Icon(Icons.error, color: colorScheme.error, size: 20),
+                      error: (e, _) => Icon(Icons.error, color: colorScheme.error, size: 20),
                     ),
                     onChanged: (value) {
                       // Géré par le dropdown
@@ -294,8 +284,7 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
                         height: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       ),
-                      error: (e, _) =>
-                          Icon(Icons.error, color: colorScheme.error, size: 20),
+                      error: (e, _) => Icon(Icons.error, color: colorScheme.error, size: 20),
                     ),
                     onChanged: (value) {
                       // Géré par le dropdown
@@ -328,8 +317,7 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
                     runSpacing: 8,
                     children: list.map<Widget>((p) {
                       final id = p['id'] as String;
-                      final label = '${p['code'] ?? ''} ${p['nom'] ?? ''}'
-                          .trim();
+                      final label = '${p['code'] ?? ''} ${p['nom'] ?? ''}'.trim();
                       final sel = _produitId == id;
                       return ModernChoiceChip(
                         label: label,
@@ -348,9 +336,7 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
                     decoration: BoxDecoration(
                       color: colorScheme.errorContainer.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: colorScheme.error.withOpacity(0.3),
-                      ),
+                      border: Border.all(color: colorScheme.error.withOpacity(0.3)),
                     ),
                     child: Text(
                       'Erreur chargement produits: $e',
@@ -381,9 +367,7 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
                       decoration: BoxDecoration(
                         color: colorScheme.errorContainer.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: colorScheme.error.withOpacity(0.3),
-                        ),
+                        border: Border.all(color: colorScheme.error.withOpacity(0.3)),
                       ),
                       child: Text(
                         'Erreur chargement citernes: $e',
@@ -439,12 +423,9 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
                         label: 'Index avant *',
                         initialValue: _indexAvant?.toString(),
                         hint: '0.0',
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         prefixIcon: const Icon(Icons.trending_down),
-                        onChanged: (v) =>
-                            setState(() => _indexAvant = double.tryParse(v)),
+                        onChanged: (v) => setState(() => _indexAvant = double.tryParse(v)),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -453,12 +434,9 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
                         label: 'Index après *',
                         initialValue: _indexApres?.toString(),
                         hint: '0.0',
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         prefixIcon: const Icon(Icons.trending_up),
-                        onChanged: (v) =>
-                            setState(() => _indexApres = double.tryParse(v)),
+                        onChanged: (v) => setState(() => _indexApres = double.tryParse(v)),
                       ),
                     ),
                   ],
@@ -471,12 +449,9 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
                         label: 'Température (°C)',
                         initialValue: _tempC.toString(),
                         hint: '15.0',
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         prefixIcon: const Icon(Icons.thermostat),
-                        onChanged: (v) =>
-                            setState(() => _tempC = double.tryParse(v) ?? 15),
+                        onChanged: (v) => setState(() => _tempC = double.tryParse(v) ?? 15),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -485,13 +460,9 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
                         label: 'Densité @15°C',
                         initialValue: _densA15.toString(),
                         hint: '0.830',
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         prefixIcon: const Icon(Icons.scale),
-                        onChanged: (v) => setState(
-                          () => _densA15 = double.tryParse(v) ?? 0.83,
-                        ),
+                        onChanged: (v) => setState(() => _densA15 = double.tryParse(v) ?? 0.83),
                       ),
                     ),
                   ],
@@ -538,10 +509,7 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
                 borderRadius: BorderRadius.circular(16),
                 gradient: _canSubmit
                     ? LinearGradient(
-                        colors: [
-                          colorScheme.primary,
-                          colorScheme.primary.withOpacity(0.8),
-                        ],
+                        colors: [colorScheme.primary, colorScheme.primary.withOpacity(0.8)],
                       )
                     : null,
                 color: _canSubmit ? null : colorScheme.surfaceVariant,
@@ -560,13 +528,9 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
                 onPressed: _canSubmit ? _submit : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent,
-                  foregroundColor: _canSubmit
-                      ? Colors.white
-                      : colorScheme.onSurfaceVariant,
+                  foregroundColor: _canSubmit ? Colors.white : colorScheme.onSurfaceVariant,
                   shadowColor: Colors.transparent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
                 icon: _submitting
                     ? SizedBox(
@@ -575,19 +539,14 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           valueColor: AlwaysStoppedAnimation<Color>(
-                            _canSubmit
-                                ? Colors.white
-                                : colorScheme.onSurfaceVariant,
+                            _canSubmit ? Colors.white : colorScheme.onSurfaceVariant,
                           ),
                         ),
                       )
                     : const Icon(Icons.save_alt),
                 label: Text(
                   _submitting ? 'Enregistrement...' : 'Enregistrer la sortie',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 ),
               ),
             ),
@@ -600,14 +559,9 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
   }
 
   bool get _canSubmit {
-    final hasBenef = _owner == OwnerType.monaluxe
-        ? _clientId != null
-        : _partenaireId != null;
+    final hasBenef = _owner == OwnerType.monaluxe ? _clientId != null : _partenaireId != null;
     final hasProdCit = _produitId != null && _citerneId != null;
-    final idxOk =
-        _indexAvant == null ||
-        _indexApres == null ||
-        _indexApres! > _indexAvant!;
+    final idxOk = _indexAvant == null || _indexApres == null || _indexApres! > _indexAvant!;
     return !_submitting && hasBenef && hasProdCit && idxOk;
   }
 }

@@ -10,19 +10,11 @@ void main() {
       );
     });
     test('T>15 => v15 < vObs', () {
-      final v15 = calcV15(
-        volumeObserveL: 1000,
-        temperatureC: 30,
-        densiteA15: 0.83,
-      );
+      final v15 = calcV15(volumeObserveL: 1000, temperatureC: 30, densiteA15: 0.83);
       expect(v15, lessThan(1000));
     });
     test('T<15 => v15 > vObs', () {
-      final v15 = calcV15(
-        volumeObserveL: 1000,
-        temperatureC: 5,
-        densiteA15: 0.83,
-      );
+      final v15 = calcV15(volumeObserveL: 1000, temperatureC: 5, densiteA15: 0.83);
       expect(v15, greaterThan(1000));
     });
   });

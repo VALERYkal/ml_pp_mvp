@@ -61,12 +61,7 @@ class FakeRefData {
              'fournisseur-3': 'Fournisseur Test 3',
            },
        produits =
-           produits ??
-           {
-             'produit-1': 'Essence',
-             'produit-2': 'Diesel',
-             'produit-3': 'Kérosène',
-           },
+           produits ?? {'produit-1': 'Essence', 'produit-2': 'Diesel', 'produit-3': 'Kérosène'},
        depots = depots ?? {'depot-1': 'Dépôt Central', 'depot-2': 'Dépôt Nord'};
 }
 
@@ -105,8 +100,7 @@ CoursDeRoute fakeCdr({
     chauffeur: chauffeur ?? 'Jean Dupont',
     volume: volume ?? 50000.0,
     dateChargement: dateChargement ?? DateTime.parse('2025-01-27T10:00:00Z'),
-    dateArriveePrevue:
-        dateArriveePrevue ?? DateTime.parse('2025-01-28T10:00:00Z'),
+    dateArriveePrevue: dateArriveePrevue ?? DateTime.parse('2025-01-28T10:00:00Z'),
     pays: pays ?? 'RDC',
     statut: statut ?? StatutCours.chargement,
     note: note ?? 'Cours de test',
@@ -215,10 +209,7 @@ class FakeCoursDeRouteService implements CoursDeRouteService {
   @override
   Future<CoursDeRoute?> getById(String id) async {
     return _coursById ??
-        _cours.firstWhere(
-          (c) => c.id == id,
-          orElse: () => throw StateError('Not found'),
-        );
+        _cours.firstWhere((c) => c.id == id, orElse: () => throw StateError('Not found'));
   }
 
   // Méthodes non utilisées dans les tests - implémentation minimale
@@ -239,14 +230,11 @@ class FakeCoursDeRouteService implements CoursDeRouteService {
   }) async => throw UnimplementedError();
 
   @override
-  Future<List<CoursDeRoute>> getByStatut(StatutCours statut) async =>
-      throw UnimplementedError();
+  Future<List<CoursDeRoute>> getByStatut(StatutCours statut) async => throw UnimplementedError();
 
   @override
-  Future<bool> canTransition({
-    required dynamic from,
-    required dynamic to,
-  }) async => throw UnimplementedError();
+  Future<bool> canTransition({required dynamic from, required dynamic to}) async =>
+      throw UnimplementedError();
 
   @override
   Future<bool> applyTransition({
@@ -260,8 +248,7 @@ class FakeCoursDeRouteService implements CoursDeRouteService {
   Future<Map<String, int>> countByStatut() async => throw UnimplementedError();
 
   @override
-  Future<Map<String, int>> countByCategorie() async =>
-      throw UnimplementedError();
+  Future<Map<String, int>> countByCategorie() async => throw UnimplementedError();
 }
 
 /// Helper pour vérifier qu'un widget est affiché sans exception

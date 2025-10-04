@@ -9,8 +9,7 @@ class DirecteurKpiData {
   final int citernesSousSeuil;
   final int totalCiternes;
   final double ratioUtilisation; // 0..1
-  final double
-  volumeTotalReceptions; // unité = ce que tu affiches (v15 si dispo, sinon ambiant)
+  final double volumeTotalReceptions; // unité = ce que tu affiches (v15 si dispo, sinon ambiant)
   final double volumeTotalSorties;
   const DirecteurKpiData({
     required this.receptionsJour,
@@ -25,8 +24,7 @@ class DirecteurKpiData {
 
 String _ymd(DateTime d) =>
     '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
-String _isoUtc(DateTime d) =>
-    d.toUtc().toIso8601String().split('.').first + 'Z';
+String _isoUtc(DateTime d) => d.toUtc().toIso8601String().split('.').first + 'Z';
 
 final directeurKpiProvider = FutureProvider<DirecteurKpiData>((ref) async {
   final supa = Supabase.instance.client;
@@ -64,13 +62,9 @@ final directeurKpiProvider = FutureProvider<DirecteurKpiData>((ref) async {
   }
 
   // Citernes & stocks actuels
-  final citernes = await supa
-      .from('citernes')
-      .select('id, capacite_totale, capacite_securite');
+  final citernes = await supa.from('citernes').select('id, capacite_totale, capacite_securite');
 
-  final latest = await supa
-      .from('v_citerne_stock_actuel')
-      .select('citerne_id, stock_ambiant');
+  final latest = await supa.from('v_citerne_stock_actuel').select('citerne_id, stock_ambiant');
 
   final stockByCiterne = <String, double>{};
   for (final m in (latest as List)) {

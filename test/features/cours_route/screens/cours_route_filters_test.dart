@@ -27,9 +27,7 @@ void main() {
       statut: StatutCours.transit,
     );
 
-    when(
-      mockService.getByStatut(StatutCours.transit),
-    ).thenAnswer((_) async => [transitItem]);
+    when(mockService.getByStatut(StatutCours.transit)).thenAnswer((_) async => [transitItem]);
 
     await tester.pumpWidget(
       ProviderScope(

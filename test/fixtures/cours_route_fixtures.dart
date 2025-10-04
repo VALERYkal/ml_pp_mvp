@@ -4,8 +4,7 @@
 // 🧭 Description : Fixtures et données de test pour le module CDR
 
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
-import 'package:ml_pp_mvp/shared/providers/ref_data_provider.dart'
-    show RefDataCache;
+import 'package:ml_pp_mvp/shared/providers/ref_data_provider.dart' show RefDataCache;
 
 /// Fixtures pour les tests du module Cours de Route
 class CoursRouteFixtures {
@@ -38,9 +37,7 @@ class CoursRouteFixtures {
       produitId: '', // Invalid - empty
       depotDestinationId: '', // Invalid - empty
       volume: -100, // Invalid - negative
-      dateChargement: DateTime.now().add(
-        const Duration(days: 1),
-      ), // Invalid - future date
+      dateChargement: DateTime.now().add(const Duration(days: 1)), // Invalid - future date
     );
   }
 
@@ -164,10 +161,7 @@ class CoursRouteFixtures {
   }
 
   /// Crée une liste de cours dans une plage de volume
-  static List<CoursDeRoute> coursByVolumeRange(
-    double minVolume,
-    double maxVolume,
-  ) {
+  static List<CoursDeRoute> coursByVolumeRange(double minVolume, double maxVolume) {
     return sampleList().where((c) {
       if (c.volume == null) return false;
       return c.volume! >= minVolume && c.volume! <= maxVolume;
@@ -182,16 +176,8 @@ class CoursRouteFixtures {
         'fournisseur-2': 'Shell',
         'fournisseur-3': 'ExxonMobil',
       },
-      produits: {
-        'produit-1': 'Essence',
-        'produit-2': 'Gasoil / AGO',
-        'produit-3': 'Kérosène',
-      },
-      produitCodes: {
-        'produit-1': 'ESS',
-        'produit-2': 'AGO',
-        'produit-3': 'KER',
-      },
+      produits: {'produit-1': 'Essence', 'produit-2': 'Gasoil / AGO', 'produit-3': 'Kérosène'},
+      produitCodes: {'produit-1': 'ESS', 'produit-2': 'AGO', 'produit-3': 'KER'},
       depots: {
         'depot-1': 'Dépôt Kinshasa',
         'depot-2': 'Dépôt Lubumbashi',
@@ -293,14 +279,7 @@ class CoursRouteFixtures {
 
   /// Crée des données de test pour la validation des volumes
   static Map<double, bool> volumeValidationData() {
-    return {
-      1000: true,
-      50000: true,
-      200000: true,
-      0: false,
-      -100: false,
-      300000: false,
-    };
+    return {1000: true, 50000: true, 200000: true, 0: false, -100: false, 300000: false};
   }
 
   /// Crée des données de test pour la validation des dates

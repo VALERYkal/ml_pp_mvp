@@ -24,11 +24,7 @@ class CoursCache {
   bool get isExpired => DateTime.now().difference(lastUpdated) > ttl;
   bool get isValid => !isExpired && cours.isNotEmpty;
 
-  CoursCache copyWith({
-    List<CoursDeRoute>? cours,
-    DateTime? lastUpdated,
-    Duration? ttl,
-  }) {
+  CoursCache copyWith({List<CoursDeRoute>? cours, DateTime? lastUpdated, Duration? ttl}) {
     return CoursCache(
       cours: cours ?? this.cours,
       lastUpdated: lastUpdated ?? this.lastUpdated,
@@ -93,12 +89,7 @@ final cachedCoursProvider = Provider<List<CoursDeRoute>>((ref) {
 
 /// Provider pour les statistiques de performance
 final performanceStatsProvider = StateProvider<Map<String, dynamic>>((ref) {
-  return {
-    'cacheHits': 0,
-    'cacheMisses': 0,
-    'lastRefresh': DateTime.now(),
-    'totalRequests': 0,
-  };
+  return {'cacheHits': 0, 'cacheMisses': 0, 'lastRefresh': DateTime.now(), 'totalRequests': 0};
 });
 
 /// Provider pour le débouncing des recherches
@@ -116,10 +107,7 @@ final cachedFilteredCoursProvider = Provider<List<CoursDeRoute>>((ref) {
 });
 
 /// Applique les filtres à une liste de cours de route (version simplifiée)
-List<CoursDeRoute> _applyFilters(
-  List<CoursDeRoute> cours,
-  CoursFilters filters,
-) {
+List<CoursDeRoute> _applyFilters(List<CoursDeRoute> cours, CoursFilters filters) {
   return cours.where((c) {
     // Filtre par fournisseur
     final okFournisseur = (filters.fournisseurId == null)
@@ -186,9 +174,7 @@ List<CoursDeRoute> sortCours(List<CoursDeRoute> cours, CoursSortConfig config) {
         break;
     }
 
-    return config.direction == SortDirection.ascending
-        ? comparison
-        : -comparison;
+    return config.direction == SortDirection.ascending ? comparison : -comparison;
   });
 
   return sorted;

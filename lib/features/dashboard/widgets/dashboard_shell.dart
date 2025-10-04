@@ -40,10 +40,7 @@ class _RoleDepotChips extends StatelessWidget {
           backgroundColor: Theme.of(context).colorScheme.primaryContainer,
         ),
         const SizedBox(width: 8),
-        InputChip(
-          label: Text(depotName),
-          avatar: const Icon(Icons.home_work, size: 18),
-        ),
+        InputChip(label: Text(depotName), avatar: const Icon(Icons.home_work, size: 18)),
         const SizedBox(width: 8),
       ],
     );
@@ -59,9 +56,7 @@ class DashboardShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final role = ref.watch(userRoleProvider);
-    final profil = ref
-        .watch(profilProvider)
-        .maybeWhen(data: (p) => p, orElse: () => null);
+    final profil = ref.watch(profilProvider).maybeWhen(data: (p) => p, orElse: () => null);
 
     // Warmup des référentiels
     ref.watch(refDataProvider);
@@ -88,8 +83,7 @@ class DashboardShell extends ConsumerWidget {
         // NavigationRail pour desktop
         final rail = NavigationRail(
           selectedIndex: selectedIndex,
-          onDestinationSelected: (i) =>
-              context.go(effectivePath(items[i], role)),
+          onDestinationSelected: (i) => context.go(effectivePath(items[i], role)),
           extended: isWide,
           destinations: [
             for (final item in items)
@@ -104,8 +98,7 @@ class DashboardShell extends ConsumerWidget {
         // BottomNavigationBar pour mobile
         final bottom = NavigationBar(
           selectedIndex: selectedIndex,
-          onDestinationSelected: (i) =>
-              context.go(effectivePath(items[i], role)),
+          onDestinationSelected: (i) => context.go(effectivePath(items[i], role)),
           destinations: [
             for (final item in items)
               NavigationDestination(icon: Icon(item.icon), label: item.title),
@@ -117,21 +110,13 @@ class DashboardShell extends ConsumerWidget {
           child: ListView(
             children: [
               DrawerHeader(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                ),
+                decoration: BoxDecoration(color: Theme.of(context).colorScheme.primaryContainer),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'ML_PP MVP',
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
+                    Text('ML_PP MVP', style: Theme.of(context).textTheme.headlineSmall),
                     const SizedBox(height: 8),
-                    Text(
-                      'Rôle: ${safeRole.value}',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
+                    Text('Rôle: ${safeRole.value}', style: Theme.of(context).textTheme.bodyMedium),
                   ],
                 ),
               ),
@@ -158,9 +143,9 @@ class DashboardShell extends ConsumerWidget {
                 tooltip: 'Rafraîchir',
                 onPressed: () {
                   ref.invalidate(refDataProvider);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Données rafraîchies')),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(const SnackBar(content: Text('Données rafraîchies')));
                 },
                 icon: const Icon(Icons.refresh),
               ),
@@ -186,10 +171,7 @@ class DashboardShell extends ConsumerWidget {
               if (isWide) rail,
               if (isWide) const VerticalDivider(width: 1),
               Expanded(
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 200),
-                  child: child,
-                ),
+                child: AnimatedSwitcher(duration: const Duration(milliseconds: 200), child: child),
               ),
             ],
           ),

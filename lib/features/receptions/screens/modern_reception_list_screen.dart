@@ -11,12 +11,10 @@ class ModernReceptionListScreen extends ConsumerStatefulWidget {
   const ModernReceptionListScreen({super.key});
 
   @override
-  ConsumerState<ModernReceptionListScreen> createState() =>
-      _ModernReceptionListScreenState();
+  ConsumerState<ModernReceptionListScreen> createState() => _ModernReceptionListScreenState();
 }
 
-class _ModernReceptionListScreenState
-    extends ConsumerState<ModernReceptionListScreen>
+class _ModernReceptionListScreenState extends ConsumerState<ModernReceptionListScreen>
     with TickerProviderStateMixin {
   late AnimationController _fadeController;
   late AnimationController _slideController;
@@ -35,22 +33,20 @@ class _ModernReceptionListScreenState
   }
 
   void _initializeAnimations() {
-    _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
+    _fadeController = AnimationController(duration: const Duration(milliseconds: 600), vsync: this);
     _slideController = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,
     );
 
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _fadeController, curve: Curves.easeOutCubic),
-    );
-    _slideAnimation =
-        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
-          CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
-        );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _fadeController, curve: Curves.easeOutCubic));
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic));
 
     _fadeController.forward();
     _slideController.forward();
@@ -109,19 +105,13 @@ class _ModernReceptionListScreenState
           onPressed: () {
             // TODO: Implémenter l'export
           },
-          icon: Icon(
-            Icons.download_rounded,
-            color: theme.colorScheme.onSurface,
-          ),
+          icon: Icon(Icons.download_rounded, color: theme.colorScheme.onSurface),
         ),
         IconButton(
           onPressed: () {
             // TODO: Implémenter les paramètres
           },
-          icon: Icon(
-            Icons.settings_rounded,
-            color: theme.colorScheme.onSurface,
-          ),
+          icon: Icon(Icons.settings_rounded, color: theme.colorScheme.onSurface),
         ),
       ],
     );
@@ -131,11 +121,7 @@ class _ModernReceptionListScreenState
     return Container(
       padding: const EdgeInsets.all(16),
       child: Column(
-        children: [
-          _buildSearchBar(theme),
-          const SizedBox(height: 12),
-          _buildFilters(theme),
-        ],
+        children: [_buildSearchBar(theme), const SizedBox(height: 12), _buildFilters(theme)],
       ),
     );
   }
@@ -145,10 +131,7 @@ class _ModernReceptionListScreenState
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: theme.colorScheme.outline.withOpacity(0.2),
-          width: 1,
-        ),
+        border: Border.all(color: theme.colorScheme.outline.withOpacity(0.2), width: 1),
       ),
       child: TextField(
         controller: _searchController,
@@ -159,10 +142,7 @@ class _ModernReceptionListScreenState
         },
         decoration: InputDecoration(
           hintText: 'Rechercher une réception...',
-          prefixIcon: Icon(
-            Icons.search_rounded,
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
+          prefixIcon: Icon(Icons.search_rounded, color: theme.colorScheme.onSurfaceVariant),
           suffixIcon: _searchQuery.isNotEmpty
               ? IconButton(
                   onPressed: () {
@@ -171,17 +151,11 @@ class _ModernReceptionListScreenState
                       _searchQuery = '';
                     });
                   },
-                  icon: Icon(
-                    Icons.clear_rounded,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
+                  icon: Icon(Icons.clear_rounded, color: theme.colorScheme.onSurfaceVariant),
                 )
               : null,
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 12,
-          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
       ),
     );
@@ -190,46 +164,20 @@ class _ModernReceptionListScreenState
   Widget _buildFilters(ThemeData theme) {
     return Row(
       children: [
-        Expanded(
-          child: _buildFilterChip(theme, 'Toutes', 'all', Icons.list_rounded),
-        ),
+        Expanded(child: _buildFilterChip(theme, 'Toutes', 'all', Icons.list_rounded)),
+        const SizedBox(width: 8),
+        Expanded(child: _buildFilterChip(theme, 'Monaluxe', 'monaluxe', Icons.business_rounded)),
         const SizedBox(width: 8),
         Expanded(
-          child: _buildFilterChip(
-            theme,
-            'Monaluxe',
-            'monaluxe',
-            Icons.business_rounded,
-          ),
+          child: _buildFilterChip(theme, 'Partenaires', 'partenaires', Icons.handshake_rounded),
         ),
         const SizedBox(width: 8),
-        Expanded(
-          child: _buildFilterChip(
-            theme,
-            'Partenaires',
-            'partenaires',
-            Icons.handshake_rounded,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _buildFilterChip(
-            theme,
-            'Aujourd\'hui',
-            'today',
-            Icons.today_rounded,
-          ),
-        ),
+        Expanded(child: _buildFilterChip(theme, 'Aujourd\'hui', 'today', Icons.today_rounded)),
       ],
     );
   }
 
-  Widget _buildFilterChip(
-    ThemeData theme,
-    String label,
-    String value,
-    IconData icon,
-  ) {
+  Widget _buildFilterChip(ThemeData theme, String label, String value, IconData icon) {
     final isSelected = _selectedFilter == value;
 
     return GestureDetector(
@@ -259,18 +207,14 @@ class _ModernReceptionListScreenState
             Icon(
               icon,
               size: 16,
-              color: isSelected
-                  ? theme.colorScheme.primary
-                  : theme.colorScheme.onSurfaceVariant,
+              color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
             ),
             const SizedBox(width: 6),
             Text(
               label,
               style: theme.textTheme.bodySmall?.copyWith(
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                color: isSelected
-                    ? theme.colorScheme.primary
-                    : theme.colorScheme.onSurfaceVariant,
+                color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
               ),
             ),
           ],
@@ -296,11 +240,7 @@ class _ModernReceptionListScreenState
     );
   }
 
-  Widget _buildReceptionCard(
-    ThemeData theme,
-    Map<String, dynamic> reception,
-    int index,
-  ) {
+  Widget _buildReceptionCard(ThemeData theme, Map<String, dynamic> reception, int index) {
     return AnimatedContainer(
       duration: Duration(milliseconds: 300 + (index * 100)),
       margin: const EdgeInsets.only(bottom: 12),
@@ -308,10 +248,7 @@ class _ModernReceptionListScreenState
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(
-            color: theme.colorScheme.outline.withOpacity(0.1),
-            width: 1,
-          ),
+          side: BorderSide(color: theme.colorScheme.outline.withOpacity(0.1), width: 1),
         ),
         child: InkWell(
           onTap: () {
@@ -336,10 +273,7 @@ class _ModernReceptionListScreenState
     );
   }
 
-  Widget _buildReceptionHeader(
-    ThemeData theme,
-    Map<String, dynamic> reception,
-  ) {
+  Widget _buildReceptionHeader(ThemeData theme, Map<String, dynamic> reception) {
     return Row(
       children: [
         Container(
@@ -380,10 +314,7 @@ class _ModernReceptionListScreenState
     );
   }
 
-  Widget _buildReceptionDetails(
-    ThemeData theme,
-    Map<String, dynamic> reception,
-  ) {
+  Widget _buildReceptionDetails(ThemeData theme, Map<String, dynamic> reception) {
     return Row(
       children: [
         Expanded(
@@ -417,13 +348,7 @@ class _ModernReceptionListScreenState
     );
   }
 
-  Widget _buildDetailItem(
-    ThemeData theme,
-    String label,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
+  Widget _buildDetailItem(ThemeData theme, String label, String value, IconData icon, Color color) {
     return Column(
       children: [
         Icon(icon, color: color, size: 16),
@@ -437,26 +362,19 @@ class _ModernReceptionListScreenState
         ),
         Text(
           label,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
+          style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
         ),
       ],
     );
   }
 
-  Widget _buildReceptionFooter(
-    ThemeData theme,
-    Map<String, dynamic> reception,
-  ) {
+  Widget _buildReceptionFooter(ThemeData theme, Map<String, dynamic> reception) {
     return Row(
       children: [
         Expanded(
           child: Text(
             reception['owner'] == 'MONALUXE' ? 'Monaluxe' : 'Partenaire',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+            style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),
         ),
         Text(
@@ -482,10 +400,7 @@ class _ModernReceptionListScreenState
       ),
       child: Text(
         label,
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: color,
-          fontWeight: FontWeight.w600,
-        ),
+        style: theme.textTheme.bodySmall?.copyWith(color: color, fontWeight: FontWeight.w600),
       ),
     );
   }
@@ -503,9 +418,7 @@ class _ModernReceptionListScreenState
           const SizedBox(height: 16),
           Text(
             'Aucune réception trouvée',
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+            style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 8),
           Text(
@@ -523,9 +436,7 @@ class _ModernReceptionListScreenState
             label: Text('Nouvelle réception'),
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
           ),
         ],

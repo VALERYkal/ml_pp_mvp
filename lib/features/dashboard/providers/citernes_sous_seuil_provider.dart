@@ -9,21 +9,14 @@ class CiterneSousSeuil {
   CiterneSousSeuil(this.id, this.nom, this.stock, this.seuil);
 }
 
-final citernesSousSeuilProvider = FutureProvider<List<CiterneSousSeuil>>((
-  ref,
-) async {
+final citernesSousSeuilProvider = FutureProvider<List<CiterneSousSeuil>>((ref) async {
   final supa = Supabase.instance.client;
-  final citernes = await supa
-      .from('citernes')
-      .select('id, nom, capacite_securite');
-  final latest = await supa
-      .from('v_citerne_stock_actuel')
-      .select('citerne_id, stock_ambiant');
+  final citernes = await supa.from('citernes').select('id, nom, capacite_securite');
+  final latest = await supa.from('v_citerne_stock_actuel').select('citerne_id, stock_ambiant');
 
   final stockMap = <String, double>{};
   for (final m in (latest as List)) {
-    stockMap[m['citerne_id'] as String] =
-        (m['stock_ambiant'] as num?)?.toDouble() ?? 0.0;
+    stockMap[m['citerne_id'] as String] = (m['stock_ambiant'] as num?)?.toDouble() ?? 0.0;
   }
 
   final list = <CiterneSousSeuil>[];

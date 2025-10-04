@@ -67,10 +67,7 @@ void main() {
         when(mockService.getAll()).thenThrow(Exception('Service error'));
 
         // Act & Assert
-        expect(
-          () => container.read(coursDeRouteListProvider.future),
-          throwsException,
-        );
+        expect(() => container.read(coursDeRouteListProvider.future), throwsException);
       });
     });
 
@@ -137,15 +134,10 @@ void main() {
           depotDestinationId: 'depot-1',
         );
 
-        when(
-          mockService.create(any<CoursDeRoute>()),
-        ).thenThrow(Exception('Creation failed'));
+        when(mockService.create(any<CoursDeRoute>())).thenThrow(Exception('Creation failed'));
 
         // Act & Assert
-        expect(
-          () => container.read(createCoursDeRouteProvider(cours).future),
-          throwsException,
-        );
+        expect(() => container.read(createCoursDeRouteProvider(cours).future), throwsException);
       });
     });
 
@@ -185,18 +177,10 @@ void main() {
     group('updateStatutCoursDeRouteProvider', () {
       test('should update statut and invalidate providers', () async {
         // Arrange
-        final params = {
-          'id': 'test-id',
-          'to': StatutCours.transit,
-          'fromReception': false,
-        };
+        final params = {'id': 'test-id', 'to': StatutCours.transit, 'fromReception': false};
 
         when(
-          mockService.updateStatut(
-            id: 'test-id',
-            to: StatutCours.transit,
-            fromReception: false,
-          ),
+          mockService.updateStatut(id: 'test-id', to: StatutCours.transit, fromReception: false),
         ).thenAnswer((_) async {});
 
         // Act
@@ -204,11 +188,7 @@ void main() {
 
         // Assert
         verify(
-          mockService.updateStatut(
-            id: 'test-id',
-            to: StatutCours.transit,
-            fromReception: false,
-          ),
+          mockService.updateStatut(id: 'test-id', to: StatutCours.transit, fromReception: false),
         ).called(1);
       });
     });
@@ -226,9 +206,7 @@ void main() {
         when(mockService.getById('test-id')).thenAnswer((_) async => cours);
 
         // Act
-        final result = await container.read(
-          coursDeRouteByIdProvider('test-id').future,
-        );
+        final result = await container.read(coursDeRouteByIdProvider('test-id').future);
 
         // Assert
         expect(result, cours);
@@ -240,9 +218,7 @@ void main() {
         when(mockService.getById('non-existent')).thenAnswer((_) async => null);
 
         // Act
-        final result = await container.read(
-          coursDeRouteByIdProvider('non-existent').future,
-        );
+        final result = await container.read(coursDeRouteByIdProvider('non-existent').future);
 
         // Assert
         expect(result, null);
@@ -262,9 +238,7 @@ void main() {
           ),
         ];
 
-        when(
-          mockService.getByStatut(StatutCours.chargement),
-        ).thenAnswer((_) async => mockCours);
+        when(mockService.getByStatut(StatutCours.chargement)).thenAnswer((_) async => mockCours);
 
         // Act
         final result = await container.read(

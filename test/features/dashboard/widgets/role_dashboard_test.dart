@@ -14,14 +14,10 @@ import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart';
 
 void main() {
   group('RoleDashboard Golden Tests', () {
-    testWidgets('should render loading state correctly', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('should render loading state correctly', (WidgetTester tester) async {
       // Arrange
       final container = ProviderContainer(
-        overrides: [
-          kpiProviderProvider.overrideWith((ref) async => throw 'Loading...'),
-        ],
+        overrides: [kpiProviderProvider.overrideWith((ref) async => throw 'Loading...')],
       );
 
       // Act
@@ -39,14 +35,10 @@ void main() {
       container.dispose();
     });
 
-    testWidgets('should render error state correctly', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('should render error state correctly', (WidgetTester tester) async {
       // Arrange
       final container = ProviderContainer(
-        overrides: [
-          kpiProviderProvider.overrideWith((ref) async => throw 'Test error'),
-        ],
+        overrides: [kpiProviderProvider.overrideWith((ref) async => throw 'Test error')],
       );
 
       // Act
@@ -63,26 +55,12 @@ void main() {
       container.dispose();
     });
 
-    testWidgets('should render data state correctly', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('should render data state correctly', (WidgetTester tester) async {
       // Arrange - Données de test
       final testData = KpiSnapshot(
-        receptionsToday: const KpiNumberVolume(
-          count: 5,
-          volume15c: 2500.0,
-          volumeAmbient: 2600.0,
-        ),
-        sortiesToday: const KpiNumberVolume(
-          count: 3,
-          volume15c: 1800.0,
-          volumeAmbient: 1900.0,
-        ),
-        stocks: const KpiStocks(
-          totalAmbient: 15000.0,
-          total15c: 14500.0,
-          capacityTotal: 20000.0,
-        ),
+        receptionsToday: const KpiNumberVolume(count: 5, volume15c: 2500.0, volumeAmbient: 2600.0),
+        sortiesToday: const KpiNumberVolume(count: 3, volume15c: 1800.0, volumeAmbient: 1900.0),
+        stocks: const KpiStocks(totalAmbient: 15000.0, total15c: 14500.0, capacityTotal: 20000.0),
         balanceToday: const KpiBalanceToday(
           receptions15c: 2500.0,
           sorties15c: 1800.0,
@@ -98,16 +76,8 @@ void main() {
           volumeEnAttente: 0.0,
         ),
         trend7d: [
-          KpiTrendPoint(
-            day: DateTime(2025, 9, 10),
-            receptions15c: 2000.0,
-            sorties15c: 1500.0,
-          ),
-          KpiTrendPoint(
-            day: DateTime(2025, 9, 11),
-            receptions15c: 2200.0,
-            sorties15c: 1600.0,
-          ),
+          KpiTrendPoint(day: DateTime(2025, 9, 10), receptions15c: 2000.0, sorties15c: 1500.0),
+          KpiTrendPoint(day: DateTime(2025, 9, 11), receptions15c: 2200.0, sorties15c: 1600.0),
         ],
       );
 
@@ -141,26 +111,12 @@ void main() {
       container.dispose();
     });
 
-    testWidgets('should handle empty citernes sous seuil', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('should handle empty citernes sous seuil', (WidgetTester tester) async {
       // Arrange - Données sans alertes
       final testData = KpiSnapshot(
-        receptionsToday: const KpiNumberVolume(
-          count: 2,
-          volume15c: 1000.0,
-          volumeAmbient: 1050.0,
-        ),
-        sortiesToday: const KpiNumberVolume(
-          count: 1,
-          volume15c: 800.0,
-          volumeAmbient: 850.0,
-        ),
-        stocks: const KpiStocks(
-          totalAmbient: 10000.0,
-          total15c: 9500.0,
-          capacityTotal: 15000.0,
-        ),
+        receptionsToday: const KpiNumberVolume(count: 2, volume15c: 1000.0, volumeAmbient: 1050.0),
+        sortiesToday: const KpiNumberVolume(count: 1, volume15c: 800.0, volumeAmbient: 850.0),
+        stocks: const KpiStocks(totalAmbient: 10000.0, total15c: 9500.0, capacityTotal: 15000.0),
         balanceToday: const KpiBalanceToday(
           receptions15c: 1000.0,
           sorties15c: 800.0,
@@ -200,21 +156,9 @@ void main() {
     testWidgets('should handle negative balance', (WidgetTester tester) async {
       // Arrange - Balance négative (plus de sorties que de réceptions)
       final testData = KpiSnapshot(
-        receptionsToday: const KpiNumberVolume(
-          count: 1,
-          volume15c: 500.0,
-          volumeAmbient: 520.0,
-        ),
-        sortiesToday: const KpiNumberVolume(
-          count: 2,
-          volume15c: 1200.0,
-          volumeAmbient: 1250.0,
-        ),
-        stocks: const KpiStocks(
-          totalAmbient: 8000.0,
-          total15c: 7800.0,
-          capacityTotal: 12000.0,
-        ),
+        receptionsToday: const KpiNumberVolume(count: 1, volume15c: 500.0, volumeAmbient: 520.0),
+        sortiesToday: const KpiNumberVolume(count: 2, volume15c: 1200.0, volumeAmbient: 1250.0),
+        stocks: const KpiStocks(totalAmbient: 8000.0, total15c: 7800.0, capacityTotal: 12000.0),
         balanceToday: const KpiBalanceToday(
           receptions15c: 500.0,
           sorties15c: 1200.0,

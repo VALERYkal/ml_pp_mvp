@@ -21,39 +21,23 @@ final refDataProvider = Riverpod.FutureProvider<RefDataCache>((ref) async {
   final client = Supabase.instance.client;
   try {
     final now = DateTime.now();
-    final fournisseursRes = await client
-        .from('fournisseurs')
-        .select('id, nom')
-        .order('nom');
-    final produitsRes = await client
-        .from('produits')
-        .select('id, nom, code')
-        .order('nom');
-    final depotsRes = await client
-        .from('depots')
-        .select('id, nom')
-        .order('nom');
+    final fournisseursRes = await client.from('fournisseurs').select('id, nom').order('nom');
+    final produitsRes = await client.from('produits').select('id, nom, code').order('nom');
+    final depotsRes = await client.from('depots').select('id, nom').order('nom');
     final fournisseurs = <String, String>{
       for (final e in fournisseursRes)
-        (e['id'] as String): _bestLabel([
-          e['nom']?.toString(),
-        ], fallback: 'Fournisseur'),
+        (e['id'] as String): _bestLabel([e['nom']?.toString()], fallback: 'Fournisseur'),
     };
     final produits = <String, String>{
       for (final e in produitsRes)
-        (e['id'] as String): _bestLabel([
-          e['nom']?.toString(),
-        ], fallback: 'Produit'),
+        (e['id'] as String): _bestLabel([e['nom']?.toString()], fallback: 'Produit'),
     };
     final produitCodes = <String, String>{
-      for (final e in produitsRes)
-        (e['id'] as String): (e['code']?.toString() ?? '').trim(),
+      for (final e in produitsRes) (e['id'] as String): (e['code']?.toString() ?? '').trim(),
     };
     final depots = <String, String>{
       for (final e in depotsRes)
-        (e['id'] as String): _bestLabel([
-          e['nom']?.toString(),
-        ], fallback: 'Dépôt'),
+        (e['id'] as String): _bestLabel([e['nom']?.toString()], fallback: 'Dépôt'),
     };
     return RefDataCache(
       fournisseurs: fournisseurs,
@@ -73,15 +57,12 @@ String resolveName(RefDataCache cache, String id, String type) {
   final key = id.trim();
   switch (type) {
     case 'fournisseur':
-      return cache.fournisseurs[key] ??
-          _findByPrefix(cache.fournisseurs, key) ??
-          _shortId(key);
+      return cache.fournisseurs[key] ?? _findByPrefix(cache.fournisseurs, key) ?? _shortId(key);
     case 'produit':
       final byId = cache.produits[key] ?? _findByPrefix(cache.produits, key);
       if (byId != null) return byId;
       // Fallback via code connu si l'id existe dans le mapping des codes
-      final code =
-          cache.produitCodes[key] ?? _findCodeByPrefix(cache.produitCodes, key);
+      final code = cache.produitCodes[key] ?? _findCodeByPrefix(cache.produitCodes, key);
       if (code != null && code.isNotEmpty) {
         switch (code.toUpperCase()) {
           case 'ESS':
@@ -94,10 +75,8 @@ String resolveName(RefDataCache cache, String id, String type) {
         }
       }
       // Fallback ultime: deux produits connus par UUID/prefixe
-      if (_matchesIdOrPrefix(key, '640cf7ec-1616-4503-a484-0a61afb20005'))
-        return 'Essence';
-      if (_matchesIdOrPrefix(key, '452b557c-e974-4315-b6c2-cda8487db428'))
-        return 'Gasoil / AGO';
+      if (_matchesIdOrPrefix(key, '640cf7ec-1616-4503-a484-0a61afb20005')) return 'Essence';
+      if (_matchesIdOrPrefix(key, '452b557c-e974-4315-b6c2-cda8487db428')) return 'Gasoil / AGO';
       return _shortId(key);
     default:
       return '—';
@@ -111,14 +90,9 @@ extension RefDataLookups on RefDataCache {
   Map<String, String> get produitsByCode => produitCodes;
 }
 
-Iterable<MapEntry<String, String>> searchFournisseurs(
-  RefDataCache cache,
-  String query,
-) {
+Iterable<MapEntry<String, String>> searchFournisseurs(RefDataCache cache, String query) {
   final q = _normalize(query);
-  return cache.fournisseurs.entries.where(
-    (e) => _normalize(e.value).contains(q),
-  );
+  return cache.fournisseurs.entries.where((e) => _normalize(e.value).contains(q));
 }
 
 String _normalize(String s) => s.toLowerCase();

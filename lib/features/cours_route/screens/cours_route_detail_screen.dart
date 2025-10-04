@@ -44,8 +44,7 @@ class CoursRouteDetailScreen extends ConsumerWidget {
         title: const Text('Détail du cours'),
         actions: [
           PopupMenuButton<String>(
-            onSelected: (value) =>
-                _handleMenuAction(context, ref, value, userRole),
+            onSelected: (value) => _handleMenuAction(context, ref, value, userRole),
             itemBuilder: (context) => _buildMenuItems(context, ref, userRole),
           ),
         ],
@@ -53,9 +52,8 @@ class CoursRouteDetailScreen extends ConsumerWidget {
       body: coursAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => _buildError(context, ref, error),
-        data: (cours) => cours == null
-            ? _buildNotFound(context)
-            : _buildDetail(context, cours, ref, userRole),
+        data: (cours) =>
+            cours == null ? _buildNotFound(context) : _buildDetail(context, cours, ref, userRole),
       ),
     );
   }
@@ -67,10 +65,7 @@ class CoursRouteDetailScreen extends ConsumerWidget {
         children: [
           const Icon(Icons.error_outline, size: 64, color: Colors.red),
           const SizedBox(height: 16),
-          Text(
-            'Erreur lors du chargement',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
+          Text('Erreur lors du chargement', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 8),
           Text(
             error.toString(),
@@ -92,16 +87,9 @@ class CoursRouteDetailScreen extends ConsumerWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.search_off,
-            size: 64,
-            color: Theme.of(context).colorScheme.primary,
-          ),
+          Icon(Icons.search_off, size: 64, color: Theme.of(context).colorScheme.primary),
           const SizedBox(height: 16),
-          Text(
-            'Cours non trouvé',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
+          Text('Cours non trouvé', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 8),
           Text(
             'Le cours de route demandé n\'existe pas ou a été supprimé.',
@@ -109,22 +97,14 @@ class CoursRouteDetailScreen extends ConsumerWidget {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: () => context.pop(),
-            child: const Text('Retour à la liste'),
-          ),
+          ElevatedButton(onPressed: () => context.pop(), child: const Text('Retour à la liste')),
         ],
       ),
     );
   }
 
   /// Contenu principal
-  Widget _buildDetail(
-    BuildContext context,
-    CoursDeRoute c,
-    WidgetRef ref,
-    UserRole? userRole,
-  ) {
+  Widget _buildDetail(BuildContext context, CoursDeRoute c, WidgetRef ref, UserRole? userRole) {
     final refDataAsync = ref.watch(refDataProvider);
 
     return Scaffold(
@@ -140,11 +120,7 @@ class CoursRouteDetailScreen extends ConsumerWidget {
                 loading: () => _buildHeaderLoading(c),
                 error: (e, _) => _buildHeaderError(c, e),
                 data: (refData) {
-                  final four = resolveName(
-                    refData,
-                    c.fournisseurId,
-                    'fournisseur',
-                  );
+                  final four = resolveName(refData, c.fournisseurId, 'fournisseur');
                   return ModernDetailHeader(
                     title: 'Cours #${c.id.substring(0, 8)}',
                     subtitle: 'Détail du cours de route',
@@ -249,31 +225,13 @@ class CoursRouteDetailScreen extends ConsumerWidget {
                         icon: Icons.local_shipping_outlined,
                         accentColor: Colors.green,
                         entries: [
-                          InfoEntry(
-                            label: 'Transporteur',
-                            value: c.transporteur ?? '—',
-                          ),
-                          InfoEntry(
-                            label: 'Chauffeur',
-                            value: c.chauffeur ?? '—',
-                          ),
-                          InfoEntry(
-                            label: 'Plaque camion',
-                            value: c.plaqueCamion ?? '—',
-                          ),
-                          InfoEntry(
-                            label: 'Plaque remorque',
-                            value: c.plaqueRemorque ?? '—',
-                          ),
+                          InfoEntry(label: 'Transporteur', value: c.transporteur ?? '—'),
+                          InfoEntry(label: 'Chauffeur', value: c.chauffeur ?? '—'),
+                          InfoEntry(label: 'Plaque camion', value: c.plaqueCamion ?? '—'),
+                          InfoEntry(label: 'Plaque remorque', value: c.plaqueRemorque ?? '—'),
                           InfoEntry(label: 'Pays', value: c.pays ?? '—'),
-                          InfoEntry(
-                            label: 'Date de chargement',
-                            value: fmtDate(c.dateChargement),
-                          ),
-                          InfoEntry(
-                            label: 'Volume',
-                            value: fmtVolume(c.volume),
-                          ),
+                          InfoEntry(label: 'Date de chargement', value: fmtDate(c.dateChargement)),
+                          InfoEntry(label: 'Volume', value: fmtVolume(c.volume)),
                         ],
                       ),
 
@@ -289,25 +247,18 @@ class CoursRouteDetailScreen extends ConsumerWidget {
                       ),
 
                       // Message informatif pour les cours déchargés
-                      if (c.statut == StatutCours.decharge &&
-                          userRole?.isAdmin != true)
+                      if (c.statut == StatutCours.decharge && userRole?.isAdmin != true)
                         Container(
                           margin: const EdgeInsets.only(bottom: 16),
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             color: Colors.amber.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: Colors.amber.withOpacity(0.3),
-                            ),
+                            border: Border.all(color: Colors.amber.withOpacity(0.3)),
                           ),
                           child: Row(
                             children: [
-                              Icon(
-                                Icons.info_outline,
-                                color: Colors.amber.shade700,
-                                size: 20,
-                              ),
+                              Icon(Icons.info_outline, color: Colors.amber.shade700, size: 20),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Text(
@@ -330,12 +281,7 @@ class CoursRouteDetailScreen extends ConsumerWidget {
                           subtitle: 'Informations complémentaires',
                           icon: Icons.note_outlined,
                           accentColor: Colors.purple,
-                          entries: [
-                            InfoEntry(
-                              label: 'Commentaire',
-                              value: c.note!.trim(),
-                            ),
-                          ],
+                          entries: [InfoEntry(label: 'Commentaire', value: c.note!.trim())],
                         ),
                     ],
                   );
@@ -495,13 +441,7 @@ class CoursRouteDetailScreen extends ConsumerWidget {
           items.add(
             const PopupMenuItem(
               value: 'edit',
-              child: Row(
-                children: [
-                  Icon(Icons.edit),
-                  SizedBox(width: 8),
-                  Text('Modifier'),
-                ],
-              ),
+              child: Row(children: [Icon(Icons.edit), SizedBox(width: 8), Text('Modifier')]),
             ),
           );
         }
@@ -573,12 +513,7 @@ class CoursRouteDetailScreen extends ConsumerWidget {
     } else {
       // Bouton désactivé
       actions.add(
-        ModernActionButton(
-          label: 'Supprimer',
-          icon: Icons.delete,
-          isDanger: true,
-          onPressed: null,
-        ),
+        ModernActionButton(label: 'Supprimer', icon: Icons.delete, isDanger: true, onPressed: null),
       );
     }
 
@@ -629,12 +564,7 @@ class CoursRouteDetailScreen extends ConsumerWidget {
     return canDelete;
   }
 
-  void _handleMenuAction(
-    BuildContext context,
-    WidgetRef ref,
-    String action,
-    UserRole? userRole,
-  ) {
+  void _handleMenuAction(BuildContext context, WidgetRef ref, String action, UserRole? userRole) {
     switch (action) {
       case 'edit':
         context.push('/cours/$coursId/edit');
@@ -669,11 +599,7 @@ class _ModernStatutChip extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             statut.label,
-            style: TextStyle(
-              color: color,
-              fontWeight: FontWeight.w600,
-              fontSize: 12,
-            ),
+            style: TextStyle(color: color, fontWeight: FontWeight.w600, fontSize: 12),
           ),
         ],
       ),
@@ -696,11 +622,7 @@ class _ModernStatutChip extends StatelessWidget {
   }
 }
 
-Future<void> _confirmDelete(
-  BuildContext context,
-  WidgetRef ref,
-  String id,
-) async {
+Future<void> _confirmDelete(BuildContext context, WidgetRef ref, String id) async {
   final ok = await confirmAction(
     context,
     title: 'Supprimer le cours ?',

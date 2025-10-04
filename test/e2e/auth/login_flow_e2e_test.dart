@@ -53,30 +53,18 @@ class _TestApp extends ConsumerWidget {
       redirect: redirectFn,
       routes: [
         GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
-        GoRoute(
-          path: '/admin',
-          builder: (_, __) => const _Screen('ADMIN', 'screen_admin'),
-        ),
+        GoRoute(path: '/admin', builder: (_, __) => const _Screen('ADMIN', 'screen_admin')),
         GoRoute(
           path: '/directeur',
           builder: (_, __) => const _Screen('DIRECTEUR', 'screen_directeur'),
         ),
-        GoRoute(
-          path: '/gerant',
-          builder: (_, __) => const _Screen('GERANT', 'screen_gerant'),
-        ),
+        GoRoute(path: '/gerant', builder: (_, __) => const _Screen('GERANT', 'screen_gerant')),
         GoRoute(
           path: '/operateur',
           builder: (_, __) => const _Screen('OPERATEUR', 'screen_operateur'),
         ),
-        GoRoute(
-          path: '/pca',
-          builder: (_, __) => const _Screen('PCA', 'screen_pca'),
-        ),
-        GoRoute(
-          path: '/lecture',
-          builder: (_, __) => const _Screen('LECTURE', 'screen_lecture'),
-        ),
+        GoRoute(path: '/pca', builder: (_, __) => const _Screen('PCA', 'screen_pca')),
+        GoRoute(path: '/lecture', builder: (_, __) => const _Screen('LECTURE', 'screen_lecture')),
       ],
     );
 

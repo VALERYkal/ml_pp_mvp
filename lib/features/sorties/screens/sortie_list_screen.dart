@@ -48,17 +48,11 @@ class SortieListScreen extends ConsumerWidget {
                 DataColumn(label: Text('Actions')),
               ],
               rows: rows.map<DataRow>((r) {
-                final date = DateFormatter.formatDate(
-                  r['date_sortie'] ?? r['created_at'],
-                );
+                final date = DateFormatter.formatDate(r['date_sortie'] ?? r['created_at']);
                 final prop = (r['proprietaire_type'] ?? 'MONALUXE').toString();
-                final prod =
-                    '${r['produit_code'] ?? ''} ${r['produit_nom'] ?? ''}'
-                        .trim();
+                final prod = '${r['produit_code'] ?? ''} ${r['produit_nom'] ?? ''}'.trim();
                 final cit = (r['citerne_nom'] ?? '').toString();
-                final v15 = VolumeFormatter.formatVolume(
-                  r['volume_corrige_15c'],
-                );
+                final v15 = VolumeFormatter.formatVolume(r['volume_corrige_15c']);
                 final vAmb = VolumeFormatter.formatVolume(r['volume_ambiant']);
                 final benef = r['client_nom'] ?? r['partenaire_nom'] ?? '';
 
@@ -86,8 +80,7 @@ class SortieListScreen extends ConsumerWidget {
                                 size: 16,
                                 color: colorScheme.onSurfaceVariant,
                               ),
-                              backgroundColor: colorScheme.surfaceVariant
-                                  .withOpacity(0.5),
+                              backgroundColor: colorScheme.surfaceVariant.withOpacity(0.5),
                             )
                           : const Text('—'),
                     ),
@@ -96,10 +89,7 @@ class SortieListScreen extends ConsumerWidget {
                         onPressed: () {
                           // TODO: Navigation vers détail
                         },
-                        icon: Icon(
-                          Icons.open_in_new,
-                          color: colorScheme.primary,
-                        ),
+                        icon: Icon(Icons.open_in_new, color: colorScheme.primary),
                       ),
                     ),
                   ],

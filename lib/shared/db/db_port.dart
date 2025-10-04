@@ -18,9 +18,7 @@ class SupabaseDbPort implements DbPort {
   SupabaseDbPort(this.client);
 
   @override
-  Future<Map<String, dynamic>> insertReception(
-    Map<String, dynamic> payload,
-  ) async {
+  Future<Map<String, dynamic>> insertReception(Map<String, dynamic> payload) async {
     final Map<String, dynamic> res = await client
         .from('receptions')
         .insert(payload)
@@ -31,10 +29,7 @@ class SupabaseDbPort implements DbPort {
 
   @override
   Future<void> rpcValidateReception(String receptionId) async {
-    await client.rpc(
-      'validate_reception',
-      params: {'p_reception_id': receptionId},
-    );
+    await client.rpc('validate_reception', params: {'p_reception_id': receptionId});
   }
 
   @override

@@ -28,9 +28,7 @@ void main() {
     });
 
     group('CDR Creation Flow', () {
-      testWidgets('should create CDR and update list', (
-        WidgetTester tester,
-      ) async {
+      testWidgets('should create CDR and update list', (WidgetTester tester) async {
         // Arrange
         await tester.pumpWidget(
           ProviderScope(
@@ -76,14 +74,8 @@ void main() {
         await tester.pump();
 
         await tester.enterText(find.byKey(const Key('pays_field')), 'RDC');
-        await tester.enterText(
-          find.byKey(const Key('plaque_camion_field')),
-          'ABC123',
-        );
-        await tester.enterText(
-          find.byKey(const Key('chauffeur_field')),
-          'Jean Dupont',
-        );
+        await tester.enterText(find.byKey(const Key('plaque_camion_field')), 'ABC123');
+        await tester.enterText(find.byKey(const Key('chauffeur_field')), 'Jean Dupont');
         await tester.enterText(find.byKey(const Key('volume_field')), '50000');
 
         // Sélectionner une date valide
@@ -104,9 +96,7 @@ void main() {
         expect(find.text('Cours de Route'), findsOneWidget);
       });
 
-      testWidgets('should filter ARRIVE cours for reception', (
-        WidgetTester tester,
-      ) async {
+      testWidgets('should filter ARRIVE cours for reception', (WidgetTester tester) async {
         // Arrange - Créer des cours avec différents statuts
         final coursChargement = CoursDeRoute(
           id: 'id1',
@@ -135,9 +125,7 @@ void main() {
     });
 
     group('CDR Status Progression', () {
-      testWidgets('should progress through all statuts', (
-        WidgetTester tester,
-      ) async {
+      testWidgets('should progress through all statuts', (WidgetTester tester) async {
         // Arrange
         final cours = CoursDeRoute(
           id: 'test-id',
@@ -151,22 +139,13 @@ void main() {
         expect(CoursDeRouteUtils.getStatutSuivant(cours), StatutCours.transit);
 
         final coursTransit = cours.copyWith(statut: StatutCours.transit);
-        expect(
-          CoursDeRouteUtils.getStatutSuivant(coursTransit),
-          StatutCours.frontiere,
-        );
+        expect(CoursDeRouteUtils.getStatutSuivant(coursTransit), StatutCours.frontiere);
 
         final coursFrontiere = cours.copyWith(statut: StatutCours.frontiere);
-        expect(
-          CoursDeRouteUtils.getStatutSuivant(coursFrontiere),
-          StatutCours.arrive,
-        );
+        expect(CoursDeRouteUtils.getStatutSuivant(coursFrontiere), StatutCours.arrive);
 
         final coursArrive = cours.copyWith(statut: StatutCours.arrive);
-        expect(
-          CoursDeRouteUtils.getStatutSuivant(coursArrive),
-          StatutCours.decharge,
-        );
+        expect(CoursDeRouteUtils.getStatutSuivant(coursArrive), StatutCours.decharge);
 
         final coursDecharge = cours.copyWith(statut: StatutCours.decharge);
         expect(CoursDeRouteUtils.getStatutSuivant(coursDecharge), null);
@@ -238,8 +217,7 @@ void main() {
         const filters = CoursFilters(volumeMin: 0, volumeMax: 100000);
         final filteredCours = allCours.where((c) {
           if (c.volume == null) return false;
-          return c.volume! >= filters.volumeMin &&
-              c.volume! <= filters.volumeMax;
+          return c.volume! >= filters.volumeMin && c.volume! <= filters.volumeMax;
         }).toList();
 
         // Assert
@@ -249,9 +227,7 @@ void main() {
         // cours3 should be excluded (volume 120000 > 100000)
       });
 
-      testWidgets('should combine fournisseur and volume filters', (
-        WidgetTester tester,
-      ) async {
+      testWidgets('should combine fournisseur and volume filters', (WidgetTester tester) async {
         // Arrange
         final cours1 = CoursDeRoute(
           id: 'id1',
@@ -280,18 +256,12 @@ void main() {
         final allCours = [cours1, cours2, cours3];
 
         // Act - Filtrer par fournisseur f1 et volume 20000-50000L
-        const filters = CoursFilters(
-          fournisseurId: 'f1',
-          volumeMin: 20000,
-          volumeMax: 50000,
-        );
+        const filters = CoursFilters(fournisseurId: 'f1', volumeMin: 20000, volumeMax: 50000);
 
         final filteredCours = allCours.where((c) {
           final okFournisseur = c.fournisseurId == filters.fournisseurId;
           final okVolume =
-              c.volume != null &&
-              c.volume! >= filters.volumeMin &&
-              c.volume! <= filters.volumeMax;
+              c.volume != null && c.volume! >= filters.volumeMin && c.volume! <= filters.volumeMax;
           return okFournisseur && okVolume;
         }).toList();
 
@@ -336,9 +306,7 @@ void main() {
         expect(deserializedCours.statut, cours.statut);
       });
 
-      testWidgets('should handle legacy field names correctly', (
-        WidgetTester tester,
-      ) async {
+      testWidgets('should handle legacy field names correctly', (WidgetTester tester) async {
         // Arrange - Données avec noms de champs legacy
         final legacyData = {
           'id': 'test-id',
@@ -361,9 +329,7 @@ void main() {
     });
 
     group('CDR Business Rules', () {
-      testWidgets('should enforce unique plaque camion constraint', (
-        WidgetTester tester,
-      ) async {
+      testWidgets('should enforce unique plaque camion constraint', (WidgetTester tester) async {
         // Arrange
         final cours1 = CoursDeRoute(
           id: 'id1',
@@ -385,18 +351,14 @@ void main() {
 
         // Act - Vérifier qu'il ne peut y avoir qu'un seul cours "ouvert" par plaque
         final activeCours = [cours1, cours2];
-        final openCours = activeCours
-            .where((c) => c.statut != StatutCours.decharge)
-            .toList();
+        final openCours = activeCours.where((c) => c.statut != StatutCours.decharge).toList();
 
         // Assert - Il devrait y avoir une règle métier pour empêcher cela
         expect(openCours.length, 2);
         // Dans un vrai système, on vérifierait qu'il n'y a qu'un seul cours ouvert par plaque
       });
 
-      testWidgets('should validate volume constraints', (
-        WidgetTester tester,
-      ) async {
+      testWidgets('should validate volume constraints', (WidgetTester tester) async {
         // Arrange
         final validCours = CoursDeRoute(
           id: 'id1',

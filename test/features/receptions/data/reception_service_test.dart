@@ -82,10 +82,7 @@ void main() {
   group('ReceptionService validations', () {
     late MockSupabaseClient mockClient;
 
-    Reception buildReception({
-      double indexAvant = 0,
-      double indexApres = 1000,
-    }) => Reception(
+    Reception buildReception({double indexAvant = 0, double indexApres = 1000}) => Reception(
       id: '',
       coursDeRouteId: 'cours-1',
       citerneId: 'cit-1',
@@ -100,10 +97,7 @@ void main() {
     });
 
     test('rejette indices incohérents (volume <= 0)', () async {
-      final service = ReceptionService.withClient(
-        mockClient,
-        refRepo: FakeRefRepo(),
-      );
+      final service = ReceptionService.withClient(mockClient, refRepo: FakeRefRepo());
       final r = buildReception(indexApres: 0);
       expect(() => service.createReception(r), throwsA(isA<ArgumentError>()));
     });
@@ -119,11 +113,7 @@ void main() {
       expect(
         () => service.createReception(buildReception()),
         throwsA(
-          isA<ArgumentError>().having(
-            (e) => e.toString(),
-            'message',
-            contains('Citerne inactive'),
-          ),
+          isA<ArgumentError>().having((e) => e.toString(), 'message', contains('Citerne inactive')),
         ),
       );
     });
@@ -148,28 +138,25 @@ void main() {
       );
     });
 
-    test(
-      'rejette capacité insuffisante (volume > capacitéDisponible)',
-      () async {
-        final service = ReceptionService.withClient(
-          mockClient,
-          citerneServiceFactory: (_) => FakeCiterneServiceCapacity(),
-          stocksServiceFactory: (_) => FakeStocksServiceHigh(),
-          refRepo: FakeRefRepo(),
-        );
+    test('rejette capacité insuffisante (volume > capacitéDisponible)', () async {
+      final service = ReceptionService.withClient(
+        mockClient,
+        citerneServiceFactory: (_) => FakeCiterneServiceCapacity(),
+        stocksServiceFactory: (_) => FakeStocksServiceHigh(),
+        refRepo: FakeRefRepo(),
+      );
 
-        // vObs = 1000, capacityDisponible = 2000 - 500 - 600 = 900 → 1000 > 900
-        expect(
-          () => service.createReception(buildReception()),
-          throwsA(
-            isA<ArgumentError>().having(
-              (e) => e.toString(),
-              'message',
-              contains('capacité disponible'),
-            ),
+      // vObs = 1000, capacityDisponible = 2000 - 500 - 600 = 900 → 1000 > 900
+      expect(
+        () => service.createReception(buildReception()),
+        throwsA(
+          isA<ArgumentError>().having(
+            (e) => e.toString(),
+            'message',
+            contains('capacité disponible'),
           ),
-        );
-      },
-    );
+        ),
+      );
+    });
   });
 }

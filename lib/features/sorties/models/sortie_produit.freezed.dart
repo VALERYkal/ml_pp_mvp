@@ -70,16 +70,13 @@ mixin _$SortieProduit {
   /// Create a copy of SortieProduit
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $SortieProduitCopyWith<SortieProduit> get copyWith =>
-      throw _privateConstructorUsedError;
+  $SortieProduitCopyWith<SortieProduit> get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $SortieProduitCopyWith<$Res> {
-  factory $SortieProduitCopyWith(
-    SortieProduit value,
-    $Res Function(SortieProduit) then,
-  ) = _$SortieProduitCopyWithImpl<$Res, SortieProduit>;
+  factory $SortieProduitCopyWith(SortieProduit value, $Res Function(SortieProduit) then) =
+      _$SortieProduitCopyWithImpl<$Res, SortieProduit>;
   @useResult
   $Res call({
     String id,
@@ -242,8 +239,7 @@ class _$SortieProduitCopyWithImpl<$Res, $Val extends SortieProduit>
 }
 
 /// @nodoc
-abstract class _$$SortieProduitImplCopyWith<$Res>
-    implements $SortieProduitCopyWith<$Res> {
+abstract class _$$SortieProduitImplCopyWith<$Res> implements $SortieProduitCopyWith<$Res> {
   factory _$$SortieProduitImplCopyWith(
     _$SortieProduitImpl value,
     $Res Function(_$SortieProduitImpl) then,
@@ -520,45 +516,31 @@ class _$SortieProduitImpl implements _SortieProduit {
         (other.runtimeType == runtimeType &&
             other is _$SortieProduitImpl &&
             (identical(other.id, id) || other.id == id) &&
-            (identical(other.citerneId, citerneId) ||
-                other.citerneId == citerneId) &&
-            (identical(other.produitId, produitId) ||
-                other.produitId == produitId) &&
-            (identical(other.clientId, clientId) ||
-                other.clientId == clientId) &&
-            (identical(other.partenaireId, partenaireId) ||
-                other.partenaireId == partenaireId) &&
-            (identical(other.indexAvant, indexAvant) ||
-                other.indexAvant == indexAvant) &&
-            (identical(other.indexApres, indexApres) ||
-                other.indexApres == indexApres) &&
+            (identical(other.citerneId, citerneId) || other.citerneId == citerneId) &&
+            (identical(other.produitId, produitId) || other.produitId == produitId) &&
+            (identical(other.clientId, clientId) || other.clientId == clientId) &&
+            (identical(other.partenaireId, partenaireId) || other.partenaireId == partenaireId) &&
+            (identical(other.indexAvant, indexAvant) || other.indexAvant == indexAvant) &&
+            (identical(other.indexApres, indexApres) || other.indexApres == indexApres) &&
             (identical(other.volumeAmbiant, volumeAmbiant) ||
                 other.volumeAmbiant == volumeAmbiant) &&
             (identical(other.volumeCorrige15c, volumeCorrige15c) ||
                 other.volumeCorrige15c == volumeCorrige15c) &&
             (identical(other.temperatureAmbianteC, temperatureAmbianteC) ||
                 other.temperatureAmbianteC == temperatureAmbianteC) &&
-            (identical(other.densiteA15, densiteA15) ||
-                other.densiteA15 == densiteA15) &&
+            (identical(other.densiteA15, densiteA15) || other.densiteA15 == densiteA15) &&
             (identical(other.statut, statut) || other.statut == statut) &&
             (identical(other.proprietaireType, proprietaireType) ||
                 other.proprietaireType == proprietaireType) &&
-            (identical(other.dateSortie, dateSortie) ||
-                other.dateSortie == dateSortie) &&
-            (identical(other.chauffeurNom, chauffeurNom) ||
-                other.chauffeurNom == chauffeurNom) &&
-            (identical(other.plaqueCamion, plaqueCamion) ||
-                other.plaqueCamion == plaqueCamion) &&
+            (identical(other.dateSortie, dateSortie) || other.dateSortie == dateSortie) &&
+            (identical(other.chauffeurNom, chauffeurNom) || other.chauffeurNom == chauffeurNom) &&
+            (identical(other.plaqueCamion, plaqueCamion) || other.plaqueCamion == plaqueCamion) &&
             (identical(other.plaqueRemorque, plaqueRemorque) ||
                 other.plaqueRemorque == plaqueRemorque) &&
-            (identical(other.transporteur, transporteur) ||
-                other.transporteur == transporteur) &&
-            (identical(other.createdAt, createdAt) ||
-                other.createdAt == createdAt) &&
-            (identical(other.createdBy, createdBy) ||
-                other.createdBy == createdBy) &&
-            (identical(other.validatedBy, validatedBy) ||
-                other.validatedBy == validatedBy) &&
+            (identical(other.transporteur, transporteur) || other.transporteur == transporteur) &&
+            (identical(other.createdAt, createdAt) || other.createdAt == createdAt) &&
+            (identical(other.createdBy, createdBy) || other.createdBy == createdBy) &&
+            (identical(other.validatedBy, validatedBy) || other.validatedBy == validatedBy) &&
             (identical(other.note, note) || other.note == note));
   }
 
@@ -630,8 +612,7 @@ abstract class _SortieProduit implements SortieProduit {
     final String? note,
   }) = _$SortieProduitImpl;
 
-  factory _SortieProduit.fromJson(Map<String, dynamic> json) =
-      _$SortieProduitImpl.fromJson;
+  factory _SortieProduit.fromJson(Map<String, dynamic> json) = _$SortieProduitImpl.fromJson;
 
   @override
   String get id;

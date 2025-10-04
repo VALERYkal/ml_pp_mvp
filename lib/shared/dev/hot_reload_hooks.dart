@@ -13,8 +13,7 @@ class HotReloadInvalidator extends ConsumerStatefulWidget {
     this.showDebugRefreshButton = true,
   });
   @override
-  ConsumerState<HotReloadInvalidator> createState() =>
-      _HotReloadInvalidatorState();
+  ConsumerState<HotReloadInvalidator> createState() => _HotReloadInvalidatorState();
 }
 
 class _HotReloadInvalidatorState extends ConsumerState<HotReloadInvalidator> {
@@ -24,9 +23,7 @@ class _HotReloadInvalidatorState extends ConsumerState<HotReloadInvalidator> {
       for (final p in widget.providersToInvalidate) {
         ref.invalidate(p);
       }
-      debugPrint(
-        '🔄 [HotReloadInvalidator] Providers invalidated after hot reload.',
-      );
+      debugPrint('🔄 [HotReloadInvalidator] Providers invalidated after hot reload.');
     }
     super.reassemble();
   }
@@ -35,9 +32,9 @@ class _HotReloadInvalidatorState extends ConsumerState<HotReloadInvalidator> {
     for (final p in widget.providersToInvalidate) {
       ref.invalidate(p);
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Providers invalidated (debug refresh)')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Providers invalidated (debug refresh)')));
   }
 
   @override

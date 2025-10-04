@@ -19,15 +19,9 @@ import 'package:ml_pp_mvp/features/receptions/data/reception_service.dart';
 import 'package:ml_pp_mvp/features/receptions/widgets/cours_arrive_selector.dart';
 import 'package:ml_pp_mvp/features/receptions/data/citerne_info_provider.dart';
 import 'package:ml_pp_mvp/features/receptions/providers/receptions_list_provider.dart'
-    show
-        receptionsListProvider,
-        receptionsPageProvider,
-        receptionsPageSizeProvider;
+    show receptionsListProvider, receptionsPageProvider, receptionsPageSizeProvider;
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_route_providers.dart'
-    show
-        coursDeRouteListProvider,
-        coursDeRouteActifsProvider,
-        coursDeRouteArrivesProvider;
+    show coursDeRouteListProvider, coursDeRouteActifsProvider, coursDeRouteArrivesProvider;
 import 'package:ml_pp_mvp/features/citernes/providers/citerne_providers.dart'
     show citernesWithStockProvider;
 import 'package:ml_pp_mvp/features/stocks_journaliers/providers/stocks_providers.dart'
@@ -42,8 +36,7 @@ class ReceptionFormScreen extends ConsumerStatefulWidget {
   final String? coursDeRouteId; // optionnel via route
   const ReceptionFormScreen({super.key, this.coursDeRouteId});
   @override
-  ConsumerState<ReceptionFormScreen> createState() =>
-      _ReceptionFormScreenState();
+  ConsumerState<ReceptionFormScreen> createState() => _ReceptionFormScreenState();
 }
 
 class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
@@ -87,9 +80,7 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
   @override
   void initState() {
     super.initState();
-    _owner = (proprietaireType == 'PARTENAIRE')
-        ? OwnerType.partenaire
-        : OwnerType.monaluxe;
+    _owner = (proprietaireType == 'PARTENAIRE') ? OwnerType.partenaire : OwnerType.monaluxe;
     if (widget.coursDeRouteId != null && widget.coursDeRouteId!.isNotEmpty) {
       _loadCoursFromRoute(widget.coursDeRouteId!);
     }
@@ -123,9 +114,7 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
   void _onOwnerChange(OwnerType val) {
     setState(() {
       _owner = val;
-      proprietaireType = (val == OwnerType.monaluxe)
-          ? 'MONALUXE'
-          : 'PARTENAIRE';
+      proprietaireType = (val == OwnerType.monaluxe) ? 'MONALUXE' : 'PARTENAIRE';
       _selectedCiterneId = null;
       if (_owner == OwnerType.partenaire) {
         _selectedCours = null;
@@ -159,15 +148,12 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
       _selectedCours = null;
       selectedCoursId = null;
       _selectedCiterneId = null;
-      _selectedProduitId = (_owner == OwnerType.monaluxe)
-          ? null
-          : _selectedProduitId;
+      _selectedProduitId = (_owner == OwnerType.monaluxe) ? null : _selectedProduitId;
     });
   }
 
-  double? _num(String s) => double.tryParse(
-    s.replaceAll(RegExp(r'[^\d\-,\.]'), '').replaceAll(',', '.'),
-  );
+  double? _num(String s) =>
+      double.tryParse(s.replaceAll(RegExp(r'[^\d\-,\.]'), '').replaceAll(',', '.'));
   bool get isMonaluxe => proprietaireType == 'MONALUXE';
   bool get isPartenaire => proprietaireType == 'PARTENAIRE';
 
@@ -179,25 +165,17 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
   Future<void> _submitReception() async {
     // validations minimales UI
     if (_selectedProduitId == null) {
-      showAppToast(
-        context,
-        'Sélectionnez un produit.',
-        type: ToastType.warning,
-      );
+      showAppToast(context, 'Sélectionnez un produit.', type: ToastType.warning);
       return;
     }
     if (_selectedCiterneId == null) {
-      showAppToast(
-        context,
-        'Sélectionnez une citerne.',
-        type: ToastType.warning,
-      );
+      showAppToast(context, 'Sélectionnez une citerne.', type: ToastType.warning);
       return;
     }
     if (isMonaluxe && (selectedCoursId ?? widget.coursDeRouteId) == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Choisissez un cours "arrivé"')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Choisissez un cours "arrivé"')));
       return;
     }
     if (isPartenaire && (partenaireId == null || partenaireId!.isEmpty)) {
@@ -210,9 +188,9 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
     final avant = _num(ctrlAvant.text) ?? 0;
     final apres = _num(ctrlApres.text) ?? 0;
     if (apres <= avant) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Indices incohérents (après ≤ avant)')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Indices incohérents (après ≤ avant)')));
       return;
     }
 
@@ -240,9 +218,7 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
             temperatureCAmb: temp,
             densiteA15: dens,
             volumeCorrige15C: vol15,
-            proprietaireType: _owner == OwnerType.monaluxe
-                ? 'MONALUXE'
-                : 'PARTENAIRE',
+            proprietaireType: _owner == OwnerType.monaluxe ? 'MONALUXE' : 'PARTENAIRE',
             partenaireId: _owner == OwnerType.partenaire ? partenaireId : null,
             dateReception: DateTime.now(),
             note: ctrlNote.text.isEmpty ? null : ctrlNote.text.trim(),
@@ -281,11 +257,7 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
       debugPrint('[ReceptionForm] UnknownError: $e');
       debugPrint('[ReceptionForm] stack=\n$st');
       if (mounted) {
-        showAppToast(
-          context,
-          'Erreur inconnue lors de la réception.',
-          type: ToastType.error,
-        );
+        showAppToast(context, 'Erreur inconnue lors de la réception.', type: ToastType.error);
       }
     } finally {
       if (mounted) setState(() => busy = false);
@@ -301,9 +273,7 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
     final temp = _num(ctrlTemp.text);
     final dens = _num(ctrlDens.text);
     final volAmb = computeVolumeAmbiant(avant, apres);
-    final effProdCode = isMonaluxe
-        ? (produitCodeFromCours ?? produitCode)
-        : produitCode;
+    final effProdCode = isMonaluxe ? (produitCodeFromCours ?? produitCode) : produitCode;
     final vol15 = calcV15(
       volumeObserveL: volAmb,
       temperatureC: temp ?? 15.0,
@@ -321,8 +291,7 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
                 _HeaderCoursHeader(
                   cours: _selectedCours,
                   fallbackId: widget.coursDeRouteId,
-                  onUnlink:
-                      (_owner == OwnerType.monaluxe && _selectedCours != null)
+                  onUnlink: (_owner == OwnerType.monaluxe && _selectedCours != null)
                       ? _unlinkCours
                       : null,
                 ),
@@ -342,29 +311,24 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
                             ChoiceChip(
                               label: const Text('MONALUXE'),
                               selected: _owner == OwnerType.monaluxe,
-                              onSelected: (_) =>
-                                  _onOwnerChange(OwnerType.monaluxe),
+                              onSelected: (_) => _onOwnerChange(OwnerType.monaluxe),
                             ),
                             ChoiceChip(
                               label: const Text('PARTENAIRE'),
                               selected: _owner == OwnerType.partenaire,
-                              onSelected: (_) =>
-                                  _onOwnerChange(OwnerType.partenaire),
+                              onSelected: (_) => _onOwnerChange(OwnerType.partenaire),
                             ),
                           ],
                         ),
                         if (_owner == OwnerType.partenaire) ...[
                           const SizedBox(height: 8),
                           PartenaireAutocomplete(
-                            onSelected: (p) =>
-                                setState(() => partenaireId = p.id),
+                            onSelected: (p) => setState(() => partenaireId = p.id),
                           ),
                         ],
                         if (_owner == OwnerType.monaluxe) ...[
                           const SizedBox(height: 8),
-                          const Text(
-                            'Sélectionner un CDR « Arrivé » (si non pré-rempli)',
-                          ),
+                          const Text('Sélectionner un CDR « Arrivé » (si non pré-rempli)'),
                           _CoursArriveSelector(
                             enabled: true,
                             onSelected: (item) {
@@ -382,13 +346,7 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: _buildProduitCiterneCard(
-                          ref,
-                          effProdCode,
-                          volAmb,
-                        ),
-                      ),
+                      Expanded(child: _buildProduitCiterneCard(ref, effProdCode, volAmb)),
                       const SizedBox(width: 12),
                       Expanded(child: _buildMesuresCard(volAmb, vol15)),
                     ],
@@ -418,9 +376,7 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
                         const SizedBox(height: 8),
                         TextField(
                           controller: ctrlNote,
-                          decoration: const InputDecoration(
-                            labelText: 'Note (optionnel)',
-                          ),
+                          decoration: const InputDecoration(labelText: 'Note (optionnel)'),
                           maxLines: 2,
                         ),
                       ],
@@ -438,10 +394,7 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
                 ? const SizedBox(
                     width: 16,
                     height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                   )
                 : const Icon(Icons.check),
             label: const Text('Enregistrer la réception'),
@@ -465,11 +418,7 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
         apres > avant;
   }
 
-  Widget _buildProduitCiterneCard(
-    WidgetRef ref,
-    String effProdCode,
-    double volAmb,
-  ) {
+  Widget _buildProduitCiterneCard(WidgetRef ref, String effProdCode, double volAmb) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -480,13 +429,11 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
             const SizedBox(height: 8),
             _ProduitChips(
               selectedId: _selectedProduitId,
-              enabled:
-                  _owner == OwnerType.partenaire, // Monaluxe => chip disabled
+              enabled: _owner == OwnerType.partenaire, // Monaluxe => chip disabled
               onSelected: (pid) {
                 setState(() {
                   _selectedProduitId = pid;
-                  _selectedCiterneId =
-                      null; // reset citerne au changement de produit
+                  _selectedCiterneId = null; // reset citerne au changement de produit
                 });
               },
             ),
@@ -506,16 +453,11 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
                     // 4) Pré-sélection automatique si une seule citerne
                     if (filtered.length == 1 && _selectedCiterneId == null) {
                       WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (mounted)
-                          setState(
-                            () => _selectedCiterneId = filtered.first.id,
-                          );
+                        if (mounted) setState(() => _selectedCiterneId = filtered.first.id);
                       });
                     }
                     if (filtered.isEmpty)
-                      return const Text(
-                        'Aucune citerne active disponible pour ce produit',
-                      );
+                      return const Text('Aucune citerne active disponible pour ce produit');
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -526,11 +468,8 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
                             dense: true,
                             value: c.id,
                             groupValue: _selectedCiterneId,
-                            onChanged: (v) =>
-                                setState(() => _selectedCiterneId = v),
-                            title: Text(
-                              '${c.nom.isNotEmpty ? c.nom : c.id.substring(0, 8)}',
-                            ),
+                            onChanged: (v) => setState(() => _selectedCiterneId = v),
+                            title: Text('${c.nom.isNotEmpty ? c.nom : c.id.substring(0, 8)}'),
                             subtitle: Text(
                               'Capacité ${c.capaciteTotale.toStringAsFixed(0)} L | Sécurité ${c.capaciteSecurite.toStringAsFixed(0)} L',
                             ),
@@ -544,14 +483,10 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
               Builder(
                 builder: (_) {
                   final pid = _selectedProduitId ?? _selectedCours?.produitId;
-                  if (pid == null || pid.isEmpty)
-                    return const SizedBox.shrink();
+                  if (pid == null || pid.isEmpty) return const SizedBox.shrink();
                   return ref
                       .watch(
-                        citerneQuickInfoProvider((
-                          citerneId: _selectedCiterneId!,
-                          produitId: pid,
-                        )),
+                        citerneQuickInfoProvider((citerneId: _selectedCiterneId!, produitId: pid)),
                       )
                       .maybeWhen(
                         data: (info) => info == null
@@ -559,9 +494,7 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
                             : Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    'Stock estimé: ${info.stockEstime.toStringAsFixed(0)} L',
-                                  ),
+                                  Text('Stock estimé: ${info.stockEstime.toStringAsFixed(0)} L'),
                                   Text(
                                     'Dispo estimée après réception: ${(info.disponible - volAmb).toStringAsFixed(0)} L',
                                   ),
@@ -592,9 +525,7 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
                   child: TextField(
                     controller: ctrlAvant,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Index avant *',
-                    ),
+                    decoration: const InputDecoration(labelText: 'Index avant *'),
                     onChanged: (_) => setState(() {}),
                   ),
                 ),
@@ -603,9 +534,7 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
                   child: TextField(
                     controller: ctrlApres,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Index après *',
-                    ),
+                    decoration: const InputDecoration(labelText: 'Index après *'),
                     onChanged: (_) => setState(() {}),
                   ),
                 ),
@@ -617,9 +546,7 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
                   child: TextField(
                     controller: ctrlTemp,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Température (°C)',
-                    ),
+                    decoration: const InputDecoration(labelText: 'Température (°C)'),
                     onChanged: (_) => setState(() {}),
                   ),
                 ),
@@ -628,9 +555,7 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
                   child: TextField(
                     controller: ctrlDens,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Densité @15°C',
-                    ),
+                    decoration: const InputDecoration(labelText: 'Densité @15°C'),
                     onChanged: (_) => setState(() {}),
                   ),
                 ),
@@ -688,10 +613,7 @@ class _HeaderCoursChip extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             chip,
-            Chip(
-              avatar: const Icon(Icons.event, size: 16),
-              label: Text(dateStr),
-            ),
+            Chip(avatar: const Icon(Icons.event, size: 16), label: Text(dateStr)),
           ],
         ),
         const SizedBox(height: 8),
@@ -702,20 +624,14 @@ class _HeaderCoursChip extends StatelessWidget {
 }
 
 String _fmtVol(num? v) => v == null ? '—' : '${v.toStringAsFixed(0)} L';
-String _fmtDate(DateTime? d) =>
-    d == null ? '—' : d.toIso8601String().substring(0, 10);
+String _fmtDate(DateTime? d) => d == null ? '—' : d.toIso8601String().substring(0, 10);
 
 // --- Nouveau header complet avec bouton Dissocier ---
 class _HeaderCoursHeader extends ConsumerWidget {
   final CoursDeRoute? cours;
   final String? fallbackId;
   final VoidCallback? onUnlink;
-  const _HeaderCoursHeader({
-    super.key,
-    this.cours,
-    this.fallbackId,
-    this.onUnlink,
-  });
+  const _HeaderCoursHeader({super.key, this.cours, this.fallbackId, this.onUnlink});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -731,22 +647,13 @@ class _HeaderCoursHeader extends ConsumerWidget {
           .maybeWhen(
             data: (cache) {
               // fournisseur nom
-              fournisseurNom = rfd.resolveName(
-                cache,
-                cours!.fournisseurId,
-                'fournisseur',
-              );
+              fournisseurNom = rfd.resolveName(cache, cours!.fournisseurId, 'fournisseur');
               // produit: si code/nom manquent, tente via cache produits
               if (prodCode.isEmpty || prodNom.isEmpty) {
-                final name = rfd.resolveName(
-                  cache,
-                  cours!.produitId,
-                  'produit',
-                );
+                final name = rfd.resolveName(cache, cours!.produitId, 'produit');
                 // derive code from produitCodes if possible
                 final code = cache.produitCodes[cours!.produitId];
-                if (prodCode.isEmpty && code != null && code.isNotEmpty)
-                  prodCode = code;
+                if (prodCode.isEmpty && code != null && code.isNotEmpty) prodCode = code;
                 if (prodNom.isEmpty && name.isNotEmpty) prodNom = name;
               }
             },
@@ -785,10 +692,7 @@ class _HeaderCoursHeader extends ConsumerWidget {
           children: [
             chip,
             const Spacer(),
-            Chip(
-              avatar: const Icon(Icons.event, size: 16),
-              label: Text(dateStr),
-            ),
+            Chip(avatar: const Icon(Icons.event, size: 16), label: Text(dateStr)),
             if (onUnlink != null) ...[
               const SizedBox(width: 8),
               TextButton.icon(
@@ -810,11 +714,7 @@ class _HeaderCoursHeader extends ConsumerWidget {
 class _CoursArriveSelector extends ConsumerWidget {
   final bool enabled;
   final ValueChanged<CoursDeRoute> onSelected;
-  const _CoursArriveSelector({
-    super.key,
-    required this.enabled,
-    required this.onSelected,
-  });
+  const _CoursArriveSelector({super.key, required this.enabled, required this.onSelected});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -853,21 +753,14 @@ class _CoursArriveSelector extends ConsumerWidget {
       );
     }
 
-    String _fmtDate(DateTime? d) =>
-        d == null ? '—' : d.toIso8601String().substring(0, 10);
+    String _fmtDate(DateTime? d) => d == null ? '—' : d.toIso8601String().substring(0, 10);
     String titleOf(CoursDeRoute c) =>
         '#${c.id.substring(0, 8)} · ${_fmtDate(c.dateChargement)} · ${c.plaqueCamion ?? "---"}';
     String subtitleOf(CoursDeRoute c) {
       final fournisseurNom = fournisseurNameOf(c.fournisseurId);
-      final code = c.produitCode?.isNotEmpty == true
-          ? c.produitCode!
-          : produitCodeOf(c.produitId);
-      final nom = c.produitNom?.isNotEmpty == true
-          ? c.produitNom!
-          : produitNomOf(c.produitId);
-      final rem = (c.plaqueRemorque ?? '').isNotEmpty
-          ? ' / ${c.plaqueRemorque}'
-          : '';
+      final code = c.produitCode?.isNotEmpty == true ? c.produitCode! : produitCodeOf(c.produitId);
+      final nom = c.produitNom?.isNotEmpty == true ? c.produitNom! : produitNomOf(c.produitId);
+      final rem = (c.plaqueRemorque ?? '').isNotEmpty ? ' / ${c.plaqueRemorque}' : '';
       final vol = c.volume == null ? '—' : '${c.volume!.toStringAsFixed(0)} L';
       final chf = (c.chauffeurNom ?? c.chauffeur ?? '').isNotEmpty
           ? ' · Chauff: ${(c.chauffeurNom ?? c.chauffeur)!}'
@@ -883,9 +776,7 @@ class _CoursArriveSelector extends ConsumerWidget {
         if (items.isEmpty) return const Text('Aucun CDR au statut ARRIVE');
         return DropdownButtonFormField<CoursDeRoute>(
           isExpanded: true,
-          decoration: const InputDecoration(
-            labelText: 'Sélectionner un CDR (ARRIVE)',
-          ),
+          decoration: const InputDecoration(labelText: 'Sélectionner un CDR (ARRIVE)'),
           items: items
               .map(
                 (c) => DropdownMenuItem(
@@ -893,29 +784,16 @@ class _CoursArriveSelector extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        titleOf(c),
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
+                      Text(titleOf(c), style: const TextStyle(fontWeight: FontWeight.w600)),
                       const SizedBox(height: 2),
-                      Text(
-                        subtitleOf(c),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                      Text(subtitleOf(c), maxLines: 2, overflow: TextOverflow.ellipsis),
                     ],
                   ),
                 ),
               )
               .toList(),
           selectedItemBuilder: (ctx) => items
-              .map(
-                (c) => Text(
-                  subtitleOf(c),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              )
+              .map((c) => Text(subtitleOf(c), maxLines: 1, overflow: TextOverflow.ellipsis))
               .toList(),
           onChanged: (c) => c != null ? onSelected(c) : null,
         );

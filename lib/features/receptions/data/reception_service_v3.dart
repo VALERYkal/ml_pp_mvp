@@ -61,9 +61,7 @@ class ReceptionServiceV2 {
 
     final payload = {
       'proprietaire_type': input.proprietaireType,
-      'partenaire_id': input.proprietaireType == 'PARTENAIRE'
-          ? input.partenaireId
-          : null,
+      'partenaire_id': input.proprietaireType == 'PARTENAIRE' ? input.partenaireId : null,
       'citerne_id': input.citerneId,
       'produit_id': produitId,
       'index_avant': input.indexAvant,
@@ -72,9 +70,7 @@ class ReceptionServiceV2 {
       'densite_a_15': input.densiteA15,
       'volume_ambiant': volAmb,
       'volume_corrige_15c': vol15,
-      'cours_de_route_id': (input.proprietaireType == 'MONALUXE')
-          ? input.coursDeRouteId
-          : null,
+      'cours_de_route_id': (input.proprietaireType == 'MONALUXE') ? input.coursDeRouteId : null,
       'note': input.note,
       'statut': 'brouillon',
     };

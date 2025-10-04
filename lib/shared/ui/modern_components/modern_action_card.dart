@@ -110,18 +110,12 @@ class ModernActionCard extends StatelessWidget {
       return Wrap(
         spacing: 8,
         runSpacing: 8,
-        children: actions
-            .map((action) => _buildActionButton(context, theme, action))
-            .toList(),
+        children: actions.map((action) => _buildActionButton(context, theme, action)).toList(),
       );
     }
   }
 
-  Widget _buildActionButton(
-    BuildContext context,
-    ThemeData theme,
-    ModernActionButton action,
-  ) {
+  Widget _buildActionButton(BuildContext context, ThemeData theme, ModernActionButton action) {
     if (action.isDanger) {
       return OutlinedButton.icon(
         onPressed: action.onPressed,
@@ -131,9 +125,7 @@ class ModernActionCard extends StatelessWidget {
           foregroundColor: Colors.red,
           side: BorderSide(color: Colors.red.withOpacity(0.5)),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
     } else {
@@ -145,9 +137,7 @@ class ModernActionCard extends StatelessWidget {
           backgroundColor: action.accentColor,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
     }

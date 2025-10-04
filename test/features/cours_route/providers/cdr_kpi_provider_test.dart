@@ -20,16 +20,9 @@ class FakeCoursDeRouteService implements CoursDeRouteService {
     Map<String, int>? countByCategorieData,
   }) : _countByStatutData =
            countByStatutData ??
-           {
-             'CHARGEMENT': 5,
-             'TRANSIT': 3,
-             'FRONTIERE': 2,
-             'ARRIVE': 1,
-             'DECHARGE': 8,
-           },
+           {'CHARGEMENT': 5, 'TRANSIT': 3, 'FRONTIERE': 2, 'ARRIVE': 1, 'DECHARGE': 8},
        _countByCategorieData =
-           countByCategorieData ??
-           {'en_route': 10, 'en_attente': 1, 'termines': 8};
+           countByCategorieData ?? {'en_route': 10, 'en_attente': 1, 'termines': 8};
 
   @override
   Future<Map<String, int>> countByStatut() async {
@@ -68,14 +61,11 @@ class FakeCoursDeRouteService implements CoursDeRouteService {
   }) async => throw UnimplementedError();
 
   @override
-  Future<List<CoursDeRoute>> getByStatut(StatutCours statut) async =>
-      throw UnimplementedError();
+  Future<List<CoursDeRoute>> getByStatut(StatutCours statut) async => throw UnimplementedError();
 
   @override
-  Future<bool> canTransition({
-    required dynamic from,
-    required dynamic to,
-  }) async => throw UnimplementedError();
+  Future<bool> canTransition({required dynamic from, required dynamic to}) async =>
+      throw UnimplementedError();
 
   @override
   Future<bool> applyTransition({
@@ -130,14 +120,10 @@ void main() {
         );
 
         final containerEmpty = ProviderContainer(
-          overrides: [
-            coursDeRouteServiceProvider.overrideWithValue(emptyService),
-          ],
+          overrides: [coursDeRouteServiceProvider.overrideWithValue(emptyService)],
         );
 
-        final provider = containerEmpty.read(
-          cdrKpiCountsByStatutProvider.future,
-        );
+        final provider = containerEmpty.read(cdrKpiCountsByStatutProvider.future);
         final result = await provider;
 
         expect(result['CHARGEMENT'], 0);
@@ -161,14 +147,10 @@ void main() {
         );
 
         final containerCustom = ProviderContainer(
-          overrides: [
-            coursDeRouteServiceProvider.overrideWithValue(customService),
-          ],
+          overrides: [coursDeRouteServiceProvider.overrideWithValue(customService)],
         );
 
-        final provider = containerCustom.read(
-          cdrKpiCountsByStatutProvider.future,
-        );
+        final provider = containerCustom.read(cdrKpiCountsByStatutProvider.future);
         final result = await provider;
 
         expect(result['CHARGEMENT'], 10);
@@ -198,14 +180,10 @@ void main() {
         );
 
         final containerEmpty = ProviderContainer(
-          overrides: [
-            coursDeRouteServiceProvider.overrideWithValue(emptyService),
-          ],
+          overrides: [coursDeRouteServiceProvider.overrideWithValue(emptyService)],
         );
 
-        final provider = containerEmpty.read(
-          cdrKpiCountsByCategorieProvider.future,
-        );
+        final provider = containerEmpty.read(cdrKpiCountsByCategorieProvider.future);
         final result = await provider;
 
         expect(result['en_route'], 0);
@@ -217,22 +195,14 @@ void main() {
 
       test('should handle custom categories', () async {
         final customService = FakeCoursDeRouteService(
-          countByCategorieData: {
-            'en_route': 20,
-            'en_attente': 5,
-            'termines': 25,
-          },
+          countByCategorieData: {'en_route': 20, 'en_attente': 5, 'termines': 25},
         );
 
         final containerCustom = ProviderContainer(
-          overrides: [
-            coursDeRouteServiceProvider.overrideWithValue(customService),
-          ],
+          overrides: [coursDeRouteServiceProvider.overrideWithValue(customService)],
         );
 
-        final provider = containerCustom.read(
-          cdrKpiCountsByCategorieProvider.future,
-        );
+        final provider = containerCustom.read(cdrKpiCountsByCategorieProvider.future);
         final result = await provider;
 
         expect(result['en_route'], 20);
@@ -245,12 +215,8 @@ void main() {
 
     group('Provider Integration', () {
       test('should work with both providers simultaneously', () async {
-        final statusProvider = container.read(
-          cdrKpiCountsByStatutProvider.future,
-        );
-        final categoryProvider = container.read(
-          cdrKpiCountsByCategorieProvider.future,
-        );
+        final statusProvider = container.read(cdrKpiCountsByStatutProvider.future);
+        final categoryProvider = container.read(cdrKpiCountsByCategorieProvider.future);
 
         final statusResult = await statusProvider;
         final categoryResult = await categoryProvider;
@@ -290,9 +256,7 @@ void main() {
 
         // Override pour simuler une erreur
         final containerError = ProviderContainer(
-          overrides: [
-            coursDeRouteServiceProvider.overrideWithValue(errorService),
-          ],
+          overrides: [coursDeRouteServiceProvider.overrideWithValue(errorService)],
         );
 
         // Le provider devrait gérer l'erreur et retourner un état d'erreur

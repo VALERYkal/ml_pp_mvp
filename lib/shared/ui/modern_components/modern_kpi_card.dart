@@ -41,8 +41,7 @@ class ModernKpiCard extends StatefulWidget {
   State<ModernKpiCard> createState() => _ModernKpiCardState();
 }
 
-class _ModernKpiCardState extends State<ModernKpiCard>
-    with SingleTickerProviderStateMixin {
+class _ModernKpiCardState extends State<ModernKpiCard> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
   late Animation<double> _fadeAnimation;
@@ -59,21 +58,25 @@ class _ModernKpiCardState extends State<ModernKpiCard>
       vsync: this,
     );
 
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.97).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.97,
+    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeInOut));
 
-    _fadeAnimation = Tween<double>(begin: 1.0, end: 0.96).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
+    _fadeAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.96,
+    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeInOut));
 
-    _slideAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
-    );
+    _slideAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic));
 
-    _elevationAnimation = Tween<double>(begin: 0.0, end: 8.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
-    );
+    _elevationAnimation = Tween<double>(
+      begin: 0.0,
+      end: 8.0,
+    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOut));
   }
 
   @override
@@ -85,8 +88,7 @@ class _ModernKpiCardState extends State<ModernKpiCard>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final accentColor =
-        widget.accentColor ?? KpiColorPalette.getAccentColor(widget.title);
+    final accentColor = widget.accentColor ?? KpiColorPalette.getAccentColor(widget.title);
 
     return AnimatedBuilder(
       animation: _animationController,
@@ -117,15 +119,9 @@ class _ModernKpiCardState extends State<ModernKpiCard>
             }
           : null,
       child: GestureDetector(
-        onTapDown: widget.onTap != null
-            ? (_) => _animationController.forward()
-            : null,
-        onTapUp: widget.onTap != null
-            ? (_) => _animationController.reverse()
-            : null,
-        onTapCancel: widget.onTap != null
-            ? () => _animationController.reverse()
-            : null,
+        onTapDown: widget.onTap != null ? (_) => _animationController.forward() : null,
+        onTapUp: widget.onTap != null ? (_) => _animationController.reverse() : null,
+        onTapCancel: widget.onTap != null ? () => _animationController.reverse() : null,
         onTap: widget.onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 400),
@@ -136,18 +132,14 @@ class _ModernKpiCardState extends State<ModernKpiCard>
                     end: Alignment.bottomRight,
                     colors: [
                       theme.colorScheme.surface,
-                      theme.colorScheme.surfaceContainerHighest.withOpacity(
-                        0.3,
-                      ),
+                      theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
                     ],
                   )
                 : null,
             color: widget.showGradient ? null : theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(28),
             border: Border.all(
-              color: _isHovered
-                  ? accentColor.withOpacity(0.2)
-                  : accentColor.withOpacity(0.1),
+              color: _isHovered ? accentColor.withOpacity(0.2) : accentColor.withOpacity(0.1),
               width: _isHovered ? 2.5 : 1.5,
             ),
             boxShadow: [
@@ -260,10 +252,7 @@ class _ModernKpiCardState extends State<ModernKpiCard>
                     const TextStyle(),
                 child: Text(widget.title),
               ),
-              if (widget.trend != null) ...[
-                const SizedBox(height: 6),
-                _buildTrend(theme),
-              ],
+              if (widget.trend != null) ...[const SizedBox(height: 6), _buildTrend(theme)],
             ],
           ),
         ),
@@ -274,9 +263,7 @@ class _ModernKpiCardState extends State<ModernKpiCard>
   Widget _buildTrend(ThemeData theme) {
     final trend = widget.trend!;
     final isPositive = trend.value > 0;
-    final icon = isPositive
-        ? Icons.trending_up_rounded
-        : Icons.trending_down_rounded;
+    final icon = isPositive ? Icons.trending_up_rounded : Icons.trending_down_rounded;
     final color = isPositive ? KpiColorPalette.success : KpiColorPalette.danger;
 
     return AnimatedContainer(
@@ -285,10 +272,7 @@ class _ModernKpiCardState extends State<ModernKpiCard>
       decoration: BoxDecoration(
         color: color.withOpacity(_isHovered ? 0.15 : 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: color.withOpacity(_isHovered ? 0.3 : 0.2),
-          width: 1,
-        ),
+        border: Border.all(color: color.withOpacity(_isHovered ? 0.3 : 0.2), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -382,9 +366,7 @@ class _ModernKpiCardState extends State<ModernKpiCard>
     if (widget.secondaryValue == null) return const SizedBox.shrink();
 
     return Column(
-      crossAxisAlignment: widget.isMultiLine
-          ? CrossAxisAlignment.start
-          : CrossAxisAlignment.end,
+      crossAxisAlignment: widget.isMultiLine ? CrossAxisAlignment.start : CrossAxisAlignment.end,
       children: [
         // Valeur secondaire avec style amélioré et animation
         AnimatedDefaultTextStyle(
@@ -437,10 +419,7 @@ class _ModernKpiCardState extends State<ModernKpiCard>
           ],
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: theme.colorScheme.outline.withOpacity(0.1),
-          width: 1,
-        ),
+        border: Border.all(color: theme.colorScheme.outline.withOpacity(0.1), width: 1),
         boxShadow: _isHovered
             ? [
                 BoxShadow(
@@ -452,9 +431,7 @@ class _ModernKpiCardState extends State<ModernKpiCard>
             : null,
       ),
       child: Column(
-        children: widget.metrics!
-            .map((metric) => _buildMetricRow(theme, metric))
-            .toList(),
+        children: widget.metrics!.map((metric) => _buildMetricRow(theme, metric)).toList(),
       ),
     );
   }

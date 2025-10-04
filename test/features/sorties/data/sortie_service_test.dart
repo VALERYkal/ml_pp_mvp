@@ -37,75 +37,69 @@ void main() {
       service = SortieService(rpc: rpcMock);
     });
 
-    test(
-      'createValidated appelle la bonne fonction RPC avec les bons paramètres',
-      () async {
-        // Arrange
-        const citerneId = 'cit-1';
-        const produitId = 'prod-1';
-        const clientId = 'client-1';
-        const indexAvant = 100.0;
-        const indexApres = 120.0;
-        const chauffeurNom = 'Chauffeur Test';
-        const plaqueCamion = 'ABC-123';
-        const transporteur = 'Transport Test';
-        const note = 'Note de test';
+    test('createValidated appelle la bonne fonction RPC avec les bons paramètres', () async {
+      // Arrange
+      const citerneId = 'cit-1';
+      const produitId = 'prod-1';
+      const clientId = 'client-1';
+      const indexAvant = 100.0;
+      const indexApres = 120.0;
+      const chauffeurNom = 'Chauffeur Test';
+      const plaqueCamion = 'ABC-123';
+      const transporteur = 'Transport Test';
+      const note = 'Note de test';
 
-        // Act
-        final result = await service.createValidated(
-          citerneId: citerneId,
-          produitId: produitId,
-          clientId: clientId,
-          indexAvant: indexAvant,
-          indexApres: indexApres,
-          chauffeurNom: chauffeurNom,
-          plaqueCamion: plaqueCamion,
-          transporteur: transporteur,
-          note: note,
-        );
+      // Act
+      final result = await service.createValidated(
+        citerneId: citerneId,
+        produitId: produitId,
+        clientId: clientId,
+        indexAvant: indexAvant,
+        indexApres: indexApres,
+        chauffeurNom: chauffeurNom,
+        plaqueCamion: plaqueCamion,
+        transporteur: transporteur,
+        note: note,
+      );
 
-        // Assert
-        expect(result, equals('sortie-123'));
-        expect(lastRpcFunction, equals('create_sortie'));
-        expect(lastRpcCall, isNotNull);
-        expect(lastRpcCall!['citerne_id'], equals(citerneId));
-        expect(lastRpcCall!['produit_id'], equals(produitId));
-        expect(lastRpcCall!['client_id'], equals(clientId));
-        expect(lastRpcCall!['index_avant'], equals(indexAvant));
-        expect(lastRpcCall!['index_apres'], equals(indexApres));
-        expect(lastRpcCall!['chauffeur_nom'], equals(chauffeurNom));
-        expect(lastRpcCall!['plaque_camion'], equals(plaqueCamion));
-        expect(lastRpcCall!['transporteur'], equals(transporteur));
-        expect(lastRpcCall!['note'], equals(note));
-        expect(lastRpcCall!['proprietaire_type'], equals('MONALUXE'));
-      },
-    );
+      // Assert
+      expect(result, equals('sortie-123'));
+      expect(lastRpcFunction, equals('create_sortie'));
+      expect(lastRpcCall, isNotNull);
+      expect(lastRpcCall!['citerne_id'], equals(citerneId));
+      expect(lastRpcCall!['produit_id'], equals(produitId));
+      expect(lastRpcCall!['client_id'], equals(clientId));
+      expect(lastRpcCall!['index_avant'], equals(indexAvant));
+      expect(lastRpcCall!['index_apres'], equals(indexApres));
+      expect(lastRpcCall!['chauffeur_nom'], equals(chauffeurNom));
+      expect(lastRpcCall!['plaque_camion'], equals(plaqueCamion));
+      expect(lastRpcCall!['transporteur'], equals(transporteur));
+      expect(lastRpcCall!['note'], equals(note));
+      expect(lastRpcCall!['proprietaire_type'], equals('MONALUXE'));
+    });
 
-    test(
-      'createValidated avec partenaire utilise le bon proprietaire_type',
-      () async {
-        // Arrange
-        const partenaireId = 'part-1';
+    test('createValidated avec partenaire utilise le bon proprietaire_type', () async {
+      // Arrange
+      const partenaireId = 'part-1';
 
-        // Act
-        await service.createValidated(
-          citerneId: 'cit-1',
-          produitId: 'prod-1',
-          partenaireId: partenaireId,
-          proprietaireType: 'PARTENAIRE',
-          indexAvant: 100.0,
-          indexApres: 120.0,
-          chauffeurNom: 'Chauffeur',
-          plaqueCamion: 'ABC-123',
-          transporteur: 'Transport',
-        );
+      // Act
+      await service.createValidated(
+        citerneId: 'cit-1',
+        produitId: 'prod-1',
+        partenaireId: partenaireId,
+        proprietaireType: 'PARTENAIRE',
+        indexAvant: 100.0,
+        indexApres: 120.0,
+        chauffeurNom: 'Chauffeur',
+        plaqueCamion: 'ABC-123',
+        transporteur: 'Transport',
+      );
 
-        // Assert
-        expect(lastRpcCall!['proprietaire_type'], equals('PARTENAIRE'));
-        expect(lastRpcCall!['partenaire_id'], equals(partenaireId));
-        expect(lastRpcCall!['client_id'], isNull);
-      },
-    );
+      // Assert
+      expect(lastRpcCall!['proprietaire_type'], equals('PARTENAIRE'));
+      expect(lastRpcCall!['partenaire_id'], equals(partenaireId));
+      expect(lastRpcCall!['client_id'], isNull);
+    });
 
     test('createValidated avec température et densité', () async {
       // Act
@@ -162,11 +156,7 @@ void main() {
           transporteur: 'Transport',
         ),
         throwsA(
-          isA<StateError>().having(
-            (e) => e.message,
-            'message',
-            contains('INDEX_INCOHERENTS'),
-          ),
+          isA<StateError>().having((e) => e.message, 'message', contains('INDEX_INCOHERENTS')),
         ),
       );
     });
@@ -192,11 +182,7 @@ void main() {
           transporteur: 'Transport',
         ),
         throwsA(
-          isA<Exception>().having(
-            (e) => e.toString(),
-            'message',
-            contains('Erreur RPC simulée'),
-          ),
+          isA<Exception>().having((e) => e.toString(), 'message', contains('Erreur RPC simulée')),
         ),
       );
     });

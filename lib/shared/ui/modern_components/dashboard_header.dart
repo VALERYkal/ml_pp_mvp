@@ -24,10 +24,7 @@ class DashboardHeader extends ConsumerWidget {
           ],
         ),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: theme.colorScheme.outline.withOpacity(0.1),
-          width: 1,
-        ),
+        border: Border.all(color: theme.colorScheme.outline.withOpacity(0.1), width: 1),
         boxShadow: [
           BoxShadow(
             color: theme.colorScheme.shadow.withOpacity(0.05),
@@ -70,16 +67,9 @@ class DashboardHeader extends ConsumerWidget {
               ],
             ),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: theme.colorScheme.primary.withOpacity(0.2),
-              width: 1,
-            ),
+            border: Border.all(color: theme.colorScheme.primary.withOpacity(0.2), width: 1),
           ),
-          child: Icon(
-            Icons.waving_hand_outlined,
-            color: theme.colorScheme.primary,
-            size: 24,
-          ),
+          child: Icon(Icons.waving_hand_outlined, color: theme.colorScheme.primary, size: 24),
         ),
         const SizedBox(width: 16),
         Expanded(
@@ -117,18 +107,11 @@ class DashboardHeader extends ConsumerWidget {
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: theme.colorScheme.outline.withOpacity(0.1),
-          width: 1,
-        ),
+        border: Border.all(color: theme.colorScheme.outline.withOpacity(0.1), width: 1),
       ),
       child: Row(
         children: [
-          Icon(
-            Icons.calendar_today_outlined,
-            size: 18,
-            color: theme.colorScheme.primary,
-          ),
+          Icon(Icons.calendar_today_outlined, size: 18, color: theme.colorScheme.primary),
           const SizedBox(width: 12),
           Text(
             _getCurrentDate(),
@@ -139,11 +122,7 @@ class DashboardHeader extends ConsumerWidget {
             ),
           ),
           const Spacer(),
-          Icon(
-            Icons.access_time_outlined,
-            size: 18,
-            color: theme.colorScheme.primary,
-          ),
+          Icon(Icons.access_time_outlined, size: 18, color: theme.colorScheme.primary),
           const SizedBox(width: 8),
           Text(
             _getCurrentTime(),
@@ -167,15 +146,7 @@ class DashboardHeader extends ConsumerWidget {
 
   String _getCurrentDate() {
     final now = DateTime.now();
-    final weekdays = [
-      'Lundi',
-      'Mardi',
-      'Mercredi',
-      'Jeudi',
-      'Vendredi',
-      'Samedi',
-      'Dimanche',
-    ];
+    final weekdays = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
     final months = [
       'janvier',
       'février',

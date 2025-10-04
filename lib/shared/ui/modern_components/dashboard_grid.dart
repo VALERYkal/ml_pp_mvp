@@ -28,11 +28,7 @@ class DashboardGrid extends StatelessWidget {
     int columns = crossAxisCount ?? _calculateColumns(screenWidth);
 
     // Ajuster l'aspect ratio selon la taille d'écran
-    double aspectRatio = _calculateAspectRatio(
-      screenWidth,
-      screenHeight,
-      columns,
-    );
+    double aspectRatio = _calculateAspectRatio(screenWidth, screenHeight, columns);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -79,11 +75,7 @@ class DashboardGrid extends StatelessWidget {
     return 1; // Mobile
   }
 
-  double _calculateAspectRatio(
-    double screenWidth,
-    double screenHeight,
-    int columns,
-  ) {
+  double _calculateAspectRatio(double screenWidth, double screenHeight, int columns) {
     // Ajuster l'aspect ratio selon le nombre de colonnes et la taille d'écran
     if (columns == 1) return 1.3; // Mobile : plus haut
     if (columns == 2) return 1.1; // Tablet : équilibré
@@ -120,11 +112,7 @@ class DashboardSection extends StatelessWidget {
       margin: padding ?? const EdgeInsets.only(bottom: 40),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildHeader(theme, accent),
-          const SizedBox(height: 24),
-          child,
-        ],
+        children: [_buildHeader(theme, accent), const SizedBox(height: 24), child],
       ),
     );
   }
@@ -138,10 +126,7 @@ class DashboardSection extends StatelessWidget {
           Container(
             width: 4,
             height: 32,
-            decoration: BoxDecoration(
-              color: accent,
-              borderRadius: BorderRadius.circular(2),
-            ),
+            decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(2)),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -162,9 +147,7 @@ class DashboardSection extends StatelessWidget {
                   Text(
                     subtitle!,
                     style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant.withOpacity(
-                        0.8,
-                      ),
+                      color: theme.colorScheme.onSurfaceVariant.withOpacity(0.8),
                       fontWeight: FontWeight.w400,
                       letterSpacing: 0.1,
                     ),

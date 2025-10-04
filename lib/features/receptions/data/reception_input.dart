@@ -15,8 +15,7 @@ class ReceptionInput with _$ReceptionInput {
     required String proprietaireType, // 'MONALUXE' | 'PARTENAIRE'
     String? partenaireId, // requis si PARTENAIRE
     required String citerneId, // citerne active
-    required String
-    produitCode, // 'ESS' | 'AGO' (reste utile pour calcul @15°C)
+    required String produitCode, // 'ESS' | 'AGO' (reste utile pour calcul @15°C)
     String? produitId, // <-- NEW: override direct du produit (UUID)
     double? indexAvant,
     double? indexApres,
@@ -27,6 +26,5 @@ class ReceptionInput with _$ReceptionInput {
     String? note,
   }) = _ReceptionInput;
 
-  factory ReceptionInput.fromJson(Map<String, dynamic> json) =>
-      _$ReceptionInputFromJson(json);
+  factory ReceptionInput.fromJson(Map<String, dynamic> json) => _$ReceptionInputFromJson(json);
 }

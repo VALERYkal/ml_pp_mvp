@@ -42,16 +42,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     refreshListenable: refresh, // 👈 composite (auth + rôle)
     routes: [
       // Routes publiques (inchangées)
-      GoRoute(
-        path: '/login',
-        name: 'login',
-        builder: (ctx, st) => const LoginScreen(),
-      ),
-      GoRoute(
-        path: '/splash',
-        name: 'splash',
-        builder: (ctx, st) => const SplashScreen(),
-      ),
+      GoRoute(path: '/login', name: 'login', builder: (ctx, st) => const LoginScreen()),
+      GoRoute(path: '/splash', name: 'splash', builder: (ctx, st) => const SplashScreen()),
 
       // Route dev pour purge de cache
       GoRoute(
@@ -65,61 +57,35 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state, child) => DashboardShell(child: child),
         routes: [
           // Dashboards par rôle
-          GoRoute(
-            path: '/dashboard/admin',
-            builder: (ctx, st) => const DashboardAdminScreen(),
-          ),
+          GoRoute(path: '/dashboard/admin', builder: (ctx, st) => const DashboardAdminScreen()),
           GoRoute(
             path: '/dashboard/directeur',
             builder: (ctx, st) => const DashboardDirecteurScreen(),
           ),
-          GoRoute(
-            path: '/dashboard/gerant',
-            builder: (ctx, st) => const DashboardGerantScreen(),
-          ),
+          GoRoute(path: '/dashboard/gerant', builder: (ctx, st) => const DashboardGerantScreen()),
           GoRoute(
             path: '/dashboard/operateur',
             builder: (ctx, st) => const DashboardOperateurScreen(),
           ),
-          GoRoute(
-            path: '/dashboard/pca',
-            builder: (ctx, st) => const DashboardPcaScreen(),
-          ),
-          GoRoute(
-            path: '/dashboard/lecture',
-            builder: (ctx, st) => const DashboardLectureScreen(),
-          ),
+          GoRoute(path: '/dashboard/pca', builder: (ctx, st) => const DashboardPcaScreen()),
+          GoRoute(path: '/dashboard/lecture', builder: (ctx, st) => const DashboardLectureScreen()),
 
           // Route générique dashboard (redirigée par le redirect global)
-          GoRoute(
-            path: '/dashboard',
-            builder: (ctx, st) => const SplashScreen(),
-          ),
+          GoRoute(path: '/dashboard', builder: (ctx, st) => const SplashScreen()),
 
           // Modules fonctionnels
-          GoRoute(
-            path: '/cours',
-            builder: (ctx, st) => const CoursRouteListScreen(),
-          ),
-          GoRoute(
-            path: '/cours/new',
-            builder: (ctx, st) => const CoursRouteFormScreen(),
-          ),
+          GoRoute(path: '/cours', builder: (ctx, st) => const CoursRouteListScreen()),
+          GoRoute(path: '/cours/new', builder: (ctx, st) => const CoursRouteFormScreen()),
           GoRoute(
             path: '/cours/:id',
-            builder: (ctx, st) =>
-                CoursRouteDetailScreen(coursId: st.pathParameters['id']!),
+            builder: (ctx, st) => CoursRouteDetailScreen(coursId: st.pathParameters['id']!),
           ),
           GoRoute(
             path: '/cours/:id/edit',
-            builder: (ctx, st) =>
-                CoursRouteFormScreen(coursId: st.pathParameters['id']),
+            builder: (ctx, st) => CoursRouteFormScreen(coursId: st.pathParameters['id']),
           ),
 
-          GoRoute(
-            path: '/receptions',
-            builder: (ctx, st) => const ReceptionListScreen(),
-          ),
+          GoRoute(path: '/receptions', builder: (ctx, st) => const ReceptionListScreen()),
           GoRoute(
             path: '/receptions/new',
             builder: (ctx, st) {
@@ -128,23 +94,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             },
           ),
 
-          GoRoute(
-            path: '/sorties',
-            builder: (ctx, st) => const SortieListScreen(),
-          ),
-          GoRoute(
-            path: '/sorties/new',
-            builder: (ctx, st) => const SortieFormScreen(),
-          ),
+          GoRoute(path: '/sorties', builder: (ctx, st) => const SortieListScreen()),
+          GoRoute(path: '/sorties/new', builder: (ctx, st) => const SortieFormScreen()),
 
-          GoRoute(
-            path: '/stocks',
-            builder: (ctx, st) => const StocksListScreen(),
-          ),
-          GoRoute(
-            path: '/citernes',
-            builder: (ctx, st) => const CiterneListScreen(),
-          ),
+          GoRoute(path: '/stocks', builder: (ctx, st) => const StocksListScreen()),
+          GoRoute(path: '/citernes', builder: (ctx, st) => const CiterneListScreen()),
           GoRoute(path: '/logs', builder: (ctx, st) => const LogsListScreen()),
         ],
       ),
@@ -159,9 +113,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final role = ref.read(userRoleProvider); // UserRole? nullable
 
       // 🧪 Logs ciblés (temporaires)
-      debugPrint(
-        '🔁 RedirectEval: loc=$loc, auth=$isAuthenticated, role=$role',
-      );
+      debugPrint('🔁 RedirectEval: loc=$loc, auth=$isAuthenticated, role=$role');
 
       // 1) Non connecté -> /login sauf si on y est déjà
       if (!isAuthenticated) {

@@ -3,16 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ml_pp_mvp/features/sorties/screens/sortie_form_screen.dart';
-import 'package:ml_pp_mvp/features/sorties/providers/sortie_providers.dart'
-    as SP;
+import 'package:ml_pp_mvp/features/sorties/providers/sortie_providers.dart' as SP;
 import 'package:ml_pp_mvp/features/sorties/data/sortie_service.dart';
 import 'package:ml_pp_mvp/features/sorties/models/sortie_produit.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class _SpySortieService extends SortieService {
   final void Function(SortieProduit) onCall;
-  _SpySortieService(this.onCall)
-    : super(SupabaseClient('http://localhost', 'anon'));
+  _SpySortieService(this.onCall) : super(SupabaseClient('http://localhost', 'anon'));
   @override
   Future<String> createValidated({
     required String citerneId,
@@ -47,16 +45,12 @@ class _SpySortieService extends SortieService {
 }
 
 void main() {
-  testWidgets('Integration: Sortie submission triggers service call', (
-    tester,
-  ) async {
+  testWidgets('Integration: Sortie submission triggers service call', (tester) async {
     SortieProduit? called;
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          SP.sortieServiceProvider.overrideWith(
-            (ref) => _SpySortieService((s) => called = s),
-          ),
+          SP.sortieServiceProvider.overrideWith((ref) => _SpySortieService((s) => called = s)),
           SP.produitsListProvider.overrideWith(
             (ref) async => [
               {'id': 'p1', 'nom': 'Diesel'},
@@ -105,14 +99,8 @@ void main() {
     await tester.pumpAndSettle();
 
     // Enter indices
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Index avant'),
-      '0',
-    );
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Index après'),
-      '100',
-    );
+    await tester.enterText(find.widgetWithText(TextFormField, 'Index avant'), '0');
+    await tester.enterText(find.widgetWithText(TextFormField, 'Index après'), '100');
 
     // Submit (assurer visibilité)
     const submitKey = find.byKey(Key('sortie_submit'));

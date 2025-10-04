@@ -13,11 +13,7 @@ class SimpleCdrListWidget extends StatefulWidget {
   final List<CoursDeRoute> cours;
   final StatutCours? filterStatut;
 
-  const SimpleCdrListWidget({
-    super.key,
-    required this.cours,
-    this.filterStatut,
-  });
+  const SimpleCdrListWidget({super.key, required this.cours, this.filterStatut});
 
   @override
   State<SimpleCdrListWidget> createState() => _SimpleCdrListWidgetState();
@@ -82,19 +78,12 @@ class _SimpleCdrListWidgetState extends State<SimpleCdrListWidget> {
                           margin: const EdgeInsets.all(8),
                           child: ListTile(
                             leading: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
-                                color: _getStatutColor(
-                                  cours.statut,
-                                ).withOpacity(0.1),
+                                color: _getStatutColor(cours.statut).withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                  color: _getStatutColor(
-                                    cours.statut,
-                                  ).withOpacity(0.3),
+                                  color: _getStatutColor(cours.statut).withOpacity(0.3),
                                 ),
                               ),
                               child: Text(
@@ -109,13 +98,9 @@ class _SimpleCdrListWidgetState extends State<SimpleCdrListWidget> {
                             title: Text(
                               '${cours.transporteur ?? '—'} - ${cours.plaqueCamion ?? '—'}',
                             ),
-                            subtitle: Text(
-                              '${cours.chauffeur ?? '—'} - ${cours.volume ?? '—'} L',
-                            ),
+                            subtitle: Text('${cours.chauffeur ?? '—'} - ${cours.volume ?? '—'} L'),
                             trailing: Text(
-                              cours.id.length > 8
-                                  ? cours.id.substring(0, 8)
-                                  : cours.id,
+                              cours.id.length > 8 ? cours.id.substring(0, 8) : cours.id,
                             ),
                           ),
                         );
@@ -197,12 +182,8 @@ void main() {
       ];
     });
 
-    testWidgets('should render list screen without exceptions', (
-      WidgetTester tester,
-    ) async {
-      await tester.pumpWidget(
-        ProviderScope(child: SimpleCdrListWidget(cours: coursList)),
-      );
+    testWidgets('should render list screen without exceptions', (WidgetTester tester) async {
+      await tester.pumpWidget(ProviderScope(child: SimpleCdrListWidget(cours: coursList)));
 
       // Vérifier qu'il n'y a pas d'exception de rendu
       expect(tester.takeException(), isNull);
@@ -214,12 +195,8 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('should display all courses by default', (
-      WidgetTester tester,
-    ) async {
-      await tester.pumpWidget(
-        ProviderScope(child: SimpleCdrListWidget(cours: coursList)),
-      );
+    testWidgets('should display all courses by default', (WidgetTester tester) async {
+      await tester.pumpWidget(ProviderScope(child: SimpleCdrListWidget(cours: coursList)));
 
       await tester.pumpAndSettle();
 
@@ -230,12 +207,8 @@ void main() {
       expect(find.text('JKL012'), findsOneWidget); // cdr-4
     });
 
-    testWidgets('should filter by déchargé status', (
-      WidgetTester tester,
-    ) async {
-      await tester.pumpWidget(
-        ProviderScope(child: SimpleCdrListWidget(cours: coursList)),
-      );
+    testWidgets('should filter by déchargé status', (WidgetTester tester) async {
+      await tester.pumpWidget(ProviderScope(child: SimpleCdrListWidget(cours: coursList)));
 
       await tester.pumpAndSettle();
 
@@ -256,9 +229,7 @@ void main() {
     });
 
     testWidgets('should toggle filter off', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        ProviderScope(child: SimpleCdrListWidget(cours: coursList)),
-      );
+      await tester.pumpWidget(ProviderScope(child: SimpleCdrListWidget(cours: coursList)));
 
       await tester.pumpAndSettle();
 
@@ -283,12 +254,8 @@ void main() {
       expect(find.text('Filtre actif: Déchargé'), findsNothing);
     });
 
-    testWidgets('should display status chips correctly', (
-      WidgetTester tester,
-    ) async {
-      await tester.pumpWidget(
-        ProviderScope(child: SimpleCdrListWidget(cours: coursList)),
-      );
+    testWidgets('should display status chips correctly', (WidgetTester tester) async {
+      await tester.pumpWidget(ProviderScope(child: SimpleCdrListWidget(cours: coursList)));
 
       await tester.pumpAndSettle();
 
@@ -300,9 +267,7 @@ void main() {
     });
 
     testWidgets('should handle empty list', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        ProviderScope(child: SimpleCdrListWidget(cours: [])),
-      );
+      await tester.pumpWidget(ProviderScope(child: SimpleCdrListWidget(cours: [])));
 
       await tester.pumpAndSettle();
 
@@ -310,20 +275,13 @@ void main() {
       expect(find.text('Aucun cours trouvé'), findsOneWidget);
     });
 
-    testWidgets('should display course information correctly', (
-      WidgetTester tester,
-    ) async {
-      await tester.pumpWidget(
-        ProviderScope(child: SimpleCdrListWidget(cours: coursList)),
-      );
+    testWidgets('should display course information correctly', (WidgetTester tester) async {
+      await tester.pumpWidget(ProviderScope(child: SimpleCdrListWidget(cours: coursList)));
 
       await tester.pumpAndSettle();
 
       // Vérifier les informations des cours
-      expect(
-        find.text('Transport Express'),
-        findsNWidgets(2),
-      ); // cdr-1 et cdr-3
+      expect(find.text('Transport Express'), findsNWidgets(2)); // cdr-1 et cdr-3
       expect(find.text('Transport Rapide'), findsOneWidget); // cdr-2
       expect(find.text('Transport Pro'), findsOneWidget); // cdr-4
 

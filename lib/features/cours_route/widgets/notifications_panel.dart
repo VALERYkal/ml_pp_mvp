@@ -54,10 +54,7 @@ class _NotificationsPanelState extends State<NotificationsPanel> {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              Icon(
-                Icons.notifications,
-                color: Theme.of(context).colorScheme.primary,
-              ),
+              Icon(Icons.notifications, color: Theme.of(context).colorScheme.primary),
               const SizedBox(width: 8),
               Text(
                 'Notifications',
@@ -68,10 +65,7 @@ class _NotificationsPanelState extends State<NotificationsPanel> {
               if (unreadCount > 0) ...[
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 2,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.error,
                     borderRadius: BorderRadius.circular(12),
@@ -94,12 +88,8 @@ class _NotificationsPanelState extends State<NotificationsPanel> {
                   });
                   _loadNotifications();
                 },
-                icon: Icon(
-                  _showUnreadOnly ? Icons.visibility : Icons.visibility_off,
-                ),
-                tooltip: _showUnreadOnly
-                    ? 'Voir toutes'
-                    : 'Voir non lues seulement',
+                icon: Icon(_showUnreadOnly ? Icons.visibility : Icons.visibility_off),
+                tooltip: _showUnreadOnly ? 'Voir toutes' : 'Voir non lues seulement',
               ),
               // Actions
               PopupMenuButton<String>(
@@ -164,14 +154,9 @@ class _NotificationsPanelState extends State<NotificationsPanel> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Supprimer toutes les notifications'),
-        content: const Text(
-          'Êtes-vous sûr de vouloir supprimer toutes les notifications ?',
-        ),
+        content: const Text('Êtes-vous sûr de vouloir supprimer toutes les notifications ?'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Annuler'),
-          ),
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Annuler')),
           FilledButton(
             onPressed: () {
               CoursNotificationService.clearAllNotifications();
@@ -222,9 +207,7 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            showUnreadOnly
-                ? 'Aucune notification non lue'
-                : 'Aucune notification',
+            showUnreadOnly ? 'Aucune notification non lue' : 'Aucune notification',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -234,9 +217,9 @@ class _EmptyState extends StatelessWidget {
             showUnreadOnly
                 ? 'Toutes vos notifications ont été lues'
                 : 'Vous n\'avez pas encore de notifications',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
             textAlign: TextAlign.center,
           ),
         ],

@@ -52,38 +52,31 @@ class _TestApp extends ConsumerWidget {
       routes: [
         GoRoute(
           path: '/login',
-          builder: (_, __) =>
-              const _Screen(label: 'LOGIN', keyName: 'screen_login'),
+          builder: (_, __) => const _Screen(label: 'LOGIN', keyName: 'screen_login'),
         ),
         GoRoute(
           path: '/admin',
-          builder: (_, __) =>
-              const _Screen(label: 'ADMIN', keyName: 'screen_admin'),
+          builder: (_, __) => const _Screen(label: 'ADMIN', keyName: 'screen_admin'),
         ),
         GoRoute(
           path: '/directeur',
-          builder: (_, __) =>
-              const _Screen(label: 'DIRECTEUR', keyName: 'screen_directeur'),
+          builder: (_, __) => const _Screen(label: 'DIRECTEUR', keyName: 'screen_directeur'),
         ),
         GoRoute(
           path: '/gerant',
-          builder: (_, __) =>
-              const _Screen(label: 'GERANT', keyName: 'screen_gerant'),
+          builder: (_, __) => const _Screen(label: 'GERANT', keyName: 'screen_gerant'),
         ),
         GoRoute(
           path: '/operateur',
-          builder: (_, __) =>
-              const _Screen(label: 'OPERATEUR', keyName: 'screen_operateur'),
+          builder: (_, __) => const _Screen(label: 'OPERATEUR', keyName: 'screen_operateur'),
         ),
         GoRoute(
           path: '/pca',
-          builder: (_, __) =>
-              const _Screen(label: 'PCA', keyName: 'screen_pca'),
+          builder: (_, __) => const _Screen(label: 'PCA', keyName: 'screen_pca'),
         ),
         GoRoute(
           path: '/lecture',
-          builder: (_, __) =>
-              const _Screen(label: 'LECTURE', keyName: 'screen_lecture'),
+          builder: (_, __) => const _Screen(label: 'LECTURE', keyName: 'screen_lecture'),
         ),
       ],
     );
@@ -106,10 +99,7 @@ class _Screen extends StatelessWidget {
 }
 
 void main() {
-  Future<void> _pumpWithRole(
-    WidgetTester tester, {
-    required UserRole role,
-  }) async {
+  Future<void> _pumpWithRole(WidgetTester tester, {required UserRole role}) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [

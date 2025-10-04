@@ -12,7 +12,6 @@ final authServiceProvider = Provider<AuthService>((ref) {
 });
 
 /// Provider family : permet d'injecter un SupabaseClient custom (tests / preview).
-final authServiceByClientProvider =
-    Provider.family<AuthService, SupabaseClient>((ref, client) {
-      return AuthService.withSupabase(client);
-    });
+final authServiceByClientProvider = Provider.family<AuthService, SupabaseClient>((ref, client) {
+  return AuthService.withSupabase(client);
+});

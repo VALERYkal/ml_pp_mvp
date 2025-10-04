@@ -4,9 +4,7 @@ import 'package:ml_pp_mvp/features/receptions/models/reception_row_vm.dart';
 import 'package:ml_pp_mvp/shared/referentiels/referentiels.dart' as refs;
 
 // Table VM prête à afficher
-final receptionsTableProvider = FutureProvider.autoDispose<List<ReceptionRowVM>>((
-  ref,
-) async {
+final receptionsTableProvider = FutureProvider.autoDispose<List<ReceptionRowVM>>((ref) async {
   final supa = Supabase.instance.client;
 
   // 1) Réceptions (noyau)
@@ -27,9 +25,7 @@ final receptionsTableProvider = FutureProvider.autoDispose<List<ReceptionRowVM>>
   // Utiliser directement la table 'partenaires' qui semble être le nom correct
   final fournisseursRows = await supa.from('partenaires').select('id, nom');
 
-  print(
-    '🔍 DEBUG: Récupération des fournisseurs depuis la table "partenaires"',
-  );
+  print('🔍 DEBUG: Récupération des fournisseurs depuis la table "partenaires"');
   print('🔍 DEBUG: Nombre de fournisseurs trouvés: ${fournisseursRows.length}');
 
   final fMap = {
@@ -39,16 +35,10 @@ final receptionsTableProvider = FutureProvider.autoDispose<List<ReceptionRowVM>>
 
   final pCode = {for (final p in prods) p.id: (p.code)};
   final pNom = {for (final p in prods) p.id: p.nom};
-  final cNom = {
-    for (final c in cits)
-      c.id: (c.nom.isNotEmpty ? c.nom : c.id.substring(0, 8)),
-  };
+  final cNom = {for (final c in cits) c.id: (c.nom.isNotEmpty ? c.nom : c.id.substring(0, 8))};
 
   // 3) Cours de route liés (pour plaques + fournisseur)
-  final cdrIds = recList
-      .map((r) => r['cours_de_route_id'])
-      .whereType<String>()
-      .toSet();
+  final cdrIds = recList.map((r) => r['cours_de_route_id']).whereType<String>().toSet();
   final Map<String, Map<String, dynamic>> cdrMap = {};
   if (cdrIds.isNotEmpty) {
     final cdrRows = await supa
@@ -100,9 +90,7 @@ final receptionsTableProvider = FutureProvider.autoDispose<List<ReceptionRowVM>>
     out.add(
       ReceptionRowVM(
         id: r['id'] as String,
-        dateReception:
-            DateTime.tryParse((r['date_reception'] as String? ?? '')) ??
-            DateTime.now(),
+        dateReception: DateTime.tryParse((r['date_reception'] as String? ?? '')) ?? DateTime.now(),
         propriete: (r['proprietaire_type'] as String? ?? '').toUpperCase(),
         produitLabel: prodLabel.isEmpty ? '—' : prodLabel,
         citerneNom: cid != null ? (cNom[cid] ?? cid.substring(0, 8)) : '—',
@@ -118,9 +106,6 @@ final receptionsTableProvider = FutureProvider.autoDispose<List<ReceptionRowVM>>
 });
 
 String _joinNonEmpty(List<String?> parts, String sep) {
-  final nonEmpty = parts
-      .where((s) => (s ?? '').trim().isNotEmpty)
-      .cast<String>()
-      .toList();
+  final nonEmpty = parts.where((s) => (s ?? '').trim().isNotEmpty).cast<String>().toList();
   return nonEmpty.join(sep);
 }

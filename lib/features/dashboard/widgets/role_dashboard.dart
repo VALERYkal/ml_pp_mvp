@@ -37,8 +37,7 @@ class RoleDashboard extends ConsumerWidget {
                 subtitle: 'Indicateurs clés de performance en temps réel',
                 accentColor: KpiColorPalette.primary,
                 child: kpis.when(
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
+                  loading: () => const Center(child: CircularProgressIndicator()),
                   error: (e, st) => Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -56,12 +55,9 @@ class RoleDashboard extends ConsumerWidget {
                         const SizedBox(height: 8),
                         Text(
                           'Veuillez réessayer plus tard',
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                              ),
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
                         ),
                       ],
                     ),
@@ -91,9 +87,7 @@ class RoleDashboard extends ConsumerWidget {
                             subLeftLabel: 'Nombre de camions',
                             subLeftValue: fmtCount(data.receptionsToday.count),
                             subRightLabel: 'Volume ambiant',
-                            subRightValue: fmtL(
-                              data.receptionsToday.volumeAmbient,
-                            ),
+                            subRightValue: fmtL(data.receptionsToday.volumeAmbient),
                             onTap: () => context.go('/receptions'),
                           );
                         },
@@ -110,9 +104,7 @@ class RoleDashboard extends ConsumerWidget {
                             subLeftLabel: 'Nombre de camions',
                             subLeftValue: fmtCount(data.sortiesToday.count),
                             subRightLabel: 'Volume ambiant',
-                            subRightValue: fmtL(
-                              data.sortiesToday.volumeAmbient,
-                            ),
+                            subRightValue: fmtL(data.sortiesToday.volumeAmbient),
                             onTap: () => context.go('/sorties'),
                           );
                         },
@@ -122,9 +114,7 @@ class RoleDashboard extends ConsumerWidget {
                         builder: (context) {
                           final usagePct = data.stocks.capacityTotal <= 0
                               ? 0
-                              : (data.stocks.totalAmbient /
-                                    data.stocks.capacityTotal *
-                                    100);
+                              : (data.stocks.totalAmbient / data.stocks.capacityTotal * 100);
                           print(
                             '🔍 DEBUG Dashboard - Stock: total15c=${data.stocks.total15c}, totalAmbient=${data.stocks.totalAmbient}, capacity=${data.stocks.capacityTotal}',
                           );
@@ -138,14 +128,9 @@ class RoleDashboard extends ConsumerWidget {
                             primaryValue: fmtL(data.stocks.total15c),
                             primaryLabel: 'Volume 15°C',
                             subLeftLabel: 'Volume ambiant',
-                            subLeftValue: fmtL(
-                              data.stocks.totalAmbient,
-                              fixed: 1,
-                            ),
-                            subRightLabel:
-                                '${usagePct.toStringAsFixed(0)}% utilisation',
-                            subRightValue:
-                                'Capacité ${fmtL(data.stocks.capacityTotal, fixed: 0)}',
+                            subLeftValue: fmtL(data.stocks.totalAmbient, fixed: 1),
+                            subRightLabel: '${usagePct.toStringAsFixed(0)}% utilisation',
+                            subRightValue: 'Capacité ${fmtL(data.stocks.capacityTotal, fixed: 0)}',
                             onTap: () => context.go('/stocks'),
                           );
                         },
@@ -178,14 +163,8 @@ class RoleDashboard extends ConsumerWidget {
                       // 6. Tendance 7 jours
                       Builder(
                         builder: (context) {
-                          final sumIn = data.trend7d.fold<double>(
-                            0,
-                            (s, p) => s + p.receptions15c,
-                          );
-                          final sumOut = data.trend7d.fold<double>(
-                            0,
-                            (s, p) => s + p.sorties15c,
-                          );
+                          final sumIn = data.trend7d.fold<double>(0, (s, p) => s + p.receptions15c);
+                          final sumOut = data.trend7d.fold<double>(0, (s, p) => s + p.sorties15c);
                           final net = sumIn - sumOut;
                           print(
                             '🔍 DEBUG Dashboard - Tendance: sumIn=$sumIn, sumOut=$sumOut, net=$net',

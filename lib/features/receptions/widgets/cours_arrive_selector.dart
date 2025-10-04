@@ -14,8 +14,7 @@ class CoursArriveSelector extends ConsumerStatefulWidget {
   final OnCoursSelected onSelected;
 
   @override
-  ConsumerState<CoursArriveSelector> createState() =>
-      _CoursArriveSelectorState();
+  ConsumerState<CoursArriveSelector> createState() => _CoursArriveSelectorState();
 }
 
 class _CoursArriveSelectorState extends ConsumerState<CoursArriveSelector> {
@@ -59,8 +58,7 @@ class _CoursArriveSelectorState extends ConsumerState<CoursArriveSelector> {
               focusNode: focus,
               decoration: const InputDecoration(
                 labelText: 'Cours de route (statut "arrivé")',
-                hintText:
-                    'Rechercher par date, fournisseur, transporteur, plaque…',
+                hintText: 'Rechercher par date, fournisseur, transporteur, plaque…',
               ),
             );
           },
@@ -76,10 +74,7 @@ class _CoursArriveSelectorState extends ConsumerState<CoursArriveSelector> {
                     // Header row
                     Container(
                       color: Theme.of(ctx).colorScheme.surfaceContainerHighest,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       child: Row(
                         children: const [
                           Expanded(flex: 14, child: Text('Date chargement')),
@@ -97,47 +92,24 @@ class _CoursArriveSelectorState extends ConsumerState<CoursArriveSelector> {
                       child: ListView(
                         shrinkWrap: true,
                         children: opts.map((o) {
-                          final dateStr = o.dateChargement
-                              .toIso8601String()
-                              .split('T')
-                              .first;
+                          final dateStr = o.dateChargement.toIso8601String().split('T').first;
                           final prod =
                               '${o.produitNom.isNotEmpty ? o.produitNom : ''}${o.produitNom.isNotEmpty ? ' / ' : ''}${o.produitCode}';
-                          final volStr = o.volume == null
-                              ? '-'
-                              : '${o.volume} L';
+                          final volStr = o.volume == null ? '-' : '${o.volume} L';
                           return InkWell(
                             onTap: () => onSelect(o),
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 10,
-                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                               child: Row(
                                 children: [
                                   Expanded(flex: 14, child: Text(dateStr)),
-                                  Expanded(
-                                    flex: 24,
-                                    child: Text(o.fournisseurNom ?? '-'),
-                                  ),
+                                  Expanded(flex: 24, child: Text(o.fournisseurNom ?? '-')),
                                   Expanded(flex: 14, child: Text(volStr)),
                                   Expanded(flex: 18, child: Text(prod)),
-                                  Expanded(
-                                    flex: 10,
-                                    child: Text(o.departPays ?? '-'),
-                                  ),
-                                  Expanded(
-                                    flex: 18,
-                                    child: Text(o.transporteur ?? '-'),
-                                  ),
-                                  Expanded(
-                                    flex: 14,
-                                    child: Text(o.chauffeur ?? '-'),
-                                  ),
-                                  Expanded(
-                                    flex: 12,
-                                    child: Text(o.plaqueCamion ?? '-'),
-                                  ),
+                                  Expanded(flex: 10, child: Text(o.departPays ?? '-')),
+                                  Expanded(flex: 18, child: Text(o.transporteur ?? '-')),
+                                  Expanded(flex: 14, child: Text(o.chauffeur ?? '-')),
+                                  Expanded(flex: 12, child: Text(o.plaqueCamion ?? '-')),
                                 ],
                               ),
                             ),

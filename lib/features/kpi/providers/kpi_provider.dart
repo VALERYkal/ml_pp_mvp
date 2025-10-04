@@ -16,9 +16,7 @@ double _toD(dynamic v) {
 ///
 /// Ce provider centralise toutes les données KPI nécessaires pour les dashboards
 /// et applique automatiquement le filtrage par dépôt selon le profil utilisateur.
-final kpiProviderProvider = FutureProvider.autoDispose<KpiSnapshot>((
-  ref,
-) async {
+final kpiProviderProvider = FutureProvider.autoDispose<KpiSnapshot>((ref) async {
   try {
     print('🔍 DEBUG KPI Provider: Début de la récupération des données');
     // 1) Contexte utilisateur (RLS) : dépôt, propriétaire, etc.
@@ -118,11 +116,7 @@ class _ReceptionsData {
   final double volume15c;
   final double volumeAmbient;
 
-  _ReceptionsData({
-    required this.count,
-    required this.volume15c,
-    required this.volumeAmbient,
-  });
+  _ReceptionsData({required this.count, required this.volume15c, required this.volumeAmbient});
 }
 
 /// Données temporaires pour les sorties
@@ -131,11 +125,7 @@ class _SortiesData {
   final double volume15c;
   final double volumeAmbient;
 
-  _SortiesData({
-    required this.count,
-    required this.volume15c,
-    required this.volumeAmbient,
-  });
+  _SortiesData({required this.count, required this.volume15c, required this.volumeAmbient});
 }
 
 /// Données temporaires pour les stocks
@@ -144,11 +134,7 @@ class _StocksData {
   final double total15c;
   final double capacityTotal;
 
-  _StocksData({
-    required this.totalAmbient,
-    required this.total15c,
-    required this.capacityTotal,
-  });
+  _StocksData({required this.totalAmbient, required this.total15c, required this.capacityTotal});
 }
 
 /// Récupère les réceptions du jour
@@ -161,9 +147,7 @@ Future<_ReceptionsData> _fetchReceptionsOfDay(
   final dayStr =
       '${today.year.toString().padLeft(4, '0')}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
 
-  print(
-    '🔍 DEBUG KPI: Recherche réceptions pour la date: $dayStr, depotId: $depotId',
-  );
+  print('🔍 DEBUG KPI: Recherche réceptions pour la date: $dayStr, depotId: $depotId');
 
   List result;
 
@@ -171,9 +155,7 @@ Future<_ReceptionsData> _fetchReceptionsOfDay(
     // Filtrage par dépôt via citernes (inner join)
     result = await supa
         .from('receptions')
-        .select(
-          'id, volume_corrige_15c, volume_ambiant, citernes!inner(depot_id)',
-        )
+        .select('id, volume_corrige_15c, volume_ambiant, citernes!inner(depot_id)')
         .eq('statut', 'validee')
         .eq('date_reception', dayStr)
         .eq('citernes.depot_id', depotId);
@@ -181,9 +163,7 @@ Future<_ReceptionsData> _fetchReceptionsOfDay(
     // Global - récupérer toutes les réceptions validées du jour
     result = await supa
         .from('receptions')
-        .select(
-          'id, volume_corrige_15c, volume_ambiant, date_reception, statut',
-        )
+        .select('id, volume_corrige_15c, volume_ambiant, date_reception, statut')
         .eq('statut', 'validee')
         .eq('date_reception', dayStr);
   }
@@ -211,20 +191,14 @@ Future<_ReceptionsData> _fetchReceptionsOfDay(
     print(
       '🔍 DEBUG Réception $count: v15=$v15, va=$va, total15c=$volume15c, totalAmbient=$volumeAmbient',
     );
-    print(
-      '🔍 DEBUG Réception $count: date=${row['date_reception']}, statut=${row['statut']}',
-    );
+    print('🔍 DEBUG Réception $count: date=${row['date_reception']}, statut=${row['statut']}');
   }
 
   print(
     '🔍 DEBUG FINAL Réceptions du jour: count=$count, volume15c=$volume15c, volumeAmbient=$volumeAmbient',
   );
 
-  return _ReceptionsData(
-    count: count,
-    volume15c: volume15c,
-    volumeAmbient: volumeAmbient,
-  );
+  return _ReceptionsData(count: count, volume15c: volume15c, volumeAmbient: volumeAmbient);
 }
 
 /// Récupère les sorties du jour
@@ -242,9 +216,7 @@ Future<_SortiesData> _fetchSortiesOfDay(
     // Filtrage par dépôt via citernes (inner join)
     result = await supa
         .from('sorties_produit')
-        .select(
-          'id, volume_corrige_15c, volume_ambiant, citernes!inner(depot_id)',
-        )
+        .select('id, volume_corrige_15c, volume_ambiant, citernes!inner(depot_id)')
         .eq('statut', 'validee')
         .gte('date_sortie', dayStart)
         .lt('date_sortie', dayEnd)
@@ -282,31 +254,19 @@ Future<_SortiesData> _fetchSortiesOfDay(
     );
   }
 
-  return _SortiesData(
-    count: count,
-    volume15c: volume15c,
-    volumeAmbient: volumeAmbient,
-  );
+  return _SortiesData(count: count, volume15c: volume15c, volumeAmbient: volumeAmbient);
 }
 
 /// Récupère les stocks actuels
-Future<_StocksData> _fetchStocksActuels(
-  SupabaseClient supa,
-  String? depotId,
-) async {
+Future<_StocksData> _fetchStocksActuels(SupabaseClient supa, String? depotId) async {
   print('🔍 DEBUG KPI: Récupération des stocks actuels, depotId: $depotId');
 
   // 1) Si on filtre par dépôt => récupérer les citerne_id correspondants
   List<String>? citerneIds;
   if (depotId != null && depotId.isNotEmpty) {
-    final citRows = await supa
-        .from('citernes')
-        .select('id')
-        .eq('depot_id', depotId);
+    final citRows = await supa.from('citernes').select('id').eq('depot_id', depotId);
     citerneIds = (citRows as List).map((e) => e['id'] as String).toList();
-    print(
-      '🔍 DEBUG KPI: Citernes trouvées pour le dépôt: ${citerneIds.length}',
-    );
+    print('🔍 DEBUG KPI: Citernes trouvées pour le dépôt: ${citerneIds.length}');
     if (citerneIds.isEmpty) {
       return _StocksData(totalAmbient: 0.0, total15c: 0.0, capacityTotal: 0.0);
     }
@@ -355,9 +315,7 @@ Future<_StocksData> _fetchStocksActuels(
     print(
       '🔍 DEBUG Stock Citerne $citerneId: stockAmbientRaw=${row['stock_ambiant']}, stock15cRaw=${row['stock_15c']}',
     );
-    print(
-      '🔍 DEBUG Stock Citerne $citerneId: stock_ambiant=$stockAmbient, stock_15c=$stock15c',
-    );
+    print('🔍 DEBUG Stock Citerne $citerneId: stock_ambiant=$stockAmbient, stock_15c=$stock15c');
 
     if (citerneId != null) {
       totalAmbient += stockAmbient;
@@ -370,18 +328,11 @@ Future<_StocksData> _fetchStocksActuels(
     '🔍 DEBUG FINAL Stocks: totalAmbient=$totalAmbient, total15c=$total15c, capacityTotal=$capacityTotal',
   );
 
-  return _StocksData(
-    totalAmbient: totalAmbient,
-    total15c: total15c,
-    capacityTotal: capacityTotal,
-  );
+  return _StocksData(totalAmbient: totalAmbient, total15c: total15c, capacityTotal: capacityTotal);
 }
 
 /// Récupère les camions à suivre
-Future<KpiTrucksToFollow> _fetchTrucksToFollow(
-  SupabaseClient supa,
-  String? depotId,
-) async {
+Future<KpiTrucksToFollow> _fetchTrucksToFollow(SupabaseClient supa, String? depotId) async {
   // TODO: Implémenter la logique réelle des camions à suivre
   // Pour l'instant, retourner des données de test basées sur la capture
   return const KpiTrucksToFollow(

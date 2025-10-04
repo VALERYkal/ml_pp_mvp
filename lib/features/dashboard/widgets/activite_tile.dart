@@ -37,9 +37,7 @@ class ActiviteTile extends StatelessWidget {
       ),
       title: Text(
         '${activite.module} • ${activite.action}',
-        style: theme.textTheme.bodyMedium?.copyWith(
-          fontWeight: FontWeight.w500,
-        ),
+        style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
@@ -48,9 +46,7 @@ class ActiviteTile extends StatelessWidget {
         children: [
           Text(
             activite.createdAtFmt,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+            style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),
           if (activite.userName != null)
             Text(
@@ -74,12 +70,7 @@ class ActivitesList extends StatelessWidget {
   final void Function(ActiviteRecente)? onActiviteTap;
   final VoidCallback? onVoirPlus;
 
-  const ActivitesList({
-    super.key,
-    required this.activites,
-    this.onActiviteTap,
-    this.onVoirPlus,
-  });
+  const ActivitesList({super.key, required this.activites, this.onActiviteTap, this.onVoirPlus});
 
   @override
   Widget build(BuildContext context) {
@@ -98,16 +89,11 @@ class ActivitesList extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(
                   'Activités récentes',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
                 ),
                 const Spacer(),
                 if (onVoirPlus != null)
-                  TextButton(
-                    onPressed: onVoirPlus,
-                    child: const Text('Voir plus'),
-                  ),
+                  TextButton(onPressed: onVoirPlus, child: const Text('Voir plus')),
               ],
             ),
           ),
@@ -134,9 +120,7 @@ class ActivitesList extends StatelessWidget {
                 final activite = activites[index];
                 return ActiviteTile(
                   activite: activite,
-                  onTap: onActiviteTap != null
-                      ? () => onActiviteTap!(activite)
-                      : null,
+                  onTap: onActiviteTap != null ? () => onActiviteTap!(activite) : null,
                 );
               },
             ),

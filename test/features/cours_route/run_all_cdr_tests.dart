@@ -11,8 +11,7 @@ void main(List<String> args) async {
   final testSuites = [
     {
       'name': 'Tests Modèles (Transitions)',
-      'path':
-          'test/features/cours_route/models/cours_de_route_transitions_test.dart',
+      'path': 'test/features/cours_route/models/cours_de_route_transitions_test.dart',
       'description': 'Tests des transitions de statuts CDR',
     },
     {
@@ -22,8 +21,7 @@ void main(List<String> args) async {
     },
     {
       'name': 'Tests Widget Détail',
-      'path':
-          'test/features/cours_route/screens/cdr_detail_decharge_simple_test.dart',
+      'path': 'test/features/cours_route/screens/cdr_detail_decharge_simple_test.dart',
       'description': 'Tests widget détail avec statut déchargé',
     },
   ];
@@ -54,8 +52,7 @@ void main(List<String> args) async {
           if (line.contains('All tests passed!')) {
             // Chercher le nombre de tests dans la ligne précédente
             for (int i = lines.indexOf(line) - 1; i >= 0; i--) {
-              if (lines[i].contains('+') &&
-                  lines[i].contains('All tests passed!')) {
+              if (lines[i].contains('+') && lines[i].contains('All tests passed!')) {
                 final match = RegExp(r'\+(\d+)').firstMatch(lines[i]);
                 if (match != null) {
                   final testCount = int.parse(match.group(1)!);

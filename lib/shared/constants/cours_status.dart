@@ -6,13 +6,7 @@
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 
 /// Flux de progression des statuts de cours de route
-const List<String> kCoursFlow = [
-  'chargement',
-  'transit',
-  'frontière',
-  'arrivé',
-  'déchargé',
-];
+const List<String> kCoursFlow = ['chargement', 'transit', 'frontière', 'arrivé', 'déchargé'];
 
 /// Vérifie si un statut est terminal (fin de progression)
 ///
@@ -83,8 +77,7 @@ List<String> getAllStatuses() => List.from(kCoursFlow);
 ///
 /// Retourne :
 /// - `List<String>` : Liste des statuts qui permettent encore une progression
-List<String> getActiveStatuses() =>
-    kCoursFlow.take(kCoursFlow.length - 1).toList();
+List<String> getActiveStatuses() => kCoursFlow.take(kCoursFlow.length - 1).toList();
 
 /// Convertit un StatutCours enum en String pour l'affichage
 ///

@@ -37,16 +37,12 @@ class CurrentProfilNotifier extends Riverpod.AsyncNotifier<Profil?> {
   @override
   Future<Profil?> build() async {
     // 🧪 Log début (temporaire, à retirer après)
-    debugPrint(
-      '🔄 CurrentProfilProvider: build() started (auth user watching)',
-    );
+    debugPrint('🔄 CurrentProfilProvider: build() started (auth user watching)');
 
     // ⚠️ CORRECTIF : Force le rebuild sur changement d'utilisateur (RÉACTIF)
     final user = ref.watch(reactiveUserProvider);
     if (user == null) {
-      debugPrint(
-        '🔄 CurrentProfilProvider: no user (post-auth), returning null',
-      );
+      debugPrint('🔄 CurrentProfilProvider: no user (post-auth), returning null');
       return null;
     }
 
@@ -58,9 +54,7 @@ class CurrentProfilNotifier extends Riverpod.AsyncNotifier<Profil?> {
       // print log
       // ignore: avoid_print
       print('✅ ProfilProvider: Profil trouvé - role: ${existing.role}');
-      debugPrint(
-        '🔄 CurrentProfilProvider: Profil trouvé - role: ${existing.role}',
-      );
+      debugPrint('🔄 CurrentProfilProvider: Profil trouvé - role: ${existing.role}');
       return existing;
     }
 
@@ -83,10 +77,9 @@ class CurrentProfilNotifier extends Riverpod.AsyncNotifier<Profil?> {
 ///
 /// Utilise AsyncNotifier pour une gestion d'état plus robuste
 /// avec get-or-create automatique
-final currentProfilProvider =
-    Riverpod.AsyncNotifierProvider<CurrentProfilNotifier, Profil?>(
-      () => CurrentProfilNotifier(),
-    );
+final currentProfilProvider = Riverpod.AsyncNotifierProvider<CurrentProfilNotifier, Profil?>(
+  () => CurrentProfilNotifier(),
+);
 
 /// Provider de compatibilité pour l'ancien nom
 /// @deprecated Utilisez currentProfilProvider à la place
@@ -123,11 +116,7 @@ final hasProfilProvider = Riverpod.Provider<bool>((ref) {
 final userProfilProvider = Riverpod.Provider<Profil?>((ref) {
   final profilAsync = ref.watch(currentProfilProvider);
 
-  return profilAsync.when(
-    data: (profil) => profil,
-    loading: () => null,
-    error: (_, __) => null,
-  );
+  return profilAsync.when(data: (profil) => profil, loading: () => null, error: (_, __) => null);
 });
 
 /// Provider pour le rôle de l'utilisateur courant (nullable)
@@ -157,9 +146,7 @@ final profilAuthSyncProvider = Riverpod.Provider<void>((ref) {
     final prevUserId = prev?.asData?.value.session?.user?.id;
     final nextUserId = next.asData?.value.session?.user?.id;
     if (prevUserId != nextUserId) {
-      debugPrint(
-        '🔄 ProfilAuthSync: user changed -> invalidate currentProfilProvider',
-      );
+      debugPrint('🔄 ProfilAuthSync: user changed -> invalidate currentProfilProvider');
       ref.invalidate(currentProfilProvider);
     }
   });

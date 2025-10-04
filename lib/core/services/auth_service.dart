@@ -69,9 +69,7 @@ class AuthService {
         throw AuthException('Aucun utilisateur retourné après connexion');
       }
 
-      debugPrint(
-        '✅ AuthService: Connexion réussie pour ${response.user!.email}',
-      );
+      debugPrint('✅ AuthService: Connexion réussie pour ${response.user!.email}');
       return response.user!;
     } on AuthException catch (e) {
       debugPrint('❌ AuthService: Erreur d\'authentification - ${e.message}');
@@ -103,9 +101,7 @@ class AuthService {
       debugPrint('❌ AuthService: Erreur lors de la déconnexion - ${e.message}');
       rethrow;
     } catch (e) {
-      debugPrint(
-        '❌ AuthService: Erreur inattendue lors de la déconnexion - $e',
-      );
+      debugPrint('❌ AuthService: Erreur inattendue lors de la déconnexion - $e');
       rethrow;
     }
   }

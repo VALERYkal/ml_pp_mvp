@@ -11,33 +11,23 @@ class CiterneAlerteTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final ratio = citerne.seuil > 0
-        ? (citerne.stock / citerne.seuil).clamp(0.0, 1.0)
-        : 0.0;
+    final ratio = citerne.seuil > 0 ? (citerne.stock / citerne.seuil).clamp(0.0, 1.0) : 0.0;
 
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: theme.colorScheme.error.withValues(alpha: 0.1),
-        child: Icon(
-          Icons.local_gas_station,
-          color: theme.colorScheme.error,
-          size: 20,
-        ),
+        child: Icon(Icons.local_gas_station, color: theme.colorScheme.error, size: 20),
       ),
       title: Text(
         citerne.nom,
-        style: theme.textTheme.bodyMedium?.copyWith(
-          fontWeight: FontWeight.w600,
-        ),
+        style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
       ),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             citerne.nom,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+            style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 4),
           Row(
@@ -47,9 +37,7 @@ class CiterneAlerteTile extends StatelessWidget {
                   value: ratio,
                   backgroundColor: theme.colorScheme.surfaceContainerHighest,
                   valueColor: AlwaysStoppedAnimation<Color>(
-                    ratio < 0.2
-                        ? theme.colorScheme.error
-                        : theme.colorScheme.tertiary,
+                    ratio < 0.2 ? theme.colorScheme.error : theme.colorScheme.tertiary,
                   ),
                 ),
               ),
@@ -58,9 +46,7 @@ class CiterneAlerteTile extends StatelessWidget {
                 '${(ratio * 100).toStringAsFixed(0)}%',
                 style: theme.textTheme.bodySmall?.copyWith(
                   fontWeight: FontWeight.w500,
-                  color: ratio < 0.2
-                      ? theme.colorScheme.error
-                      : theme.colorScheme.tertiary,
+                  color: ratio < 0.2 ? theme.colorScheme.error : theme.colorScheme.tertiary,
                 ),
               ),
             ],
@@ -107,24 +93,15 @@ class CiternesAlertesList extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                Icon(
-                  Icons.warning_amber,
-                  color: theme.colorScheme.error,
-                  size: 20,
-                ),
+                Icon(Icons.warning_amber, color: theme.colorScheme.error, size: 20),
                 const SizedBox(width: 8),
                 Text(
                   'Citernes sous seuil',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
                 ),
                 const Spacer(),
                 if (onVoirPlus != null)
-                  TextButton(
-                    onPressed: onVoirPlus,
-                    child: const Text('Voir plus'),
-                  ),
+                  TextButton(onPressed: onVoirPlus, child: const Text('Voir plus')),
               ],
             ),
           ),
@@ -134,11 +111,7 @@ class CiternesAlertesList extends StatelessWidget {
               child: Center(
                 child: Column(
                   children: [
-                    Icon(
-                      Icons.check_circle,
-                      color: theme.colorScheme.primary,
-                      size: 48,
-                    ),
+                    Icon(Icons.check_circle, color: theme.colorScheme.primary, size: 48),
                     const SizedBox(height: 8),
                     Text(
                       'Aucune citerne sous le seuil de sécurité',
@@ -168,9 +141,7 @@ class CiternesAlertesList extends StatelessWidget {
                 final citerne = citernes[index];
                 return CiterneAlerteTile(
                   citerne: citerne,
-                  onTap: onCiterneTap != null
-                      ? () => onCiterneTap!(citerne)
-                      : null,
+                  onTap: onCiterneTap != null ? () => onCiterneTap!(citerne) : null,
                 );
               },
             ),

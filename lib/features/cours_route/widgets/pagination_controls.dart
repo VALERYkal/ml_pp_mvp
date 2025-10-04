@@ -34,9 +34,9 @@ class PaginationControls extends ConsumerWidget {
           // Informations de pagination
           Text(
             'Affichage de $startItem à $endItem sur $totalItems cours',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
 
           // Contrôles de navigation
@@ -44,19 +44,14 @@ class PaginationControls extends ConsumerWidget {
             children: [
               // Page précédente
               IconButton(
-                onPressed: currentPage > 1
-                    ? () => _goToPage(ref, currentPage - 1)
-                    : null,
+                onPressed: currentPage > 1 ? () => _goToPage(ref, currentPage - 1) : null,
                 icon: const Icon(Icons.chevron_left),
                 tooltip: 'Page précédente',
               ),
 
               // Numéro de page actuel
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.primaryContainer,
                   borderRadius: BorderRadius.circular(8),
@@ -72,9 +67,7 @@ class PaginationControls extends ConsumerWidget {
 
               // Page suivante
               IconButton(
-                onPressed: hasMore
-                    ? () => _goToPage(ref, currentPage + 1)
-                    : null,
+                onPressed: hasMore ? () => _goToPage(ref, currentPage + 1) : null,
                 icon: const Icon(Icons.chevron_right),
                 tooltip: 'Page suivante',
               ),
@@ -117,9 +110,9 @@ class CompactPaginationControls extends ConsumerWidget {
           // Informations compactes
           Text(
             '$totalItems cours',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
 
           // Contrôles compacts
@@ -127,32 +120,22 @@ class CompactPaginationControls extends ConsumerWidget {
             children: [
               // Page précédente
               IconButton(
-                onPressed: currentPage > 1
-                    ? () => _goToPage(ref, currentPage - 1)
-                    : null,
+                onPressed: currentPage > 1 ? () => _goToPage(ref, currentPage - 1) : null,
                 icon: const Icon(Icons.chevron_left),
-                style: IconButton.styleFrom(
-                  visualDensity: VisualDensity.compact,
-                ),
+                style: IconButton.styleFrom(visualDensity: VisualDensity.compact),
               ),
 
               // Numéro de page
               Text(
                 '$currentPage/$totalPages',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
               ),
 
               // Page suivante
               IconButton(
-                onPressed: hasMore
-                    ? () => _goToPage(ref, currentPage + 1)
-                    : null,
+                onPressed: hasMore ? () => _goToPage(ref, currentPage + 1) : null,
                 icon: const Icon(Icons.chevron_right),
-                style: IconButton.styleFrom(
-                  visualDensity: VisualDensity.compact,
-                ),
+                style: IconButton.styleFrom(visualDensity: VisualDensity.compact),
               ),
             ],
           ),
@@ -186,14 +169,14 @@ class PageSizeSelector extends ConsumerWidget {
         DropdownButton<int>(
           value: pagination.pageSize,
           items: pageSizes
-              .map(
-                (size) => DropdownMenuItem(value: size, child: Text('$size')),
-              )
+              .map((size) => DropdownMenuItem(value: size, child: Text('$size')))
               .toList(),
           onChanged: (size) {
             if (size != null) {
-              ref.read(coursPaginationProvider.notifier).state = pagination
-                  .copyWith(pageSize: size, currentPage: 1);
+              ref.read(coursPaginationProvider.notifier).state = pagination.copyWith(
+                pageSize: size,
+                currentPage: 1,
+              );
             }
           },
           isDense: true,

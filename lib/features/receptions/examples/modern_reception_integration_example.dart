@@ -28,9 +28,7 @@ class ModernReceptionIntegrationExample extends ConsumerWidget {
       appBar: AppBar(
         title: Text(
           'Module Réception Moderne',
-          style: theme.textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
+          style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -70,21 +68,14 @@ class ModernReceptionIntegrationExample extends ConsumerWidget {
           ],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: theme.colorScheme.primary.withOpacity(0.2),
-          width: 1,
-        ),
+        border: Border.all(color: theme.colorScheme.primary.withOpacity(0.2), width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.rocket_launch_rounded,
-                color: theme.colorScheme.primary,
-                size: 32,
-              ),
+              Icon(Icons.rocket_launch_rounded, color: theme.colorScheme.primary, size: 32),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
@@ -115,10 +106,7 @@ class ModernReceptionIntegrationExample extends ConsumerWidget {
             decoration: BoxDecoration(
               color: theme.colorScheme.primary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: theme.colorScheme.primary.withOpacity(0.3),
-                width: 1,
-              ),
+              border: Border.all(color: theme.colorScheme.primary.withOpacity(0.3), width: 1),
             ),
             child: Text(
               'Version 1.0 - Prêt pour la production',
@@ -191,11 +179,7 @@ class ModernReceptionIntegrationExample extends ConsumerWidget {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: color.withOpacity(0.2), width: 1),
           boxShadow: [
-            BoxShadow(
-              color: color.withOpacity(0.1),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
+            BoxShadow(color: color.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 4)),
           ],
         ),
         child: Column(
@@ -220,9 +204,7 @@ class ModernReceptionIntegrationExample extends ConsumerWidget {
             const SizedBox(height: 4),
             Text(
               subtitle,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+              style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
             ),
           ],
         ),
@@ -247,23 +229,12 @@ class ModernReceptionIntegrationExample extends ConsumerWidget {
           decoration: BoxDecoration(
             color: theme.colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: theme.colorScheme.outline.withOpacity(0.2),
-              width: 1,
-            ),
+            border: Border.all(color: theme.colorScheme.outline.withOpacity(0.2), width: 1),
           ),
           child: Column(
             children: [
-              _buildStateItem(
-                theme,
-                'Étape actuelle',
-                '${formState.currentStep + 1}/3',
-              ),
-              _buildStateItem(
-                theme,
-                'Type propriétaire',
-                formState.ownerType ?? 'Non défini',
-              ),
+              _buildStateItem(theme, 'Étape actuelle', '${formState.currentStep + 1}/3'),
+              _buildStateItem(theme, 'Type propriétaire', formState.ownerType ?? 'Non défini'),
               _buildStateItem(
                 theme,
                 'Produit sélectionné',
@@ -274,21 +245,9 @@ class ModernReceptionIntegrationExample extends ConsumerWidget {
                 'Citerne sélectionnée',
                 formState.citerneId ?? 'Non sélectionnée',
               ),
-              _buildStateItem(
-                theme,
-                'Volume brut',
-                '${formState.volumeBrut.toStringAsFixed(0)} L',
-              ),
-              _buildStateItem(
-                theme,
-                'Volume 15°C',
-                '${formState.volume15c.toStringAsFixed(0)} L',
-              ),
-              _buildStateItem(
-                theme,
-                'Formulaire valide',
-                formState.isFormValid ? 'Oui' : 'Non',
-              ),
+              _buildStateItem(theme, 'Volume brut', '${formState.volumeBrut.toStringAsFixed(0)} L'),
+              _buildStateItem(theme, 'Volume 15°C', '${formState.volume15c.toStringAsFixed(0)} L'),
+              _buildStateItem(theme, 'Formulaire valide', formState.isFormValid ? 'Oui' : 'Non'),
             ],
           ),
         ),
@@ -304,9 +263,7 @@ class ModernReceptionIntegrationExample extends ConsumerWidget {
         children: [
           Text(
             label,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+            style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),
           Text(
             value,
@@ -335,9 +292,7 @@ class ModernReceptionIntegrationExample extends ConsumerWidget {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: validation.isValid
-                ? Colors.green.withOpacity(0.1)
-                : Colors.red.withOpacity(0.1),
+            color: validation.isValid ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: validation.isValid
@@ -352,17 +307,13 @@ class ModernReceptionIntegrationExample extends ConsumerWidget {
               Row(
                 children: [
                   Icon(
-                    validation.isValid
-                        ? Icons.check_circle_rounded
-                        : Icons.error_rounded,
+                    validation.isValid ? Icons.check_circle_rounded : Icons.error_rounded,
                     color: validation.isValid ? Colors.green : Colors.red,
                     size: 20,
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    validation.isValid
-                        ? 'Formulaire valide'
-                        : 'Erreurs détectées',
+                    validation.isValid ? 'Formulaire valide' : 'Erreurs détectées',
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: validation.isValid ? Colors.green : Colors.red,
@@ -385,9 +336,7 @@ class ModernReceptionIntegrationExample extends ConsumerWidget {
                     padding: const EdgeInsets.only(left: 16, bottom: 4),
                     child: Text(
                       '• ${error.message}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.red,
-                      ),
+                      style: theme.textTheme.bodySmall?.copyWith(color: Colors.red),
                     ),
                   ),
                 ),
@@ -407,9 +356,7 @@ class ModernReceptionIntegrationExample extends ConsumerWidget {
                     padding: const EdgeInsets.only(left: 16, bottom: 4),
                     child: Text(
                       '• ${warning.message}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.orange,
-                      ),
+                      style: theme.textTheme.bodySmall?.copyWith(color: Colors.orange),
                     ),
                   ),
                 ),
@@ -458,18 +405,8 @@ class ModernReceptionIntegrationExample extends ConsumerWidget {
                   selectedTankId: null,
                   onTankSelected: (id) {},
                   tanks: [
-                    {
-                      'id': '1',
-                      'libelle': 'Citerne A',
-                      'stock_15c': 5000,
-                      'capacity': 10000,
-                    },
-                    {
-                      'id': '2',
-                      'libelle': 'Citerne B',
-                      'stock_15c': 8000,
-                      'capacity': 10000,
-                    },
+                    {'id': '1', 'libelle': 'Citerne A', 'stock_15c': 5000, 'capacity': 10000},
+                    {'id': '2', 'libelle': 'Citerne B', 'stock_15c': 8000, 'capacity': 10000},
                   ],
                 ),
               ),
@@ -498,10 +435,7 @@ class ModernReceptionIntegrationExample extends ConsumerWidget {
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: theme.colorScheme.outline.withOpacity(0.2),
-          width: 1,
-        ),
+        border: Border.all(color: theme.colorScheme.outline.withOpacity(0.2), width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -537,10 +471,7 @@ class ModernReceptionIntegrationExample extends ConsumerWidget {
           decoration: BoxDecoration(
             color: theme.colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: theme.colorScheme.outline.withOpacity(0.2),
-              width: 1,
-            ),
+            border: Border.all(color: theme.colorScheme.outline.withOpacity(0.2), width: 1),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -576,12 +507,7 @@ class ModernReceptionIntegrationExample extends ConsumerWidget {
     );
   }
 
-  Widget _buildIntegrationStep(
-    ThemeData theme,
-    String step,
-    String title,
-    String code,
-  ) {
+  Widget _buildIntegrationStep(ThemeData theme, String step, String title, String code) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
@@ -622,10 +548,7 @@ class ModernReceptionIntegrationExample extends ConsumerWidget {
                   decoration: BoxDecoration(
                     color: theme.colorScheme.surface,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: theme.colorScheme.outline.withOpacity(0.2),
-                      width: 1,
-                    ),
+                    border: Border.all(color: theme.colorScheme.outline.withOpacity(0.2), width: 1),
                   ),
                   child: Text(
                     code,

@@ -43,10 +43,7 @@ void main() {
       );
 
       // Act
-      final newFilters = originalFilters.copyWith(
-        fournisseurId: 'fournisseur-2',
-        volumeMin: 20000,
-      );
+      final newFilters = originalFilters.copyWith(fournisseurId: 'fournisseur-2', volumeMin: 20000);
 
       // Assert
       expect(newFilters.fournisseurId, 'fournisseur-2');
@@ -246,11 +243,7 @@ void main() {
 
     test('should return empty list when no matches', () {
       // Arrange
-      const filters = CoursFilters(
-        fournisseurId: 'non-existent',
-        volumeMin: 0,
-        volumeMax: 100000,
-      );
+      const filters = CoursFilters(fournisseurId: 'non-existent', volumeMin: 0, volumeMax: 100000);
 
       // Act
       final result = _applyFilters(sampleCours, filters);
@@ -301,10 +294,7 @@ void main() {
 
 // Helper function to test filter application
 // This mirrors the private _applyFilters function in cours_filters_provider.dart
-List<CoursDeRoute> _applyFilters(
-  List<CoursDeRoute> cours,
-  CoursFilters filters,
-) {
+List<CoursDeRoute> _applyFilters(List<CoursDeRoute> cours, CoursFilters filters) {
   return cours.where((c) {
     // Filtre par fournisseur
     final okFournisseur = (filters.fournisseurId == null)

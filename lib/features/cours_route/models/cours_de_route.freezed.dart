@@ -115,16 +115,13 @@ mixin _$CoursDeRoute {
   /// Create a copy of CoursDeRoute
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $CoursDeRouteCopyWith<CoursDeRoute> get copyWith =>
-      throw _privateConstructorUsedError;
+  $CoursDeRouteCopyWith<CoursDeRoute> get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $CoursDeRouteCopyWith<$Res> {
-  factory $CoursDeRouteCopyWith(
-    CoursDeRoute value,
-    $Res Function(CoursDeRoute) then,
-  ) = _$CoursDeRouteCopyWithImpl<$Res, CoursDeRoute>;
+  factory $CoursDeRouteCopyWith(CoursDeRoute value, $Res Function(CoursDeRoute) then) =
+      _$CoursDeRouteCopyWithImpl<$Res, CoursDeRoute>;
   @useResult
   $Res call({
     String id,
@@ -269,8 +266,7 @@ class _$CoursDeRouteCopyWithImpl<$Res, $Val extends CoursDeRoute>
 }
 
 /// @nodoc
-abstract class _$$CoursDeRouteImplCopyWith<$Res>
-    implements $CoursDeRouteCopyWith<$Res> {
+abstract class _$$CoursDeRouteImplCopyWith<$Res> implements $CoursDeRouteCopyWith<$Res> {
   factory _$$CoursDeRouteImplCopyWith(
     _$CoursDeRouteImpl value,
     $Res Function(_$CoursDeRouteImpl) then,
@@ -436,9 +432,7 @@ class _$CoursDeRouteImpl implements _CoursDeRoute {
     @JsonKey(name: 'date_chargement') this.dateChargement,
     @JsonKey(name: 'date_arrivee_prevue') this.dateArriveePrevue,
     this.pays,
-    @JsonKey(name: 'statut')
-    @StatutCoursConverter()
-    this.statut = StatutCours.chargement,
+    @JsonKey(name: 'statut') @StatutCoursConverter() this.statut = StatutCours.chargement,
     this.note,
     @JsonKey(name: 'created_at') this.createdAt,
     @JsonKey(name: 'updated_at') this.updatedAt,
@@ -567,24 +561,17 @@ class _$CoursDeRouteImpl implements _CoursDeRoute {
             (identical(other.id, id) || other.id == id) &&
             (identical(other.fournisseurId, fournisseurId) ||
                 other.fournisseurId == fournisseurId) &&
-            (identical(other.produitId, produitId) ||
-                other.produitId == produitId) &&
-            (identical(other.produitNom, produitNom) ||
-                other.produitNom == produitNom) &&
-            (identical(other.produitCode, produitCode) ||
-                other.produitCode == produitCode) &&
+            (identical(other.produitId, produitId) || other.produitId == produitId) &&
+            (identical(other.produitNom, produitNom) || other.produitNom == produitNom) &&
+            (identical(other.produitCode, produitCode) || other.produitCode == produitCode) &&
             (identical(other.depotDestinationId, depotDestinationId) ||
                 other.depotDestinationId == depotDestinationId) &&
-            (identical(other.transporteur, transporteur) ||
-                other.transporteur == transporteur) &&
-            (identical(other.plaqueCamion, plaqueCamion) ||
-                other.plaqueCamion == plaqueCamion) &&
+            (identical(other.transporteur, transporteur) || other.transporteur == transporteur) &&
+            (identical(other.plaqueCamion, plaqueCamion) || other.plaqueCamion == plaqueCamion) &&
             (identical(other.plaqueRemorque, plaqueRemorque) ||
                 other.plaqueRemorque == plaqueRemorque) &&
-            (identical(other.chauffeur, chauffeur) ||
-                other.chauffeur == chauffeur) &&
-            (identical(other.chauffeurNom, chauffeurNom) ||
-                other.chauffeurNom == chauffeurNom) &&
+            (identical(other.chauffeur, chauffeur) || other.chauffeur == chauffeur) &&
+            (identical(other.chauffeurNom, chauffeurNom) || other.chauffeurNom == chauffeurNom) &&
             (identical(other.volume, volume) || other.volume == volume) &&
             (identical(other.dateChargement, dateChargement) ||
                 other.dateChargement == dateChargement) &&
@@ -593,10 +580,8 @@ class _$CoursDeRouteImpl implements _CoursDeRoute {
             (identical(other.pays, pays) || other.pays == pays) &&
             (identical(other.statut, statut) || other.statut == statut) &&
             (identical(other.note, note) || other.note == note) &&
-            (identical(other.createdAt, createdAt) ||
-                other.createdAt == createdAt) &&
-            (identical(other.updatedAt, updatedAt) ||
-                other.updatedAt == updatedAt));
+            (identical(other.createdAt, createdAt) || other.createdAt == createdAt) &&
+            (identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -643,17 +628,14 @@ abstract class _CoursDeRoute implements CoursDeRoute {
     required final String id,
     @JsonKey(name: 'fournisseur_id') required final String fournisseurId,
     @JsonKey(name: 'produit_id') required final String produitId,
-    @JsonKey(includeFromJson: false, includeToJson: false)
-    final String? produitNom,
+    @JsonKey(includeFromJson: false, includeToJson: false) final String? produitNom,
     @JsonKey(name: 'produit_code') final String? produitCode,
-    @JsonKey(name: 'depot_destination_id')
-    required final String depotDestinationId,
+    @JsonKey(name: 'depot_destination_id') required final String depotDestinationId,
     final String? transporteur,
     @JsonKey(name: 'plaque_camion') final String? plaqueCamion,
     @JsonKey(name: 'plaque_remorque') final String? plaqueRemorque,
     final String? chauffeur,
-    @JsonKey(includeFromJson: false, includeToJson: false)
-    final String? chauffeurNom,
+    @JsonKey(includeFromJson: false, includeToJson: false) final String? chauffeurNom,
     final double? volume,
     @JsonKey(name: 'date_chargement') final DateTime? dateChargement,
     @JsonKey(name: 'date_arrivee_prevue') final DateTime? dateArriveePrevue,
@@ -664,8 +646,7 @@ abstract class _CoursDeRoute implements CoursDeRoute {
     @JsonKey(name: 'updated_at') final DateTime? updatedAt,
   }) = _$CoursDeRouteImpl;
 
-  factory _CoursDeRoute.fromJson(Map<String, dynamic> json) =
-      _$CoursDeRouteImpl.fromJson;
+  factory _CoursDeRoute.fromJson(Map<String, dynamic> json) = _$CoursDeRouteImpl.fromJson;
 
   /// Identifiant unique du cours de route (clé primaire)
   /// Généré automatiquement par Supabase (UUID v4)

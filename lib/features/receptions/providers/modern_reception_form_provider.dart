@@ -152,37 +152,25 @@ class ModernReceptionFormState {
   /// Retourne le cours sélectionné
   CoursDeRoute? get coursSelectionne {
     if (coursDeRouteId == null) return null;
-    return availableCours.firstWhere(
-      (c) => c.id == coursDeRouteId,
-      orElse: () => selectedCours!,
-    );
+    return availableCours.firstWhere((c) => c.id == coursDeRouteId, orElse: () => selectedCours!);
   }
 
   /// Retourne le produit sélectionné
   Map<String, dynamic>? get produitSelectionne {
     if (produitId == null) return null;
-    return availableProducts.firstWhere(
-      (p) => p['id'] == produitId,
-      orElse: () => {},
-    );
+    return availableProducts.firstWhere((p) => p['id'] == produitId, orElse: () => {});
   }
 
   /// Retourne la citerne sélectionnée
   Map<String, dynamic>? get citerneSelectionnee {
     if (citerneId == null) return null;
-    return availableTanks.firstWhere(
-      (t) => t['id'] == citerneId,
-      orElse: () => {},
-    );
+    return availableTanks.firstWhere((t) => t['id'] == citerneId, orElse: () => {});
   }
 
   /// Retourne le partenaire sélectionné
   Map<String, dynamic>? get partenaireSelectionne {
     if (partenaireId == null) return null;
-    return availablePartenaires.firstWhere(
-      (p) => p['id'] == partenaireId,
-      orElse: () => {},
-    );
+    return availablePartenaires.firstWhere((p) => p['id'] == partenaireId, orElse: () => {});
   }
 
   /// Calcule le volume brut
@@ -198,8 +186,7 @@ class ModernReceptionFormState {
 }
 
 /// Notifier pour gérer l'état du formulaire moderne
-class ModernReceptionFormNotifier
-    extends StateNotifier<ModernReceptionFormState> {
+class ModernReceptionFormNotifier extends StateNotifier<ModernReceptionFormState> {
   ModernReceptionFormNotifier() : super(const ModernReceptionFormState());
 
   /// Charge les données initiales
@@ -214,9 +201,7 @@ class ModernReceptionFormNotifier
           .eq('statut', 'arrive')
           .order('created_at', ascending: false);
 
-      final cours = coursData
-          .map((data) => CoursDeRoute.fromMap(data))
-          .toList();
+      final cours = coursData.map((data) => CoursDeRoute.fromMap(data)).toList();
 
       // Charger les produits disponibles
       final produitsData = await Supabase.instance.client
@@ -281,9 +266,7 @@ class ModernReceptionFormNotifier
       ownerType: ownerType,
       coursDeRouteId: ownerType == 'MONALUXE' ? state.coursDeRouteId : null,
       partenaireId: ownerType == 'PARTENAIRE' ? state.partenaireId : null,
-      produitId: ownerType == 'MONALUXE'
-          ? state.selectedCours?.produitId
-          : null,
+      produitId: ownerType == 'MONALUXE' ? state.selectedCours?.produitId : null,
       citerneId: null,
       fieldValidations: {},
     );
@@ -307,20 +290,12 @@ class ModernReceptionFormNotifier
 
   /// Met à jour le partenaire sélectionné
   void updatePartenaire(String? partenaireId) {
-    state = state.copyWith(
-      partenaireId: partenaireId,
-      citerneId: null,
-      fieldValidations: {},
-    );
+    state = state.copyWith(partenaireId: partenaireId, citerneId: null, fieldValidations: {});
   }
 
   /// Met à jour le produit sélectionné
   void updateProduit(String? produitId) {
-    state = state.copyWith(
-      produitId: produitId,
-      citerneId: null,
-      fieldValidations: {},
-    );
+    state = state.copyWith(produitId: produitId, citerneId: null, fieldValidations: {});
   }
 
   /// Met à jour la citerne sélectionnée
@@ -330,9 +305,7 @@ class ModernReceptionFormNotifier
 
   /// Met à jour un champ de mesure
   void updateMeasurementField(String field, double? value) {
-    Map<String, FieldValidationResult> newValidations = Map.from(
-      state.fieldValidations,
-    );
+    Map<String, FieldValidationResult> newValidations = Map.from(state.fieldValidations);
 
     // Valider le champ
     final validation = ModernReceptionValidationService.validateField(
@@ -344,28 +317,16 @@ class ModernReceptionFormNotifier
     // Mettre à jour l'état
     switch (field) {
       case 'indexAvant':
-        state = state.copyWith(
-          indexAvant: value,
-          fieldValidations: newValidations,
-        );
+        state = state.copyWith(indexAvant: value, fieldValidations: newValidations);
         break;
       case 'indexApres':
-        state = state.copyWith(
-          indexApres: value,
-          fieldValidations: newValidations,
-        );
+        state = state.copyWith(indexApres: value, fieldValidations: newValidations);
         break;
       case 'temperature':
-        state = state.copyWith(
-          temperature: value,
-          fieldValidations: newValidations,
-        );
+        state = state.copyWith(temperature: value, fieldValidations: newValidations);
         break;
       case 'densite':
-        state = state.copyWith(
-          densite: value,
-          fieldValidations: newValidations,
-        );
+        state = state.copyWith(densite: value, fieldValidations: newValidations);
         break;
     }
 
@@ -378,9 +339,7 @@ class ModernReceptionFormNotifier
   /// Valide la cohérence globale des indices
   void _validateGlobalConsistency() {
     if (state.indexAvant != null && state.indexApres != null) {
-      Map<String, FieldValidationResult> newValidations = Map.from(
-        state.fieldValidations,
-      );
+      Map<String, FieldValidationResult> newValidations = Map.from(state.fieldValidations);
 
       if (state.indexApres! <= state.indexAvant!) {
         newValidations['indexApres'] = FieldValidationResult(
@@ -457,9 +416,7 @@ class ModernReceptionFormNotifier
       );
 
       final id = await receptionService.createValidated(
-        coursDeRouteId: state.ownerType == 'MONALUXE'
-            ? state.coursDeRouteId
-            : null,
+        coursDeRouteId: state.ownerType == 'MONALUXE' ? state.coursDeRouteId : null,
         citerneId: state.citerneId!,
         produitId: state.produitId!,
         indexAvant: state.indexAvant!,
@@ -468,9 +425,7 @@ class ModernReceptionFormNotifier
         densiteA15: state.densite,
         volumeCorrige15C: state.volume15c,
         proprietaireType: state.ownerType!,
-        partenaireId: state.ownerType == 'PARTENAIRE'
-            ? state.partenaireId
-            : null,
+        partenaireId: state.ownerType == 'PARTENAIRE' ? state.partenaireId : null,
         dateReception: DateTime.now(),
         note: state.note,
       );
@@ -503,10 +458,7 @@ class ModernReceptionFormNotifier
 
 /// Provider pour l'état du formulaire moderne
 final modernReceptionFormProvider =
-    StateNotifierProvider<
-      ModernReceptionFormNotifier,
-      ModernReceptionFormState
-    >((ref) {
+    StateNotifierProvider<ModernReceptionFormNotifier, ModernReceptionFormState>((ref) {
       return ModernReceptionFormNotifier();
     });
 

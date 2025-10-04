@@ -179,25 +179,20 @@ class CoursStatisticsService {
 
         // Volume par produit
         final produitKey = c.produitId;
-        volumeParProduit[produitKey] =
-            (volumeParProduit[produitKey] ?? 0) + c.volume!;
+        volumeParProduit[produitKey] = (volumeParProduit[produitKey] ?? 0) + c.volume!;
       }
 
       // Compteurs par catégorie
-      coursParFournisseur[c.fournisseurId] =
-          (coursParFournisseur[c.fournisseurId] ?? 0) + 1;
+      coursParFournisseur[c.fournisseurId] = (coursParFournisseur[c.fournisseurId] ?? 0) + 1;
       coursParProduit[c.produitId] = (coursParProduit[c.produitId] ?? 0) + 1;
-      coursParDepot[c.depotDestinationId] =
-          (coursParDepot[c.depotDestinationId] ?? 0) + 1;
+      coursParDepot[c.depotDestinationId] = (coursParDepot[c.depotDestinationId] ?? 0) + 1;
 
       if (c.transporteur != null && c.transporteur!.isNotEmpty) {
-        coursParTransporteur[c.transporteur!] =
-            (coursParTransporteur[c.transporteur!] ?? 0) + 1;
+        coursParTransporteur[c.transporteur!] = (coursParTransporteur[c.transporteur!] ?? 0) + 1;
       }
 
       if (c.chauffeur != null && c.chauffeur!.isNotEmpty) {
-        coursParChauffeur[c.chauffeur!] =
-            (coursParChauffeur[c.chauffeur!] ?? 0) + 1;
+        coursParChauffeur[c.chauffeur!] = (coursParChauffeur[c.chauffeur!] ?? 0) + 1;
       }
 
       // Dates
@@ -229,12 +224,8 @@ class CoursStatisticsService {
     }
 
     // Calculs finaux
-    final volumeMoyen = coursAvecVolume > 0
-        ? totalVolume / coursAvecVolume
-        : 0.0;
-    final tauxCompletion = cours.isNotEmpty
-        ? (coursDecharge / cours.length) * 100
-        : 0.0;
+    final volumeMoyen = coursAvecVolume > 0 ? totalVolume / coursAvecVolume : 0.0;
+    final tauxCompletion = cours.isNotEmpty ? (coursDecharge / cours.length) * 100 : 0.0;
     final dureeMoyenneTransit = coursAvecDureeTransit > 0
         ? totalDureeTransit / coursAvecDureeTransit
         : 0.0;

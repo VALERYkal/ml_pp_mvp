@@ -7,9 +7,7 @@ class CoursDeRouteRepository {
   CoursDeRouteRepository(this._supa);
 
   /// Retourne {enRoute, enAttente} pour un depotId (optionnel) - COMPATIBILITÉ
-  Future<({int enRoute, int enAttente})> countsCamionsASuivre({
-    String? depotId,
-  }) async {
+  Future<({int enRoute, int enAttente})> countsCamionsASuivre({String? depotId}) async {
     final counts = await countsEnRouteEtAttente(depotId: depotId);
     return (enRoute: counts.enRoute, enAttente: counts.attente);
   }
@@ -18,18 +16,13 @@ class CoursDeRouteRepository {
   /// - enRoute: statut IN ('CHARGEMENT','TRANSIT','FRONTIERE')
   /// - attente: statut = 'ARRIVE'
   /// NB: On suppose que `cours_de_route.volume` est en litres (sinon convertir en amont).
-  Future<CoursCounts> countsEnRouteEtAttente({
-    String? depotId,
-    String? produitId,
-  }) async {
+  Future<CoursCounts> countsEnRouteEtAttente({String? depotId, String? produitId}) async {
     final query = _supa
         .from('cours_de_route')
         .select('id, statut, volume, depot_destination_id, produit_id');
 
-    if (depotId != null && depotId.isNotEmpty)
-      query.eq('depot_destination_id', depotId);
-    if (produitId != null && produitId.isNotEmpty)
-      query.eq('produit_id', produitId);
+    if (depotId != null && depotId.isNotEmpty) query.eq('depot_destination_id', depotId);
+    if (produitId != null && produitId.isNotEmpty) query.eq('produit_id', produitId);
 
     final rows = await query;
 

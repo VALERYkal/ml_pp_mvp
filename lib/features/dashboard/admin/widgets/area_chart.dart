@@ -18,9 +18,7 @@ class AreaChart extends StatelessWidget {
   double? _getVariation(int index, bool isReceptions) {
     if (index <= 0) return null;
     final current = isReceptions ? points[index].rec : points[index].sort;
-    final previous = isReceptions
-        ? points[index - 1].rec
-        : points[index - 1].sort;
+    final previous = isReceptions ? points[index - 1].rec : points[index - 1].sort;
     if (previous == 0) return current > 0 ? 100 : 0;
     return ((current - previous) / previous * 100);
   }
@@ -57,10 +55,8 @@ class AreaChart extends StatelessWidget {
                 show: true,
                 drawVerticalLine: false,
                 horizontalInterval: 1,
-                getDrawingHorizontalLine: (value) => FlLine(
-                  color: theme.dividerColor.withOpacity(0.3),
-                  strokeWidth: 1,
-                ),
+                getDrawingHorizontalLine: (value) =>
+                    FlLine(color: theme.dividerColor.withOpacity(0.3), strokeWidth: 1),
               ),
               titlesData: FlTitlesData(
                 leftTitles: AxisTitles(
@@ -70,10 +66,7 @@ class AreaChart extends StatelessWidget {
                     getTitlesWidget: (value, meta) {
                       return Padding(
                         padding: const EdgeInsets.only(right: 8),
-                        child: Text(
-                          _formatVolume(value),
-                          style: theme.textTheme.labelSmall,
-                        ),
+                        child: Text(_formatVolume(value), style: theme.textTheme.labelSmall),
                       );
                     },
                   ),
@@ -83,22 +76,14 @@ class AreaChart extends StatelessWidget {
                     showTitles: true,
                     getTitlesWidget: (v, meta) {
                       final i = v.toInt();
-                      if (i < 0 || i >= points.length)
-                        return const SizedBox.shrink();
+                      if (i < 0 || i >= points.length) return const SizedBox.shrink();
                       final d = points[i].day;
-                      return Text(
-                        '${d.day}/${d.month}',
-                        style: theme.textTheme.labelSmall,
-                      );
+                      return Text('${d.day}/${d.month}', style: theme.textTheme.labelSmall);
                     },
                   ),
                 ),
-                rightTitles: const AxisTitles(
-                  sideTitles: SideTitles(showTitles: false),
-                ),
-                topTitles: const AxisTitles(
-                  sideTitles: SideTitles(showTitles: false),
-                ),
+                rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
               ),
               lineBarsData: [
                 LineChartBarData(
@@ -153,24 +138,18 @@ class AreaChart extends StatelessWidget {
                       final volume = _formatVolume(s.y);
                       final variation = _getVariation(i, isReceptions);
 
-                      String tooltipText =
-                          '$label\n${d.day}/${d.month} : $volume';
+                      String tooltipText = '$label\n${d.day}/${d.month} : $volume';
                       if (variation != null) {
                         final variationText = variation >= 0
                             ? '+${variation.toStringAsFixed(1)}%'
                             : '${variation.toStringAsFixed(1)}%';
-                        final variationColor = variation >= 0
-                            ? Colors.green
-                            : Colors.red;
+                        final variationColor = variation >= 0 ? Colors.green : Colors.red;
                         tooltipText += '\nVar: $variationText';
                       }
 
                       return LineTooltipItem(
                         tooltipText,
-                        TextStyle(
-                          color: theme.colorScheme.onSurface,
-                          fontWeight: FontWeight.w500,
-                        ),
+                        TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.w500),
                       );
                     }).toList();
                   },
@@ -191,16 +170,10 @@ class AreaChart extends StatelessWidget {
         Container(
           width: 12,
           height: 12,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(2),
-          ),
+          decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2)),
         ),
         const SizedBox(width: 8),
-        Text(
-          label,
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-        ),
+        Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
       ],
     );
   }

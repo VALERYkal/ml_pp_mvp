@@ -52,9 +52,7 @@ void main() {
 
         // Assert
         expect(result, equals(mockUser));
-        verify(
-          mockAuth.signInWithPassword(email: email, password: password),
-        ).called(1);
+        verify(mockAuth.signInWithPassword(email: email, password: password)).called(1);
         verify(mockClient.auth).called(1);
       });
 
@@ -74,9 +72,7 @@ void main() {
             ),
           ),
         );
-        verifyNever(
-          mockAuth.signInWithPassword(email: email, password: password),
-        );
+        verifyNever(mockAuth.signInWithPassword(email: email, password: password));
       });
 
       test('should throw AuthException when password is empty', () async {
@@ -95,9 +91,7 @@ void main() {
             ),
           ),
         );
-        verifyNever(
-          mockAuth.signInWithPassword(email: email, password: password),
-        );
+        verifyNever(mockAuth.signInWithPassword(email: email, password: password));
       });
 
       test('should trim email before authentication', () async {
@@ -106,10 +100,7 @@ void main() {
         const password = 'password123';
         when(mockClient.auth).thenReturn(mockAuth);
         when(
-          mockAuth.signInWithPassword(
-            email: 'test@example.com',
-            password: password,
-          ),
+          mockAuth.signInWithPassword(email: 'test@example.com', password: password),
         ).thenAnswer((_) async => mockResponse);
 
         // Act
@@ -117,38 +108,32 @@ void main() {
 
         // Assert
         verify(
-          mockAuth.signInWithPassword(
-            email: 'test@example.com',
-            password: password,
-          ),
+          mockAuth.signInWithPassword(email: 'test@example.com', password: password),
         ).called(1);
       });
 
-      test(
-        'should throw AuthException when user is null in response',
-        () async {
-          // Arrange
-          const email = 'test@example.com';
-          const password = 'password123';
-          when(mockClient.auth).thenReturn(mockAuth);
-          when(mockResponse.user).thenReturn(null);
-          when(
-            mockAuth.signInWithPassword(email: email, password: password),
-          ).thenAnswer((_) async => mockResponse);
+      test('should throw AuthException when user is null in response', () async {
+        // Arrange
+        const email = 'test@example.com';
+        const password = 'password123';
+        when(mockClient.auth).thenReturn(mockAuth);
+        when(mockResponse.user).thenReturn(null);
+        when(
+          mockAuth.signInWithPassword(email: email, password: password),
+        ).thenAnswer((_) async => mockResponse);
 
-          // Act & Assert
-          expect(
-            () => authService.signIn(email, password),
-            throwsA(
-              isA<AuthException>().having(
-                (e) => e.message,
-                'message',
-                'Aucun utilisateur retourné après connexion',
-              ),
+        // Act & Assert
+        expect(
+          () => authService.signIn(email, password),
+          throwsA(
+            isA<AuthException>().having(
+              (e) => e.message,
+              'message',
+              'Aucun utilisateur retourné après connexion',
             ),
-          );
-        },
-      );
+          ),
+        );
+      });
 
       test('should rethrow AuthException from Supabase', () async {
         // Arrange
@@ -164,11 +149,7 @@ void main() {
         expect(
           () => authService.signIn(email, password),
           throwsA(
-            isA<AuthException>().having(
-              (e) => e.message,
-              'message',
-              'Invalid login credentials',
-            ),
+            isA<AuthException>().having((e) => e.message, 'message', 'Invalid login credentials'),
           ),
         );
       });
@@ -192,11 +173,7 @@ void main() {
         expect(
           () => authService.signIn(email, password),
           throwsA(
-            isA<PostgrestException>().having(
-              (e) => e.message,
-              'message',
-              'Connection timeout',
-            ),
+            isA<PostgrestException>().having((e) => e.message, 'message', 'Connection timeout'),
           ),
         );
       });
@@ -214,11 +191,7 @@ void main() {
         expect(
           () => authService.signIn(email, password),
           throwsA(
-            isA<Exception>().having(
-              (e) => e.toString(),
-              'toString',
-              contains('Network error'),
-            ),
+            isA<Exception>().having((e) => e.toString(), 'toString', contains('Network error')),
           ),
         );
       });
@@ -247,13 +220,7 @@ void main() {
         // Act & Assert
         expect(
           () => authService.signOut(),
-          throwsA(
-            isA<AuthException>().having(
-              (e) => e.message,
-              'message',
-              'Sign out failed',
-            ),
-          ),
+          throwsA(isA<AuthException>().having((e) => e.message, 'message', 'Sign out failed')),
         );
       });
 
@@ -266,11 +233,7 @@ void main() {
         expect(
           () => authService.signOut(),
           throwsA(
-            isA<Exception>().having(
-              (e) => e.toString(),
-              'toString',
-              contains('Network error'),
-            ),
+            isA<Exception>().having((e) => e.toString(), 'toString', contains('Network error')),
           ),
         );
       });

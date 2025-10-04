@@ -39,12 +39,14 @@ class _ModernProductSelectorState extends State<ModernProductSelector>
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
-    );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 0.95,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic));
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic));
   }
 
   @override
@@ -72,10 +74,7 @@ class _ModernProductSelectorState extends State<ModernProductSelector>
               decoration: BoxDecoration(
                 color: theme.colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: theme.colorScheme.outline.withOpacity(0.2),
-                  width: 1,
-                ),
+                border: Border.all(color: theme.colorScheme.outline.withOpacity(0.2), width: 1),
                 boxShadow: [
                   BoxShadow(
                     color: theme.colorScheme.shadow.withOpacity(0.05),
@@ -121,8 +120,7 @@ class _ModernProductSelectorState extends State<ModernProductSelector>
                               children: [
                                 Text(
                                   selectedProduct.isNotEmpty
-                                      ? selectedProduct['libelle'] ??
-                                            'Produit sélectionné'
+                                      ? selectedProduct['libelle'] ?? 'Produit sélectionné'
                                       : 'Sélectionner un produit',
                                   style: theme.textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.w600,
@@ -163,8 +161,7 @@ class _ModernProductSelectorState extends State<ModernProductSelector>
                               itemCount: widget.products.length,
                               itemBuilder: (context, index) {
                                 final product = widget.products[index];
-                                final isSelected =
-                                    product['id'] == widget.selectedProductId;
+                                final isSelected = product['id'] == widget.selectedProductId;
 
                                 return InkWell(
                                   onTap: () {
@@ -181,8 +178,7 @@ class _ModernProductSelectorState extends State<ModernProductSelector>
                                     ),
                                     decoration: BoxDecoration(
                                       color: isSelected
-                                          ? theme.colorScheme.primaryContainer
-                                                .withOpacity(0.3)
+                                          ? theme.colorScheme.primaryContainer.withOpacity(0.3)
                                           : Colors.transparent,
                                     ),
                                     child: Row(
@@ -193,39 +189,29 @@ class _ModernProductSelectorState extends State<ModernProductSelector>
                                           decoration: BoxDecoration(
                                             color: isSelected
                                                 ? theme.colorScheme.primary
-                                                : theme.colorScheme.outline
-                                                      .withOpacity(0.3),
+                                                : theme.colorScheme.outline.withOpacity(0.3),
                                             shape: BoxShape.circle,
                                           ),
                                         ),
                                         const SizedBox(width: 12),
                                         Expanded(
                                           child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
                                               Text(
                                                 product['libelle'] ?? '',
-                                                style: theme
-                                                    .textTheme
-                                                    .bodyMedium
-                                                    ?.copyWith(
-                                                      fontWeight: isSelected
-                                                          ? FontWeight.w600
-                                                          : FontWeight.normal,
-                                                      color: theme
-                                                          .colorScheme
-                                                          .onSurface,
-                                                    ),
+                                                style: theme.textTheme.bodyMedium?.copyWith(
+                                                  fontWeight: isSelected
+                                                      ? FontWeight.w600
+                                                      : FontWeight.normal,
+                                                  color: theme.colorScheme.onSurface,
+                                                ),
                                               ),
                                               Text(
                                                 product['code'] ?? '',
-                                                style: theme.textTheme.bodySmall
-                                                    ?.copyWith(
-                                                      color: theme
-                                                          .colorScheme
-                                                          .onSurfaceVariant,
-                                                    ),
+                                                style: theme.textTheme.bodySmall?.copyWith(
+                                                  color: theme.colorScheme.onSurfaceVariant,
+                                                ),
                                               ),
                                             ],
                                           ),
@@ -287,12 +273,14 @@ class _ModernTankSelectorState extends State<ModernTankSelector>
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
-    );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 0.95,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic));
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic));
   }
 
   @override
@@ -320,10 +308,7 @@ class _ModernTankSelectorState extends State<ModernTankSelector>
               decoration: BoxDecoration(
                 color: theme.colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: theme.colorScheme.outline.withOpacity(0.2),
-                  width: 1,
-                ),
+                border: Border.all(color: theme.colorScheme.outline.withOpacity(0.2), width: 1),
                 boxShadow: [
                   BoxShadow(
                     color: theme.colorScheme.shadow.withOpacity(0.05),
@@ -369,8 +354,7 @@ class _ModernTankSelectorState extends State<ModernTankSelector>
                               children: [
                                 Text(
                                   selectedTank.isNotEmpty
-                                      ? selectedTank['libelle'] ??
-                                            'Citerne sélectionnée'
+                                      ? selectedTank['libelle'] ?? 'Citerne sélectionnée'
                                       : 'Sélectionner une citerne',
                                   style: theme.textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.w600,
@@ -389,13 +373,10 @@ class _ModernTankSelectorState extends State<ModernTankSelector>
                                       const SizedBox(width: 8),
                                       Text(
                                         '${((selectedTank['stock_15c'] ?? 0.0) / (selectedTank['capacity'] ?? 1.0) * 100).toStringAsFixed(0)}%',
-                                        style: theme.textTheme.bodySmall
-                                            ?.copyWith(
-                                              color: theme
-                                                  .colorScheme
-                                                  .onSurfaceVariant,
-                                              fontWeight: FontWeight.w500,
-                                            ),
+                                        style: theme.textTheme.bodySmall?.copyWith(
+                                          color: theme.colorScheme.onSurfaceVariant,
+                                          fontWeight: FontWeight.w500,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -427,11 +408,9 @@ class _ModernTankSelectorState extends State<ModernTankSelector>
                               itemCount: widget.tanks.length,
                               itemBuilder: (context, index) {
                                 final tank = widget.tanks[index];
-                                final isSelected =
-                                    tank['id'] == widget.selectedTankId;
+                                final isSelected = tank['id'] == widget.selectedTankId;
                                 final stockRatio =
-                                    (tank['stock_15c'] ?? 0.0) /
-                                    (tank['capacity'] ?? 1.0);
+                                    (tank['stock_15c'] ?? 0.0) / (tank['capacity'] ?? 1.0);
 
                                 return InkWell(
                                   onTap: () {
@@ -448,8 +427,7 @@ class _ModernTankSelectorState extends State<ModernTankSelector>
                                     ),
                                     decoration: BoxDecoration(
                                       color: isSelected
-                                          ? theme.colorScheme.primaryContainer
-                                                .withOpacity(0.3)
+                                          ? theme.colorScheme.primaryContainer.withOpacity(0.3)
                                           : Colors.transparent,
                                     ),
                                     child: Row(
@@ -460,30 +438,23 @@ class _ModernTankSelectorState extends State<ModernTankSelector>
                                           decoration: BoxDecoration(
                                             color: isSelected
                                                 ? theme.colorScheme.primary
-                                                : theme.colorScheme.outline
-                                                      .withOpacity(0.3),
+                                                : theme.colorScheme.outline.withOpacity(0.3),
                                             shape: BoxShape.circle,
                                           ),
                                         ),
                                         const SizedBox(width: 12),
                                         Expanded(
                                           child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
                                               Text(
                                                 tank['libelle'] ?? '',
-                                                style: theme
-                                                    .textTheme
-                                                    .bodyMedium
-                                                    ?.copyWith(
-                                                      fontWeight: isSelected
-                                                          ? FontWeight.w600
-                                                          : FontWeight.normal,
-                                                      color: theme
-                                                          .colorScheme
-                                                          .onSurface,
-                                                    ),
+                                                style: theme.textTheme.bodyMedium?.copyWith(
+                                                  fontWeight: isSelected
+                                                      ? FontWeight.w600
+                                                      : FontWeight.normal,
+                                                  color: theme.colorScheme.onSurface,
+                                                ),
                                               ),
                                               const SizedBox(height: 4),
                                               Row(
@@ -496,14 +467,9 @@ class _ModernTankSelectorState extends State<ModernTankSelector>
                                                   const SizedBox(width: 8),
                                                   Text(
                                                     '${(stockRatio * 100).toStringAsFixed(0)}% • ${tank['capacity']?.toStringAsFixed(0) ?? 0} L',
-                                                    style: theme
-                                                        .textTheme
-                                                        .bodySmall
-                                                        ?.copyWith(
-                                                          color: theme
-                                                              .colorScheme
-                                                              .onSurfaceVariant,
-                                                        ),
+                                                    style: theme.textTheme.bodySmall?.copyWith(
+                                                      color: theme.colorScheme.onSurfaceVariant,
+                                                    ),
                                                   ),
                                                 ],
                                               ),
@@ -593,12 +559,14 @@ class _ModernVolumeCalculatorState extends State<ModernVolumeCalculator>
       duration: const Duration(milliseconds: 500),
       vsync: this,
     );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
-    );
-    _scaleAnimation = Tween<double>(begin: 0.9, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
-    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic));
+    _scaleAnimation = Tween<double>(
+      begin: 0.9,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic));
 
     if (widget.isVisible) {
       _animationController.forward();
@@ -653,21 +621,14 @@ class _ModernVolumeCalculatorState extends State<ModernVolumeCalculator>
                   ],
                 ),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: theme.colorScheme.primary.withOpacity(0.2),
-                  width: 1,
-                ),
+                border: Border.all(color: theme.colorScheme.primary.withOpacity(0.2), width: 1),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      Icon(
-                        Icons.calculate_rounded,
-                        color: theme.colorScheme.primary,
-                        size: 20,
-                      ),
+                      Icon(Icons.calculate_rounded, color: theme.colorScheme.primary, size: 20),
                       const SizedBox(width: 8),
                       Text(
                         'Calculs automatiques',
@@ -711,13 +672,7 @@ class _ModernVolumeCalculatorState extends State<ModernVolumeCalculator>
     );
   }
 
-  Widget _buildVolumeCard(
-    ThemeData theme,
-    String label,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
+  Widget _buildVolumeCard(ThemeData theme, String label, String value, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -725,11 +680,7 @@ class _ModernVolumeCalculatorState extends State<ModernVolumeCalculator>
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color.withOpacity(0.2), width: 1),
         boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
+          BoxShadow(color: color.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 4)),
         ],
       ),
       child: Column(
@@ -746,9 +697,7 @@ class _ModernVolumeCalculatorState extends State<ModernVolumeCalculator>
           const SizedBox(height: 4),
           Text(
             label,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+            style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
             textAlign: TextAlign.center,
           ),
         ],
@@ -773,8 +722,7 @@ class ModernValidationMessage extends StatefulWidget {
   });
 
   @override
-  State<ModernValidationMessage> createState() =>
-      _ModernValidationMessageState();
+  State<ModernValidationMessage> createState() => _ModernValidationMessageState();
 }
 
 class _ModernValidationMessageState extends State<ModernValidationMessage>
@@ -790,12 +738,14 @@ class _ModernValidationMessageState extends State<ModernValidationMessage>
       duration: const Duration(milliseconds: 400),
       vsync: this,
     );
-    _slideAnimation = Tween<double>(begin: -1.0, end: 0.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
-    );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
-    );
+    _slideAnimation = Tween<double>(
+      begin: -1.0,
+      end: 0.0,
+    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic));
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic));
 
     if (widget.isVisible) {
       _animationController.forward();
@@ -863,10 +813,7 @@ class _ModernValidationMessageState extends State<ModernValidationMessage>
                     IconButton(
                       onPressed: widget.onDismiss,
                       icon: Icon(Icons.close_rounded, color: color, size: 18),
-                      constraints: const BoxConstraints(
-                        minWidth: 32,
-                        minHeight: 32,
-                      ),
+                      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                       padding: EdgeInsets.zero,
                     ),
                 ],

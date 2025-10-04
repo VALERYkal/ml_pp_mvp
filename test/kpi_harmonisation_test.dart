@@ -21,12 +21,7 @@ void main() {
 
     test('Format should be consistent across different values', () {
       final values = [1000, 10000, 125000, 1500];
-      final expectedFormats = [
-        '1\u202F000 L',
-        '10\u202F000 L',
-        '125\u202F000 L',
-        '1\u202F500 L',
-      ];
+      final expectedFormats = ['1\u202F000 L', '10\u202F000 L', '125\u202F000 L', '1\u202F500 L'];
 
       for (int i = 0; i < values.length; i++) {
         expect(fmtLiters(values[i]), equals(expectedFormats[i]));

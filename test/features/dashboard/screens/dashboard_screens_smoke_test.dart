@@ -43,21 +43,9 @@ void main() {
           // 1) KPI: déjà présent
           kpiProviderProvider.overrideWith(
             (ref) async => const KpiSnapshot(
-              receptionsToday: KpiNumberVolume(
-                count: 3,
-                volume15c: 1500.0,
-                volumeAmbient: 1600.0,
-              ),
-              sortiesToday: KpiNumberVolume(
-                count: 2,
-                volume15c: 1200.0,
-                volumeAmbient: 1300.0,
-              ),
-              stocks: KpiStocks(
-                totalAmbient: 10000.0,
-                total15c: 9500.0,
-                capacityTotal: 15000.0,
-              ),
+              receptionsToday: KpiNumberVolume(count: 3, volume15c: 1500.0, volumeAmbient: 1600.0),
+              sortiesToday: KpiNumberVolume(count: 2, volume15c: 1200.0, volumeAmbient: 1300.0),
+              stocks: KpiStocks(totalAmbient: 10000.0, total15c: 9500.0, capacityTotal: 15000.0),
               balanceToday: KpiBalanceToday(
                 receptions15c: 1500.0,
                 sorties15c: 1200.0,
@@ -85,9 +73,7 @@ void main() {
       container.dispose();
     });
 
-    testWidgets('DashboardAdminScreen should build without errors', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('DashboardAdminScreen should build without errors', (WidgetTester tester) async {
       // Act
       await tester.pumpWidget(
         UncontrolledProviderScope(
@@ -97,10 +83,7 @@ void main() {
       );
 
       // Assert
-      expect(
-        tester.takeException(),
-        isNull,
-      ); // aucune exception pendant le build
+      expect(tester.takeException(), isNull); // aucune exception pendant le build
       expect(find.byType(Scaffold), findsOneWidget); // l'écran s'est bien rendu
     });
 
@@ -116,10 +99,7 @@ void main() {
       );
 
       // Assert
-      expect(
-        tester.takeException(),
-        isNull,
-      ); // aucune exception pendant le build
+      expect(tester.takeException(), isNull); // aucune exception pendant le build
       expect(find.byType(Scaffold), findsOneWidget); // l'écran s'est bien rendu
     });
 
@@ -135,16 +115,11 @@ void main() {
       );
 
       // Assert
-      expect(
-        tester.takeException(),
-        isNull,
-      ); // aucune exception pendant le build
+      expect(tester.takeException(), isNull); // aucune exception pendant le build
       expect(find.byType(Scaffold), findsOneWidget); // l'écran s'est bien rendu
     });
 
-    testWidgets('DashboardGerantScreen should build without errors', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('DashboardGerantScreen should build without errors', (WidgetTester tester) async {
       // Act
       await tester.pumpWidget(
         UncontrolledProviderScope(
@@ -154,16 +129,11 @@ void main() {
       );
 
       // Assert
-      expect(
-        tester.takeException(),
-        isNull,
-      ); // aucune exception pendant le build
+      expect(tester.takeException(), isNull); // aucune exception pendant le build
       expect(find.byType(Scaffold), findsOneWidget); // l'écran s'est bien rendu
     });
 
-    testWidgets('DashboardPcaScreen should build without errors', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('DashboardPcaScreen should build without errors', (WidgetTester tester) async {
       // Act
       await tester.pumpWidget(
         UncontrolledProviderScope(
@@ -173,16 +143,11 @@ void main() {
       );
 
       // Assert
-      expect(
-        tester.takeException(),
-        isNull,
-      ); // aucune exception pendant le build
+      expect(tester.takeException(), isNull); // aucune exception pendant le build
       expect(find.byType(Scaffold), findsOneWidget); // l'écran s'est bien rendu
     });
 
-    testWidgets('DashboardLectureScreen should build without errors', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('DashboardLectureScreen should build without errors', (WidgetTester tester) async {
       // Act
       await tester.pumpWidget(
         UncontrolledProviderScope(
@@ -192,10 +157,7 @@ void main() {
       );
 
       // Assert
-      expect(
-        tester.takeException(),
-        isNull,
-      ); // aucune exception pendant le build
+      expect(tester.takeException(), isNull); // aucune exception pendant le build
       expect(find.byType(Scaffold), findsOneWidget); // l'écran s'est bien rendu
     });
 
@@ -222,14 +184,8 @@ void main() {
         );
 
         // Vérifier que l'écran s'est bien rendu
-        expect(
-          tester.takeException(),
-          isNull,
-        ); // aucune exception pendant le build
-        expect(
-          find.byType(Scaffold),
-          findsOneWidget,
-        ); // l'écran s'est bien rendu
+        expect(tester.takeException(), isNull); // aucune exception pendant le build
+        expect(find.byType(Scaffold), findsOneWidget); // l'écran s'est bien rendu
 
         // Nettoyer pour le prochain test
         await tester.pumpAndSettle();

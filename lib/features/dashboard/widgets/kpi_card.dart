@@ -27,9 +27,7 @@ class KpiCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final foreground = warning
-        ? theme.colorScheme.error
-        : color ?? theme.colorScheme.primary;
+    final foreground = warning ? theme.colorScheme.error : color ?? theme.colorScheme.primary;
     final formatted = unit == null
         ? VolumeFormatter.formatVolumeCompact(value) // 12 345 → 12.3k
         : '${VolumeFormatter.formatVolumeCompact(value)} $unit';
@@ -46,10 +44,7 @@ class KpiCard extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                foreground.withOpacity(.08),
-                foreground.withOpacity(.02),
-              ],
+              colors: [foreground.withOpacity(.08), foreground.withOpacity(.02)],
             ),
           ),
           padding: const EdgeInsets.all(16),
@@ -84,17 +79,13 @@ class KpiCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       formatted,
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                      style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
                     ),
                     if (subtitle != null) ...[
                       const SizedBox(height: 2),
                       Text(
                         subtitle!,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.hintColor,
-                        ),
+                        style: theme.textTheme.bodySmall?.copyWith(color: theme.hintColor),
                       ),
                     ],
                   ],

@@ -9,9 +9,7 @@ import 'package:ml_pp_mvp/shared/referentiels/role_provider.dart';
 void main() {
   testWidgets('Navigation et éléments de base', (tester) async {
     final produits = refs.produitsRefProvider.overrideWith(
-      (ref) => Future.value([
-        refs.ProduitRef(id: 'p1', code: 'ESS', nom: 'Essence'),
-      ]),
+      (ref) => Future.value([refs.ProduitRef(id: 'p1', code: 'ESS', nom: 'Essence')]),
     );
 
     final citernes = refs.citernesActivesProvider.overrideWith(
@@ -51,10 +49,7 @@ void main() {
     expect(find.text('[ Step 2/3 ]  Mesures & Citerne'), findsOneWidget);
 
     // Vérifier que les éléments de base sont présents
-    expect(
-      find.text('Citerne * (active, filtrée par produit)'),
-      findsOneWidget,
-    );
+    expect(find.text('Citerne * (active, filtrée par produit)'), findsOneWidget);
     expect(find.text('Index avant *'), findsOneWidget);
     expect(find.text('Index après *'), findsOneWidget);
     expect(find.text('Température (°C)'), findsOneWidget);
@@ -111,9 +106,7 @@ void main() {
 
     // Vérifier que le sélecteur de cours de route est présent
     expect(
-      find.text(
-        'Si MONALUXE → sélectionnez Cours de route (statut = "arrivé") *',
-      ),
+      find.text('Si MONALUXE → sélectionnez Cours de route (statut = "arrivé") *'),
       findsOneWidget,
     );
   });
@@ -169,10 +162,7 @@ void main() {
     expect(find.text('[ Step 2/3 ]  Mesures & Citerne'), findsOneWidget);
 
     // Vérifier que les éléments de base sont présents
-    expect(
-      find.text('Citerne * (active, filtrée par produit)'),
-      findsOneWidget,
-    );
+    expect(find.text('Citerne * (active, filtrée par produit)'), findsOneWidget);
     expect(find.text('Index avant *'), findsOneWidget);
     expect(find.text('Index après *'), findsOneWidget);
     expect(find.text('Température (°C)'), findsOneWidget);

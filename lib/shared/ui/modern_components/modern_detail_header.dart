@@ -46,11 +46,7 @@ class ModernDetailHeader extends StatelessWidget {
                     color: accentColor.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(
-                    Icons.local_shipping_outlined,
-                    color: accentColor,
-                    size: 28,
-                  ),
+                  child: Icon(Icons.local_shipping_outlined, color: accentColor, size: 28),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -110,12 +106,7 @@ class _ModernInfoPill extends StatelessWidget {
   final String value;
   final Color? color;
 
-  const _ModernInfoPill({
-    required this.icon,
-    required this.label,
-    required this.value,
-    this.color,
-  });
+  const _ModernInfoPill({required this.icon, required this.label, required this.value, this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -144,10 +135,7 @@ class _ModernInfoPill extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             value,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w600,
-            ),
+            style: theme.textTheme.bodySmall?.copyWith(color: color, fontWeight: FontWeight.w600),
           ),
         ],
       ),
@@ -162,10 +150,5 @@ class InfoPill {
   final String value;
   final Color? color;
 
-  const InfoPill({
-    required this.icon,
-    required this.label,
-    required this.value,
-    this.color,
-  });
+  const InfoPill({required this.icon, required this.label, required this.value, this.color});
 }

@@ -55,29 +55,20 @@ class KpiCard extends StatelessWidget {
                 children: [
                   _IconTint(icon: icon, color: tintColor),
                   const SizedBox(width: 12),
-                  Text(
-                    title,
-                    style: t.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
+                  Text(title, style: t.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
                 ],
               ),
               const SizedBox(height: 12),
               // primary value
               Text(
                 primaryValue,
-                style: t.textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
+                style: t.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800),
               ),
               if (primaryLabel != null) ...[
                 const SizedBox(height: 4),
                 Text(
                   primaryLabel!,
-                  style: t.textTheme.bodyMedium?.copyWith(
-                    color: t.colorScheme.onSurfaceVariant,
-                  ),
+                  style: t.textTheme.bodyMedium?.copyWith(color: t.colorScheme.onSurfaceVariant),
                 ),
               ],
               const SizedBox(height: 12),
@@ -139,17 +130,9 @@ class _Mini extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: t.textTheme.bodySmall?.copyWith(
-            color: t.colorScheme.onSurfaceVariant,
-          ),
-        ),
+        Text(label, style: t.textTheme.bodySmall?.copyWith(color: t.colorScheme.onSurfaceVariant)),
         const SizedBox(height: 4),
-        Text(
-          value,
-          style: t.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-        ),
+        Text(value, style: t.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
       ],
     );
   }

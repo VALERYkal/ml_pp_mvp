@@ -165,33 +165,15 @@ void main() {
         statut: StatutCours.chargement,
       );
 
-      final coursTransit = coursChargement.copyWith(
-        statut: StatutCours.transit,
-      );
-      final coursFrontiere = coursChargement.copyWith(
-        statut: StatutCours.frontiere,
-      );
+      final coursTransit = coursChargement.copyWith(statut: StatutCours.transit);
+      final coursFrontiere = coursChargement.copyWith(statut: StatutCours.frontiere);
       final coursArrive = coursChargement.copyWith(statut: StatutCours.arrive);
-      final coursDecharge = coursChargement.copyWith(
-        statut: StatutCours.decharge,
-      );
+      final coursDecharge = coursChargement.copyWith(statut: StatutCours.decharge);
 
-      expect(
-        CoursDeRouteUtils.getStatutSuivant(coursChargement),
-        StatutCours.transit,
-      );
-      expect(
-        CoursDeRouteUtils.getStatutSuivant(coursTransit),
-        StatutCours.frontiere,
-      );
-      expect(
-        CoursDeRouteUtils.getStatutSuivant(coursFrontiere),
-        StatutCours.arrive,
-      );
-      expect(
-        CoursDeRouteUtils.getStatutSuivant(coursArrive),
-        StatutCours.decharge,
-      );
+      expect(CoursDeRouteUtils.getStatutSuivant(coursChargement), StatutCours.transit);
+      expect(CoursDeRouteUtils.getStatutSuivant(coursTransit), StatutCours.frontiere);
+      expect(CoursDeRouteUtils.getStatutSuivant(coursFrontiere), StatutCours.arrive);
+      expect(CoursDeRouteUtils.getStatutSuivant(coursArrive), StatutCours.decharge);
       expect(CoursDeRouteUtils.getStatutSuivant(coursDecharge), null);
     });
 

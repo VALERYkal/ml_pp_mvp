@@ -21,10 +21,8 @@ ReceptionInput _$ReceptionInputFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$ReceptionInput {
-  String get proprietaireType =>
-      throw _privateConstructorUsedError; // 'MONALUXE' | 'PARTENAIRE'
-  String? get partenaireId =>
-      throw _privateConstructorUsedError; // requis si PARTENAIRE
+  String get proprietaireType => throw _privateConstructorUsedError; // 'MONALUXE' | 'PARTENAIRE'
+  String? get partenaireId => throw _privateConstructorUsedError; // requis si PARTENAIRE
   String get citerneId => throw _privateConstructorUsedError; // citerne active
   String get produitCode =>
       throw _privateConstructorUsedError; // 'ESS' | 'AGO' (reste utile pour calcul @15°C)
@@ -34,8 +32,7 @@ mixin _$ReceptionInput {
   double? get indexApres => throw _privateConstructorUsedError;
   double? get temperatureC => throw _privateConstructorUsedError;
   double? get densiteA15 => throw _privateConstructorUsedError;
-  DateTime? get dateReception =>
-      throw _privateConstructorUsedError; // SQL date -> yyyy-MM-dd
+  DateTime? get dateReception => throw _privateConstructorUsedError; // SQL date -> yyyy-MM-dd
   String? get coursDeRouteId =>
       throw _privateConstructorUsedError; // requis si Monaluxe lié à un cours 'arrivé'
   String? get note => throw _privateConstructorUsedError;
@@ -46,16 +43,13 @@ mixin _$ReceptionInput {
   /// Create a copy of ReceptionInput
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $ReceptionInputCopyWith<ReceptionInput> get copyWith =>
-      throw _privateConstructorUsedError;
+  $ReceptionInputCopyWith<ReceptionInput> get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $ReceptionInputCopyWith<$Res> {
-  factory $ReceptionInputCopyWith(
-    ReceptionInput value,
-    $Res Function(ReceptionInput) then,
-  ) = _$ReceptionInputCopyWithImpl<$Res, ReceptionInput>;
+  factory $ReceptionInputCopyWith(ReceptionInput value, $Res Function(ReceptionInput) then) =
+      _$ReceptionInputCopyWithImpl<$Res, ReceptionInput>;
   @useResult
   $Res call({
     String proprietaireType,
@@ -158,8 +152,7 @@ class _$ReceptionInputCopyWithImpl<$Res, $Val extends ReceptionInput>
 }
 
 /// @nodoc
-abstract class _$$ReceptionInputImplCopyWith<$Res>
-    implements $ReceptionInputCopyWith<$Res> {
+abstract class _$$ReceptionInputImplCopyWith<$Res> implements $ReceptionInputCopyWith<$Res> {
   factory _$$ReceptionInputImplCopyWith(
     _$ReceptionInputImpl value,
     $Res Function(_$ReceptionInputImpl) then,
@@ -329,22 +322,14 @@ class _$ReceptionInputImpl implements _ReceptionInput {
             other is _$ReceptionInputImpl &&
             (identical(other.proprietaireType, proprietaireType) ||
                 other.proprietaireType == proprietaireType) &&
-            (identical(other.partenaireId, partenaireId) ||
-                other.partenaireId == partenaireId) &&
-            (identical(other.citerneId, citerneId) ||
-                other.citerneId == citerneId) &&
-            (identical(other.produitCode, produitCode) ||
-                other.produitCode == produitCode) &&
-            (identical(other.produitId, produitId) ||
-                other.produitId == produitId) &&
-            (identical(other.indexAvant, indexAvant) ||
-                other.indexAvant == indexAvant) &&
-            (identical(other.indexApres, indexApres) ||
-                other.indexApres == indexApres) &&
-            (identical(other.temperatureC, temperatureC) ||
-                other.temperatureC == temperatureC) &&
-            (identical(other.densiteA15, densiteA15) ||
-                other.densiteA15 == densiteA15) &&
+            (identical(other.partenaireId, partenaireId) || other.partenaireId == partenaireId) &&
+            (identical(other.citerneId, citerneId) || other.citerneId == citerneId) &&
+            (identical(other.produitCode, produitCode) || other.produitCode == produitCode) &&
+            (identical(other.produitId, produitId) || other.produitId == produitId) &&
+            (identical(other.indexAvant, indexAvant) || other.indexAvant == indexAvant) &&
+            (identical(other.indexApres, indexApres) || other.indexApres == indexApres) &&
+            (identical(other.temperatureC, temperatureC) || other.temperatureC == temperatureC) &&
+            (identical(other.densiteA15, densiteA15) || other.densiteA15 == densiteA15) &&
             (identical(other.dateReception, dateReception) ||
                 other.dateReception == dateReception) &&
             (identical(other.coursDeRouteId, coursDeRouteId) ||
@@ -376,10 +361,7 @@ class _$ReceptionInputImpl implements _ReceptionInput {
   @override
   @pragma('vm:prefer-inline')
   _$$ReceptionInputImplCopyWith<_$ReceptionInputImpl> get copyWith =>
-      __$$ReceptionInputImplCopyWithImpl<_$ReceptionInputImpl>(
-        this,
-        _$identity,
-      );
+      __$$ReceptionInputImplCopyWithImpl<_$ReceptionInputImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
@@ -403,8 +385,7 @@ abstract class _ReceptionInput implements ReceptionInput {
     final String? note,
   }) = _$ReceptionInputImpl;
 
-  factory _ReceptionInput.fromJson(Map<String, dynamic> json) =
-      _$ReceptionInputImpl.fromJson;
+  factory _ReceptionInput.fromJson(Map<String, dynamic> json) = _$ReceptionInputImpl.fromJson;
 
   @override
   String get proprietaireType; // 'MONALUXE' | 'PARTENAIRE'

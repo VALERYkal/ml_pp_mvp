@@ -17,9 +17,7 @@ Future<void> main() async {
   final urlFromDefine = const String.fromEnvironment('SUPABASE_URL');
   final keyFromDefine = const String.fromEnvironment('SUPABASE_ANON_KEY');
 
-  final supabaseUrl = urlFromDefine.isNotEmpty
-      ? urlFromDefine
-      : (dotenv.env['SUPABASE_URL'] ?? '');
+  final supabaseUrl = urlFromDefine.isNotEmpty ? urlFromDefine : (dotenv.env['SUPABASE_URL'] ?? '');
   final supabaseAnonKey = keyFromDefine.isNotEmpty
       ? keyFromDefine
       : (dotenv.env['SUPABASE_ANON_KEY'] ?? '');

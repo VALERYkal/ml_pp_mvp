@@ -34,8 +34,7 @@ class CoursRouteFormScreen extends ConsumerStatefulWidget {
   final String? coursId;
 
   @override
-  ConsumerState<CoursRouteFormScreen> createState() =>
-      _CoursRouteFormScreenState();
+  ConsumerState<CoursRouteFormScreen> createState() => _CoursRouteFormScreenState();
 }
 
 class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
@@ -93,11 +92,7 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
         }
       },
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            widget.coursId == null ? 'Nouveau cours' : 'Modifier le cours',
-          ),
-        ),
+        appBar: AppBar(title: Text(widget.coursId == null ? 'Nouveau cours' : 'Modifier le cours')),
         body: refDataAsync.when(
           data: (refData) => _buildForm(refData),
           loading: () => const Center(child: CircularProgressIndicator()),
@@ -192,8 +187,7 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
             ),
             textInputAction: TextInputAction.next,
             onChanged: (_) => _dirty = true,
-            validator: (value) =>
-                value?.trim().isEmpty == true ? 'Plaque camion requise' : null,
+            validator: (value) => value?.trim().isEmpty == true ? 'Plaque camion requise' : null,
           ),
           const SizedBox(height: 16),
 
@@ -218,8 +212,7 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
             ),
             textInputAction: TextInputAction.next,
             onChanged: (_) => _dirty = true,
-            validator: (value) =>
-                value?.trim().isEmpty == true ? 'Chauffeur requis' : null,
+            validator: (value) => value?.trim().isEmpty == true ? 'Chauffeur requis' : null,
           ),
           const SizedBox(height: 16),
 
@@ -257,10 +250,7 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
           // Note (optionnel)
           TextFormField(
             controller: _noteController,
-            decoration: const InputDecoration(
-              labelText: 'Note',
-              border: OutlineInputBorder(),
-            ),
+            decoration: const InputDecoration(labelText: 'Note', border: OutlineInputBorder()),
             maxLines: 3,
             textInputAction: TextInputAction.done,
             onChanged: (_) => _dirty = true,
@@ -325,10 +315,7 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
   Widget _buildFournisseurDropdown(RefDataCache refData) {
     return DropdownButtonFormField<String>(
       value: selectedFournisseurId,
-      decoration: const InputDecoration(
-        labelText: 'Fournisseur *',
-        border: OutlineInputBorder(),
-      ),
+      decoration: const InputDecoration(labelText: 'Fournisseur *', border: OutlineInputBorder()),
       items: refData.fournisseurs.entries
           .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
           .toList(),
@@ -345,10 +332,7 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
   /// Construit le toggle produit ESS/AGO
   Widget _buildProduitToggle() {
     return InputDecorator(
-      decoration: const InputDecoration(
-        labelText: 'Produit *',
-        border: OutlineInputBorder(),
-      ),
+      decoration: const InputDecoration(labelText: 'Produit *', border: OutlineInputBorder()),
       child: Row(
         children: [
           Expanded(
@@ -404,11 +388,7 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
           return CoursRouteConstants.paysSuggestions;
         }
         return CoursRouteConstants.paysSuggestions
-            .where(
-              (pays) => pays.toLowerCase().contains(
-                textEditingValue.text.toLowerCase(),
-              ),
-            )
+            .where((pays) => pays.toLowerCase().contains(textEditingValue.text.toLowerCase()))
             .toList();
       },
       fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
@@ -426,8 +406,7 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
               _dirty = true;
             });
           },
-          validator: (value) =>
-              value?.trim().isEmpty == true ? 'Pays requis' : null,
+          validator: (value) => value?.trim().isEmpty == true ? 'Pays requis' : null,
         );
       },
       onSelected: (String selection) {
@@ -474,10 +453,7 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
   /// Construit le champ statut (lecture seule)
   Widget _buildStatutField() {
     return InputDecorator(
-      decoration: const InputDecoration(
-        labelText: 'Statut',
-        border: OutlineInputBorder(),
-      ),
+      decoration: const InputDecoration(labelText: 'Statut', border: OutlineInputBorder()),
       child: Text(StatutCours.chargement.name.toUpperCase()),
     );
   }
@@ -488,17 +464,11 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
 
     return ElevatedButton.icon(
       icon: isSaving
-          ? const SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
+          ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
           : const Icon(Icons.save),
       label: Text(isSaving ? 'Enregistrement...' : 'Enregistrer'),
       onPressed: (isSaving || refDataAsync.isLoading) ? null : _submitForm,
-      style: ElevatedButton.styleFrom(
-        minimumSize: const Size(double.infinity, 48),
-      ),
+      style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 48)),
     );
   }
 
@@ -544,11 +514,7 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
       context.go('/cours');
     } on PostgrestException catch (e) {
       if (!mounted) return;
-      showAppToast(
-        context,
-        'Erreur Supabase: ${e.message}',
-        type: ToastType.error,
-      );
+      showAppToast(context, 'Erreur Supabase: ${e.message}', type: ToastType.error);
     } catch (e) {
       if (!mounted) return;
       showAppToast(context, 'Erreur: $e', type: ToastType.error);

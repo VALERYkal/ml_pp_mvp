@@ -28,16 +28,13 @@ class CoursStatisticsWidget extends ConsumerWidget {
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.analytics,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+                Icon(Icons.analytics, color: Theme.of(context).colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
                   'Statistiques des Cours de Route',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
                 ),
                 const Spacer(),
                 IconButton(
@@ -62,10 +59,7 @@ class CoursStatisticsWidget extends ConsumerWidget {
     );
   }
 
-  void _showDetailedStatistics(
-    BuildContext context,
-    CoursStatistics statistics,
-  ) {
+  void _showDetailedStatistics(BuildContext context, CoursStatistics statistics) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -76,10 +70,7 @@ class CoursStatisticsWidget extends ConsumerWidget {
           child: _DetailedStatisticsView(statistics: statistics),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Fermer'),
-          ),
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Fermer')),
         ],
       ),
     );
@@ -161,16 +152,13 @@ class _StatisticCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             value,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: color),
           ),
           Text(
             title,
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: color),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: color),
             textAlign: TextAlign.center,
           ),
         ],
@@ -187,9 +175,7 @@ class _StatusChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final statusData = statistics.coursParStatut.entries
-        .where((entry) => entry.value > 0)
-        .toList();
+    final statusData = statistics.coursParStatut.entries.where((entry) => entry.value > 0).toList();
 
     if (statusData.isEmpty) {
       return const Center(child: Text('Aucune donnée disponible'));
@@ -200,17 +186,12 @@ class _StatusChart extends StatelessWidget {
       children: [
         Text(
           'Répartition par Statut',
-          style: Theme.of(
-            context,
-          ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
         ...statusData.map(
-          (entry) => _StatusBar(
-            statut: entry.key,
-            count: entry.value,
-            total: statistics.totalCours,
-          ),
+          (entry) =>
+              _StatusBar(statut: entry.key, count: entry.value, total: statistics.totalCours),
         ),
       ],
     );
@@ -219,11 +200,7 @@ class _StatusChart extends StatelessWidget {
 
 /// Barre de statut
 class _StatusBar extends StatelessWidget {
-  const _StatusBar({
-    required this.statut,
-    required this.count,
-    required this.total,
-  });
+  const _StatusBar({required this.statut, required this.count, required this.total});
 
   final StatutCours statut;
   final int count;
@@ -240,10 +217,7 @@ class _StatusBar extends StatelessWidget {
         children: [
           SizedBox(
             width: 80,
-            child: Text(
-              statut.label,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
+            child: Text(statut.label, style: Theme.of(context).textTheme.bodySmall),
           ),
           Expanded(
             child: Container(
@@ -256,10 +230,7 @@ class _StatusBar extends StatelessWidget {
                 alignment: Alignment.centerLeft,
                 widthFactor: percentage / 100,
                 child: Container(
-                  decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+                  decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(10)),
                 ),
               ),
             ),
@@ -269,9 +240,7 @@ class _StatusBar extends StatelessWidget {
             width: 40,
             child: Text(
               '$count',
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
               textAlign: TextAlign.right,
             ),
           ),
@@ -329,11 +298,7 @@ class _DetailedStatisticsView extends StatelessWidget {
           const SizedBox(height: 16),
 
           // Top produits
-          _TopList(
-            title: 'Top Produits',
-            data: statistics.topProduits,
-            icon: Icons.inventory,
-          ),
+          _TopList(title: 'Top Produits', data: statistics.topProduits, icon: Icons.inventory),
 
           const SizedBox(height: 16),
 
@@ -347,20 +312,12 @@ class _DetailedStatisticsView extends StatelessWidget {
           const SizedBox(height: 16),
 
           // Top chauffeurs
-          _TopList(
-            title: 'Top Chauffeurs',
-            data: statistics.topChauffeurs,
-            icon: Icons.person,
-          ),
+          _TopList(title: 'Top Chauffeurs', data: statistics.topChauffeurs, icon: Icons.person),
 
           const SizedBox(height: 16),
 
           // Top dépôts
-          _TopList(
-            title: 'Top Dépôts',
-            data: statistics.topDepots,
-            icon: Icons.warehouse,
-          ),
+          _TopList(title: 'Top Dépôts', data: statistics.topDepots, icon: Icons.warehouse),
         ],
       ),
     );
@@ -386,9 +343,7 @@ class _TopList extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               title,
-              style: Theme.of(
-                context,
-              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
             ),
           ],
         ),
@@ -400,10 +355,7 @@ class _TopList extends StatelessWidget {
               children: [
                 SizedBox(
                   width: 200,
-                  child: Text(
-                    entry.key,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
+                  child: Text(entry.key, style: Theme.of(context).textTheme.bodySmall),
                 ),
                 const Spacer(),
                 Text(

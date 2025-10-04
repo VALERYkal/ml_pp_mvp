@@ -20,9 +20,7 @@ class CiterneSousSeuil {
 }
 
 /// Provider pour les citernes sous seuil de sécurité
-final citernesSousSeuilProvider = FutureProvider<List<CiterneSousSeuil>>((
-  ref,
-) async {
+final citernesSousSeuilProvider = FutureProvider<List<CiterneSousSeuil>>((ref) async {
   // Simuler un délai de chargement
   await Future.delayed(const Duration(milliseconds: 500));
 

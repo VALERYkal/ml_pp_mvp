@@ -43,15 +43,10 @@ class LogActivite {
 }
 
 /// Provider pour le filtre des logs
-final logsFilterProvider = StateProvider<LogsFilter>(
-  (ref) => const LogsFilter(),
-);
+final logsFilterProvider = StateProvider<LogsFilter>((ref) => const LogsFilter());
 
 /// Provider pour les logs filtrés
-final logsProvider = FutureProvider.family<List<LogActivite>, LogsFilter>((
-  ref,
-  filter,
-) async {
+final logsProvider = FutureProvider.family<List<LogActivite>, LogsFilter>((ref, filter) async {
   // Simuler un délai de chargement
   await Future.delayed(const Duration(milliseconds: 400));
 

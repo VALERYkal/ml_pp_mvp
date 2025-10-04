@@ -29,8 +29,7 @@ class OwnerTypeConverter implements JsonConverter<OwnerType, String> {
   const OwnerTypeConverter();
 
   @override
-  OwnerType fromJson(String json) =>
-      OwnerType.fromString(json) ?? OwnerType.monaluxe;
+  OwnerType fromJson(String json) => OwnerType.fromString(json) ?? OwnerType.monaluxe;
 
   @override
   String toJson(OwnerType object) => object.toJson();

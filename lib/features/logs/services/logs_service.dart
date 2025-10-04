@@ -2,12 +2,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' as Riverpod;
 
 class LogsService {
-  String _isoUtc(DateTime d) =>
-      d.toUtc().toIso8601String().split('.').first + 'Z';
+  String _isoUtc(DateTime d) => d.toUtc().toIso8601String().split('.').first + 'Z';
 
   String _escapeCsv(String input) {
-    final needs =
-        input.contains(',') || input.contains('"') || input.contains('\n');
+    final needs = input.contains(',') || input.contains('"') || input.contains('\n');
     if (!needs) return input;
     return '"${input.replaceAll('"', '""')}"';
   }
@@ -42,27 +40,19 @@ class LogsService {
       filteredRows = filteredRows
           .where(
             (row) =>
-                row['module']?.toString().toLowerCase().contains(
-                  module.toLowerCase(),
-                ) ??
-                false,
+                row['module']?.toString().toLowerCase().contains(module.toLowerCase()) ?? false,
           )
           .toList();
     }
 
     if (level != null && level.isNotEmpty) {
       filteredRows = filteredRows
-          .where(
-            (row) =>
-                row['niveau']?.toString().toLowerCase() == level.toLowerCase(),
-          )
+          .where((row) => row['niveau']?.toString().toLowerCase() == level.toLowerCase())
           .toList();
     }
 
     if (userId != null && userId.isNotEmpty) {
-      filteredRows = filteredRows
-          .where((row) => row['user_id']?.toString() == userId)
-          .toList();
+      filteredRows = filteredRows.where((row) => row['user_id']?.toString() == userId).toList();
     }
 
     if (search != null && search.isNotEmpty) {
@@ -102,15 +92,11 @@ class LogsService {
       final action = _escapeCsv((m['action'] ?? '').toString());
       final niveau = (m['niveau'] ?? '').toString();
       final user = (m['user_id'] ?? '').toString();
-      final details = m['details'] == null
-          ? ''
-          : _escapeCsv(m['details'].toString());
+      final details = m['details'] == null ? '' : _escapeCsv(m['details'].toString());
       b.writeln('$createdAt,$module,$action,$niveau,$user,$details');
     }
     return b.toString();
   }
 }
 
-final logsServiceProvider = Riverpod.Provider<LogsService>(
-  (ref) => LogsService(),
-);
+final logsServiceProvider = Riverpod.Provider<LogsService>((ref) => LogsService());

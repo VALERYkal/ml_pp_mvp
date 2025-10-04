@@ -53,10 +53,7 @@ Future<bool> confirmAction(
         ),
         content: Text(message),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(cancelLabel),
-          ),
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(cancelLabel)),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: ElevatedButton.styleFrom(
@@ -108,10 +105,7 @@ Future<void> showInfoDialog(
         ),
         content: Text(message),
         actions: [
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(buttonLabel),
-          ),
+          ElevatedButton(onPressed: () => Navigator.of(context).pop(), child: Text(buttonLabel)),
         ],
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       );
@@ -156,10 +150,7 @@ Future<void> showErrorDialog(
         ),
         content: Text(message),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Fermer'),
-          ),
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Fermer')),
           if (onRetry != null)
             ElevatedButton(
               onPressed: () {

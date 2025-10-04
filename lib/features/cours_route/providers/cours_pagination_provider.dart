@@ -13,17 +13,9 @@ class CoursPaginationConfig {
   final int currentPage;
   final bool hasMore;
 
-  const CoursPaginationConfig({
-    this.pageSize = 20,
-    this.currentPage = 1,
-    this.hasMore = true,
-  });
+  const CoursPaginationConfig({this.pageSize = 20, this.currentPage = 1, this.hasMore = true});
 
-  CoursPaginationConfig copyWith({
-    int? pageSize,
-    int? currentPage,
-    bool? hasMore,
-  }) {
+  CoursPaginationConfig copyWith({int? pageSize, int? currentPage, bool? hasMore}) {
     return CoursPaginationConfig(
       pageSize: pageSize ?? this.pageSize,
       currentPage: currentPage ?? this.currentPage,
@@ -41,8 +33,7 @@ class CoursPaginationConfig {
   }
 
   @override
-  int get hashCode =>
-      pageSize.hashCode ^ currentPage.hashCode ^ hasMore.hashCode;
+  int get hashCode => pageSize.hashCode ^ currentPage.hashCode ^ hasMore.hashCode;
 
   @override
   String toString() =>
@@ -59,10 +50,7 @@ final coursPaginationProvider = StateProvider<CoursPaginationConfig>((ref) {
 });
 
 /// Fonction de pagination des cours
-List<CoursDeRoute> paginateCours(
-  List<CoursDeRoute> cours,
-  CoursPaginationConfig config,
-) {
+List<CoursDeRoute> paginateCours(List<CoursDeRoute> cours, CoursPaginationConfig config) {
   final startIndex = (config.currentPage - 1) * config.pageSize;
   final endIndex = startIndex + config.pageSize;
 
@@ -70,10 +58,7 @@ List<CoursDeRoute> paginateCours(
     return [];
   }
 
-  return cours.sublist(
-    startIndex,
-    endIndex > cours.length ? cours.length : endIndex,
-  );
+  return cours.sublist(startIndex, endIndex > cours.length ? cours.length : endIndex);
 }
 
 /// Provider pour la liste paginée des cours de route

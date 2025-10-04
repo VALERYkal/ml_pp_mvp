@@ -107,9 +107,7 @@ void main() {
         expect(find.text('ABC123'), findsOneWidget);
       });
 
-      testWidgets('CDR creation with validation errors', (
-        WidgetTester tester,
-      ) async {
+      testWidgets('CDR creation with validation errors', (WidgetTester tester) async {
         // Arrange
         await tester.pumpWidget(
           ProviderScope(
@@ -213,9 +211,7 @@ void main() {
     });
 
     group('CDR Status Management', () {
-      testWidgets('should prevent invalid statut transitions', (
-        WidgetTester tester,
-      ) async {
+      testWidgets('should prevent invalid statut transitions', (WidgetTester tester) async {
         // Arrange
         await tester.pumpWidget(
           ProviderScope(
@@ -254,9 +250,7 @@ void main() {
         expect(find.text('DECHARGE'), findsNothing); // Transition invalide
       });
 
-      testWidgets('should allow valid statut progression', (
-        WidgetTester tester,
-      ) async {
+      testWidgets('should allow valid statut progression', (WidgetTester tester) async {
         // Arrange
         await tester.pumpWidget(
           ProviderScope(
@@ -316,9 +310,7 @@ void main() {
     });
 
     group('CDR Data Integrity', () {
-      testWidgets('should maintain data integrity across operations', (
-        WidgetTester tester,
-      ) async {
+      testWidgets('should maintain data integrity across operations', (WidgetTester tester) async {
         // Arrange
         await tester.pumpWidget(
           ProviderScope(
@@ -368,9 +360,7 @@ void main() {
         expect(find.text('50000L'), findsOneWidget);
       });
 
-      testWidgets('should handle concurrent operations safely', (
-        WidgetTester tester,
-      ) async {
+      testWidgets('should handle concurrent operations safely', (WidgetTester tester) async {
         // Arrange
         await tester.pumpWidget(
           ProviderScope(
@@ -421,10 +411,7 @@ void main() {
 }
 
 // Helper functions for E2E tests
-Future<void> _fillCoursForm(
-  WidgetTester tester,
-  Map<String, String> data,
-) async {
+Future<void> _fillCoursForm(WidgetTester tester, Map<String, String> data) async {
   if (data.containsKey('fournisseur')) {
     await tester.tap(find.text(data['fournisseur']!));
     await tester.pump();
@@ -451,31 +438,19 @@ Future<void> _fillCoursForm(
   }
 
   if (data.containsKey('plaque')) {
-    await tester.enterText(
-      find.byKey(const Key('plaque_camion_field')),
-      data['plaque']!,
-    );
+    await tester.enterText(find.byKey(const Key('plaque_camion_field')), data['plaque']!);
   }
 
   if (data.containsKey('chauffeur')) {
-    await tester.enterText(
-      find.byKey(const Key('chauffeur_field')),
-      data['chauffeur']!,
-    );
+    await tester.enterText(find.byKey(const Key('chauffeur_field')), data['chauffeur']!);
   }
 
   if (data.containsKey('volume')) {
-    await tester.enterText(
-      find.byKey(const Key('volume_field')),
-      data['volume']!,
-    );
+    await tester.enterText(find.byKey(const Key('volume_field')), data['volume']!);
   }
 
   if (data.containsKey('transporteur')) {
-    await tester.enterText(
-      find.byKey(const Key('transporteur_field')),
-      data['transporteur']!,
-    );
+    await tester.enterText(find.byKey(const Key('transporteur_field')), data['transporteur']!);
   }
 
   if (data.containsKey('note')) {
@@ -495,10 +470,7 @@ Future<void> _progressToStatut(WidgetTester tester, String targetStatut) async {
   await tester.pump();
 }
 
-Future<void> _createMultipleCours(
-  WidgetTester tester,
-  List<Map<String, String>> coursData,
-) async {
+Future<void> _createMultipleCours(WidgetTester tester, List<Map<String, String>> coursData) async {
   for (final data in coursData) {
     await tester.tap(find.text('Nouveau cours'));
     await tester.pumpAndSettle();
@@ -510,10 +482,7 @@ Future<void> _createMultipleCours(
   }
 }
 
-Future<void> _createCoursWithStatus(
-  WidgetTester tester,
-  StatutCours statut,
-) async {
+Future<void> _createCoursWithStatus(WidgetTester tester, StatutCours statut) async {
   await tester.tap(find.text('Nouveau cours'));
   await tester.pumpAndSettle();
 

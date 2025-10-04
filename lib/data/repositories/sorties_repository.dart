@@ -5,11 +5,7 @@ class SortiesStats {
   final int nbCamions;
   final double volAmbiant;
   final double vol15c;
-  const SortiesStats({
-    required this.nbCamions,
-    required this.volAmbiant,
-    required this.vol15c,
-  });
+  const SortiesStats({required this.nbCamions, required this.volAmbiant, required this.vol15c});
 }
 
 class SortiesRepository {
@@ -24,8 +20,7 @@ class SortiesRepository {
     String? depotId,
   }) async {
     // colonnes communes
-    String baseCols =
-        'id, statut, volume_ambiant, volume_corrige_15c, date_sortie';
+    String baseCols = 'id, statut, volume_ambiant, volume_corrige_15c, date_sortie';
     var query = _supa.from('sorties_produit').select(baseCols);
 
     // join citernes si filtre dépôt

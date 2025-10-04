@@ -9,11 +9,7 @@ void main() {
     final temp = 30.0;
     final densite = 0.835;
 
-    final v15 = calcV15(
-      volumeObserveL: volObs,
-      temperatureC: temp,
-      densiteA15: densite,
-    );
+    final v15 = calcV15(volumeObserveL: volObs, temperatureC: temp, densiteA15: densite);
 
     // Vérification que le calcul est cohérent
     expect(v15, isA<double>());

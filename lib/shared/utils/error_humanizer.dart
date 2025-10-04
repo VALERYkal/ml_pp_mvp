@@ -17,14 +17,12 @@ class ErrorHumanizer {
     final hint = e.hint?.toString().toLowerCase() ?? '';
 
     // Erreurs d'authentification et permissions
-    if (message.contains('permission denied') ||
-        message.contains('row level security')) {
+    if (message.contains('permission denied') || message.contains('row level security')) {
       return 'Accès refusé. Vérifiez vos permissions.';
     }
 
     // Erreurs de contraintes de clés étrangères
-    if (message.contains('foreign key') ||
-        message.contains('violates foreign key')) {
+    if (message.contains('foreign key') || message.contains('violates foreign key')) {
       if (details.contains('citerne_id')) {
         return 'Citerne introuvable ou inactive.';
       }
@@ -44,8 +42,7 @@ class ErrorHumanizer {
     }
 
     // Erreurs de contraintes CHECK
-    if (message.contains('check constraint') ||
-        message.contains('violates check constraint')) {
+    if (message.contains('check constraint') || message.contains('violates check constraint')) {
       if (details.contains('index_apres') || details.contains('index_avant')) {
         return 'Indices incohérents : l\'index après doit être supérieur à l\'index avant.';
       }
@@ -67,18 +64,15 @@ class ErrorHumanizer {
     }
 
     // Erreurs de contraintes UNIQUE
-    if (message.contains('duplicate key') ||
-        message.contains('unique constraint')) {
-      if (details.contains('plaque_camion') ||
-          details.contains('date_chargement')) {
+    if (message.contains('duplicate key') || message.contains('unique constraint')) {
+      if (details.contains('plaque_camion') || details.contains('date_chargement')) {
         return 'Un cours de route existe déjà avec cette plaque et cette date de chargement.';
       }
       return 'Cette entrée existe déjà.';
     }
 
     // Erreurs de contraintes NOT NULL
-    if (message.contains('null value') ||
-        message.contains('not null constraint')) {
+    if (message.contains('null value') || message.contains('not null constraint')) {
       if (details.contains('citerne_id')) {
         return 'Citerne requise.';
       }
@@ -181,8 +175,7 @@ class ErrorHumanizer {
       final message = error.message.toLowerCase();
 
       // Erreurs critiques
-      if (message.contains('permission denied') ||
-          message.contains('internal server error')) {
+      if (message.contains('permission denied') || message.contains('internal server error')) {
         return 'CRITICAL';
       }
 

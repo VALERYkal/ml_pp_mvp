@@ -46,26 +46,14 @@ class StocksDataWithMeta {
 
 enum StockSortKey { ratio, stockAmbiant, stock15c, capaciteTotale }
 
-final stocksSortKeyProvider = Riverpod.StateProvider<StockSortKey>(
-  (ref) => StockSortKey.ratio,
-);
-final stocksSortAscendingProvider = Riverpod.StateProvider<bool>(
-  (ref) => false,
-);
+final stocksSortKeyProvider = Riverpod.StateProvider<StockSortKey>((ref) => StockSortKey.ratio);
+final stocksSortAscendingProvider = Riverpod.StateProvider<bool>((ref) => false);
 
-final stocksSelectedDateProvider = Riverpod.StateProvider<DateTime>(
-  (ref) => DateTime.now(),
-);
-final stocksSelectedProduitIdProvider = Riverpod.StateProvider<String?>(
-  (ref) => null,
-);
-final stocksSelectedCiterneIdProvider = Riverpod.StateProvider<String?>(
-  (ref) => null,
-);
+final stocksSelectedDateProvider = Riverpod.StateProvider<DateTime>((ref) => DateTime.now());
+final stocksSelectedProduitIdProvider = Riverpod.StateProvider<String?>((ref) => null);
+final stocksSelectedCiterneIdProvider = Riverpod.StateProvider<String?>((ref) => null);
 
-final stocksListProvider = Riverpod.FutureProvider<StocksDataWithMeta>((
-  ref,
-) async {
+final stocksListProvider = Riverpod.FutureProvider<StocksDataWithMeta>((ref) async {
   final client = Supabase.instance.client;
   final date = ref.watch(stocksSelectedDateProvider);
   final produitId = ref.watch(stocksSelectedProduitIdProvider);
@@ -93,9 +81,7 @@ final stocksListProvider = Riverpod.FutureProvider<StocksDataWithMeta>((
     }
     // L'ordre par created_at n'existe pas sur stocks_journaliers (pas de colonne) ; on trie en mémoire
     var res = await query;
-    debugPrint(
-      '🔍 DEBUG Stocks: Résultat direct pour $dateStr: ${(res as List).length} entrées',
-    );
+    debugPrint('🔍 DEBUG Stocks: Résultat direct pour $dateStr: ${(res as List).length} entrées');
 
     // Si pas de données pour la date exacte, chercher la date la plus récente précédente
     if ((res as List).isEmpty) {
@@ -119,9 +105,7 @@ final stocksListProvider = Riverpod.FutureProvider<StocksDataWithMeta>((
       }
 
       final fallbackRes = await fallbackQuery;
-      debugPrint(
-        '🔍 DEBUG Stocks: Résultat fallback: ${(fallbackRes as List).length} entrées',
-      );
+      debugPrint('🔍 DEBUG Stocks: Résultat fallback: ${(fallbackRes as List).length} entrées');
 
       if ((fallbackRes as List).isNotEmpty) {
         // Grouper par citerne/produit et prendre la date la plus récente pour chaque combinaison
@@ -195,9 +179,7 @@ final stocksListProvider = Riverpod.FutureProvider<StocksDataWithMeta>((
     // Déterminer si on utilise des données de fallback
     final isFallback =
         (res as List).isNotEmpty &&
-        (res as List).any(
-          (e) => (e as Map<String, dynamic>)['date_jour'] != dateStr,
-        );
+        (res as List).any((e) => (e as Map<String, dynamic>)['date_jour'] != dateStr);
 
     // Trouver la date la plus récente des données
     String actualDataDate = dateStr;
@@ -225,35 +207,30 @@ final stocksListProvider = Riverpod.FutureProvider<StocksDataWithMeta>((
   }
 });
 
-final stocksProduitsRefProvider =
-    Riverpod.FutureProvider<List<Map<String, String>>>((ref) async {
-      final res = await Supabase.instance.client
-          .from('produits')
-          .select('id, nom')
-          .order('nom');
-      return (res as List<dynamic>)
-          .map(
-            (e) => {
-              'id': (e as Map<String, dynamic>)['id'] as String,
-              'nom': e['nom']?.toString() ?? '',
-            },
-          )
-          .toList();
-    });
+final stocksProduitsRefProvider = Riverpod.FutureProvider<List<Map<String, String>>>((ref) async {
+  final res = await Supabase.instance.client.from('produits').select('id, nom').order('nom');
+  return (res as List<dynamic>)
+      .map(
+        (e) => {
+          'id': (e as Map<String, dynamic>)['id'] as String,
+          'nom': e['nom']?.toString() ?? '',
+        },
+      )
+      .toList();
+});
 
-final stocksCiternesRefProvider =
-    Riverpod.FutureProvider<List<Map<String, String>>>((ref) async {
-      final res = await Supabase.instance.client
-          .from('citernes')
-          .select('id, nom, produit_id')
-          .eq('statut', 'active')
-          .order('nom');
-      return (res as List<dynamic>).map((e) {
-        final m = (e as Map<String, dynamic>);
-        return {
-          'id': m['id'] as String,
-          'nom': m['nom']?.toString() ?? '',
-          'produit_id': m['produit_id']?.toString() ?? '',
-        };
-      }).toList();
-    });
+final stocksCiternesRefProvider = Riverpod.FutureProvider<List<Map<String, String>>>((ref) async {
+  final res = await Supabase.instance.client
+      .from('citernes')
+      .select('id, nom, produit_id')
+      .eq('statut', 'active')
+      .order('nom');
+  return (res as List<dynamic>).map((e) {
+    final m = (e as Map<String, dynamic>);
+    return {
+      'id': m['id'] as String,
+      'nom': m['nom']?.toString() ?? '',
+      'produit_id': m['produit_id']?.toString() ?? '',
+    };
+  }).toList();
+});

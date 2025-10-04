@@ -230,17 +230,12 @@ class CoursDeRoute with _$CoursDeRoute {
   }) = _CoursDeRoute;
 
   /// Crée un CoursDeRoute à partir d'un Map JSON (json_serializable)
-  factory CoursDeRoute.fromJson(Map<String, dynamic> json) =>
-      _$CoursDeRouteFromJson(json);
+  factory CoursDeRoute.fromJson(Map<String, dynamic> json) => _$CoursDeRouteFromJson(json);
 
   /// Crée un cours de route vide pour les tests ou initialisation
   /// Tous les champs sont null sauf id, fournisseurId, produitId, depotDestinationId qui sont requis
-  factory CoursDeRoute.empty() => const CoursDeRoute(
-    id: '',
-    fournisseurId: '',
-    produitId: '',
-    depotDestinationId: '',
-  );
+  factory CoursDeRoute.empty() =>
+      const CoursDeRoute(id: '', fournisseurId: '', produitId: '', depotDestinationId: '');
 
   /// Crée un CoursDeRoute à partir des données Supabase (snake_case)
   ///
@@ -271,9 +266,7 @@ class CoursDeRoute with _$CoursDeRoute {
 
     DateTime? dateArriveePrevue;
     if (data['date_arrivee_prevue'] != null) {
-      dateArriveePrevue = DateTime.parse(
-        data['date_arrivee_prevue'].toString(),
-      );
+      dateArriveePrevue = DateTime.parse(data['date_arrivee_prevue'].toString());
     }
 
     DateTime? createdAt;
@@ -336,11 +329,7 @@ class CoursDeRouteStateMachine {
   /// Retourne :
   /// - `true` : La transition est autorisée
   /// - `false` : La transition est interdite
-  static bool canTransition(
-    StatutCours from,
-    StatutCours to, {
-    bool fromReception = false,
-  }) {
+  static bool canTransition(StatutCours from, StatutCours to, {bool fromReception = false}) {
     // Vérifier si la transition est dans les transitions autorisées
     if (!allowedNext[from]!.contains(to)) {
       return false;
@@ -374,8 +363,7 @@ class CoursDeRouteUtils {
   /// Retourne :
   /// - `true` : Le cours est en cours (chargement, transit, frontiere, arrive)
   /// - `false` : Le cours est terminé (decharge)
-  static bool isActif(CoursDeRoute cours) =>
-      cours.statut != StatutCours.decharge;
+  static bool isActif(CoursDeRoute cours) => cours.statut != StatutCours.decharge;
 
   /// Vérifie si le cours peut passer au statut suivant
   ///
@@ -384,8 +372,7 @@ class CoursDeRouteUtils {
   /// Retourne :
   /// - `true` : Le cours peut progresser vers le statut suivant
   /// - `false` : Le cours est au statut final (decharge)
-  static bool peutProgresser(CoursDeRoute cours) =>
-      cours.statut != StatutCours.decharge;
+  static bool peutProgresser(CoursDeRoute cours) => cours.statut != StatutCours.decharge;
 
   /// Retourne le statut suivant dans la progression logique
   ///

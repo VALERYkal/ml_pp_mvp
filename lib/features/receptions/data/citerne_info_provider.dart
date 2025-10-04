@@ -12,8 +12,8 @@ class CiterneQuickInfo {
   final double capaciteTotale;
   final double capaciteSecurite;
   final double stockEstime;
-  double get disponible => (capaciteTotale - capaciteSecurite - stockEstime)
-      .clamp(0, double.infinity);
+  double get disponible =>
+      (capaciteTotale - capaciteSecurite - stockEstime).clamp(0, double.infinity);
   CiterneQuickInfo({
     required this.id,
     required this.nom,
@@ -24,17 +24,15 @@ class CiterneQuickInfo {
 }
 
 final citerneQuickInfoProvider =
-    FutureProvider.family<
-      CiterneQuickInfo?,
-      ({String citerneId, String produitId})
-    >((ref, args) async {
+    FutureProvider.family<CiterneQuickInfo?, ({String citerneId, String produitId})>((
+      ref,
+      args,
+    ) async {
       final client = Supabase.instance.client;
 
       final row = await client
           .from('citernes')
-          .select(
-            'id, nom, capacite_totale, capacite_securite, statut, produit_id',
-          )
+          .select('id, nom, capacite_totale, capacite_securite, statut, produit_id')
           .eq('id', args.citerneId)
           .single();
 

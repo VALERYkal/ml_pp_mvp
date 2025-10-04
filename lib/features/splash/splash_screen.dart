@@ -16,13 +16,7 @@ class SplashScreen extends ConsumerWidget {
     });
 
     return const Scaffold(
-      body: Center(
-        child: SizedBox(
-          height: 72,
-          width: 72,
-          child: CircularProgressIndicator(),
-        ),
-      ),
+      body: Center(child: SizedBox(height: 72, width: 72, child: CircularProgressIndicator())),
     );
   }
 }

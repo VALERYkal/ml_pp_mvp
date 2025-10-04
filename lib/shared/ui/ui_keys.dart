@@ -11,12 +11,8 @@ class UiKeys {
   static const Key sortieSubmit = Key('sortie.submit');
 
   // Sections
-  static const Key sortieSectionInfos = Key(
-    'sortie.section.infos',
-  ); // "Informations générales"
-  static const Key sortieSectionBeneficiaire = Key(
-    'sortie.section.beneficiaire',
-  ); // "Bénéficiaire"
+  static const Key sortieSectionInfos = Key('sortie.section.infos'); // "Informations générales"
+  static const Key sortieSectionBeneficiaire = Key('sortie.section.beneficiaire'); // "Bénéficiaire"
   static const Key sortieSectionProduit = Key('sortie.section.produit');
   static const Key sortieSectionQuantites = Key('sortie.section.quantites');
   static const Key sortieSectionTransport = Key('sortie.section.transport');

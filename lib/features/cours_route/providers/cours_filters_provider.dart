@@ -23,18 +23,10 @@ class CoursFilters {
   /// Volume maximum (par défaut 100 000)
   final double volumeMax;
 
-  const CoursFilters({
-    this.fournisseurId,
-    this.volumeMin = 0,
-    this.volumeMax = 100000,
-  });
+  const CoursFilters({this.fournisseurId, this.volumeMin = 0, this.volumeMax = 100000});
 
   /// Crée une copie avec des modifications
-  CoursFilters copyWith({
-    String? fournisseurId,
-    double? volumeMin,
-    double? volumeMax,
-  }) {
+  CoursFilters copyWith({String? fournisseurId, double? volumeMin, double? volumeMax}) {
     return CoursFilters(
       fournisseurId: fournisseurId ?? this.fournisseurId,
       volumeMin: volumeMin ?? this.volumeMin,
@@ -52,8 +44,7 @@ class CoursFilters {
   }
 
   @override
-  int get hashCode =>
-      fournisseurId.hashCode ^ volumeMin.hashCode ^ volumeMax.hashCode;
+  int get hashCode => fournisseurId.hashCode ^ volumeMin.hashCode ^ volumeMax.hashCode;
 
   @override
   String toString() {
@@ -97,10 +88,7 @@ final filteredCoursProvider = Provider<List<CoursDeRoute>>((ref) {
 /// [filters] : Filtres à appliquer
 ///
 /// Retourne la liste filtrée selon les critères (fournisseur et volume uniquement)
-List<CoursDeRoute> _applyFilters(
-  List<CoursDeRoute> cours,
-  CoursFilters filters,
-) {
+List<CoursDeRoute> _applyFilters(List<CoursDeRoute> cours, CoursFilters filters) {
   return cours.where((c) {
     // Filtre par fournisseur
     final okFournisseur = (filters.fournisseurId == null)

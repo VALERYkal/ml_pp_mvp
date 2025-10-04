@@ -4,10 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Type pour l'injection de dépendance des appels RPC
 typedef RpcRunner =
-    Future<Map<String, dynamic>?> Function(
-      String fn, {
-      Map<String, dynamic>? params,
-    });
+    Future<Map<String, dynamic>?> Function(String fn, {Map<String, dynamic>? params});
 
 class SortieService {
   final RpcRunner _rpc;
@@ -83,19 +80,13 @@ class SortieService {
       log('[SortieService] OK id=$id');
       return id;
     } on PostgrestException catch (e, st) {
-      log(
-        '[SortieService][PostgrestException] message=${e.message}',
-        stackTrace: st,
-      );
+      log('[SortieService][PostgrestException] message=${e.message}', stackTrace: st);
       log('[SortieService] code=${e.code} hint=${e.hint} details=${e.details}');
       log('[SortieService] payload=${payload}');
 
       // Log spécifique pour identifier les "duplicate update" sur la même journée
-      if (e.message?.contains('duplicate') == true ||
-          e.message?.contains('unique') == true) {
-        log(
-          '[SortieService] ⚠️ Possible double application détectée: ${e.message}',
-        );
+      if (e.message?.contains('duplicate') == true || e.message?.contains('unique') == true) {
+        log('[SortieService] ⚠️ Possible double application détectée: ${e.message}');
       }
 
       rethrow;

@@ -45,27 +45,19 @@ void main(List<String> args) async {
   }
 
   if (widgetOnly || args.isEmpty) {
-    testCommands.add(
-      'flutter test test/features/auth/screens/login_screen_test.dart',
-    );
+    testCommands.add('flutter test test/features/auth/screens/login_screen_test.dart');
   }
 
   if (integrationOnly || args.isEmpty) {
-    testCommands.add(
-      'flutter test test/features/auth/integration/auth_integration_test.dart',
-    );
+    testCommands.add('flutter test test/features/auth/integration/auth_integration_test.dart');
   }
 
   if (e2eOnly || args.isEmpty) {
-    testCommands.add(
-      'flutter test integration_test/features/auth/e2e/auth_e2e_test.dart',
-    );
+    testCommands.add('flutter test integration_test/features/auth/e2e/auth_e2e_test.dart');
   }
 
   if (securityOnly || args.isEmpty) {
-    testCommands.add(
-      'flutter test test/features/auth/security/auth_security_test.dart',
-    );
+    testCommands.add('flutter test test/features/auth/security/auth_security_test.dart');
   }
 
   if (coverage) {

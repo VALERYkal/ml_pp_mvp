@@ -30,9 +30,7 @@ class Profil with _$Profil {
       role: UserRoleX.fromStringOrDefault(map['role'] as String?),
       depotId: map['depot_id'] as String?,
       email: map['email'] as String?,
-      createdAt: map['created_at'] != null
-          ? DateTime.parse(map['created_at'] as String)
-          : null,
+      createdAt: map['created_at'] != null ? DateTime.parse(map['created_at'] as String) : null,
     );
   }
 }

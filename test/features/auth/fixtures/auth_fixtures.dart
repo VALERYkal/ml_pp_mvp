@@ -282,8 +282,7 @@ class AuthFixtures {
     'email_not_confirmed': 'Email non confirmé',
     'network_error': 'Problème réseau',
     'too_many_requests': 'Trop de tentatives. Réessayez plus tard.',
-    'permission_denied':
-        'Accès au profil refusé (policies RLS). Contactez l\'administrateur.',
+    'permission_denied': 'Accès au profil refusé (policies RLS). Contactez l\'administrateur.',
     'generic_error': 'Erreur inattendue. Réessaie.',
   };
 
@@ -308,29 +307,11 @@ class AuthFixtures {
       'Utilisateurs',
       'Paramètres',
     ],
-    'directeur': [
-      'Cours de route',
-      'Réceptions',
-      'Sorties',
-      'Stocks',
-      'Rapports',
-    ],
-    'gerant': [
-      'Cours de route',
-      'Réceptions',
-      'Sorties',
-      'Stocks',
-      'Gestion des stocks',
-    ],
+    'directeur': ['Cours de route', 'Réceptions', 'Sorties', 'Stocks', 'Rapports'],
+    'gerant': ['Cours de route', 'Réceptions', 'Sorties', 'Stocks', 'Gestion des stocks'],
     'operateur': ['Cours de route', 'Réceptions', 'Sorties', 'Stocks'],
     'pca': ['Cours de route', 'Réceptions', 'Sorties', 'Stocks', 'Rapports'],
-    'lecture': [
-      'Cours de route',
-      'Réceptions',
-      'Sorties',
-      'Stocks',
-      'Rapports',
-    ],
+    'lecture': ['Cours de route', 'Réceptions', 'Sorties', 'Stocks', 'Rapports'],
   };
 
   /// Permissions attendues pour chaque rôle

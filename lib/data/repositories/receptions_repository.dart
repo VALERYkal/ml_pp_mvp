@@ -23,9 +23,7 @@ class ReceptionsRepository {
         // Filtrage par dépôt via citernes
         rows = await _supa
             .from('receptions')
-            .select(
-              'id, statut, volume_corrige_15c, volume_ambiant, citernes!inner(depot_id)',
-            )
+            .select('id, statut, volume_corrige_15c, volume_ambiant, citernes!inner(depot_id)')
             .eq('statut', 'validee')
             .eq('date_reception', eqDay)
             .eq('citernes.depot_id', depotId);

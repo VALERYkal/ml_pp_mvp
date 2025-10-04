@@ -47,24 +47,16 @@ class ProfilService {
       debugPrint('🔍 ProfilService: Recherche du profil pour userId: $userId');
 
       // Requête Supabase pour récupérer le profil
-      final response = await _client
-          .from('profils')
-          .select()
-          .eq('user_id', userId)
-          .maybeSingle();
+      final response = await _client.from('profils').select().eq('user_id', userId).maybeSingle();
 
       if (response == null) {
-        debugPrint(
-          '⚠️ ProfilService: Aucun profil trouvé pour userId: $userId',
-        );
+        debugPrint('⚠️ ProfilService: Aucun profil trouvé pour userId: $userId');
         return null;
       }
 
       // Conversion des données Supabase vers le modèle Profil
       final profil = Profil.fromJson(response);
-      debugPrint(
-        '✅ ProfilService: Profil récupéré avec succès - Role: ${profil.role}',
-      );
+      debugPrint('✅ ProfilService: Profil récupéré avec succès - Role: ${profil.role}');
 
       return profil;
     } on PostgrestException catch (e) {
@@ -121,28 +113,17 @@ class ProfilService {
       // Préparation des données pour Supabase
       final data = profil.toJson();
       data.remove('id'); // L'id ne doit pas être modifié
-      data.remove(
-        'created_at',
-      ); // Le timestamp de création ne doit pas être modifié
+      data.remove('created_at'); // Le timestamp de création ne doit pas être modifié
 
       // Mise à jour dans Supabase
-      await _client
-          .from('profils')
-          .update(data)
-          .eq('id', profil.id)
-          .select()
-          .single();
+      await _client.from('profils').update(data).eq('id', profil.id).select().single();
 
       debugPrint('✅ ProfilService: Profil mis à jour avec succès');
     } on PostgrestException catch (e) {
-      debugPrint(
-        '❌ ProfilService: Erreur lors de la mise à jour - ${e.message}',
-      );
+      debugPrint('❌ ProfilService: Erreur lors de la mise à jour - ${e.message}');
       rethrow;
     } catch (e) {
-      debugPrint(
-        '❌ ProfilService: Erreur inattendue lors de la mise à jour - $e',
-      );
+      debugPrint('❌ ProfilService: Erreur inattendue lors de la mise à jour - $e');
       rethrow;
     }
   }

@@ -26,9 +26,7 @@ void main() {
     );
 
     /// Test de l'affichage de l'écran avec des données
-    testWidgets('affiche correctement l\'écran avec des données', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('affiche correctement l\'écran avec des données', (WidgetTester tester) async {
       // Arrange
       await tester.pumpWidget(
         ProviderScope(
@@ -54,9 +52,7 @@ void main() {
     });
 
     /// Test de la validation automatique
-    testWidgets('active la validation automatique', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('active la validation automatique', (WidgetTester tester) async {
       // Arrange
       await tester.pumpWidget(
         ProviderScope(
@@ -74,36 +70,31 @@ void main() {
     });
 
     /// Test de la protection dirty state
-    testWidgets(
-      'affiche une confirmation lors de la navigation arrière avec des modifications',
-      (WidgetTester tester) async {
-        // Arrange
-        await tester.pumpWidget(
-          ProviderScope(
-            overrides: [
-              refDataProvider.overrideWith((ref) async => mockRefData),
-            ],
-            child: const MaterialApp(home: CoursRouteFormScreen()),
-          ),
-        );
-
-        // Act - Attendre que les données se chargent et saisir du texte
-        await tester.pumpAndSettle();
-        await tester.enterText(find.byType(TextFormField).first, 'Test');
-        await tester.pump();
-
-        // Simuler la navigation arrière
-        await tester.pageBack();
-
-        // Assert - Vérifier que la confirmation s'affiche
-        expect(find.text('Annuler les modifications ?'), findsOneWidget);
-      },
-    );
-
-    /// Test de l'affichage de l'écran en état de chargement
-    testWidgets('affiche correctement l\'état de chargement', (
+    testWidgets('affiche une confirmation lors de la navigation arrière avec des modifications', (
       WidgetTester tester,
     ) async {
+      // Arrange
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [refDataProvider.overrideWith((ref) async => mockRefData)],
+          child: const MaterialApp(home: CoursRouteFormScreen()),
+        ),
+      );
+
+      // Act - Attendre que les données se chargent et saisir du texte
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextFormField).first, 'Test');
+      await tester.pump();
+
+      // Simuler la navigation arrière
+      await tester.pageBack();
+
+      // Assert - Vérifier que la confirmation s'affiche
+      expect(find.text('Annuler les modifications ?'), findsOneWidget);
+    });
+
+    /// Test de l'affichage de l'écran en état de chargement
+    testWidgets('affiche correctement l\'état de chargement', (WidgetTester tester) async {
       // Arrange
       await tester.pumpWidget(
         ProviderScope(
@@ -126,9 +117,7 @@ void main() {
     });
 
     /// Test de l'affichage de l'écran en état d'erreur
-    testWidgets('affiche correctement l\'état d\'erreur', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('affiche correctement l\'état d\'erreur', (WidgetTester tester) async {
       // Arrange
       await tester.pumpWidget(
         ProviderScope(
@@ -145,10 +134,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Assert
-      expect(
-        find.text('Erreur lors du chargement des référentiels'),
-        findsOneWidget,
-      );
+      expect(find.text('Erreur lors du chargement des référentiels'), findsOneWidget);
       expect(find.text('Réessayer'), findsOneWidget);
     });
 
@@ -180,9 +166,7 @@ void main() {
     });
 
     /// Test de validation du volume
-    testWidgets('should validate volume constraints', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('should validate volume constraints', (WidgetTester tester) async {
       // Arrange
       await tester.pumpWidget(
         ProviderScope(
@@ -202,9 +186,7 @@ void main() {
     });
 
     /// Test de validation de la date
-    testWidgets('should validate date constraints', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('should validate date constraints', (WidgetTester tester) async {
       // Arrange
       await tester.pumpWidget(
         ProviderScope(
@@ -228,9 +210,7 @@ void main() {
     });
 
     /// Test de validation de la plaque camion
-    testWidgets('should validate plaque camion format', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('should validate plaque camion format', (WidgetTester tester) async {
       // Arrange
       await tester.pumpWidget(
         ProviderScope(
@@ -242,10 +222,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Act - Saisir une plaque invalide
-      await tester.enterText(
-        find.byKey(const Key('plaque_camion_field')),
-        'INVALID',
-      );
+      await tester.enterText(find.byKey(const Key('plaque_camion_field')), 'INVALID');
       await tester.pump();
 
       // Assert
@@ -281,14 +258,8 @@ void main() {
       await tester.pump();
 
       await tester.enterText(find.byKey(const Key('pays_field')), 'RDC');
-      await tester.enterText(
-        find.byKey(const Key('plaque_camion_field')),
-        'ABC123',
-      );
-      await tester.enterText(
-        find.byKey(const Key('chauffeur_field')),
-        'Jean Dupont',
-      );
+      await tester.enterText(find.byKey(const Key('plaque_camion_field')), 'ABC123');
+      await tester.enterText(find.byKey(const Key('chauffeur_field')), 'Jean Dupont');
       await tester.enterText(find.byKey(const Key('volume_field')), '50000');
 
       // Sélectionner une date valide
@@ -319,14 +290,8 @@ void main() {
 
       // Act - Remplir et sauvegarder (simuler une erreur)
       await tester.enterText(find.byKey(const Key('pays_field')), 'RDC');
-      await tester.enterText(
-        find.byKey(const Key('plaque_camion_field')),
-        'ABC123',
-      );
-      await tester.enterText(
-        find.byKey(const Key('chauffeur_field')),
-        'Jean Dupont',
-      );
+      await tester.enterText(find.byKey(const Key('plaque_camion_field')), 'ABC123');
+      await tester.enterText(find.byKey(const Key('chauffeur_field')), 'Jean Dupont');
       await tester.enterText(find.byKey(const Key('volume_field')), '50000');
 
       await tester.tap(find.byKey(const Key('save_button')));

@@ -45,8 +45,7 @@ class PartenaireAutocomplete extends ConsumerWidget {
                 child: ListView(
                   shrinkWrap: true,
                   children: [
-                    for (final o in opts)
-                      ListTile(title: Text(o.nom), onTap: () => onSelect(o)),
+                    for (final o in opts) ListTile(title: Text(o.nom), onTap: () => onSelect(o)),
                   ],
                 ),
               ),

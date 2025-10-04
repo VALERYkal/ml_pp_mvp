@@ -26,19 +26,14 @@ void main() {
     });
 
     group('Role-Based Access Control', () {
-      testWidgets('should restrict CDR creation to authorized roles', (
-        WidgetTester tester,
-      ) async {
+      testWidgets('should restrict CDR creation to authorized roles', (WidgetTester tester) async {
         // Arrange - Utilisateur avec rôle LECTURE
         await tester.pumpWidget(
           ProviderScope(
             parent: container,
             overrides: [
               authProvider.overrideWith(
-                (ref) => AuthState(
-                  user: MockUser(role: UserRole.lecture),
-                  isAuthenticated: true,
-                ),
+                (ref) => AuthState(user: MockUser(role: UserRole.lecture), isAuthenticated: true),
               ),
             ],
             child: const MaterialApp(home: CoursRouteListScreen()),
@@ -51,19 +46,14 @@ void main() {
         expect(find.text('Nouveau cours'), findsNothing);
       });
 
-      testWidgets('should allow CDR creation for authorized roles', (
-        WidgetTester tester,
-      ) async {
+      testWidgets('should allow CDR creation for authorized roles', (WidgetTester tester) async {
         // Arrange - Utilisateur avec rôle ADMIN
         await tester.pumpWidget(
           ProviderScope(
             parent: container,
             overrides: [
               authProvider.overrideWith(
-                (ref) => AuthState(
-                  user: MockUser(role: UserRole.admin),
-                  isAuthenticated: true,
-                ),
+                (ref) => AuthState(user: MockUser(role: UserRole.admin), isAuthenticated: true),
               ),
             ],
             child: const MaterialApp(home: CoursRouteListScreen()),
@@ -85,15 +75,10 @@ void main() {
             parent: container,
             overrides: [
               authProvider.overrideWith(
-                (ref) => AuthState(
-                  user: MockUser(role: UserRole.lecture),
-                  isAuthenticated: true,
-                ),
+                (ref) => AuthState(user: MockUser(role: UserRole.lecture), isAuthenticated: true),
               ),
             ],
-            child: const MaterialApp(
-              home: CoursRouteDetailScreen(coursId: 'test-id'),
-            ),
+            child: const MaterialApp(home: CoursRouteDetailScreen(coursId: 'test-id')),
           ),
         );
 
@@ -114,15 +99,10 @@ void main() {
             parent: container,
             overrides: [
               authProvider.overrideWith(
-                (ref) => AuthState(
-                  user: MockUser(role: UserRole.admin),
-                  isAuthenticated: true,
-                ),
+                (ref) => AuthState(user: MockUser(role: UserRole.admin), isAuthenticated: true),
               ),
             ],
-            child: const MaterialApp(
-              home: CoursRouteDetailScreen(coursId: 'test-id'),
-            ),
+            child: const MaterialApp(home: CoursRouteDetailScreen(coursId: 'test-id')),
           ),
         );
 
@@ -166,19 +146,14 @@ void main() {
         }
       });
 
-      testWidgets('should show all CDR for admin users', (
-        WidgetTester tester,
-      ) async {
+      testWidgets('should show all CDR for admin users', (WidgetTester tester) async {
         // Arrange - Utilisateur avec rôle ADMIN
         await tester.pumpWidget(
           ProviderScope(
             parent: container,
             overrides: [
               authProvider.overrideWith(
-                (ref) => AuthState(
-                  user: MockUser(role: UserRole.admin),
-                  isAuthenticated: true,
-                ),
+                (ref) => AuthState(user: MockUser(role: UserRole.admin), isAuthenticated: true),
               ),
             ],
             child: const MaterialApp(home: CoursRouteListScreen()),
@@ -224,11 +199,7 @@ void main() {
 
         // Act & Assert - Tenter de mettre à jour le statut sans autorisation
         expect(
-          () => service.updateStatut(
-            id: 'test-id',
-            to: StatutCours.decharge,
-            fromReception: false,
-          ),
+          () => service.updateStatut(id: 'test-id', to: StatutCours.decharge, fromReception: false),
           throwsA(isA<PostgrestException>()),
         );
       });
@@ -319,10 +290,7 @@ void main() {
         await service.create(cours1);
 
         // Assert - Créer un deuxième cours avec la même plaque devrait échouer
-        expect(
-          () => service.create(cours2),
-          throwsA(isA<PostgrestException>()),
-        );
+        expect(() => service.create(cours2), throwsA(isA<PostgrestException>()));
       });
 
       test('should enforce statut transition rules', () async {
@@ -397,11 +365,7 @@ void main() {
         final service = CoursDeRouteService.withClient(mockSupabaseClient);
 
         // Act
-        await service.updateStatut(
-          id: 'test-id',
-          to: StatutCours.transit,
-          fromReception: false,
-        );
+        await service.updateStatut(id: 'test-id', to: StatutCours.transit, fromReception: false);
 
         // Assert - Vérifier que le changement de statut est loggé
         verify(

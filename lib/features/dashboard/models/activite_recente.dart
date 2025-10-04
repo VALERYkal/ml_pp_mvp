@@ -21,9 +21,7 @@ class ActiviteRecente {
   factory ActiviteRecente.fromMap(Map<String, dynamic> map) {
     return ActiviteRecente(
       id: map['id']?.toString() ?? '',
-      createdAt:
-          DateTime.tryParse(map['created_at']?.toString() ?? '') ??
-          DateTime.now(),
+      createdAt: DateTime.tryParse(map['created_at']?.toString() ?? '') ?? DateTime.now(),
       module: map['module']?.toString() ?? '',
       action: map['action']?.toString() ?? '',
       niveau: map['niveau']?.toString() ?? '',

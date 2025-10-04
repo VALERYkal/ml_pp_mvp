@@ -30,36 +30,30 @@ import 'package:supabase/src/supabase_query_builder.dart' as _i7;
 // ignore_for_file: subtype_of_sealed_class
 
 class _FakeGoTrueClient_0 extends _i1.SmartFake implements _i2.GoTrueClient {
-  _FakeGoTrueClient_0(Object parent, Invocation parentInvocation)
-    : super(parent, parentInvocation);
+  _FakeGoTrueClient_0(Object parent, Invocation parentInvocation) : super(parent, parentInvocation);
 }
 
-class _FakeFunctionsClient_1 extends _i1.SmartFake
-    implements _i3.FunctionsClient {
+class _FakeFunctionsClient_1 extends _i1.SmartFake implements _i3.FunctionsClient {
   _FakeFunctionsClient_1(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeSupabaseStorageClient_2 extends _i1.SmartFake
-    implements _i4.SupabaseStorageClient {
+class _FakeSupabaseStorageClient_2 extends _i1.SmartFake implements _i4.SupabaseStorageClient {
   _FakeSupabaseStorageClient_2(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeRealtimeClient_3 extends _i1.SmartFake
-    implements _i5.RealtimeClient {
+class _FakeRealtimeClient_3 extends _i1.SmartFake implements _i5.RealtimeClient {
   _FakeRealtimeClient_3(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakePostgrestClient_4 extends _i1.SmartFake
-    implements _i6.PostgrestClient {
+class _FakePostgrestClient_4 extends _i1.SmartFake implements _i6.PostgrestClient {
   _FakePostgrestClient_4(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeSupabaseQueryBuilder_5 extends _i1.SmartFake
-    implements _i7.SupabaseQueryBuilder {
+class _FakeSupabaseQueryBuilder_5 extends _i1.SmartFake implements _i7.SupabaseQueryBuilder {
   _FakeSupabaseQueryBuilder_5(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
@@ -70,8 +64,7 @@ class _FakePostgrestFilterBuilder_6<T> extends _i1.SmartFake
     : super(parent, parentInvocation);
 }
 
-class _FakeRealtimeChannel_7 extends _i1.SmartFake
-    implements _i5.RealtimeChannel {
+class _FakeRealtimeChannel_7 extends _i1.SmartFake implements _i5.RealtimeChannel {
   _FakeRealtimeChannel_7(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
@@ -88,21 +81,18 @@ class _FakePostgrestTransformBuilder_9<T1> extends _i1.SmartFake
     : super(parent, parentInvocation);
 }
 
-class _FakePostgrestBuilder_10<T1, S> extends _i1.SmartFake
-    implements _i6.PostgrestBuilder<T1, S> {
+class _FakePostgrestBuilder_10<T1, S> extends _i1.SmartFake implements _i6.PostgrestBuilder<T1, S> {
   _FakePostgrestBuilder_10(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakePostgrestResponse_11<T1> extends _i1.SmartFake
-    implements _i6.PostgrestResponse<T1> {
+class _FakePostgrestResponse_11<T1> extends _i1.SmartFake implements _i6.PostgrestResponse<T1> {
   _FakePostgrestResponse_11(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
 class _FakeFuture_12<T1> extends _i1.SmartFake implements _i8.Future<T1> {
-  _FakeFuture_12(Object parent, Invocation parentInvocation)
-    : super(parent, parentInvocation);
+  _FakeFuture_12(Object parent, Invocation parentInvocation) : super(parent, parentInvocation);
 }
 
 /// A class which mocks [SupabaseClient].
@@ -113,10 +103,7 @@ class MockSupabaseClient extends _i1.Mock implements _i9.SupabaseClient {
   String get supabaseUrl =>
       (super.noSuchMethod(
             Invocation.getter(#supabaseUrl),
-            returnValue: _i10.dummyValue<String>(
-              this,
-              Invocation.getter(#supabaseUrl),
-            ),
+            returnValue: _i10.dummyValue<String>(this, Invocation.getter(#supabaseUrl)),
             returnValueForMissingStub: _i10.dummyValue<String>(
               this,
               Invocation.getter(#supabaseUrl),
@@ -128,10 +115,7 @@ class MockSupabaseClient extends _i1.Mock implements _i9.SupabaseClient {
   String get supabaseKey =>
       (super.noSuchMethod(
             Invocation.getter(#supabaseKey),
-            returnValue: _i10.dummyValue<String>(
-              this,
-              Invocation.getter(#supabaseKey),
-            ),
+            returnValue: _i10.dummyValue<String>(this, Invocation.getter(#supabaseKey)),
             returnValueForMissingStub: _i10.dummyValue<String>(
               this,
               Invocation.getter(#supabaseKey),
@@ -143,14 +127,8 @@ class MockSupabaseClient extends _i1.Mock implements _i9.SupabaseClient {
   String get schema =>
       (super.noSuchMethod(
             Invocation.getter(#schema),
-            returnValue: _i10.dummyValue<String>(
-              this,
-              Invocation.getter(#schema),
-            ),
-            returnValueForMissingStub: _i10.dummyValue<String>(
-              this,
-              Invocation.getter(#schema),
-            ),
+            returnValue: _i10.dummyValue<String>(this, Invocation.getter(#schema)),
+            returnValueForMissingStub: _i10.dummyValue<String>(this, Invocation.getter(#schema)),
           )
           as String);
 
@@ -158,14 +136,8 @@ class MockSupabaseClient extends _i1.Mock implements _i9.SupabaseClient {
   String get restUrl =>
       (super.noSuchMethod(
             Invocation.getter(#restUrl),
-            returnValue: _i10.dummyValue<String>(
-              this,
-              Invocation.getter(#restUrl),
-            ),
-            returnValueForMissingStub: _i10.dummyValue<String>(
-              this,
-              Invocation.getter(#restUrl),
-            ),
+            returnValue: _i10.dummyValue<String>(this, Invocation.getter(#restUrl)),
+            returnValueForMissingStub: _i10.dummyValue<String>(this, Invocation.getter(#restUrl)),
           )
           as String);
 
@@ -173,10 +145,7 @@ class MockSupabaseClient extends _i1.Mock implements _i9.SupabaseClient {
   String get realtimeUrl =>
       (super.noSuchMethod(
             Invocation.getter(#realtimeUrl),
-            returnValue: _i10.dummyValue<String>(
-              this,
-              Invocation.getter(#realtimeUrl),
-            ),
+            returnValue: _i10.dummyValue<String>(this, Invocation.getter(#realtimeUrl)),
             returnValueForMissingStub: _i10.dummyValue<String>(
               this,
               Invocation.getter(#realtimeUrl),
@@ -188,14 +157,8 @@ class MockSupabaseClient extends _i1.Mock implements _i9.SupabaseClient {
   String get authUrl =>
       (super.noSuchMethod(
             Invocation.getter(#authUrl),
-            returnValue: _i10.dummyValue<String>(
-              this,
-              Invocation.getter(#authUrl),
-            ),
-            returnValueForMissingStub: _i10.dummyValue<String>(
-              this,
-              Invocation.getter(#authUrl),
-            ),
+            returnValue: _i10.dummyValue<String>(this, Invocation.getter(#authUrl)),
+            returnValueForMissingStub: _i10.dummyValue<String>(this, Invocation.getter(#authUrl)),
           )
           as String);
 
@@ -203,10 +166,7 @@ class MockSupabaseClient extends _i1.Mock implements _i9.SupabaseClient {
   String get storageUrl =>
       (super.noSuchMethod(
             Invocation.getter(#storageUrl),
-            returnValue: _i10.dummyValue<String>(
-              this,
-              Invocation.getter(#storageUrl),
-            ),
+            returnValue: _i10.dummyValue<String>(this, Invocation.getter(#storageUrl)),
             returnValueForMissingStub: _i10.dummyValue<String>(
               this,
               Invocation.getter(#storageUrl),
@@ -218,10 +178,7 @@ class MockSupabaseClient extends _i1.Mock implements _i9.SupabaseClient {
   String get functionsUrl =>
       (super.noSuchMethod(
             Invocation.getter(#functionsUrl),
-            returnValue: _i10.dummyValue<String>(
-              this,
-              Invocation.getter(#functionsUrl),
-            ),
+            returnValue: _i10.dummyValue<String>(this, Invocation.getter(#functionsUrl)),
             returnValueForMissingStub: _i10.dummyValue<String>(
               this,
               Invocation.getter(#functionsUrl),
@@ -234,10 +191,7 @@ class MockSupabaseClient extends _i1.Mock implements _i9.SupabaseClient {
       (super.noSuchMethod(
             Invocation.getter(#auth),
             returnValue: _FakeGoTrueClient_0(this, Invocation.getter(#auth)),
-            returnValueForMissingStub: _FakeGoTrueClient_0(
-              this,
-              Invocation.getter(#auth),
-            ),
+            returnValueForMissingStub: _FakeGoTrueClient_0(this, Invocation.getter(#auth)),
           )
           as _i2.GoTrueClient);
 
@@ -245,14 +199,8 @@ class MockSupabaseClient extends _i1.Mock implements _i9.SupabaseClient {
   _i3.FunctionsClient get functions =>
       (super.noSuchMethod(
             Invocation.getter(#functions),
-            returnValue: _FakeFunctionsClient_1(
-              this,
-              Invocation.getter(#functions),
-            ),
-            returnValueForMissingStub: _FakeFunctionsClient_1(
-              this,
-              Invocation.getter(#functions),
-            ),
+            returnValue: _FakeFunctionsClient_1(this, Invocation.getter(#functions)),
+            returnValueForMissingStub: _FakeFunctionsClient_1(this, Invocation.getter(#functions)),
           )
           as _i3.FunctionsClient);
 
@@ -260,10 +208,7 @@ class MockSupabaseClient extends _i1.Mock implements _i9.SupabaseClient {
   _i4.SupabaseStorageClient get storage =>
       (super.noSuchMethod(
             Invocation.getter(#storage),
-            returnValue: _FakeSupabaseStorageClient_2(
-              this,
-              Invocation.getter(#storage),
-            ),
+            returnValue: _FakeSupabaseStorageClient_2(this, Invocation.getter(#storage)),
             returnValueForMissingStub: _FakeSupabaseStorageClient_2(
               this,
               Invocation.getter(#storage),
@@ -275,14 +220,8 @@ class MockSupabaseClient extends _i1.Mock implements _i9.SupabaseClient {
   _i5.RealtimeClient get realtime =>
       (super.noSuchMethod(
             Invocation.getter(#realtime),
-            returnValue: _FakeRealtimeClient_3(
-              this,
-              Invocation.getter(#realtime),
-            ),
-            returnValueForMissingStub: _FakeRealtimeClient_3(
-              this,
-              Invocation.getter(#realtime),
-            ),
+            returnValue: _FakeRealtimeClient_3(this, Invocation.getter(#realtime)),
+            returnValueForMissingStub: _FakeRealtimeClient_3(this, Invocation.getter(#realtime)),
           )
           as _i5.RealtimeClient);
 
@@ -291,10 +230,7 @@ class MockSupabaseClient extends _i1.Mock implements _i9.SupabaseClient {
       (super.noSuchMethod(
             Invocation.getter(#rest),
             returnValue: _FakePostgrestClient_4(this, Invocation.getter(#rest)),
-            returnValueForMissingStub: _FakePostgrestClient_4(
-              this,
-              Invocation.getter(#rest),
-            ),
+            returnValueForMissingStub: _FakePostgrestClient_4(this, Invocation.getter(#rest)),
           )
           as _i6.PostgrestClient);
 
@@ -308,10 +244,8 @@ class MockSupabaseClient extends _i1.Mock implements _i9.SupabaseClient {
           as Map<String, String>);
 
   @override
-  set auth(_i2.GoTrueClient? _auth) => super.noSuchMethod(
-    Invocation.setter(#auth, _auth),
-    returnValueForMissingStub: null,
-  );
+  set auth(_i2.GoTrueClient? _auth) =>
+      super.noSuchMethod(Invocation.setter(#auth, _auth), returnValueForMissingStub: null);
 
   @override
   set functions(_i3.FunctionsClient? _functions) => super.noSuchMethod(
@@ -320,37 +254,26 @@ class MockSupabaseClient extends _i1.Mock implements _i9.SupabaseClient {
   );
 
   @override
-  set storage(_i4.SupabaseStorageClient? _storage) => super.noSuchMethod(
-    Invocation.setter(#storage, _storage),
-    returnValueForMissingStub: null,
-  );
+  set storage(_i4.SupabaseStorageClient? _storage) =>
+      super.noSuchMethod(Invocation.setter(#storage, _storage), returnValueForMissingStub: null);
 
   @override
-  set realtime(_i5.RealtimeClient? _realtime) => super.noSuchMethod(
-    Invocation.setter(#realtime, _realtime),
-    returnValueForMissingStub: null,
-  );
+  set realtime(_i5.RealtimeClient? _realtime) =>
+      super.noSuchMethod(Invocation.setter(#realtime, _realtime), returnValueForMissingStub: null);
 
   @override
-  set rest(_i6.PostgrestClient? _rest) => super.noSuchMethod(
-    Invocation.setter(#rest, _rest),
-    returnValueForMissingStub: null,
-  );
+  set rest(_i6.PostgrestClient? _rest) =>
+      super.noSuchMethod(Invocation.setter(#rest, _rest), returnValueForMissingStub: null);
 
   @override
-  set headers(Map<String, String>? headers) => super.noSuchMethod(
-    Invocation.setter(#headers, headers),
-    returnValueForMissingStub: null,
-  );
+  set headers(Map<String, String>? headers) =>
+      super.noSuchMethod(Invocation.setter(#headers, headers), returnValueForMissingStub: null);
 
   @override
   _i7.SupabaseQueryBuilder from(String? table) =>
       (super.noSuchMethod(
             Invocation.method(#from, [table]),
-            returnValue: _FakeSupabaseQueryBuilder_5(
-              this,
-              Invocation.method(#from, [table]),
-            ),
+            returnValue: _FakeSupabaseQueryBuilder_5(this, Invocation.method(#from, [table])),
             returnValueForMissingStub: _FakeSupabaseQueryBuilder_5(
               this,
               Invocation.method(#from, [table]),
@@ -362,10 +285,7 @@ class MockSupabaseClient extends _i1.Mock implements _i9.SupabaseClient {
   _i6.PostgrestClient useSchema(String? schema) =>
       (super.noSuchMethod(
             Invocation.method(#useSchema, [schema]),
-            returnValue: _FakePostgrestClient_4(
-              this,
-              Invocation.method(#useSchema, [schema]),
-            ),
+            returnValue: _FakePostgrestClient_4(this, Invocation.method(#useSchema, [schema])),
             returnValueForMissingStub: _FakePostgrestClient_4(
               this,
               Invocation.method(#useSchema, [schema]),
@@ -383,19 +303,11 @@ class MockSupabaseClient extends _i1.Mock implements _i9.SupabaseClient {
             Invocation.method(#rpc, [fn], {#params: params, #options: options}),
             returnValue: _FakePostgrestFilterBuilder_6<dynamic>(
               this,
-              Invocation.method(
-                #rpc,
-                [fn],
-                {#params: params, #options: options},
-              ),
+              Invocation.method(#rpc, [fn], {#params: params, #options: options}),
             ),
             returnValueForMissingStub: _FakePostgrestFilterBuilder_6<dynamic>(
               this,
-              Invocation.method(
-                #rpc,
-                [fn],
-                {#params: params, #options: options},
-              ),
+              Invocation.method(#rpc, [fn], {#params: params, #options: options}),
             ),
           )
           as _i6.PostgrestFilterBuilder<dynamic>);
@@ -432,16 +344,10 @@ class MockSupabaseClient extends _i1.Mock implements _i9.SupabaseClient {
       (super.noSuchMethod(
             Invocation.method(#removeChannel, [channel]),
             returnValue: _i8.Future<String>.value(
-              _i10.dummyValue<String>(
-                this,
-                Invocation.method(#removeChannel, [channel]),
-              ),
+              _i10.dummyValue<String>(this, Invocation.method(#removeChannel, [channel])),
             ),
             returnValueForMissingStub: _i8.Future<String>.value(
-              _i10.dummyValue<String>(
-                this,
-                Invocation.method(#removeChannel, [channel]),
-              ),
+              _i10.dummyValue<String>(this, Invocation.method(#removeChannel, [channel])),
             ),
           )
           as _i8.Future<String>);
@@ -451,9 +357,7 @@ class MockSupabaseClient extends _i1.Mock implements _i9.SupabaseClient {
       (super.noSuchMethod(
             Invocation.method(#removeAllChannels, []),
             returnValue: _i8.Future<List<String>>.value(<String>[]),
-            returnValueForMissingStub: _i8.Future<List<String>>.value(
-              <String>[],
-            ),
+            returnValueForMissingStub: _i8.Future<List<String>>.value(<String>[]),
           )
           as _i8.Future<List<String>>);
 
@@ -476,10 +380,7 @@ class MockPostgrestClient extends _i1.Mock implements _i6.PostgrestClient {
       (super.noSuchMethod(
             Invocation.getter(#url),
             returnValue: _i10.dummyValue<String>(this, Invocation.getter(#url)),
-            returnValueForMissingStub: _i10.dummyValue<String>(
-              this,
-              Invocation.getter(#url),
-            ),
+            returnValueForMissingStub: _i10.dummyValue<String>(this, Invocation.getter(#url)),
           )
           as String);
 
@@ -496,10 +397,7 @@ class MockPostgrestClient extends _i1.Mock implements _i6.PostgrestClient {
   _i6.PostgrestClient auth(String? token) =>
       (super.noSuchMethod(
             Invocation.method(#auth, [token]),
-            returnValue: _FakePostgrestClient_4(
-              this,
-              Invocation.method(#auth, [token]),
-            ),
+            returnValue: _FakePostgrestClient_4(this, Invocation.method(#auth, [token])),
             returnValueForMissingStub: _FakePostgrestClient_4(
               this,
               Invocation.method(#auth, [token]),
@@ -511,10 +409,7 @@ class MockPostgrestClient extends _i1.Mock implements _i6.PostgrestClient {
   _i6.PostgrestClient setAuth(String? token) =>
       (super.noSuchMethod(
             Invocation.method(#setAuth, [token]),
-            returnValue: _FakePostgrestClient_4(
-              this,
-              Invocation.method(#setAuth, [token]),
-            ),
+            returnValue: _FakePostgrestClient_4(this, Invocation.method(#setAuth, [token])),
             returnValueForMissingStub: _FakePostgrestClient_4(
               this,
               Invocation.method(#setAuth, [token]),
@@ -541,10 +436,7 @@ class MockPostgrestClient extends _i1.Mock implements _i6.PostgrestClient {
   _i6.PostgrestClient useSchema(String? schema) =>
       (super.noSuchMethod(
             Invocation.method(#useSchema, [schema]),
-            returnValue: _FakePostgrestClient_4(
-              this,
-              Invocation.method(#useSchema, [schema]),
-            ),
+            returnValue: _FakePostgrestClient_4(this, Invocation.method(#useSchema, [schema])),
             returnValueForMissingStub: _FakePostgrestClient_4(
               this,
               Invocation.method(#useSchema, [schema]),
@@ -562,19 +454,11 @@ class MockPostgrestClient extends _i1.Mock implements _i6.PostgrestClient {
             Invocation.method(#rpc, [fn], {#params: params, #options: options}),
             returnValue: _FakePostgrestFilterBuilder_6<dynamic>(
               this,
-              Invocation.method(
-                #rpc,
-                [fn],
-                {#params: params, #options: options},
-              ),
+              Invocation.method(#rpc, [fn], {#params: params, #options: options}),
             ),
             returnValueForMissingStub: _FakePostgrestFilterBuilder_6<dynamic>(
               this,
-              Invocation.method(
-                #rpc,
-                [fn],
-                {#params: params, #options: options},
-              ),
+              Invocation.method(#rpc, [fn], {#params: params, #options: options}),
             ),
           )
           as _i6.PostgrestFilterBuilder<dynamic>);
@@ -592,14 +476,9 @@ class MockPostgrestClient extends _i1.Mock implements _i6.PostgrestClient {
 /// A class which mocks [PostgrestFilterBuilder].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockPostgrestFilterBuilder<T> extends _i1.Mock
-    implements _i6.PostgrestFilterBuilder<T> {
+class MockPostgrestFilterBuilder<T> extends _i1.Mock implements _i6.PostgrestFilterBuilder<T> {
   @override
-  _i6.PostgrestFilterBuilder<T> not(
-    String? column,
-    String? operator,
-    dynamic value,
-  ) =>
+  _i6.PostgrestFilterBuilder<T> not(String? column, String? operator, dynamic value) =>
       (super.noSuchMethod(
             Invocation.method(#not, [column, operator, value]),
             returnValue: _FakePostgrestFilterBuilder_6<T>(
@@ -734,10 +613,7 @@ class MockPostgrestFilterBuilder<T> extends _i1.Mock
           as _i6.PostgrestFilterBuilder<T>);
 
   @override
-  _i6.PostgrestFilterBuilder<dynamic> likeAllOf(
-    String? column,
-    List<String>? patterns,
-  ) =>
+  _i6.PostgrestFilterBuilder<dynamic> likeAllOf(String? column, List<String>? patterns) =>
       (super.noSuchMethod(
             Invocation.method(#likeAllOf, [column, patterns]),
             returnValue: _FakePostgrestFilterBuilder_6<dynamic>(
@@ -752,10 +628,7 @@ class MockPostgrestFilterBuilder<T> extends _i1.Mock
           as _i6.PostgrestFilterBuilder<dynamic>);
 
   @override
-  _i6.PostgrestFilterBuilder<dynamic> likeAnyOf(
-    String? column,
-    List<String>? patterns,
-  ) =>
+  _i6.PostgrestFilterBuilder<dynamic> likeAnyOf(String? column, List<String>? patterns) =>
       (super.noSuchMethod(
             Invocation.method(#likeAnyOf, [column, patterns]),
             returnValue: _FakePostgrestFilterBuilder_6<dynamic>(
@@ -785,10 +658,7 @@ class MockPostgrestFilterBuilder<T> extends _i1.Mock
           as _i6.PostgrestFilterBuilder<T>);
 
   @override
-  _i6.PostgrestFilterBuilder<dynamic> ilikeAllOf(
-    String? column,
-    List<String>? patterns,
-  ) =>
+  _i6.PostgrestFilterBuilder<dynamic> ilikeAllOf(String? column, List<String>? patterns) =>
       (super.noSuchMethod(
             Invocation.method(#ilikeAllOf, [column, patterns]),
             returnValue: _FakePostgrestFilterBuilder_6<dynamic>(
@@ -803,10 +673,7 @@ class MockPostgrestFilterBuilder<T> extends _i1.Mock
           as _i6.PostgrestFilterBuilder<dynamic>);
 
   @override
-  _i6.PostgrestFilterBuilder<dynamic> ilikeAnyOf(
-    String? column,
-    List<String>? patterns,
-  ) =>
+  _i6.PostgrestFilterBuilder<dynamic> ilikeAnyOf(String? column, List<String>? patterns) =>
       (super.noSuchMethod(
             Invocation.method(#ilikeAnyOf, [column, patterns]),
             returnValue: _FakePostgrestFilterBuilder_6<dynamic>(
@@ -978,36 +845,20 @@ class MockPostgrestFilterBuilder<T> extends _i1.Mock
     _i6.TextSearchType? type,
   }) =>
       (super.noSuchMethod(
-            Invocation.method(
-              #textSearch,
-              [column, query],
-              {#config: config, #type: type},
-            ),
+            Invocation.method(#textSearch, [column, query], {#config: config, #type: type}),
             returnValue: _FakePostgrestFilterBuilder_6<T>(
               this,
-              Invocation.method(
-                #textSearch,
-                [column, query],
-                {#config: config, #type: type},
-              ),
+              Invocation.method(#textSearch, [column, query], {#config: config, #type: type}),
             ),
             returnValueForMissingStub: _FakePostgrestFilterBuilder_6<T>(
               this,
-              Invocation.method(
-                #textSearch,
-                [column, query],
-                {#config: config, #type: type},
-              ),
+              Invocation.method(#textSearch, [column, query], {#config: config, #type: type}),
             ),
           )
           as _i6.PostgrestFilterBuilder<T>);
 
   @override
-  _i6.PostgrestFilterBuilder<T> filter(
-    String? column,
-    String? operator,
-    dynamic value,
-  ) =>
+  _i6.PostgrestFilterBuilder<T> filter(String? column, String? operator, dynamic value) =>
       (super.noSuchMethod(
             Invocation.method(#filter, [column, operator, value]),
             returnValue: _FakePostgrestFilterBuilder_6<T>(
@@ -1025,10 +876,7 @@ class MockPostgrestFilterBuilder<T> extends _i1.Mock
   _i6.PostgrestFilterBuilder<T> match(Map<dynamic, dynamic>? query) =>
       (super.noSuchMethod(
             Invocation.method(#match, [query]),
-            returnValue: _FakePostgrestFilterBuilder_6<T>(
-              this,
-              Invocation.method(#match, [query]),
-            ),
+            returnValue: _FakePostgrestFilterBuilder_6<T>(this, Invocation.method(#match, [query])),
             returnValueForMissingStub: _FakePostgrestFilterBuilder_6<T>(
               this,
               Invocation.method(#match, [query]),
@@ -1062,22 +910,14 @@ class MockPostgrestFilterBuilder<T> extends _i1.Mock
             Invocation.method(
               #order,
               [column],
-              {
-                #ascending: ascending,
-                #nullsFirst: nullsFirst,
-                #foreignTable: foreignTable,
-              },
+              {#ascending: ascending, #nullsFirst: nullsFirst, #foreignTable: foreignTable},
             ),
             returnValue: _FakePostgrestTransformBuilder_9<T>(
               this,
               Invocation.method(
                 #order,
                 [column],
-                {
-                  #ascending: ascending,
-                  #nullsFirst: nullsFirst,
-                  #foreignTable: foreignTable,
-                },
+                {#ascending: ascending, #nullsFirst: nullsFirst, #foreignTable: foreignTable},
               ),
             ),
             returnValueForMissingStub: _FakePostgrestTransformBuilder_9<T>(
@@ -1085,11 +925,7 @@ class MockPostgrestFilterBuilder<T> extends _i1.Mock
               Invocation.method(
                 #order,
                 [column],
-                {
-                  #ascending: ascending,
-                  #nullsFirst: nullsFirst,
-                  #foreignTable: foreignTable,
-                },
+                {#ascending: ascending, #nullsFirst: nullsFirst, #foreignTable: foreignTable},
               ),
             ),
           )
@@ -1111,32 +947,16 @@ class MockPostgrestFilterBuilder<T> extends _i1.Mock
           as _i6.PostgrestTransformBuilder<T>);
 
   @override
-  _i6.PostgrestTransformBuilder<T> range(
-    int? from,
-    int? to, {
-    String? foreignTable,
-  }) =>
+  _i6.PostgrestTransformBuilder<T> range(int? from, int? to, {String? foreignTable}) =>
       (super.noSuchMethod(
-            Invocation.method(
-              #range,
-              [from, to],
-              {#foreignTable: foreignTable},
-            ),
+            Invocation.method(#range, [from, to], {#foreignTable: foreignTable}),
             returnValue: _FakePostgrestTransformBuilder_9<T>(
               this,
-              Invocation.method(
-                #range,
-                [from, to],
-                {#foreignTable: foreignTable},
-              ),
+              Invocation.method(#range, [from, to], {#foreignTable: foreignTable}),
             ),
             returnValueForMissingStub: _FakePostgrestTransformBuilder_9<T>(
               this,
-              Invocation.method(
-                #range,
-                [from, to],
-                {#foreignTable: foreignTable},
-              ),
+              Invocation.method(#range, [from, to], {#foreignTable: foreignTable}),
             ),
           )
           as _i6.PostgrestTransformBuilder<T>);
@@ -1145,10 +965,7 @@ class MockPostgrestFilterBuilder<T> extends _i1.Mock
   _i6.PostgrestTransformBuilder<T> single() =>
       (super.noSuchMethod(
             Invocation.method(#single, []),
-            returnValue: _FakePostgrestTransformBuilder_9<T>(
-              this,
-              Invocation.method(#single, []),
-            ),
+            returnValue: _FakePostgrestTransformBuilder_9<T>(this, Invocation.method(#single, [])),
             returnValueForMissingStub: _FakePostgrestTransformBuilder_9<T>(
               this,
               Invocation.method(#single, []),
@@ -1175,10 +992,7 @@ class MockPostgrestFilterBuilder<T> extends _i1.Mock
   _i6.PostgrestTransformBuilder<T> csv() =>
       (super.noSuchMethod(
             Invocation.method(#csv, []),
-            returnValue: _FakePostgrestTransformBuilder_9<T>(
-              this,
-              Invocation.method(#csv, []),
-            ),
+            returnValue: _FakePostgrestTransformBuilder_9<T>(this, Invocation.method(#csv, [])),
             returnValueForMissingStub: _FakePostgrestTransformBuilder_9<T>(
               this,
               Invocation.method(#csv, []),
@@ -1187,9 +1001,7 @@ class MockPostgrestFilterBuilder<T> extends _i1.Mock
           as _i6.PostgrestTransformBuilder<T>);
 
   @override
-  _i6.PostgrestBuilder<R, T> withConverter<R>(
-    _i6.PostgrestConverter<R, T>? converter,
-  ) =>
+  _i6.PostgrestBuilder<R, T> withConverter<R>(_i6.PostgrestConverter<R, T>? converter) =>
       (super.noSuchMethod(
             Invocation.method(#withConverter, [converter]),
             returnValue: _FakePostgrestBuilder_10<R, T>(
@@ -1216,16 +1028,12 @@ class MockPostgrestFilterBuilder<T> extends _i1.Mock
                 Invocation.method(#execute, [], {#head: head, #count: count}),
               ),
             ),
-            returnValueForMissingStub:
-                _i8.Future<_i6.PostgrestResponse<dynamic>>.value(
-                  _FakePostgrestResponse_11<dynamic>(
-                    this,
-                    Invocation.method(#execute, [], {
-                      #head: head,
-                      #count: count,
-                    }),
-                  ),
-                ),
+            returnValueForMissingStub: _i8.Future<_i6.PostgrestResponse<dynamic>>.value(
+              _FakePostgrestResponse_11<dynamic>(
+                this,
+                Invocation.method(#execute, [], {#head: head, #count: count}),
+              ),
+            ),
           )
           as _i8.Future<_i6.PostgrestResponse<dynamic>>);
 
@@ -1262,10 +1070,7 @@ class MockPostgrestFilterBuilder<T> extends _i1.Mock
                   ),
                   (T v) => _i8.Future<T>.value(v),
                 ) ??
-                _FakeFuture_12<T>(
-                  this,
-                  Invocation.method(#catchError, [onError], {#test: test}),
-                ),
+                _FakeFuture_12<T>(this, Invocation.method(#catchError, [onError], {#test: test})),
             returnValueForMissingStub:
                 _i10.ifNotNull(
                   _i10.dummyValueOrNull<T>(
@@ -1274,18 +1079,12 @@ class MockPostgrestFilterBuilder<T> extends _i1.Mock
                   ),
                   (T v) => _i8.Future<T>.value(v),
                 ) ??
-                _FakeFuture_12<T>(
-                  this,
-                  Invocation.method(#catchError, [onError], {#test: test}),
-                ),
+                _FakeFuture_12<T>(this, Invocation.method(#catchError, [onError], {#test: test})),
           )
           as _i8.Future<T>);
 
   @override
-  _i8.Future<R> then<R>(
-    _i8.FutureOr<R> Function(T)? onValue, {
-    Function? onError,
-  }) =>
+  _i8.Future<R> then<R>(_i8.FutureOr<R> Function(T)? onValue, {Function? onError}) =>
       (super.noSuchMethod(
             Invocation.method(#then, [onValue], {#onError: onError}),
             returnValue:
@@ -1296,10 +1095,7 @@ class MockPostgrestFilterBuilder<T> extends _i1.Mock
                   ),
                   (R v) => _i8.Future<R>.value(v),
                 ) ??
-                _FakeFuture_12<R>(
-                  this,
-                  Invocation.method(#then, [onValue], {#onError: onError}),
-                ),
+                _FakeFuture_12<R>(this, Invocation.method(#then, [onValue], {#onError: onError})),
             returnValueForMissingStub:
                 _i10.ifNotNull(
                   _i10.dummyValueOrNull<R>(
@@ -1308,59 +1104,37 @@ class MockPostgrestFilterBuilder<T> extends _i1.Mock
                   ),
                   (R v) => _i8.Future<R>.value(v),
                 ) ??
-                _FakeFuture_12<R>(
-                  this,
-                  Invocation.method(#then, [onValue], {#onError: onError}),
-                ),
+                _FakeFuture_12<R>(this, Invocation.method(#then, [onValue], {#onError: onError})),
           )
           as _i8.Future<R>);
 
   @override
-  _i8.Future<T> timeout(
-    Duration? timeLimit, {
-    _i8.FutureOr<T> Function()? onTimeout,
-  }) =>
+  _i8.Future<T> timeout(Duration? timeLimit, {_i8.FutureOr<T> Function()? onTimeout}) =>
       (super.noSuchMethod(
             Invocation.method(#timeout, [timeLimit], {#onTimeout: onTimeout}),
             returnValue:
                 _i10.ifNotNull(
                   _i10.dummyValueOrNull<T>(
                     this,
-                    Invocation.method(
-                      #timeout,
-                      [timeLimit],
-                      {#onTimeout: onTimeout},
-                    ),
+                    Invocation.method(#timeout, [timeLimit], {#onTimeout: onTimeout}),
                   ),
                   (T v) => _i8.Future<T>.value(v),
                 ) ??
                 _FakeFuture_12<T>(
                   this,
-                  Invocation.method(
-                    #timeout,
-                    [timeLimit],
-                    {#onTimeout: onTimeout},
-                  ),
+                  Invocation.method(#timeout, [timeLimit], {#onTimeout: onTimeout}),
                 ),
             returnValueForMissingStub:
                 _i10.ifNotNull(
                   _i10.dummyValueOrNull<T>(
                     this,
-                    Invocation.method(
-                      #timeout,
-                      [timeLimit],
-                      {#onTimeout: onTimeout},
-                    ),
+                    Invocation.method(#timeout, [timeLimit], {#onTimeout: onTimeout}),
                   ),
                   (T v) => _i8.Future<T>.value(v),
                 ) ??
                 _FakeFuture_12<T>(
                   this,
-                  Invocation.method(
-                    #timeout,
-                    [timeLimit],
-                    {#onTimeout: onTimeout},
-                  ),
+                  Invocation.method(#timeout, [timeLimit], {#onTimeout: onTimeout}),
                 ),
           )
           as _i8.Future<T>);
@@ -1371,28 +1145,16 @@ class MockPostgrestFilterBuilder<T> extends _i1.Mock
             Invocation.method(#whenComplete, [action]),
             returnValue:
                 _i10.ifNotNull(
-                  _i10.dummyValueOrNull<T>(
-                    this,
-                    Invocation.method(#whenComplete, [action]),
-                  ),
+                  _i10.dummyValueOrNull<T>(this, Invocation.method(#whenComplete, [action])),
                   (T v) => _i8.Future<T>.value(v),
                 ) ??
-                _FakeFuture_12<T>(
-                  this,
-                  Invocation.method(#whenComplete, [action]),
-                ),
+                _FakeFuture_12<T>(this, Invocation.method(#whenComplete, [action])),
             returnValueForMissingStub:
                 _i10.ifNotNull(
-                  _i10.dummyValueOrNull<T>(
-                    this,
-                    Invocation.method(#whenComplete, [action]),
-                  ),
+                  _i10.dummyValueOrNull<T>(this, Invocation.method(#whenComplete, [action])),
                   (T v) => _i8.Future<T>.value(v),
                 ) ??
-                _FakeFuture_12<T>(
-                  this,
-                  Invocation.method(#whenComplete, [action]),
-                ),
+                _FakeFuture_12<T>(this, Invocation.method(#whenComplete, [action])),
           )
           as _i8.Future<T>);
 }

@@ -18,16 +18,16 @@ final stocksDefaultParamProvider = riverpod.Provider<StocksParam>((ref) {
 });
 
 /// Totaux actuels (ambiant & 15°C) — réutilisable (family)
-final stocksTotalsProvider =
-    riverpod.FutureProvider.family<StocksTotals, StocksParam>((ref, p) async {
-      final repo = ref.watch(stocksRepoProvider);
-      return repo.totauxActuels(depotId: p.depotId, produitId: p.produitId);
-    });
+final stocksTotalsProvider = riverpod.FutureProvider.family<StocksTotals, StocksParam>((
+  ref,
+  p,
+) async {
+  final repo = ref.watch(stocksRepoProvider);
+  return repo.totauxActuels(depotId: p.depotId, produitId: p.produitId);
+});
 
 /// Realtime invalidation (stocks_journaliers -> la vue se mettra à jour)
-final stocksRealtimeInvalidatorProvider = riverpod.Provider.autoDispose<void>((
-  ref,
-) {
+final stocksRealtimeInvalidatorProvider = riverpod.Provider.autoDispose<void>((ref) {
   final p = ref.watch(stocksDefaultParamProvider);
 
   // Note: PostgresChanges n'est pas disponible dans cette version de Supabase

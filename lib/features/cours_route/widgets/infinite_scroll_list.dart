@@ -32,12 +32,10 @@ class InfiniteScrollCoursList extends ConsumerStatefulWidget {
   final void Function(CoursDeRoute) onCreateReception;
 
   @override
-  ConsumerState<InfiniteScrollCoursList> createState() =>
-      _InfiniteScrollCoursListState();
+  ConsumerState<InfiniteScrollCoursList> createState() => _InfiniteScrollCoursListState();
 }
 
-class _InfiniteScrollCoursListState
-    extends ConsumerState<InfiniteScrollCoursList> {
+class _InfiniteScrollCoursListState extends ConsumerState<InfiniteScrollCoursList> {
   final ScrollController _scrollController = ScrollController();
   bool _isLoadingMore = false;
 
@@ -55,8 +53,7 @@ class _InfiniteScrollCoursListState
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
       _loadMore();
     }
   }
@@ -169,12 +166,8 @@ class _CoursCard extends StatelessWidget {
             Text(
               '${plaquesLabel(cours.plaqueCamion, cours.plaqueRemorque)} • ${cours.chauffeur ?? '—'}',
             ),
-            Text(
-              '${cours.transporteur ?? '—'} • ${fmtDate(cours.dateChargement)}',
-            ),
-            Text(
-              '${fmtVolume(cours.volume)} • ${nameOf(depots, cours.depotDestinationId)}',
-            ),
+            Text('${cours.transporteur ?? '—'} • ${fmtDate(cours.dateChargement)}'),
+            Text('${fmtVolume(cours.volume)} • ${nameOf(depots, cours.depotDestinationId)}'),
             const SizedBox(height: 8),
             Row(
               children: [
@@ -255,21 +248,14 @@ class _LoadingIndicator extends StatelessWidget {
             ? const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
+                  SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
                   SizedBox(width: 8),
                   Text('Chargement...'),
                 ],
               )
             : const Text(
                 'Tous les cours ont été chargés',
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontStyle: FontStyle.italic,
-                ),
+                style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
               ),
       ),
     );

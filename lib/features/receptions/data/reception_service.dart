@@ -24,8 +24,7 @@ class ReceptionService {
     CiterneService Function(SupabaseClient)? citerneServiceFactory,
     StocksService Function(SupabaseClient)? stocksServiceFactory,
     required refs.ReferentielsRepo refRepo,
-  }) : _citerneServiceFactory =
-           citerneServiceFactory ?? CiterneService.withClient,
+  }) : _citerneServiceFactory = citerneServiceFactory ?? CiterneService.withClient,
        _stocksServiceFactory = stocksServiceFactory ?? StocksService.withClient,
        _refRepo = refRepo;
 
@@ -56,8 +55,7 @@ class ReceptionService {
       if (volumeCorrige15C != null) 'volume_corrige_15c': volumeCorrige15C,
       'proprietaire_type': proprietaireType,
       if (partenaireId != null) 'partenaire_id': partenaireId,
-      if (dateReception != null)
-        'date_reception': dateReception.toIso8601String().substring(0, 10),
+      if (dateReception != null) 'date_reception': dateReception.toIso8601String().substring(0, 10),
       if ((note ?? '').trim().isNotEmpty) 'note': note!.trim(),
     };
 
@@ -107,9 +105,7 @@ class ReceptionService {
       final produitId = (input.produitId != null && input.produitId!.isNotEmpty)
           ? input.produitId!
           : (_refRepo.getProduitIdByCodeSync(input.produitCode) ??
-                (throw ArgumentError(
-                  'Produit introuvable pour code ${input.produitCode}',
-                )));
+                (throw ArgumentError('Produit introuvable pour code ${input.produitCode}')));
 
       // Validations métier
       await _validateInput(input, produitId);
@@ -164,9 +160,7 @@ class ReceptionService {
 
       return receptionId;
     } on PostgrestException catch (e) {
-      debugPrint(
-        '❌ ReceptionService.createDraft: Erreur Supabase - ${e.message}',
-      );
+      debugPrint('❌ ReceptionService.createDraft: Erreur Supabase - ${e.message}');
       rethrow;
     }
   }
@@ -182,17 +176,11 @@ class ReceptionService {
 
       // Récupération de la réception
       final receptionData =
-          await _client
-                  .from('receptions')
-                  .select()
-                  .eq('id', receptionId)
-                  .single()
+          await _client.from('receptions').select().eq('id', receptionId).single()
               as Map<String, dynamic>;
 
       if (receptionData['statut'] != 'brouillon') {
-        throw ArgumentError(
-          'Seules les réceptions en brouillon peuvent être validées',
-        );
+        throw ArgumentError('Seules les réceptions en brouillon peuvent être validées');
       }
 
       // Mise à jour du statut
@@ -226,13 +214,10 @@ class ReceptionService {
       });
     } on PostgrestException catch (e) {
       debugPrint('❌ ReceptionService.validate: Erreur Supabase - ${e.message}');
-      debugPrint(
-        '❌ ReceptionService.validate: code=${e.code} hint=${e.hint} details=${e.details}',
-      );
+      debugPrint('❌ ReceptionService.validate: code=${e.code} hint=${e.hint} details=${e.details}');
 
       // Log spécifique pour identifier les "duplicate update" sur la même journée
-      if (e.message?.contains('duplicate') == true ||
-          e.message?.contains('unique') == true) {
+      if (e.message?.contains('duplicate') == true || e.message?.contains('unique') == true) {
         debugPrint(
           '⚠️ ReceptionService.validate: Possible double application détectée: ${e.message}',
         );
@@ -249,9 +234,7 @@ class ReceptionService {
       throw ArgumentError('Les indices avant et après sont requis');
     }
     if (input.indexApres! <= input.indexAvant!) {
-      throw ArgumentError(
-        'Les indices sont incohérents (index après <= index avant)',
-      );
+      throw ArgumentError('Les indices sont incohérents (index après <= index avant)');
     }
 
     // Validation citerne
@@ -276,8 +259,7 @@ class ReceptionService {
       citerneId: input.citerneId,
       produitId: produitId,
     );
-    final capaciteDisponible =
-        citerne.capaciteTotale - citerne.capaciteSecurite - stockToday;
+    final capaciteDisponible = citerne.capaciteTotale - citerne.capaciteSecurite - stockToday;
     if (volAmb > capaciteDisponible) {
       throw ArgumentError('Volume > capacité disponible (sécurité incluse)');
     }
@@ -285,9 +267,7 @@ class ReceptionService {
     // Validation propriétaire
     if (input.proprietaireType == 'MONALUXE') {
       if (input.coursDeRouteId == null) {
-        throw ArgumentError(
-          'Cours de route requis pour une réception Monaluxe',
-        );
+        throw ArgumentError('Cours de route requis pour une réception Monaluxe');
       }
     } else if (input.proprietaireType == 'PARTENAIRE') {
       if (input.partenaireId == null || input.partenaireId!.isEmpty) {

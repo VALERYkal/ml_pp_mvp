@@ -10,23 +10,16 @@ import '../../core/models/user_role.dart';
 /// Composite: réveille GoRouter à la fois sur événements d'auth
 /// ET quand le rôle utilisateur change (null -> UserRole).
 class GoRouterCompositeRefresh extends ChangeNotifier {
-  GoRouterCompositeRefresh({
-    required Ref ref,
-    required Stream<dynamic> authStream,
-  }) {
+  GoRouterCompositeRefresh({required Ref ref, required Stream<dynamic> authStream}) {
     _sub = authStream.asBroadcastStream().listen((event) {
-      debugPrint(
-        '🔄 GoRouterCompositeRefresh: auth event received -> notifyListeners()',
-      );
+      debugPrint('🔄 GoRouterCompositeRefresh: auth event received -> notifyListeners()');
       notifyListeners();
     });
 
     // Réveille aussi le router quand le rôle devient disponible
     // (évite de dépendre d'un nouvel event d'auth qui n'arrive jamais).
     _roleSub = ref.listen<UserRole?>(userRoleProvider, (prev, next) {
-      debugPrint(
-        '🔄 GoRouterCompositeRefresh: role changed $prev -> $next -> notifyListeners()',
-      );
+      debugPrint('🔄 GoRouterCompositeRefresh: role changed $prev -> $next -> notifyListeners()');
       if (prev != next) notifyListeners();
     });
   }

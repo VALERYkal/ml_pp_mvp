@@ -24,10 +24,7 @@ class _App extends ConsumerWidget {
       initialLocation: '/admin',
       redirect: redirect,
       routes: [
-        GoRoute(
-          path: '/admin',
-          builder: (_, __) => const _Screen('ADMIN', 'screen_admin'),
-        ),
+        GoRoute(path: '/admin', builder: (_, __) => const _Screen('ADMIN', 'screen_admin')),
         GoRoute(
           path: '/forbidden',
           builder: (_, __) => const _Screen('FORBIDDEN', 'screen_forbidden'),

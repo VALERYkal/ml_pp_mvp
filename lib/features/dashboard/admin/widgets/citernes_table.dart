@@ -21,19 +21,14 @@ class CiternesSousSeuilTable extends ConsumerWidget {
         ],
         rows: rows.map((r) {
           final ratio = r.seuil > 0 ? (r.stock / r.seuil) : 1.0;
-          final color = ratio < 0.6
-              ? Colors.red
-              : (ratio < 1.0 ? Colors.orange : Colors.green);
+          final color = ratio < 0.6 ? Colors.red : (ratio < 1.0 ? Colors.orange : Colors.green);
           return DataRow(
             cells: [
               DataCell(Text(r.nom)),
               DataCell(Text(r.stock.toStringAsFixed(0))),
               DataCell(Text(r.seuil.toStringAsFixed(0))),
               DataCell(
-                Text(
-                  '${(ratio * 100).toStringAsFixed(0)} %',
-                  style: TextStyle(color: color),
-                ),
+                Text('${(ratio * 100).toStringAsFixed(0)} %', style: TextStyle(color: color)),
               ),
               DataCell(
                 TextButton(

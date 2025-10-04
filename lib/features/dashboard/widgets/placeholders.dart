@@ -14,10 +14,7 @@ class ShimmerRow extends StatelessWidget {
       (_) => Container(
         width: 260,
         height: 84,
-        decoration: BoxDecoration(
-          color: Colors.black12,
-          borderRadius: BorderRadius.circular(12),
-        ),
+        decoration: BoxDecoration(color: Colors.black12, borderRadius: BorderRadius.circular(12)),
       ),
     ),
   );

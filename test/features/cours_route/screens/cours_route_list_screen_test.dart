@@ -107,14 +107,11 @@ class FakeCoursDeRouteService implements CoursDeRouteService {
   }) async => throw UnimplementedError();
 
   @override
-  Future<List<dynamic>> getByStatut(dynamic statut) async =>
-      throw UnimplementedError();
+  Future<List<dynamic>> getByStatut(dynamic statut) async => throw UnimplementedError();
 
   @override
-  Future<bool> canTransition({
-    required dynamic from,
-    required dynamic to,
-  }) async => throw UnimplementedError();
+  Future<bool> canTransition({required dynamic from, required dynamic to}) async =>
+      throw UnimplementedError();
 
   @override
   Future<bool> applyTransition({
@@ -128,8 +125,7 @@ class FakeCoursDeRouteService implements CoursDeRouteService {
   Future<Map<String, int>> countByStatut() async => throw UnimplementedError();
 
   @override
-  Future<Map<String, int>> countByCategorie() async =>
-      throw UnimplementedError();
+  Future<Map<String, int>> countByCategorie() async => throw UnimplementedError();
 }
 
 /// Fake ref data pour les tests
@@ -150,12 +146,7 @@ class FakeRefData {
              'fournisseur-3': 'Fournisseur Test 3',
            },
        produits =
-           produits ??
-           {
-             'produit-1': 'Essence',
-             'produit-2': 'Diesel',
-             'produit-3': 'Kérosène',
-           },
+           produits ?? {'produit-1': 'Essence', 'produit-2': 'Diesel', 'produit-3': 'Kérosène'},
        depots = depots ?? {'depot-1': 'Dépôt Central', 'depot-2': 'Dépôt Nord'};
 }
 
@@ -169,16 +160,12 @@ void main() {
       fakeRefData = FakeRefData();
     });
 
-    testWidgets('should render list screen without exceptions', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('should render list screen without exceptions', (WidgetTester tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
             coursDeRouteServiceProvider.overrideWithValue(fakeService),
-            coursDeRouteListProvider.overrideWith(
-              (ref) => AsyncValue.data(fakeService._cours),
-            ),
+            coursDeRouteListProvider.overrideWith((ref) => AsyncValue.data(fakeService._cours)),
             userRoleProvider.overrideWith((ref) => UserRole.lecture),
             refDataProvider.overrideWith((ref) => AsyncValue.data(fakeRefData)),
           ],
@@ -196,16 +183,12 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('should display all courses by default', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('should display all courses by default', (WidgetTester tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
             coursDeRouteServiceProvider.overrideWithValue(fakeService),
-            coursDeRouteListProvider.overrideWith(
-              (ref) => AsyncValue.data(fakeService._cours),
-            ),
+            coursDeRouteListProvider.overrideWith((ref) => AsyncValue.data(fakeService._cours)),
             userRoleProvider.overrideWith((ref) => UserRole.lecture),
             refDataProvider.overrideWith((ref) => AsyncValue.data(fakeRefData)),
           ],
@@ -222,22 +205,16 @@ void main() {
       expect(find.text('JKL012'), findsOneWidget); // cdr-4
     });
 
-    testWidgets('should filter by déchargé status', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('should filter by déchargé status', (WidgetTester tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
             coursDeRouteServiceProvider.overrideWithValue(fakeService),
-            coursDeRouteListProvider.overrideWith(
-              (ref) => AsyncValue.data(fakeService._cours),
-            ),
+            coursDeRouteListProvider.overrideWith((ref) => AsyncValue.data(fakeService._cours)),
             userRoleProvider.overrideWith((ref) => UserRole.lecture),
             refDataProvider.overrideWith((ref) => AsyncValue.data(fakeRefData)),
             // Override du filtre pour ne montrer que les cours déchargés
-            coursFiltersProvider.overrideWith(
-              (ref) => CoursFilters(statut: StatutCours.decharge),
-            ),
+            coursFiltersProvider.overrideWith((ref) => CoursFilters(statut: StatutCours.decharge)),
           ],
           child: MaterialApp(home: const CoursRouteListScreen()),
         ),
@@ -254,16 +231,12 @@ void main() {
       expect(find.text('JKL012'), findsNothing); // cdr-4
     });
 
-    testWidgets('should display status chips correctly', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('should display status chips correctly', (WidgetTester tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
             coursDeRouteServiceProvider.overrideWithValue(fakeService),
-            coursDeRouteListProvider.overrideWith(
-              (ref) => AsyncValue.data(fakeService._cours),
-            ),
+            coursDeRouteListProvider.overrideWith((ref) => AsyncValue.data(fakeService._cours)),
             userRoleProvider.overrideWith((ref) => UserRole.lecture),
             refDataProvider.overrideWith((ref) => AsyncValue.data(fakeRefData)),
           ],
@@ -306,9 +279,7 @@ void main() {
         ProviderScope(
           overrides: [
             coursDeRouteServiceProvider.overrideWithValue(fakeService),
-            coursDeRouteListProvider.overrideWith(
-              (ref) => const AsyncValue.loading(),
-            ),
+            coursDeRouteListProvider.overrideWith((ref) => const AsyncValue.loading()),
             userRoleProvider.overrideWith((ref) => UserRole.lecture),
             refDataProvider.overrideWith((ref) => const AsyncValue.loading()),
           ],
@@ -346,16 +317,12 @@ void main() {
       expect(find.text('Test error'), findsOneWidget);
     });
 
-    testWidgets('should show create button for authenticated users', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('should show create button for authenticated users', (WidgetTester tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
             coursDeRouteServiceProvider.overrideWithValue(fakeService),
-            coursDeRouteListProvider.overrideWith(
-              (ref) => AsyncValue.data(fakeService._cours),
-            ),
+            coursDeRouteListProvider.overrideWith((ref) => AsyncValue.data(fakeService._cours)),
             userRoleProvider.overrideWith((ref) => UserRole.lecture),
             refDataProvider.overrideWith((ref) => AsyncValue.data(fakeRefData)),
           ],
@@ -369,16 +336,12 @@ void main() {
       expect(find.byIcon(Icons.add), findsOneWidget);
     });
 
-    testWidgets('should display course information correctly', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('should display course information correctly', (WidgetTester tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
             coursDeRouteServiceProvider.overrideWithValue(fakeService),
-            coursDeRouteListProvider.overrideWith(
-              (ref) => AsyncValue.data(fakeService._cours),
-            ),
+            coursDeRouteListProvider.overrideWith((ref) => AsyncValue.data(fakeService._cours)),
             userRoleProvider.overrideWith((ref) => UserRole.lecture),
             refDataProvider.overrideWith((ref) => AsyncValue.data(fakeRefData)),
           ],
@@ -389,10 +352,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Vérifier les informations des cours
-      expect(
-        find.text('Transport Express'),
-        findsNWidgets(2),
-      ); // cdr-1 et cdr-3
+      expect(find.text('Transport Express'), findsNWidgets(2)); // cdr-1 et cdr-3
       expect(find.text('Transport Rapide'), findsOneWidget); // cdr-2
       expect(find.text('Transport Pro'), findsOneWidget); // cdr-4
 
@@ -402,23 +362,17 @@ void main() {
       expect(find.text('Sophie Bernard'), findsOneWidget);
     });
 
-    testWidgets('should filter by multiple statuses', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('should filter by multiple statuses', (WidgetTester tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
             coursDeRouteServiceProvider.overrideWithValue(fakeService),
-            coursDeRouteListProvider.overrideWith(
-              (ref) => AsyncValue.data(fakeService._cours),
-            ),
+            coursDeRouteListProvider.overrideWith((ref) => AsyncValue.data(fakeService._cours)),
             userRoleProvider.overrideWith((ref) => UserRole.lecture),
             refDataProvider.overrideWith((ref) => AsyncValue.data(fakeRefData)),
             // Override du filtre pour montrer chargement et transit
             coursFiltersProvider.overrideWith(
-              (ref) => CoursFilters(
-                statuts: {StatutCours.chargement, StatutCours.transit},
-              ),
+              (ref) => CoursFilters(statuts: {StatutCours.chargement, StatutCours.transit}),
             ),
           ],
           child: MaterialApp(home: const CoursRouteListScreen()),

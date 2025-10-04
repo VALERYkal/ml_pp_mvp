@@ -10,11 +10,9 @@ import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 import 'package:ml_pp_mvp/features/cours_route/screens/cours_route_form_screen.dart';
 import 'package:ml_pp_mvp/features/cours_route/screens/cours_route_list_screen.dart';
 import 'package:ml_pp_mvp/features/cours_route/screens/cours_route_detail_screen.dart';
-import 'package:ml_pp_mvp/shared/providers/ref_data_provider.dart'
-    show RefDataCache;
+import 'package:ml_pp_mvp/shared/providers/ref_data_provider.dart' show RefDataCache;
 import 'package:ml_pp_mvp/core/models/user_role.dart';
-import 'package:ml_pp_mvp/shared/providers/session_provider.dart'
-    show sessionProvider;
+import 'package:ml_pp_mvp/shared/providers/session_provider.dart' show sessionProvider;
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_route_providers.dart';
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_filters_provider.dart';
 import 'package:ml_pp_mvp/features/cours_route/data/cours_de_route_service.dart';
@@ -63,10 +61,7 @@ CoursDeRoute _cdrWithStatut(StatutCours statut) {
 /// Helpers pour les tests du module Cours de Route
 class CoursRouteTestHelpers {
   /// Crée un cours de route avec des données spécifiques
-  static Future<void> createCoursDeRoute(
-    WidgetTester tester,
-    Map<String, String> data,
-  ) async {
+  static Future<void> createCoursDeRoute(WidgetTester tester, Map<String, String> data) async {
     // Naviguer vers le formulaire
     await tester.tap(find.text('Nouveau cours'));
     await tester.pumpAndSettle();
@@ -80,10 +75,7 @@ class CoursRouteTestHelpers {
   }
 
   /// Fait progresser un cours vers un statut spécifique
-  static Future<void> progressToStatut(
-    WidgetTester tester,
-    StatutCours targetStatut,
-  ) async {
+  static Future<void> progressToStatut(WidgetTester tester, StatutCours targetStatut) async {
     // Naviguer vers les détails du cours
     await tester.tap(find.text('Détails'));
     await tester.pumpAndSettle();
@@ -98,21 +90,14 @@ class CoursRouteTestHelpers {
   }
 
   /// Se connecte avec un rôle spécifique
-  static Future<void> loginAsRole(
-    WidgetTester tester,
-    UserRole role, {
-    String? depotId,
-  }) async {
+  static Future<void> loginAsRole(WidgetTester tester, UserRole role, {String? depotId}) async {
     // Simuler la connexion avec le rôle spécifié
     // Dans un vrai test, on utiliserait un mock du provider d'authentification
     await tester.pump();
   }
 
   /// Applique des filtres sur la liste des cours
-  static Future<void> applyFilters(
-    WidgetTester tester,
-    Map<String, dynamic> filters,
-  ) async {
+  static Future<void> applyFilters(WidgetTester tester, Map<String, dynamic> filters) async {
     // Appliquer le filtre fournisseur
     if (filters.containsKey('fournisseurId')) {
       await tester.tap(find.text('Fournisseur'));
@@ -190,26 +175,15 @@ class CoursRouteTestHelpers {
   }
 
   /// Configure les mocks pour les tests
-  static void setupMocks(
-    MockCoursDeRouteService mockService,
-    MockSupabaseClient mockSupabase,
-  ) {
+  static void setupMocks(MockCoursDeRouteService mockService, MockSupabaseClient mockSupabase) {
     // Configuration des mocks selon les besoins des tests
-    mockito
-        .when(mockService.getAll())
-        .thenAnswer((_) async => CoursRouteFixtures.sampleList());
+    mockito.when(mockService.getAll()).thenAnswer((_) async => CoursRouteFixtures.sampleList());
     mockito
         .when(mockService.getActifs())
         .thenAnswer((_) async => CoursRouteFixtures.activeCoursList());
-    mockito
-        .when(mockService.create(mockito.any<CoursDeRoute>()))
-        .thenAnswer((_) async {});
-    mockito
-        .when(mockService.update(mockito.any<CoursDeRoute>()))
-        .thenAnswer((_) async {});
-    mockito
-        .when(mockService.delete(mockito.any<String>()))
-        .thenAnswer((_) async {});
+    mockito.when(mockService.create(mockito.any<CoursDeRoute>())).thenAnswer((_) async {});
+    mockito.when(mockService.update(mockito.any<CoursDeRoute>())).thenAnswer((_) async {});
+    mockito.when(mockService.delete(mockito.any<String>())).thenAnswer((_) async {});
     mockito
         .when(
           mockService.updateStatut(
@@ -231,8 +205,7 @@ class CoursRouteTestHelpers {
   }) {
     return ProviderContainer(
       overrides: [
-        if (mockService != null)
-          coursDeRouteServiceProvider.overrideWithValue(mockService),
+        if (mockService != null) coursDeRouteServiceProvider.overrideWithValue(mockService),
         // Commenté car refDataProvider et sessionProvider sont inconnus
         // if (refData != null)
         //   refDataProvider.overrideWith((ref) async => refData),
@@ -360,10 +333,7 @@ class CoursRouteTestHelpers {
 }
 
 /// Helper pour remplir le formulaire de cours
-Future<void> _fillCoursForm(
-  WidgetTester tester,
-  Map<String, String> data,
-) async {
+Future<void> _fillCoursForm(WidgetTester tester, Map<String, String> data) async {
   if (data.containsKey('fournisseur')) {
     await tester.tap(find.text(data['fournisseur']!));
     await tester.pump();
@@ -390,31 +360,19 @@ Future<void> _fillCoursForm(
   }
 
   if (data.containsKey('plaque')) {
-    await tester.enterText(
-      find.byKey(const Key('plaque_camion_field')),
-      data['plaque']!,
-    );
+    await tester.enterText(find.byKey(const Key('plaque_camion_field')), data['plaque']!);
   }
 
   if (data.containsKey('chauffeur')) {
-    await tester.enterText(
-      find.byKey(const Key('chauffeur_field')),
-      data['chauffeur']!,
-    );
+    await tester.enterText(find.byKey(const Key('chauffeur_field')), data['chauffeur']!);
   }
 
   if (data.containsKey('volume')) {
-    await tester.enterText(
-      find.byKey(const Key('volume_field')),
-      data['volume']!,
-    );
+    await tester.enterText(find.byKey(const Key('volume_field')), data['volume']!);
   }
 
   if (data.containsKey('transporteur')) {
-    await tester.enterText(
-      find.byKey(const Key('transporteur_field')),
-      data['transporteur']!,
-    );
+    await tester.enterText(find.byKey(const Key('transporteur_field')), data['transporteur']!);
   }
 
   if (data.containsKey('note')) {
@@ -430,8 +388,7 @@ Future<void> _fillCoursForm(
 
 // Mock classes - Utilisation des mocks déjà générés dans d'autres fichiers
 // Pas de @GenerateMocks ici pour éviter les conflits avec les autres fichiers de test
-class MockCoursDeRouteService extends mockito.Mock
-    implements CoursDeRouteService {}
+class MockCoursDeRouteService extends mockito.Mock implements CoursDeRouteService {}
 
 class MockSupabaseClient extends mockito.Mock implements SupabaseClient {}
 

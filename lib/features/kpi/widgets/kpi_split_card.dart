@@ -89,11 +89,7 @@ class KpiSplitCard extends StatelessWidget {
       ),
     );
     if (onTap == null) return card;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: card,
-    );
+    return InkWell(onTap: onTap, borderRadius: BorderRadius.circular(16), child: card);
   }
 
   Widget _metric(

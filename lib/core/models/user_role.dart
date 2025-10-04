@@ -81,9 +81,7 @@ enum UserRole {
   ///
   /// Retourne `true` pour admin, directeur, gerant
   bool get isManager =>
-      this == UserRole.admin ||
-      this == UserRole.directeur ||
-      this == UserRole.gerant;
+      this == UserRole.admin || this == UserRole.directeur || this == UserRole.gerant;
 
   /// Vérifie si le rôle peut créer des mouvements
   ///
@@ -98,9 +96,7 @@ enum UserRole {
   ///
   /// Retourne `true` pour admin, directeur, gerant
   bool get canValidateMovements =>
-      this == UserRole.admin ||
-      this == UserRole.directeur ||
-      this == UserRole.gerant;
+      this == UserRole.admin || this == UserRole.directeur || this == UserRole.gerant;
 
   /// Vérifie si le rôle a un accès en lecture seule
   ///
@@ -158,10 +154,7 @@ extension UserRoleX on UserRole {
   }
 
   /// Parse avec fallback sécurisé
-  static UserRole fromStringOrDefault(
-    String? raw, {
-    UserRole fallback = UserRole.lecture,
-  }) {
+  static UserRole fromStringOrDefault(String? raw, {UserRole fallback = UserRole.lecture}) {
     return parse(raw) ?? fallback; // ⛔️ plus de fallback admin
   }
 

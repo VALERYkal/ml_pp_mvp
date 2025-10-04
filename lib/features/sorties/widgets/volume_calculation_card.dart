@@ -32,10 +32,7 @@ class VolumeCalculationCard extends StatelessWidget {
           ],
         ),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: colorScheme.outline.withOpacity(0.2),
-          width: 1,
-        ),
+        border: Border.all(color: colorScheme.outline.withOpacity(0.2), width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -48,11 +45,7 @@ class VolumeCalculationCard extends StatelessWidget {
                   color: colorScheme.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(
-                  Icons.calculate,
-                  size: 20,
-                  color: colorScheme.primary,
-                ),
+                child: Icon(Icons.calculate, size: 20, color: colorScheme.primary),
               ),
               const SizedBox(width: 12),
               Text(
@@ -162,10 +155,7 @@ class _VolumeDisplayItem extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             value,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
+            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: color),
           ),
         ],
       ),
@@ -178,11 +168,7 @@ class _InfoItem extends StatelessWidget {
   final String value;
   final IconData icon;
 
-  const _InfoItem({
-    required this.label,
-    required this.value,
-    required this.icon,
-  });
+  const _InfoItem({required this.label, required this.value, required this.icon});
 
   @override
   Widget build(BuildContext context) {
@@ -195,9 +181,7 @@ class _InfoItem extends StatelessWidget {
         const SizedBox(width: 6),
         Text(
           '$label: ',
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: colorScheme.onSurfaceVariant,
-          ),
+          style: theme.textTheme.labelSmall?.copyWith(color: colorScheme.onSurfaceVariant),
         ),
         Text(
           value,
