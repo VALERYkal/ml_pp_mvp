@@ -10,7 +10,10 @@ import 'package:supabase/supabase.dart' show SupabaseQueryBuilder;
 
 // Chaîne Postgrest utilisée par les tests (select/eq/order/single)
 import 'package:postgrest/postgrest.dart'
-    show PostgrestQueryBuilder, PostgrestFilterBuilder, PostgrestTransformBuilder;
+    show
+        PostgrestQueryBuilder,
+        PostgrestFilterBuilder,
+        PostgrestTransformBuilder;
 
 @GenerateMocks([
   // Clients & modèles d'auth

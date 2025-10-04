@@ -11,6 +11,7 @@ on:
       - "README.md"
       - "**/*.md"
       - ".vscode/**"
+  workflow_dispatch: {}
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}

@@ -3,7 +3,6 @@
 // 🧑 Auteur : Valery Kalonga
 // 📅 Date : 2025-01-27
 // 🧭 Description : Tests unitaires pour les providers Riverpod des cours de route
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mockito/mockito.dart';
@@ -138,7 +137,9 @@ void main() {
           depotDestinationId: 'depot-1',
         );
 
-        when(mockService.create(any<CoursDeRoute>())).thenThrow(Exception('Creation failed'));
+        when(
+          mockService.create(any<CoursDeRoute>()),
+        ).thenThrow(Exception('Creation failed'));
 
         // Act & Assert
         expect(

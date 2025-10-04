@@ -3,7 +3,6 @@
 // 🧑 Auteur : Valery Kalonga
 // 📅 Date : 2025-01-27
 // 🧭 Description : Tests d'intégration pour la redirection par rôle (≥85% coverage)
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

@@ -10,8 +10,8 @@ void main() {
       final v15Raw = row['volume_corrige_15c'];
       final vaRaw = row['volume_ambiant'];
 
-      final v15 = (v15Raw is num) ? v15Raw.toDouble() : 0.0;
-      final va = (vaRaw is num) ? vaRaw.toDouble() : 0.0;
+      final v15 = (v15Raw is num) ? (v15Raw as num).toDouble() : 0.0;
+      final va = (vaRaw is num) ? (vaRaw as num).toDouble() : 0.0;
 
       // Vérifier que volume_corrige_15c = 0.0 et non 10000.0
       expect(v15, equals(0.0));
@@ -26,8 +26,8 @@ void main() {
       final v15Raw = row['volume_corrige_15c'];
       final vaRaw = row['volume_ambiant'];
 
-      final v15 = (v15Raw is num) ? v15Raw.toDouble() : 0.0;
-      final va = (vaRaw is num) ? vaRaw.toDouble() : 0.0;
+      final v15 = (v15Raw is num) ? (v15Raw as num).toDouble() : 0.0;
+      final va = (vaRaw is num) ? (vaRaw as num).toDouble() : 0.0;
 
       // Vérifier que les valeurs sont correctes
       expect(v15, equals(9954.5));
@@ -42,8 +42,8 @@ void main() {
       final v15Raw = row['volume_corrige_15c'];
       final vaRaw = row['volume_ambiant'];
 
-      final v15 = (v15Raw is num) ? v15Raw.toDouble() : 0.0;
-      final va = (vaRaw is num) ? vaRaw.toDouble() : 0.0;
+      final v15 = (v15Raw is num) ? (v15Raw as num).toDouble() : 0.0;
+      final va = (vaRaw is num) ? (vaRaw as num).toDouble() : 0.0;
 
       // Vérifier que les valeurs sont correctes
       expect(v15, equals(9954.0));
@@ -61,8 +61,8 @@ void main() {
       final v15Raw = row['volume_corrige_15c'];
       final vaRaw = row['volume_ambiant'];
 
-      final v15 = (v15Raw is num) ? v15Raw.toDouble() : 0.0;
-      final va = (vaRaw is num) ? vaRaw.toDouble() : 0.0;
+      final v15 = (v15Raw is num) ? (v15Raw as num).toDouble() : 0.0;
+      final va = (vaRaw is num) ? (vaRaw as num).toDouble() : 0.0;
 
       // Vérifier que volume_corrige_15c = 0.0 car ce n'est pas un num
       expect(v15, equals(0.0));

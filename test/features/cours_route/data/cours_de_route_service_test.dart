@@ -3,7 +3,6 @@
 // 🧑 Auteur : Valery Kalonga
 // 📅 Date : 2025-08-07
 // 🧭 Description : Tests unitaires pour le service CoursDeRouteService
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
@@ -17,8 +16,10 @@ void main() {
   group('CoursDeRouteService', () {
     late MockSupabaseClient mockSupabase;
     late MockSupabaseQueryBuilder mockTable; // <- from(...)
-    late MockPostgrestFilterBuilder<dynamic> mockFilter; // <- insert()/eq()/order()/etc
-    late MockPostgrestTransformBuilder<dynamic> mockTransform; // <- select().single()/maybeSingle()
+    late MockPostgrestFilterBuilder<dynamic>
+    mockFilter; // <- insert()/eq()/order()/etc
+    late MockPostgrestTransformBuilder<dynamic>
+    mockTransform; // <- select().single()/maybeSingle()
     late CoursDeRouteService service;
 
     setUp(() {
@@ -36,23 +37,27 @@ void main() {
       when(mockTable.update(any)).thenReturn(mockFilter);
       when(mockFilter.eq(any, any)).thenReturn(mockFilter);
       when(mockFilter.neq(any, any)).thenReturn(mockFilter);
-      when(mockFilter.order(any, ascending: anyNamed('ascending'))).thenReturn(mockFilter);
+      when(
+        mockFilter.order(any, ascending: anyNamed('ascending')),
+      ).thenReturn(mockFilter);
 
       // select -> renvoie un TransformBuilder (sur lequel on peut appeler single()/maybeSingle())
       when(mockTable.select()).thenReturn(mockTransform);
 
       // Exemple de stub de résultat .single() (adapte la forme à ton service)
-      when(mockTransform.single()).thenAnswer((_) async => {
-        'id': 'test-id',
-        'fournisseur_id': 'fournisseur-1',
-        'produit_id': 'produit-1',
-        'depot_destination_id': 'depot-1',
-        'plaque_camion': 'ABC123',
-        'chauffeur_nom': 'Jean Dupont',
-        'volume': 50000,
-        'depart_pays': 'RDC',
-        'statut': 'CHARGEMENT',
-      });
+      when(mockTransform.single()).thenAnswer(
+        (_) async => {
+          'id': 'test-id',
+          'fournisseur_id': 'fournisseur-1',
+          'produit_id': 'produit-1',
+          'depot_destination_id': 'depot-1',
+          'plaque_camion': 'ABC123',
+          'chauffeur_nom': 'Jean Dupont',
+          'volume': 50000,
+          'depart_pays': 'RDC',
+          'statut': 'CHARGEMENT',
+        },
+      );
     });
 
     group('create', () {
@@ -104,14 +109,14 @@ void main() {
         when(mockSupabase.from('cours_de_route')).thenReturn(mockQueryBuilder);
         when(mockQueryBuilder.insert(any)).thenReturn(mockQueryBuilder);
         when(mockQueryBuilder.select()).thenReturn(mockQueryBuilder);
-        when(
-          mockQueryBuilder.single(),
-        ).thenThrow(PostgrestException(
-          message: 'Database error',
-          code: 'DB_ERROR',
-          details: null,
-          hint: null,
-        ));
+        when(mockQueryBuilder.single()).thenThrow(
+          PostgrestException(
+            message: 'Database error',
+            code: 'DB_ERROR',
+            details: null,
+            hint: null,
+          ),
+        );
 
         // Act & Assert
         expect(() => service.create(cours), throwsException);

@@ -1,8 +1,8 @@
+@Tags(['integration'])
 // 📌 Module : Cours de Route - Tests de Sécurité
 // 🧑 Auteur : Valery Kalonga
 // 📅 Date : 2025-01-27
 // 🧭 Description : Tests de sécurité et RLS pour le module CDR
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,6 +11,7 @@ import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_route_providers.dart';
 import 'package:ml_pp_mvp/features/cours_route/data/cours_de_route_service.dart';
 import 'package:ml_pp_mvp/shared/providers/auth_provider.dart';
+import 'package:mockito/mockito.dart';
 
 void main() {
   group('Cours de Route Security Tests', () {

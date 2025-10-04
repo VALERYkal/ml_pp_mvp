@@ -93,7 +93,12 @@ void main() {
     group('KpiBalanceToday', () {
       test('should create KpiBalanceToday with correct values', () {
         // Arrange & Act
-        const kpi = KpiBalanceToday(receptions15c: 2500.0, sorties15c: 1800.0);
+        const kpi = KpiBalanceToday(
+          receptions15c: 2500.0,
+          sorties15c: 1800.0,
+          receptionsAmbient: 0.0,
+          sortiesAmbient: 0.0,
+        );
 
         // Assert
         expect(kpi.receptions15c, equals(2500.0));
@@ -102,7 +107,12 @@ void main() {
 
       test('should calculate positive delta correctly', () {
         // Arrange & Act
-        const kpi = KpiBalanceToday(receptions15c: 2500.0, sorties15c: 1800.0);
+        const kpi = KpiBalanceToday(
+          receptions15c: 2500.0,
+          sorties15c: 1800.0,
+          receptionsAmbient: 0.0,
+          sortiesAmbient: 0.0,
+        );
 
         // Assert
         expect(kpi.delta15c, equals(700.0)); // 2500 - 1800 = 700
@@ -110,7 +120,12 @@ void main() {
 
       test('should calculate negative delta correctly', () {
         // Arrange & Act
-        const kpi = KpiBalanceToday(receptions15c: 1000.0, sorties15c: 1500.0);
+        const kpi = KpiBalanceToday(
+          receptions15c: 1000.0,
+          sorties15c: 1500.0,
+          receptionsAmbient: 0.0,
+          sortiesAmbient: 0.0,
+        );
 
         // Assert
         expect(kpi.delta15c, equals(-500.0)); // 1000 - 1500 = -500
@@ -118,7 +133,12 @@ void main() {
 
       test('should handle zero delta', () {
         // Arrange & Act
-        const kpi = KpiBalanceToday(receptions15c: 1000.0, sorties15c: 1000.0);
+        const kpi = KpiBalanceToday(
+          receptions15c: 1000.0,
+          sorties15c: 1000.0,
+          receptionsAmbient: 0.0,
+          sortiesAmbient: 0.0,
+        );
 
         // Assert
         expect(kpi.delta15c, equals(0.0)); // 1000 - 1000 = 0
@@ -178,15 +198,6 @@ void main() {
           ),
         ];
 
-        final alerts = [
-          const KpiCiterneAlerte(
-            citerneId: 'citerne-1',
-            libelle: 'Citerne A',
-            stock15c: 500.0,
-            capacity: 1000.0,
-          ),
-        ];
-
         // Act
         final snapshot = KpiSnapshot(
           receptionsToday: const KpiNumberVolume(
@@ -207,8 +218,17 @@ void main() {
           balanceToday: const KpiBalanceToday(
             receptions15c: 2500.0,
             sorties15c: 1800.0,
+            receptionsAmbient: 0.0,
+            sortiesAmbient: 0.0,
           ),
-          citernesSousSeuil: alerts,
+          trucksToFollow: const KpiTrucksToFollow(
+            totalTrucks: 0,
+            totalPlannedVolume: 0.0,
+            trucksEnRoute: 0,
+            trucksEnAttente: 0,
+            volumeEnRoute: 0.0,
+            volumeEnAttente: 0.0,
+          ),
           trend7d: trendPoints,
         );
 
@@ -217,7 +237,6 @@ void main() {
         expect(snapshot.sortiesToday.count, equals(3));
         expect(snapshot.stocks.total15c, equals(14500.0));
         expect(snapshot.balanceToday.delta15c, equals(700.0));
-        expect(snapshot.citernesSousSeuil.length, equals(1));
         expect(snapshot.trend7d.length, equals(2));
       });
 
@@ -239,8 +258,20 @@ void main() {
             total15c: 0.0,
             capacityTotal: 0.0,
           ),
-          balanceToday: KpiBalanceToday(receptions15c: 0.0, sorties15c: 0.0),
-          citernesSousSeuil: [],
+          balanceToday: KpiBalanceToday(
+            receptions15c: 0.0,
+            sorties15c: 0.0,
+            receptionsAmbient: 0.0,
+            sortiesAmbient: 0.0,
+          ),
+          trucksToFollow: KpiTrucksToFollow(
+            totalTrucks: 0,
+            totalPlannedVolume: 0.0,
+            trucksEnRoute: 0,
+            trucksEnAttente: 0,
+            volumeEnRoute: 0.0,
+            volumeEnAttente: 0.0,
+          ),
           trend7d: [],
         );
 
@@ -249,7 +280,6 @@ void main() {
         expect(snapshot.sortiesToday.count, equals(0));
         expect(snapshot.stocks.total15c, equals(0.0));
         expect(snapshot.balanceToday.delta15c, equals(0.0));
-        expect(snapshot.citernesSousSeuil.length, equals(0));
         expect(snapshot.trend7d.length, equals(0));
       });
     });

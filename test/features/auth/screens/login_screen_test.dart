@@ -13,18 +13,17 @@ import 'package:ml_pp_mvp/core/services/auth_service.dart';
 import 'package:ml_pp_mvp/features/auth/screens/login_screen.dart';
 import 'package:ml_pp_mvp/shared/providers/auth_service_provider.dart';
 
-import '../../_mocks.mocks.dart';
+import '../mocks.mocks.dart';
+
+// Mock User simple pour les tests
+class MockUser extends Mock implements User {}
 
 void main() {
   group('LoginScreen Widget Tests', () {
     late MockAuthService mockAuthService;
-    late MockUser mockUser;
 
     setUp(() {
       mockAuthService = MockAuthService();
-      mockUser = MockUser();
-      when(mockUser.id).thenReturn('test-user-id');
-      when(mockUser.email).thenReturn('test@example.com');
     });
 
     Widget createTestWidget() {
@@ -222,7 +221,7 @@ void main() {
         // Arrange
         when(
           mockAuthService.signIn(any, any),
-        ).thenAnswer((_) async => mockUser);
+        ).thenAnswer((_) async => MockUser());
 
         await tester.pumpWidget(createTestWidget());
 
@@ -250,7 +249,7 @@ void main() {
         // Arrange
         when(
           mockAuthService.signIn(any, any),
-        ).thenAnswer((_) async => mockUser);
+        ).thenAnswer((_) async => MockUser());
 
         await tester.pumpWidget(createTestWidget());
 
@@ -504,7 +503,7 @@ void main() {
           // Arrange
           when(
             mockAuthService.signIn(any, any),
-          ).thenAnswer((_) async => mockUser);
+          ).thenAnswer((_) async => MockUser());
 
           await tester.pumpWidget(createTestWidget());
 

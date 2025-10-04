@@ -1,8 +1,8 @@
+@Tags(['integration'])
 // 📌 Module : Cours de Route - Tests Widget
 // 🧑 Auteur : Valery Kalonga
 // 📅 Date : 2025-01-27
 // 🧭 Description : Tests widget pour l'écran de formulaire des cours de route
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -93,8 +93,7 @@ void main() {
         await tester.pump();
 
         // Simuler la navigation arrière
-        final dynamic widgetsAppState = tester.state(find.byType(MaterialApp));
-        await widgetsAppState.didPopRoute();
+        await tester.pageBack();
 
         // Assert - Vérifier que la confirmation s'affiche
         expect(find.text('Annuler les modifications ?'), findsOneWidget);
@@ -110,7 +109,8 @@ void main() {
         ProviderScope(
           overrides: [
             refDataProvider.overrideWith((ref) async {
-              await Future.delayed(const Duration(milliseconds: 100));
+              // Simuler un délai de chargement
+              await Future.delayed(const Duration(milliseconds: 50));
               return mockRefData;
             }),
           ],
@@ -118,8 +118,11 @@ void main() {
         ),
       );
 
-      // Assert - Vérifier que le loader s'affiche
+      // Act - Vérifier immédiatement que le loader s'affiche
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      // Attendre que le chargement se termine
+      await tester.pumpAndSettle();
     });
 
     /// Test de l'affichage de l'écran en état d'erreur
@@ -162,7 +165,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Act - Tenter de sauvegarder sans remplir les champs obligatoires
-      await tester.tap(find.text('Enregistrer'));
+      await tester.tap(find.byKey(const Key('save_button')));
       await tester.pump();
 
       // Assert - Vérifier que les messages d'erreur apparaissent
@@ -295,7 +298,7 @@ void main() {
       await tester.pump();
 
       // Sauvegarder
-      await tester.tap(find.text('Enregistrer'));
+      await tester.tap(find.byKey(const Key('save_button')));
       await tester.pumpAndSettle();
 
       // Assert - Vérifier le message de succès
@@ -326,7 +329,7 @@ void main() {
       );
       await tester.enterText(find.byKey(const Key('volume_field')), '50000');
 
-      await tester.tap(find.text('Enregistrer'));
+      await tester.tap(find.byKey(const Key('save_button')));
       await tester.pumpAndSettle();
 
       // Assert - Vérifier que les erreurs de validation apparaissent

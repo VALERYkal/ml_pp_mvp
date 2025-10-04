@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+@Tags(['integration'])
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ml_pp_mvp/features/receptions/screens/reception_form_screen.dart';

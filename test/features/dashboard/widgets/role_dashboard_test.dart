@@ -3,6 +3,7 @@
 // 📅 Date : 2025-09-17
 // 🧭 Description : Tests Golden pour le composant RoleDashboard unifié
 
+@Tags(['needs-refactor'])
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,7 +11,6 @@ import 'package:ml_pp_mvp/features/dashboard/widgets/role_dashboard.dart';
 import 'package:ml_pp_mvp/features/kpi/providers/kpi_provider.dart';
 import 'package:ml_pp_mvp/features/kpi/models/kpi_models.dart';
 import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart';
-import 'package:ml_pp_mvp/features/profil/models/profil.dart';
 
 void main() {
   group('RoleDashboard Golden Tests', () {
@@ -20,7 +20,7 @@ void main() {
       // Arrange
       final container = ProviderContainer(
         overrides: [
-          kpiProviderProvider.overrideWith((ref) => const AsyncValue.loading()),
+          kpiProviderProvider.overrideWith((ref) async => throw 'Loading...'),
         ],
       );
 
@@ -45,9 +45,7 @@ void main() {
       // Arrange
       final container = ProviderContainer(
         overrides: [
-          kpiProviderProvider.overrideWith(
-            (ref) => AsyncValue.error('Test error', StackTrace.current),
-          ),
+          kpiProviderProvider.overrideWith((ref) async => throw 'Test error'),
         ],
       );
 
@@ -88,15 +86,17 @@ void main() {
         balanceToday: const KpiBalanceToday(
           receptions15c: 2500.0,
           sorties15c: 1800.0,
+          receptionsAmbient: 2600.0,
+          sortiesAmbient: 1900.0,
         ),
-        citernesSousSeuil: [
-          const KpiCiterneAlerte(
-            citerneId: 'citerne-1',
-            libelle: 'Citerne A',
-            stock15c: 500.0,
-            capacity: 1000.0,
-          ),
-        ],
+        trucksToFollow: const KpiTrucksToFollow(
+          totalTrucks: 1,
+          totalPlannedVolume: 0.0,
+          trucksEnRoute: 0,
+          trucksEnAttente: 1,
+          volumeEnRoute: 0.0,
+          volumeEnAttente: 0.0,
+        ),
         trend7d: [
           KpiTrendPoint(
             day: DateTime(2025, 9, 10),
@@ -112,9 +112,7 @@ void main() {
       );
 
       final container = ProviderContainer(
-        overrides: [
-          kpiProviderProvider.overrideWith((ref) => AsyncValue.data(testData)),
-        ],
+        overrides: [kpiProviderProvider.overrideWith((ref) async => testData)],
       );
 
       // Act
@@ -130,14 +128,14 @@ void main() {
       expect(find.text('Sorties du jour'), findsOneWidget);
       expect(find.text('Stock total (15°C)'), findsOneWidget);
       expect(find.text('Balance du jour'), findsOneWidget);
-      expect(find.text('Citernes sous seuil'), findsOneWidget);
+      expect(find.text('Camions à suivre'), findsOneWidget);
       expect(find.text('Tendance 7 jours'), findsOneWidget);
 
       // Vérifier les valeurs affichées
       expect(find.text('2.5 kL'), findsNWidgets(2)); // Réceptions et Stock
       expect(find.text('1.8 kL'), findsOneWidget); // Sorties
       expect(find.text('+700 L'), findsOneWidget); // Balance positive
-      expect(find.text('1'), findsOneWidget); // 1 citerne sous seuil
+      expect(find.text('1'), findsOneWidget); // 1 camion à suivre
       expect(find.text('4.2 kL'), findsOneWidget); // Tendance 7j
 
       container.dispose();
@@ -166,15 +164,22 @@ void main() {
         balanceToday: const KpiBalanceToday(
           receptions15c: 1000.0,
           sorties15c: 800.0,
+          receptionsAmbient: 1050.0,
+          sortiesAmbient: 850.0,
         ),
-        citernesSousSeuil: [], // Aucune alerte
+        trucksToFollow: const KpiTrucksToFollow(
+          totalTrucks: 0,
+          totalPlannedVolume: 0.0,
+          trucksEnRoute: 0,
+          trucksEnAttente: 0,
+          volumeEnRoute: 0.0,
+          volumeEnAttente: 0.0,
+        ),
         trend7d: [],
       );
 
       final container = ProviderContainer(
-        overrides: [
-          kpiProviderProvider.overrideWith((ref) => AsyncValue.data(testData)),
-        ],
+        overrides: [kpiProviderProvider.overrideWith((ref) async => testData)],
       );
 
       // Act
@@ -186,8 +191,8 @@ void main() {
       );
 
       // Assert
-      expect(find.text('0'), findsOneWidget); // 0 citernes sous seuil
-      expect(find.text('Aucune alerte'), findsOneWidget);
+      expect(find.text('0'), findsOneWidget); // 0 camions à suivre
+      expect(find.text('Aucun camion'), findsOneWidget);
 
       container.dispose();
     });
@@ -213,15 +218,22 @@ void main() {
         balanceToday: const KpiBalanceToday(
           receptions15c: 500.0,
           sorties15c: 1200.0,
+          receptionsAmbient: 520.0,
+          sortiesAmbient: 1250.0,
         ),
-        citernesSousSeuil: [],
+        trucksToFollow: const KpiTrucksToFollow(
+          totalTrucks: 0,
+          totalPlannedVolume: 0.0,
+          trucksEnRoute: 0,
+          trucksEnAttente: 0,
+          volumeEnRoute: 0.0,
+          volumeEnAttente: 0.0,
+        ),
         trend7d: [],
       );
 
       final container = ProviderContainer(
-        overrides: [
-          kpiProviderProvider.overrideWith((ref) => AsyncValue.data(testData)),
-        ],
+        overrides: [kpiProviderProvider.overrideWith((ref) async => testData)],
       );
 
       // Act
