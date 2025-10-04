@@ -28,17 +28,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Create .env for CI
-        shell: bash
+      - name: Create .env for CI (Windows)
         run: |
-          set -euo pipefail
-          if [ ! -f .env ]; then
-            cat > .env <<'EOF'
-SUPABASE_URL=http://localhost
-SUPABASE_ANON_KEY=dummy
-APP_ENV=test
-EOF
-          fi
+          echo SUPABASE_URL=http://localhost> .env
+          echo SUPABASE_ANON_KEY=dummy>> .env
+          type .env
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -80,17 +74,11 @@ EOF
     steps:
       - uses: actions/checkout@v4
 
-      - name: Create .env for CI
-        shell: bash
+      - name: Create .env for CI (Windows)
         run: |
-          set -euo pipefail
-          if [ ! -f .env ]; then
-            cat > .env <<'EOF'
-SUPABASE_URL=http://localhost
-SUPABASE_ANON_KEY=dummy
-APP_ENV=test
-EOF
-          fi
+          echo SUPABASE_URL=http://localhost> .env
+          echo SUPABASE_ANON_KEY=dummy>> .env
+          type .env
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -117,17 +105,11 @@ EOF
     steps:
       - uses: actions/checkout@v4
 
-      - name: Create .env for CI
-        shell: bash
+      - name: Create .env for CI (Windows)
         run: |
-          set -euo pipefail
-          if [ ! -f .env ]; then
-            cat > .env <<'EOF'
-SUPABASE_URL=http://localhost
-SUPABASE_ANON_KEY=dummy
-APP_ENV=test
-EOF
-          fi
+          echo SUPABASE_URL=http://localhost> .env
+          echo SUPABASE_ANON_KEY=dummy>> .env
+          type .env
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
