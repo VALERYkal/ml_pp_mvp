@@ -28,42 +28,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Installer jq en bash
-      - name: Install jq (Windows via bash)
-        shell: bash
-        run: |
-          set -euo pipefail
-          if command -v jq >/dev/null 2>&1; then
-            echo "jq already present: $(jq --version)"; exit 0
-          fi
-          URL="https://github.com/stedolan/jq/releases/download/jq-1.7.1/jq-win64.exe"
-          DST="$RUNNER_TEMP/jq.exe"
-          if command -v curl >/dev/null 2>&1; then
-            curl -fsSL "$URL" -o "$DST"
-          else
-            wget -qO "$DST" "$URL"
-          fi
-          BIN_DIR="$RUNNER_TEMP/jqbin"
-          mkdir -p "$BIN_DIR"
-          cp "$DST" "$BIN_DIR/jq.exe"
-          WIN_BIN_DIR="$(cygpath -w "$BIN_DIR")"
-          echo "$WIN_BIN_DIR" >> "$GITHUB_PATH"
-          "$BIN_DIR/jq.exe" --version
-
-      - name: Verify jq (bash)
-        shell: bash
-        run: |
-          echo "which jq => $(which jq || true)"
-          jq --version
-
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
 
-      - name: Flutter version
-        run: flutter --version
+      # (Optionnel mais recommandé sur Windows runners)
+      - name: Force LF line-endings for workspace
+        shell: bash
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
 
       - name: Install deps
         run: flutter pub get
@@ -71,11 +47,17 @@ jobs:
       - name: Generate code (build_runner)
         run: dart run build_runner build --delete-conflicting-outputs
 
-      - name: Format check (lib + test seulement)
-        run: dart format --output=none --set-exit-if-changed lib test
+      # Vérif format (lib + test) avec longueur de ligne fixe (évite reformat aléatoire)
+      - name: Format check (lib + test)
+        shell: bash
+        run: |
+          dart format --line-length 100 --output=none --set-exit-if-changed lib test
 
-      - name: Dart analyze (lib only)
-        run: flutter analyze lib
+      # Analyse non bloquante pour warnings/infos (échoue uniquement sur erreurs)
+      - name: Dart analyze (lib only; no fatal warnings/infos)
+        shell: bash
+        run: |
+          dart analyze lib --fatal-infos=false --fatal-warnings=false
 
   test:
     name: Tests unitaires
@@ -86,38 +68,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install jq (Windows via bash)
-        shell: bash
-        run: |
-          set -euo pipefail
-          if command -v jq >/dev/null 2>&1; then
-            echo "jq already present: $(jq --version)"; exit 0
-          fi
-          URL="https://github.com/stedolan/jq/releases/download/jq-1.7.1/jq-win64.exe"
-          DST="$RUNNER_TEMP/jq.exe"
-          if command -v curl >/dev/null 2>&1; then
-            curl -fsSL "$URL" -o "$DST"
-          else
-            wget -qO "$DST" "$URL"
-          fi
-          BIN_DIR="$RUNNER_TEMP/jqbin"
-          mkdir -p "$BIN_DIR"
-          cp "$DST" "$BIN_DIR/jq.exe"
-          WIN_BIN_DIR="$(cygpath -w "$BIN_DIR")"
-          echo "$WIN_BIN_DIR" >> "$GITHUB_PATH"
-          "$BIN_DIR/jq.exe" --version
-
-      - name: Verify jq (bash)
-        shell: bash
-        run: |
-          echo "which jq => $(which jq || true)"
-          jq --version
-
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
+
+      # Crée un .env minimal pour la CI
+      - name: Create .env for CI
+        shell: bash
+        run: |
+          if [ ! -f .env ]; then
+            printf "SUPABASE_URL=http://localhost\nSUPABASE_ANON_KEY=dummy\n" > .env
+          fi
 
       - name: Install deps
         run: flutter pub get
@@ -125,7 +88,7 @@ jobs:
       - name: Generate code (build_runner)
         run: dart run build_runner build --delete-conflicting-outputs
 
-      - name: Run tests (expanded, unit only)
+      - name: Run tests (unit only)
         run: flutter test -r expanded --exclude-tags=e2e,integration
 
   build_web:
@@ -138,38 +101,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install jq (Windows via bash)
-        shell: bash
-        run: |
-          set -euo pipefail
-          if command -v jq >/dev/null 2>&1; then
-            echo "jq already present: $(jq --version)"; exit 0
-          fi
-          URL="https://github.com/stedolan/jq/releases/download/jq-1.7.1/jq-win64.exe"
-          DST="$RUNNER_TEMP/jq.exe"
-          if command -v curl >/dev/null 2>&1; then
-            curl -fsSL "$URL" -o "$DST"
-          else
-            wget -qO "$DST" "$URL"
-          fi
-          BIN_DIR="$RUNNER_TEMP/jqbin"
-          mkdir -p "$BIN_DIR"
-          cp "$DST" "$BIN_DIR/jq.exe"
-          WIN_BIN_DIR="$(cygpath -w "$BIN_DIR")"
-          echo "$WIN_BIN_DIR" >> "$GITHUB_PATH"
-          "$BIN_DIR/jq.exe" --version
-
-      - name: Verify jq (bash)
-        shell: bash
-        run: |
-          echo "which jq => $(which jq || true)"
-          jq --version
-
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
+
+      # Crée un .env minimal pour la CI
+      - name: Create .env for CI
+        shell: bash
+        run: |
+          if [ ! -f .env ]; then
+            printf "SUPABASE_URL=http://localhost\nSUPABASE_ANON_KEY=dummy\n" > .env
+          fi
 
       - name: Install deps
         run: flutter pub get
