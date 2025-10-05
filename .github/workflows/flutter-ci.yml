@@ -2,113 +2,39 @@ name: Flutter CI
 
 on:
   push:
-    paths-ignore:
-      - "README.md"
-      - "**/*.md"
-      - ".vscode/**"
+    branches: [ main, fix/sorties-ui-keys ]
   pull_request:
-    paths-ignore:
-      - "README.md"
-      - "**/*.md"
-      - ".vscode/**"
-  workflow_dispatch: {}
-
-concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   flutter:
-    runs-on: [self-hosted, Windows, X64]
+    runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      # 1) Installer jq AVANT Setup Flutter
-      - name: Install jq (Windows)
-        if: runner.os == 'Windows'
-        shell: powershell
-        run: choco install jq -y
-
-      # 2) Setup Flutter (fonctionnera maintenant car jq est présent)
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
-          # flutter-version: '3.24.3'   # (optionnel: fixe une version)
+          channel: stable
+          cache: true
 
-      # 3) Créer .env pour les tests (version Windows / PowerShell)
-      - name: Create .env for CI (Windows)
-        if: runner.os == 'Windows'
-        shell: powershell
+      - name: Create .env for CI
         run: |
-          if (-not (Test-Path .env)) {
-            "SUPABASE_URL=http://localhost" | Out-File -FilePath .env -Encoding ascii
-            "SUPABASE_ANON_KEY=dummy"      | Out-File -FilePath .env -Append -Encoding ascii
-          }
-          Write-Host "CI .env:"; Get-Content .env
+          printf "SUPABASE_URL=http://localhost\nSUPABASE_ANON_KEY=dummy\n" > .env
+          echo "=== .env ==="; cat .env
 
-      # (facultatif, utile si tu l'avais déjà)
-      - name: Force LF line-endings for workspace
-        shell: powershell
-        run: |
-          git config core.autocrlf false
-          git config core.eol lf
-
-      - name: Install deps
-        shell: bash
+      - name: Pub get
         run: flutter pub get
 
-      - name: Generate code (build_runner)
-        shell: bash
-        run: dart run build_runner build --delete-conflicting-outputs
+      - name: Format check (lib + test)
+        run: dart format --output=none --set-exit-if-changed lib test
 
-      - name: Dart analyze (lib only)
-        shell: bash
+      - name: Analyze (lib only)
         run: flutter analyze lib
 
-      - name: Run unit tests only
-        shell: bash
+      - name: Run unit tests only (exclude e2e & integration)
         run: flutter test --exclude-tags=e2e,integration -r expanded
 
-  build_web:
-    name: Build Web (smoke compile)
-    runs-on: [self-hosted, Windows, X64]
-    needs: flutter
-    steps:
-      - uses: actions/checkout@v4
-
-      # 1) Installer jq AVANT Setup Flutter
-      - name: Install jq (Windows)
-        if: runner.os == 'Windows'
-        shell: powershell
-        run: choco install jq -y
-
-      # 2) Setup Flutter
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-
-      # 3) Créer .env pour les tests (version Windows / PowerShell)
-      - name: Create .env for CI (Windows)
-        if: runner.os == 'Windows'
-        shell: powershell
-        run: |
-          if (-not (Test-Path .env)) {
-            "SUPABASE_URL=http://localhost" | Out-File -FilePath .env -Encoding ascii
-            "SUPABASE_ANON_KEY=dummy"      | Out-File -FilePath .env -Append -Encoding ascii
-          }
-          Write-Host "CI .env:"; Get-Content .env
-
-      - name: Install deps
-        shell: bash
-        run: flutter pub get
-
-      - name: Generate code (build_runner)
-        shell: bash
-        run: dart run build_runner build --delete-conflicting-outputs
-
-      - name: Build web (release)
-        shell: bash
-        run: flutter build web --release
+      - name: Smoke build (web)
+        run: flutter build web --release --pwa-strategy=none
