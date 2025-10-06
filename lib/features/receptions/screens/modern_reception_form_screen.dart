@@ -195,18 +195,49 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
     });
   }
 
-  void _onCoursSelected(CoursDeRoute c) {
+  void _onCoursSelected(dynamic coursItem) {
+    // Handle both CoursDeRoute and CoursArriveItem
+    String? coursId;
+    String? produitId;
+    String? produitCode;
+    
+    if (coursItem is CoursDeRoute) {
+      coursId = coursItem.id;
+      produitId = coursItem.produitId;
+      produitCode = coursItem.produitCode;
+      _selectedCours = coursItem;
+    } else {
+      // Handle CoursArriveItem or similar structure
+      coursId = coursItem.id;
+      produitId = coursItem.produitId;
+      produitCode = coursItem.produitCode;
+      // Create a minimal CoursDeRoute from the item
+      _selectedCours = CoursDeRoute(
+        id: coursId!,
+        produitId: produitId,
+        produitCode: produitCode,
+        statut: 'ARRIVE',
+        // Add other required fields with defaults
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        fournisseurId: coursItem.fournisseurId,
+        transporteurId: coursItem.transporteurId,
+        chauffeurNom: coursItem.chauffeur,
+        plaqueCamion: coursItem.plaqueCamion,
+        departPays: coursItem.departPays,
+      );
+    }
+    
     setState(() {
-      _selectedCours = c;
-      selectedCoursId = c.id;
-      _produitId = c.produitId;
-      produitIdFromCours = c.produitId;
-      produitCodeFromCours = c.produitCode;
+      selectedCoursId = coursId;
+      _produitId = produitId;
+      produitIdFromCours = produitId;
+      produitCodeFromCours = produitCode;
       if (produitCodeFromCours != null) {
         // Update validation state
         _validationState['cours'] = true;
       }
-      _selectedProduitId = c.produitId;
+      _selectedProduitId = produitId;
       _selectedCiterneId = null;
       partenaireId = null;
     });
@@ -991,7 +1022,7 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
           _buildSummaryItem(
             theme,
             'Volume brut',
-            '${_num(ctrlApres.text) ?? 0 - _num(ctrlAvant.text) ?? 0} L',
+            '${(_num(ctrlApres.text) ?? 0) - (_num(ctrlAvant.text) ?? 0)} L',
           ),
         ],
       ),

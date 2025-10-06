@@ -9,3 +9,4 @@ analyzer:
     - test/integration/sorties_*.dart
     - test/depots_repository_test.dart
     - test/integration/auth/auth_integration_test.dart
+    - lib/**/examples/**  # exclus de l'analyse

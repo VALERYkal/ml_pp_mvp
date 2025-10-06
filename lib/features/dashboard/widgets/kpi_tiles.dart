@@ -393,11 +393,18 @@ class StockTotalTile extends ConsumerWidget {
   const StockTotalTile({super.key});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final total15c = ref.watch(kpiStocksProvider.select((s) => s.total15c ?? 0.0));
-    final totalAmb = ref.watch(kpiStocksProvider.select((s) => s.totalAmbient ?? 0.0));
-    final capacity = ref.watch(kpiStocksProvider.select((s) => s.capacityTotal ?? 0.0));
-    final usagePct = capacity <= 0 ? 0 : (totalAmb / capacity * 100);
-    return KpiCard(title: 'Stock total', value: total15c, icon: Icons.inventory_2_outlined);
+    final kpiAsync = ref.watch(kpiProviderProvider);
+    return kpiAsync.when(
+      loading: () => KpiCard(title: 'Stock total', value: 0, icon: Icons.inventory_2_outlined),
+      error: (_, __) => KpiCard(title: 'Stock total', value: 0, icon: Icons.inventory_2_outlined),
+      data: (kpi) {
+        final total15c = kpi.stocks.total15c;
+        final totalAmb = kpi.stocks.totalAmbient;
+        final capacity = kpi.stocks.capacityTotal;
+        final usagePct = capacity <= 0 ? 0 : (totalAmb / capacity * 100);
+        return KpiCard(title: 'Stock total', value: total15c, icon: Icons.inventory_2_outlined);
+      },
+    );
   }
 }
 
@@ -406,9 +413,17 @@ class Trend7dTile extends ConsumerWidget {
   const Trend7dTile({super.key});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final sumIn = ref.watch(kpiTrend7dProvider.select((t) => t.sumReceptions15c7d ?? 0.0));
-    final sumOut = ref.watch(kpiTrend7dProvider.select((t) => t.sumSorties15c7d ?? 0.0));
-    final net = sumIn - sumOut;
-    return KpiCard(title: 'Tendance 7 jours', value: net, icon: Icons.trending_up_rounded);
+    final kpiAsync = ref.watch(kpiProviderProvider);
+    return kpiAsync.when(
+      loading: () => KpiCard(title: 'Tendance 7 jours', value: 0, icon: Icons.trending_up_rounded),
+      error: (_, __) => KpiCard(title: 'Tendance 7 jours', value: 0, icon: Icons.trending_up_rounded),
+      data: (kpi) {
+        // Calculer la tendance 7 jours à partir des données disponibles
+        final sumIn = kpi.balanceToday.receptions15c;
+        final sumOut = kpi.balanceToday.sorties15c;
+        final net = sumIn - sumOut;
+        return KpiCard(title: 'Tendance 7 jours', value: net, icon: Icons.trending_up_rounded);
+      },
+    );
   }
 }

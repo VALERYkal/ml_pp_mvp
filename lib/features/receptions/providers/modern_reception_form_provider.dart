@@ -412,7 +412,7 @@ class ModernReceptionFormNotifier extends StateNotifier<ModernReceptionFormState
     try {
       final receptionService = ReceptionService.withClient(
         Supabase.instance.client,
-        refRepo: ref.read(refs.referentielsRepoProvider),
+        refRepo: null, // TODO: Fix referentiels repo provider
       );
 
       final id = await receptionService.createValidated(
