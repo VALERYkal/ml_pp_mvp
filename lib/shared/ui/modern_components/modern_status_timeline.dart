@@ -17,15 +17,13 @@ class ModernStatusTimeline extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final accentColor = this.accentColor ?? theme.colorScheme.primary;
-    
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: theme.dividerColor.withOpacity(0.1),
-        ),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -35,19 +33,15 @@ class ModernStatusTimeline extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: accentColor.withOpacity(0.1),
+                  color: accentColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(
-                  Icons.timeline,
-                  color: accentColor,
-                  size: 20,
-                ),
+                child: Icon(Icons.timeline, color: accentColor, size: 20),
               ),
               const SizedBox(width: 12),
               Text(
                 'Progression du cours',
-                style: theme.textTheme.titleMedium?.copyWith(
+                style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: theme.colorScheme.onSurface,
                 ),
@@ -61,26 +55,37 @@ class ModernStatusTimeline extends StatelessWidget {
     );
   }
 
-  Widget _buildTimeline(BuildContext context, ThemeData theme, Color accentColor) {
+  Widget _buildTimeline(
+    BuildContext context,
+    ThemeData theme,
+    Color accentColor,
+  ) {
     return Row(
       children: steps.asMap().entries.map((entry) {
         final index = entry.key;
         final step = entry.value;
         final isActive = step.status == currentStatus;
         final isCompleted = _isStepCompleted(step.status);
-        
+
         return Expanded(
           child: Row(
             children: [
-              _buildStepIndicator(context, theme, accentColor, step, isActive, isCompleted),
+              _buildStepIndicator(
+                context,
+                theme,
+                accentColor,
+                step,
+                isActive,
+                isCompleted,
+              ),
               if (index < steps.length - 1)
                 Expanded(
                   child: Container(
                     height: 2,
                     decoration: BoxDecoration(
-                      color: isCompleted 
-                          ? accentColor.withOpacity(0.3)
-                          : theme.dividerColor.withOpacity(0.2),
+                      color: isCompleted
+                          ? accentColor.withValues(alpha: 0.3)
+                          : theme.dividerColor.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(1),
                     ),
                   ),
@@ -100,22 +105,21 @@ class ModernStatusTimeline extends StatelessWidget {
     bool isActive,
     bool isCompleted,
   ) {
-    final color = isCompleted || isActive ? accentColor : theme.colorScheme.onSurfaceVariant;
-    
+    final color = isCompleted || isActive
+        ? accentColor
+        : theme.colorScheme.onSurfaceVariant;
+
     return Column(
       children: [
         Container(
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: isActive || isCompleted 
-                ? color.withOpacity(0.2)
-                : color.withOpacity(0.1),
+            color: isActive || isCompleted
+                ? color.withValues(alpha: 0.2)
+                : color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: color,
-              width: isActive ? 2 : 1,
-            ),
+            border: Border.all(color: color, width: isActive ? 2 : 1),
           ),
           child: Icon(
             isCompleted ? Icons.check : step.icon,
@@ -127,8 +131,8 @@ class ModernStatusTimeline extends StatelessWidget {
         Text(
           step.label,
           style: theme.textTheme.bodySmall?.copyWith(
-            color: isActive || isCompleted 
-                ? accentColor 
+            color: isActive || isCompleted
+                ? accentColor
                 : theme.colorScheme.onSurfaceVariant,
             fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
           ),
@@ -139,7 +143,9 @@ class ModernStatusTimeline extends StatelessWidget {
   }
 
   bool _isStepCompleted(String status) {
-    final currentIndex = steps.indexWhere((step) => step.status == currentStatus);
+    final currentIndex = steps.indexWhere(
+      (step) => step.status == currentStatus,
+    );
     final stepIndex = steps.indexWhere((step) => step.status == status);
     return stepIndex < currentIndex;
   }

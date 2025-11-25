@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+@Tags(['integration'])
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ml_pp_mvp/features/receptions/screens/reception_form_screen.dart';
@@ -10,10 +11,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class _SpyReceptionService extends ReceptionService {
   final void Function(Reception) onCall;
-  _SpyReceptionService(this.onCall) : super.withClient(
-    SupabaseClient('http://localhost', 'anon'),
-    refRepo: FakeRefRepo(),
-  );
+  _SpyReceptionService(this.onCall)
+    : super.withClient(SupabaseClient('http://localhost', 'anon'), refRepo: FakeRefRepo());
   @override
   Future<Reception> createReception(Reception reception) async {
     onCall(reception);
@@ -23,13 +22,13 @@ class _SpyReceptionService extends ReceptionService {
 
 class FakeRefRepo extends ReferentielsRepo {
   FakeRefRepo() : super(Supabase.instance.client);
-  
+
   @override
   Future<void> loadProduits() async {}
-  
+
   @override
   Future<void> loadCiternesActives() async {}
-  
+
   @override
   String? getProduitIdByCodeSync(String code) => 'prod-1';
 }
@@ -40,17 +39,27 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          RP.receptionServiceProvider.overrideWith((ref) => _SpyReceptionService((r) => called = r)),
-          RP.produitsListProvider.overrideWith((ref) async => [
-                {'id': 'p1', 'nom': 'Diesel'}
-              ]),
-          RP.produitByIdProvider.overrideWith((ref, id) async => {'id': 'p1', 'nom': 'Diesel', 'code': 'DSL'}),
-          RP.citernesByProduitProvider.overrideWith((ref, id) async => [
-                {'id': 'cit1', 'nom': 'Citerne 1'}
-              ]),
-          RP.partenairesListProvider.overrideWith((ref) async => [
-                {'id': 'pa1', 'nom': 'Partenaire X'}
-              ]),
+          RP.receptionServiceProvider.overrideWith(
+            (ref) => _SpyReceptionService((r) => called = r),
+          ),
+          RP.produitsListProvider.overrideWith(
+            (ref) async => [
+              {'id': 'p1', 'nom': 'Diesel'},
+            ],
+          ),
+          RP.produitByIdProvider.overrideWith(
+            (ref, id) async => {'id': 'p1', 'nom': 'Diesel', 'code': 'DSL'},
+          ),
+          RP.citernesByProduitProvider.overrideWith(
+            (ref, id) async => [
+              {'id': 'cit1', 'nom': 'Citerne 1'},
+            ],
+          ),
+          RP.partenairesListProvider.overrideWith(
+            (ref) async => [
+              {'id': 'pa1', 'nom': 'Partenaire X'},
+            ],
+          ),
         ],
         child: const MaterialApp(home: ReceptionFormScreen()),
       ),
@@ -71,7 +80,7 @@ void main() {
 
     // enter indices
     await tester.enterText(find.widgetWithText(TextFormField, 'Index avant *'), '0');
-    await tester.enterText(find.widgetWithText(TextFormField, 'Index après *'), '100');
+    await tester.enterText(find.widgetWithText(TextFormField, 'Index aprÃ¨s *'), '100');
 
     // submit
     await tester.tap(find.widgetWithText(ElevatedButton, 'Enregistrer'));

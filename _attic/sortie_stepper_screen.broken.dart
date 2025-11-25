@@ -1,10 +1,10 @@
 /* ===========================================================
-   ML_PP — SortieStepperScreen (additif)
-   Étapes:
-   1) Bénéficiaire & propriété
-   2) Mesures & citerne (filtrée par produit)
-   3) Résumé & validation
-   Note: Implémentation minimale, s'appuie sur SortieService pour createDraft/validate.
+   ML_PP â SortieStepperScreen (additif)
+   Ãtapes:
+   1) BÃ©nÃ©ficiaire & propriÃ©tÃ©
+   2) Mesures & citerne (filtrÃ©e par produit)
+   3) RÃ©sumÃ© & validation
+   Note: ImplÃ©mentation minimale, s'appuie sur SortieService pour createDraft/validate.
    =========================================================== */
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -28,12 +28,12 @@ class _SortieStepperScreenState extends ConsumerState<SortieStepperScreen> {
   int step = 0;
   bool busy = false;
 
-  // Étape 1
+  // Ãtape 1
   String proprietaireType = 'MONALUXE';
   String? clientId;
   String? partenaireId;
 
-  // Étape 2
+  // Ãtape 2
   String? produitId;
   String? citerneId;
   final ctrlAvant = TextEditingController();
@@ -42,7 +42,7 @@ class _SortieStepperScreenState extends ConsumerState<SortieStepperScreen> {
   final ctrlDens = TextEditingController(text: '0.83');
   final ctrlNote = TextEditingController();
   
-  // Étape 3 - Transport
+  // Ãtape 3 - Transport
   final ctrlChauffeur = TextEditingController();
   final ctrlPlaqueCamion = TextEditingController();
   final ctrlPlaqueRemorque = TextEditingController();
@@ -82,7 +82,7 @@ class _SortieStepperScreenState extends ConsumerState<SortieStepperScreen> {
     densiteA15: _num(ctrlDens.text),
   );
 
-  // Helper pour calculer le volume 15°C
+  // Helper pour calculer le volume 15Â°C
   double? _calc15c(double volumeAmbiant, double densite, double temperature) {
     if (volumeAmbiant <= 0 || densite <= 0) return null;
     return calcV15(
@@ -92,7 +92,7 @@ class _SortieStepperScreenState extends ConsumerState<SortieStepperScreen> {
     );
   }
 
-  // Helper pour nettoyer les chaînes
+  // Helper pour nettoyer les chaÃ®nes
   String? _nz(String s) => s.trim().isEmpty ? null : s.trim();
 
   bool _busy = false;
@@ -102,7 +102,7 @@ class _SortieStepperScreenState extends ConsumerState<SortieStepperScreen> {
     if (_busy) return;
     setState(() => _busy = true);
 
-    // 1) Défocus AVANT tout (empêche l'assert InputDecorator)
+    // 1) DÃ©focus AVANT tout (empÃªche l'assert InputDecorator)
     FocusScope.of(context).unfocus();
 
     try {
@@ -142,7 +142,7 @@ class _SortieStepperScreenState extends ConsumerState<SortieStepperScreen> {
         'statut': 'validee',
       };
 
-      // 3) UN SEUL insert (+ select().single() pour éviter 204 No Content)
+      // 3) UN SEUL insert (+ select().single() pour Ã©viter 204 No Content)
       await Supabase.instance.client
           .from('sorties_produit')
           .insert(payload)
@@ -152,14 +152,14 @@ class _SortieStepperScreenState extends ConsumerState<SortieStepperScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Sortie validée')),
+        const SnackBar(content: Text('Sortie validÃ©e')),
       );
 
       // 4) Invalidation des providers (stocks/citernes/listes)
       ref.invalidate(stocksListProvider);
       ref.invalidate(citernesWithStockProvider);
 
-      // 5) Navigation après un court délai et en fin de frame
+      // 5) Navigation aprÃ¨s un court dÃ©lai et en fin de frame
       if (!_navigated) {
         _navigated = true;
         await Future<void>.delayed(const Duration(milliseconds: 200));
@@ -221,17 +221,17 @@ class _SortieStepperScreenState extends ConsumerState<SortieStepperScreen> {
                                 step = (step < 2) ? step + 1 : 2;
                               });
                             },
-                            // On neutralise les boutons intégrés du Stepper
+                            // On neutralise les boutons intÃ©grÃ©s du Stepper
                             controlsBuilder: (context, details) =>
                                 const SizedBox.shrink(),
                             steps: [
                 Step(
-                  title: const Text('[ Step 1/3 ]  Bénéficiaire & propriété'),
+                  title: const Text('[ Step 1/3 ]  BÃ©nÃ©ficiaire & propriÃ©tÃ©'),
                   isActive: step >= 0,
                   content: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Propriétaire'),
+                      const Text('PropriÃ©taire'),
                       Row(children: [
                         Radio<String>(value: 'MONALUXE', groupValue: proprietaireType, onChanged: (v) => setState(() => proprietaireType = v!)),
                         const Text('Monaluxe'),
@@ -312,7 +312,7 @@ class _SortieStepperScreenState extends ConsumerState<SortieStepperScreen> {
                         controller: ctrlApres,
                         keyboardType: TextInputType.number,
                         decoration: const InputDecoration(
-                          labelText: 'Index après *',
+                          labelText: 'Index aprÃ¨s *',
                           border: OutlineInputBorder(),
                         ),
                       )),
@@ -322,7 +322,7 @@ class _SortieStepperScreenState extends ConsumerState<SortieStepperScreen> {
                         controller: ctrlTemp,
                         keyboardType: TextInputType.number,
                         decoration: const InputDecoration(
-                          labelText: 'Température (°C)',
+                          labelText: 'TempÃ©rature (Â°C)',
                           border: OutlineInputBorder(),
                         ),
                       )),
@@ -331,18 +331,18 @@ class _SortieStepperScreenState extends ConsumerState<SortieStepperScreen> {
                         controller: ctrlDens,
                         keyboardType: TextInputType.number,
                         decoration: const InputDecoration(
-                          labelText: 'Densité @15°C',
+                          labelText: 'DensitÃ© @15Â°C',
                           border: OutlineInputBorder(),
                         ),
                       )),
                       ]),
                       const SizedBox(height: 8),
                       Text(
-                        'Prévisualisation : ${_volumeAmbiantPrev.toStringAsFixed(2)} L (ambiant)',
+                        'PrÃ©visualisation : ${_volumeAmbiantPrev.toStringAsFixed(2)} L (ambiant)',
                         key: const Key('previewAmb'),
                       ),
                       Text(
-                        '≈ ${_volume15Prev.toStringAsFixed(2)} L @15°C',
+                        'â ${_volume15Prev.toStringAsFixed(2)} L @15Â°C',
                         key: const Key('previewV15'),
                       ),
                       const SizedBox(height: 12),
@@ -354,7 +354,7 @@ class _SortieStepperScreenState extends ConsumerState<SortieStepperScreen> {
                         children: [
                           OutlinedButton(
                             onPressed: _busy ? null : () => setState(() => step = 0), 
-                            child: const Text('‹ Précédent')
+                            child: const Text('â¹ PrÃ©cÃ©dent')
                           ),
                           ElevatedButton(
                             onPressed: _busy ? null : _onValidate, 
@@ -403,12 +403,12 @@ class _SortieStepperScreenState extends ConsumerState<SortieStepperScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Text('Récapitulatif'),
-                    Text('• Propriétaire: $proprietaireType'),
-                    Text('• Bénéficiaire: client=${clientId ?? '-'} / partenaire=${partenaireId ?? '-'}'),
-                    Text('• Produit: ${produitId ?? '-'}  |  Citerne: ${citerneId ?? '-'}'),
-                    Text('• Index: ${ctrlAvant.text} → ${ctrlApres.text}  (Δ = ${volAmb.toStringAsFixed(2)} L)'),
-                    Text('• Volume 15°C ≈ ${vol15.toStringAsFixed(2)} L'),
+                    const Text('RÃ©capitulatif'),
+                    Text('â¢ PropriÃ©taire: $proprietaireType'),
+                    Text('â¢ BÃ©nÃ©ficiaire: client=${clientId ?? '-'} / partenaire=${partenaireId ?? '-'}'),
+                    Text('â¢ Produit: ${produitId ?? '-'}  |  Citerne: ${citerneId ?? '-'}'),
+                    Text('â¢ Index: ${ctrlAvant.text} â ${ctrlApres.text}  (Î = ${volAmb.toStringAsFixed(2)} L)'),
+                    Text('â¢ Volume 15Â°C â ${vol15.toStringAsFixed(2)} L'),
                     const SizedBox(height: 16),
                     Wrap(
                       alignment: WrapAlignment.end,
@@ -423,7 +423,7 @@ class _SortieStepperScreenState extends ConsumerState<SortieStepperScreen> {
                         ),
                         roleAsync.when(
                           loading: () => const SizedBox.shrink(),
-                          error: (e, _) => Text('Rôle: $e'),
+                          error: (e, _) => Text('RÃ´le: $e'),
                           data: (role) => (role != null && ['admin', 'directeur', 'gerant'].contains(role.toLowerCase()))
                               ? ElevatedButton.icon(
                                   onPressed: _busy ? null : _onValidate, 
@@ -455,5 +455,6 @@ class _SortieStepperScreenState extends ConsumerState<SortieStepperScreen> {
     );
   }
 }
+
 
 

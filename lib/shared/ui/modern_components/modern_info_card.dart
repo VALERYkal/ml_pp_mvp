@@ -23,18 +23,16 @@ class ModernInfoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final accentColor = this.accentColor ?? theme.colorScheme.primary;
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: theme.dividerColor.withOpacity(0.1),
-        ),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -52,14 +50,10 @@ class ModernInfoCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: accentColor.withOpacity(0.1),
+                      color: accentColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(
-                      icon!,
-                      color: accentColor,
-                      size: 20,
-                    ),
+                    child: Icon(icon!, color: accentColor, size: 20),
                   ),
                   const SizedBox(width: 12),
                 ],
@@ -69,7 +63,7 @@ class ModernInfoCard extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style: theme.textTheme.titleMedium?.copyWith(
+                        style: theme.textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.w600,
                           color: theme.colorScheme.onSurface,
                         ),
@@ -90,7 +84,7 @@ class ModernInfoCard extends StatelessWidget {
               ],
             ),
           ),
-          
+
           // Contenu de la carte
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
@@ -104,7 +98,7 @@ class ModernInfoCard extends StatelessWidget {
   Widget _buildInfoGrid(BuildContext context, ThemeData theme) {
     final isWide = MediaQuery.of(context).size.width >= 1024;
     final cols = isWide ? 2 : 1;
-    
+
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -132,15 +126,13 @@ class _InfoEntryWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: theme.dividerColor.withOpacity(0.1),
-        ),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -156,7 +148,7 @@ class _InfoEntryWidget extends StatelessWidget {
           const SizedBox(height: 4),
           Flexible(
             child: SelectableText(
-              entry.value.isEmpty ? '—' : entry.value,
+              entry.value.isEmpty ? '' : entry.value,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurface,
                 fontWeight: FontWeight.w500,
@@ -174,9 +166,6 @@ class InfoEntry {
   final String label;
   final String value;
 
-  const InfoEntry({
-    required this.label,
-    required this.value,
-  });
+  const InfoEntry({required this.label, required this.value});
 }
 

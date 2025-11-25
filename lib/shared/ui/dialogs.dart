@@ -1,23 +1,24 @@
-// 📌 Module : Shared UI - Dialogs
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-01-27
-// 🧭 Description : Utilitaires pour les dialogs de confirmation
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+// ?? Module : Shared UI - Dialogs
+// ?? Auteur : Valery Kalonga
+// ?? Date : 2025-01-27
+// ?? Description : Utilitaires pour les dialogs de confirmation
 
 import 'package:flutter/material.dart';
 
 /// Affiche un dialog de confirmation flexible
-/// 
+///
 /// [context] : Contexte Flutter
 /// [title] : Titre du dialog
 /// [message] : Message de confirmation
 /// [confirmLabel] : Texte du bouton de confirmation (défaut: 'Confirmer')
 /// [cancelLabel] : Texte du bouton d'annulation (défaut: 'Annuler')
 /// [danger] : Si true, utilise des couleurs d'alerte (défaut: false)
-/// 
+///
 /// Retourne :
 /// - `true` : L'utilisateur a confirmé
 /// - `false` : L'utilisateur a annulé
-/// 
+///
 /// Exemple d'utilisation :
 /// ```dart
 /// final confirmed = await confirmAction(
@@ -66,23 +67,21 @@ Future<bool> confirmAction(
             child: Text(confirmLabel),
           ),
         ],
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       );
     },
   );
-  
+
   return result ?? false;
 }
 
 /// Affiche un dialog d'information simple
-/// 
+///
 /// [context] : Contexte Flutter
 /// [title] : Titre du dialog
 /// [message] : Message d'information
 /// [buttonLabel] : Texte du bouton (défaut: 'OK')
-/// 
+///
 /// Exemple d'utilisation :
 /// ```dart
 /// await showInfoDialog(
@@ -115,22 +114,20 @@ Future<void> showInfoDialog(
             child: Text(buttonLabel),
           ),
         ],
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       );
     },
   );
 }
 
 /// Affiche un dialog d'erreur avec bouton de retry
-/// 
+///
 /// [context] : Contexte Flutter
 /// [title] : Titre du dialog
 /// [message] : Message d'erreur
 /// [onRetry] : Fonction à exécuter lors du retry
 /// [retryLabel] : Texte du bouton retry (défaut: 'Réessayer')
-/// 
+///
 /// Exemple d'utilisation :
 /// ```dart
 /// await showErrorDialog(
@@ -177,10 +174,9 @@ Future<void> showErrorDialog(
               child: Text(retryLabel),
             ),
         ],
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       );
     },
   );
 }
+

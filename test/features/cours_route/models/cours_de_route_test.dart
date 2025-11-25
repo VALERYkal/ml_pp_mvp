@@ -1,7 +1,7 @@
-// 📌 Module : Cours de Route - Tests
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-08-07
-// 🧭 Description : Tests unitaires pour le modèle CoursDeRoute
+// ð Module : Cours de Route - Tests
+// ð§ Auteur : Valery Kalonga
+// ð Date : 2025-08-07
+// ð§­ Description : Tests unitaires pour le modÃ¨le CoursDeRoute
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
@@ -87,7 +87,7 @@ void main() {
         'produit_id': 'produit-1',
         'depot_destination_id': 'depot-1',
         'chauffeur_nom': 'Jean Dupont', // Legacy field
-        'depart_pays': 'RDC',           // Legacy field
+        'depart_pays': 'RDC', // Legacy field
         'statut': 'CHARGEMENT',
       };
 
@@ -126,8 +126,8 @@ void main() {
         statut: StatutCours.decharge,
       );
 
-          expect(CoursDeRouteUtils.isActif(coursActif), true);
-    expect(CoursDeRouteUtils.isActif(coursTermine), false);
+      expect(CoursDeRouteUtils.isActif(coursActif), true);
+      expect(CoursDeRouteUtils.isActif(coursTermine), false);
     });
 
     test('should get next statut', () {
@@ -164,12 +164,12 @@ void main() {
         depotDestinationId: 'depot',
         statut: StatutCours.chargement,
       );
-      
+
       final coursTransit = coursChargement.copyWith(statut: StatutCours.transit);
       final coursFrontiere = coursChargement.copyWith(statut: StatutCours.frontiere);
       final coursArrive = coursChargement.copyWith(statut: StatutCours.arrive);
       final coursDecharge = coursChargement.copyWith(statut: StatutCours.decharge);
-      
+
       expect(CoursDeRouteUtils.getStatutSuivant(coursChargement), StatutCours.transit);
       expect(CoursDeRouteUtils.getStatutSuivant(coursTransit), StatutCours.frontiere);
       expect(CoursDeRouteUtils.getStatutSuivant(coursFrontiere), StatutCours.arrive);
@@ -183,7 +183,7 @@ void main() {
       expect(StatutCoursDb.parseDb('FRONTIERE'), StatutCours.frontiere);
       expect(StatutCoursDb.parseDb('ARRIVE'), StatutCours.arrive);
       expect(StatutCoursDb.parseDb('DECHARGE'), StatutCours.decharge);
-      
+
       // Test fallback pour valeurs invalides
       expect(StatutCoursDb.parseDb('INVALID'), StatutCours.chargement);
       expect(StatutCoursDb.parseDb(''), StatutCours.chargement);
@@ -200,9 +200,9 @@ void main() {
     test('should validate statut labels', () {
       expect(StatutCours.chargement.label, 'Chargement');
       expect(StatutCours.transit.label, 'Transit');
-      expect(StatutCours.frontiere.label, 'Frontière');
-      expect(StatutCours.arrive.label, 'Arrivé');
-      expect(StatutCours.decharge.label, 'Déchargé');
+      expect(StatutCours.frontiere.label, 'FrontiÃ¨re');
+      expect(StatutCours.arrive.label, 'ArrivÃ©');
+      expect(StatutCours.decharge.label, 'DÃ©chargÃ©');
     });
 
     test('should validate volume constraints', () {
@@ -227,12 +227,15 @@ void main() {
     });
 
     test('should validate required fields', () {
-      expect(() => CoursDeRoute(
-        id: '',
-        fournisseurId: '', // Empty - should be valid for empty constructor
-        produitId: '',
-        depotDestinationId: '',
-      ), returnsNormally);
+      expect(
+        () => CoursDeRoute(
+          id: '',
+          fournisseurId: '', // Empty - should be valid for empty constructor
+          produitId: '',
+          depotDestinationId: '',
+        ),
+        returnsNormally,
+      );
     });
 
     test('should handle null optional fields', () {
@@ -252,3 +255,4 @@ void main() {
     });
   });
 }
+

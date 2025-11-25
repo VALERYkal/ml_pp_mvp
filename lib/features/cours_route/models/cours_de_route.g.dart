@@ -18,16 +18,14 @@ _$CoursDeRouteImpl _$$CoursDeRouteImplFromJson(Map<String, dynamic> json) =>
       plaqueRemorque: json['plaque_remorque'] as String?,
       chauffeur: json['chauffeur'] as String?,
       volume: (json['volume'] as num?)?.toDouble(),
+      pays: json['pays'] as String?,
       dateChargement: json['date_chargement'] == null
           ? null
           : DateTime.parse(json['date_chargement'] as String),
       dateArriveePrevue: json['date_arrivee_prevue'] == null
           ? null
           : DateTime.parse(json['date_arrivee_prevue'] as String),
-      pays: json['pays'] as String?,
-      statut: json['statut'] == null
-          ? StatutCours.chargement
-          : const StatutCoursConverter().fromJson(json['statut'] as String),
+      statut: $enumDecode(_$StatutCoursEnumMap, json['statut']),
       note: json['note'] as String?,
       createdAt: json['created_at'] == null
           ? null
@@ -49,15 +47,24 @@ Map<String, dynamic> _$$CoursDeRouteImplToJson(_$CoursDeRouteImpl instance) =>
       if (instance.plaqueRemorque case final value?) 'plaque_remorque': value,
       if (instance.chauffeur case final value?) 'chauffeur': value,
       if (instance.volume case final value?) 'volume': value,
+      if (instance.pays case final value?) 'pays': value,
       if (instance.dateChargement?.toIso8601String() case final value?)
         'date_chargement': value,
       if (instance.dateArriveePrevue?.toIso8601String() case final value?)
         'date_arrivee_prevue': value,
-      if (instance.pays case final value?) 'pays': value,
-      'statut': const StatutCoursConverter().toJson(instance.statut),
+      'statut': _$StatutCoursEnumMap[instance.statut]!,
       if (instance.note case final value?) 'note': value,
       if (instance.createdAt?.toIso8601String() case final value?)
         'created_at': value,
       if (instance.updatedAt?.toIso8601String() case final value?)
         'updated_at': value,
     };
+
+const _$StatutCoursEnumMap = {
+  StatutCours.chargement: 'chargement',
+  StatutCours.transit: 'transit',
+  StatutCours.frontiere: 'frontiere',
+  StatutCours.arrive: 'arrive',
+  StatutCours.decharge: 'decharge',
+  StatutCours.inconnu: 'inconnu',
+};

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart' as Riverpod;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ml_pp_mvp/core/models/user_role.dart';
 
 class MenuDestination {
@@ -65,7 +65,14 @@ const List<MenuDestination> _allDestinations = [
     label: 'Cours',
     icon: Icons.local_shipping,
     route: '/cours',
-    visibleForRoles: [UserRole.admin, UserRole.directeur, UserRole.gerant, UserRole.operateur, UserRole.lecture, UserRole.pca],
+    visibleForRoles: [
+      UserRole.admin,
+      UserRole.directeur,
+      UserRole.gerant,
+      UserRole.operateur,
+      UserRole.lecture,
+      UserRole.pca,
+    ],
     order: 9,
   ),
   // Commun modules
@@ -73,7 +80,14 @@ const List<MenuDestination> _allDestinations = [
     label: 'Stocks',
     icon: Icons.inventory_2,
     route: '/stocks',
-    visibleForRoles: [UserRole.admin, UserRole.directeur, UserRole.gerant, UserRole.operateur, UserRole.lecture, UserRole.pca],
+    visibleForRoles: [
+      UserRole.admin,
+      UserRole.directeur,
+      UserRole.gerant,
+      UserRole.operateur,
+      UserRole.lecture,
+      UserRole.pca,
+    ],
     order: 10,
   ),
   MenuDestination(
@@ -106,7 +120,10 @@ const List<MenuDestination> _allDestinations = [
   ),
 ];
 
-final menuDestinationsForRoleProvider = Riverpod.Provider.family<List<MenuDestination>, UserRole?>((ref, role) {
+final menuDestinationsForRoleProvider = Provider.family<List<MenuDestination>, UserRole?>((
+  ref,
+  role,
+) {
   if (role == null) {
     return const [];
   }
@@ -114,4 +131,7 @@ final menuDestinationsForRoleProvider = Riverpod.Provider.family<List<MenuDestin
   list.sort((a, b) => a.order.compareTo(b.order));
   return list;
 });
+
+
+
 

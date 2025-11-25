@@ -1,6 +1,6 @@
 // lib/shared/providers/auth_service_provider.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' hide Provider;
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:ml_pp_mvp/core/services/auth_service.dart';
 
@@ -15,3 +15,7 @@ final authServiceProvider = Provider<AuthService>((ref) {
 final authServiceByClientProvider = Provider.family<AuthService, SupabaseClient>((ref, client) {
   return AuthService.withSupabase(client);
 });
+
+
+
+

@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart' as Riverpod;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../data/citerne_service.dart';
 
@@ -24,49 +24,63 @@ class CiterneRow {
     this.dateStock,
   });
 
-  bool get belowSecurity => 
-      capaciteSecurite != null && (stock15c ?? stockAmbiant ?? 0.0) < capaciteSecurite!;
-  double get ratioFill => 
-      capaciteTotale != null && capaciteTotale! > 0 
-          ? ((stock15c ?? stockAmbiant ?? 0.0) / capaciteTotale!).clamp(0.0, 1.0) 
-          : 0.0;
+  bool get belowSecurity =>
+      capaciteSecurite != null &&
+      (stock15c ?? stockAmbiant ?? 0.0) < capaciteSecurite!;
+  double get ratioFill => capaciteTotale != null && capaciteTotale! > 0
+      ? ((stock15c ?? stockAmbiant ?? 0.0) / capaciteTotale!).clamp(0.0, 1.0)
+      : 0.0;
 }
 
 /// Provider pour le service CiterneService
-final citerneServiceProvider = Riverpod.Provider<CiterneService>((ref) {
+final citerneServiceProvider = Provider<CiterneService>((ref) {
   return CiterneService.withClient(Supabase.instance.client);
 });
 
 /// Provider pour récupérer le stock actuel d'une citerne/produit
 /// Clé : (citerneId, produitId)
 /// Retourne : Map<String, double> avec 'ambiant' et 'c15'
-final stockActuelProvider = Riverpod.FutureProvider.family<Map<String, double>, (String, String)>((ref, params) async {
-  final (citerneId, produitId) = params;
-  final service = ref.read(citerneServiceProvider);
-  return await service.getStockActuel(citerneId, produitId);
-});
+final stockActuelProvider =
+    FutureProvider.family<Map<String, double>, (String, String)>((
+      ref,
+      params,
+    ) async {
+      final (citerneId, produitId) = params;
+      final service = ref.read(citerneServiceProvider);
+      return await service.getStockActuel(citerneId, produitId);
+    });
 
-final citernesWithStockProvider = Riverpod.FutureProvider<List<CiterneRow>>((ref) async {
+final citernesWithStockProvider = FutureProvider<List<CiterneRow>>((ref) async {
   final sb = Supabase.instance.client;
 
-  // 1) Citernes (toutes) — adapte si tu filtres par dépôt/produit/actif
-  final citernes = await sb
-      .from('citernes')
-      .select('id, nom, capacite_totale, capacite_securite, produit_id')
-      .eq('statut', 'active')
-      .order('nom', ascending: true) as List;
+  // 1) Citernes (toutes)  adapte si tu filtres par dépôt/produit/actif
+  final citernes =
+      await sb
+              .from('citernes')
+              .select('id, nom, capacite_totale, capacite_securite, produit_id')
+              .eq('statut', 'active')
+              .order('nom', ascending: true)
+          as List;
 
   if (citernes.isEmpty) return [];
 
   final ids = citernes.map((e) => e['id'] as String).toList();
-  final prodIds = citernes.map((e) => e['produit_id'] as String?).whereType<String>().toSet().toList();
+  final prodIds = citernes
+      .map((e) => e['produit_id'] as String?)
+      .whereType<String>()
+      .toSet()
+      .toList();
 
   // 2) Dernier stock par citerne/produit depuis la vue `stock_actuel`
-  final stocks = await sb
-      .from('stock_actuel')
-      .select('citerne_id, produit_id, stock_ambiant, stock_15c, date_jour')
-      .in_('citerne_id', ids)
-      .in_('produit_id', prodIds) as List;
+  final stocks =
+      await sb
+              .from('stock_actuel')
+              .select(
+                'citerne_id, produit_id, stock_ambiant, stock_15c, date_jour',
+              )
+              .inFilter('citerne_id', ids)
+              .inFilter('produit_id', prodIds)
+          as List;
 
   // Indexer par (citerne_id, produit_id)
   final stockByKey = <String, Map<String, dynamic>>{};
@@ -77,7 +91,11 @@ final citernesWithStockProvider = Riverpod.FutureProvider<List<CiterneRow>>((ref
 
   DateTime? _parseDate(d) {
     if (d == null) return null;
-    try { return DateTime.parse(d.toString()); } catch (_) { return null; }
+    try {
+      return DateTime.parse(d.toString());
+    } catch (_) {
+      return null;
+    }
   }
 
   // 3) Assemblage
@@ -99,3 +117,4 @@ final citernesWithStockProvider = Riverpod.FutureProvider<List<CiterneRow>>((ref
     );
   }).toList();
 });
+

@@ -1,30 +1,37 @@
-// 📌 Module : Core Models
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-08-07
-// 🗃️ Source SQL : Table `public.profils` (contrainte role_check)
-// 🧭 Description : Convertisseur JSON pour l'enum UserRole
-
-import 'package:json_annotation/json_annotation.dart';
+// lib/core/models/user_role_converter.dart
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:ml_pp_mvp/core/models/user_role.dart';
 
-/// Convertisseur JSON pour l'enum UserRole
-/// 
-/// Permet la sérialisation/désérialisation automatique
-/// de l'enum UserRole avec json_serializable.
-/// 
-/// Utilisé par :
-/// - Le modèle Profil pour le champ role
-/// - Les autres modèles qui utilisent UserRole
-class UserRoleConverter implements JsonConverter<UserRole, String> {
-  /// Constructeur par défaut
+/// Convertisseur tolérant (insensible à la casse, gère alias).
+class UserRoleConverter implements JsonConverter<UserRole, Object?> {
   const UserRoleConverter();
 
+  static final Map<String, UserRole> _from = {
+    'admin': UserRole.admin,
+    'directeur': UserRole.directeur,
+    'gerant': UserRole.gerant,
+    'gérant': UserRole.gerant,
+    'operateur': UserRole.operateur,
+    'opérateur': UserRole.operateur,
+    'pca': UserRole.pca,
+    'lecture': UserRole.lecture,
+    'director': UserRole.directeur,
+    'manager': UserRole.gerant,
+    'operator': UserRole.operateur,
+    'read_only': UserRole.lecture,
+    'read-only': UserRole.lecture,
+    'readonly': UserRole.lecture,
+    'read': UserRole.lecture,
+    'viewer': UserRole.lecture,
+  };
+
   @override
-  UserRole fromJson(String json) {
-    // Utilise le parsing robuste avec fallback sécurisé
-    return UserRoleX.fromStringOrDefault(json, fallback: UserRole.lecture);
+  UserRole fromJson(Object? json) {
+    if (json == null) return UserRole.lecture;
+    final key = json.toString().trim().toLowerCase();
+    return _from[key] ?? UserRole.lecture;
   }
 
   @override
-  String toJson(UserRole object) => object.value;
+  Object toJson(UserRole role) => role.wire;
 }

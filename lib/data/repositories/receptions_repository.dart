@@ -45,21 +45,27 @@ class ReceptionsRepository {
         final amb = (m['volume_ambiant'] as num?)?.toDouble() ?? 0.0;
         final v15 = (m['volume_corrige_15c'] as num?)?.toDouble() ?? 0.0;
         sAmb += amb;
-        s15  += v15;
+        s15 += v15;
       }
 
       // Debug non intrusif (retire-les si OK)
       if (kDebugMode) {
-        print('🔎 Réceptions(${eqDay}${depotId != null ? ' depot=' + depotId : ''}) => nb=$count, amb=$sAmb, 15C=$s15');
+        print(
+          '?? Réceptions(${eqDay}${depotId != null ? ' depot=' + depotId : ''}) => nb=$count, amb=$sAmb, 15C=$s15',
+        );
       }
 
       return (nbCamions: count, volAmbiant: sAmb, vol15c: s15);
     } on PostgrestException catch (e) {
       // Aide au diagnostic RLS/schéma
       if (kDebugMode) {
-        print('❗PostgrestException receptions.statsJour: ${e.message}');
+        print('?PostgrestException receptions.statsJour: ${e.message}');
       }
       rethrow;
     }
   }
 }
+
+
+
+

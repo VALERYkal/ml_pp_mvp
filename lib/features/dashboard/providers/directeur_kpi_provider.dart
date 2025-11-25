@@ -1,4 +1,4 @@
-// ⚠️ DÉPRÉCIÉ - Utiliser kpiProvider à la place
+// ?? DÉPRÉCIÉ - Utiliser kpiProvider à la place
 // Ce fichier sera supprimé dans la prochaine version majeure
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -9,7 +9,8 @@ class DirecteurKpiData {
   final int citernesSousSeuil;
   final int totalCiternes;
   final double ratioUtilisation; // 0..1
-  final double volumeTotalReceptions; // unité = ce que tu affiches (v15 si dispo, sinon ambiant)
+  final double
+  volumeTotalReceptions; // unité = ce que tu affiches (v15 si dispo, sinon ambiant)
   final double volumeTotalSorties;
   const DirecteurKpiData({
     required this.receptionsJour,
@@ -107,3 +108,4 @@ final directeurKpiProvider = FutureProvider<DirecteurKpiData>((ref) async {
     volumeTotalSorties: sumSorties,
   );
 });
+

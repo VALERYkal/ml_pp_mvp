@@ -3,9 +3,5 @@ include: package:flutter_lints/flutter.yaml
 analyzer:
   exclude:
     - _attic/**
-    - test/features/receptions/**
-    - test/features/sorties/**
-    - test/integration/receptions_*.dart
-    - test/integration/sorties_*.dart
-    - test/depots_repository_test.dart
-    - test/integration/auth/auth_integration_test.dart
+    - test/**  # Temporaire: focus sur lib/ jusqu'à migration Riverpod 3 + Postgrest 2
+    - lib/**/examples/**  # exclus de l'analyse

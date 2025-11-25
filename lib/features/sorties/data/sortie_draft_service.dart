@@ -1,5 +1,5 @@
 /* ===========================================================
-   ML_PP — SortieDraftService
+   ML_PP  SortieDraftService
    - createDraft: insert ligne 'brouillon' dans sorties_produit
    - validate: appelle RPC validate_sortie
    =========================================================== */
@@ -13,25 +13,39 @@ class SortieDraftService {
 
   Future<String> createDraft(SortieInput input) async {
     // 1) Validations de base
-    if (input.indexApres == null || input.indexAvant == null || input.indexApres! <= input.indexAvant!) {
+    if (input.indexApres == null ||
+        input.indexAvant == null ||
+        input.indexApres! <= input.indexAvant!) {
       throw ArgumentError('index_apres doit être > index_avant');
     }
-    if (!(input.proprietaireType == 'MONALUXE' || input.proprietaireType == 'PARTENAIRE')) {
+    if (!(input.proprietaireType == 'MONALUXE' ||
+        input.proprietaireType == 'PARTENAIRE')) {
       throw ArgumentError('proprietaire_type invalide');
     }
     if (input.clientId == null && input.partenaireId == null) {
       throw ArgumentError('Un bénéficiaire (client ou partenaire) est requis');
     }
-    if (input.chauffeurNom == null || input.chauffeurNom!.isEmpty || 
-        input.plaqueCamion == null || input.plaqueCamion!.isEmpty || 
-        input.transporteur == null || input.transporteur!.isEmpty) {
-      throw ArgumentError('chauffeur_nom, plaque_camion et transporteur sont requis');
+    if (input.chauffeurNom == null ||
+        input.chauffeurNom!.isEmpty ||
+        input.plaqueCamion == null ||
+        input.plaqueCamion!.isEmpty ||
+        input.transporteur == null ||
+        input.transporteur!.isEmpty) {
+      throw ArgumentError(
+        'chauffeur_nom, plaque_camion et transporteur sont requis',
+      );
     }
 
     // 2) Compatibilité produit/citerne
-    final citerne = await client.from('citernes').select('id, produit_id').eq('id', input.citerneId).maybeSingle();
+    final citerne = await client
+        .from('citernes')
+        .select('id, produit_id')
+        .eq('id', input.citerneId)
+        .maybeSingle();
     if (citerne == null || citerne['produit_id'] != input.produitId) {
-      throw StateError('La citerne sélectionnée n\'est pas compatible avec le produit choisi');
+      throw StateError(
+        'La citerne sélectionnée n\'est pas compatible avec le produit choisi',
+      );
     }
 
     // 3) Calculs (ambiant & 15°C)
@@ -57,14 +71,20 @@ class SortieDraftService {
       'proprietaire_type': input.proprietaireType,
       'note': input.note,
       'statut': 'brouillon',
-      'date_sortie': input.dateSortie?.toIso8601String() ?? DateTime.now().toIso8601String(),
+      'date_sortie':
+          input.dateSortie?.toIso8601String() ??
+          DateTime.now().toIso8601String(),
       'chauffeur_nom': input.chauffeurNom,
       'plaque_camion': input.plaqueCamion,
       'plaque_remorque': input.plaqueRemorque,
       'transporteur': input.transporteur,
     };
 
-    final row = await client.from('sorties_produit').insert(payload).select('id').single();
+    final row = await client
+        .from('sorties_produit')
+        .insert(payload)
+        .select('id')
+        .single();
     final id = row['id'] as String;
 
     // 5) Log action
@@ -79,5 +99,4 @@ class SortieDraftService {
     return id;
   }
 }
-
 

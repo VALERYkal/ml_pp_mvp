@@ -1,7 +1,7 @@
-// 📌 Module : Cours de Route - Services
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-01-27
-// 🧭 Description : Service de notifications pour les cours de route
+// ?? Module : Cours de Route - Services
+// ?? Auteur : Valery Kalonga
+// ?? Date : 2025-01-27
+// ?? Description : Service de notifications pour les cours de route
 
 import 'package:flutter/material.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
@@ -16,12 +16,7 @@ enum NotificationType {
 }
 
 /// Priorité des notifications
-enum NotificationPriority {
-  low,
-  medium,
-  high,
-  critical,
-}
+enum NotificationPriority { low, medium, high, critical }
 
 /// Modèle de notification
 class CoursNotification {
@@ -167,7 +162,8 @@ class CoursNotificationService {
   }) {
     return createNotification(
       title: 'Statut mis à jour',
-      message: 'Le cours ${cours.id} est passé de ${oldStatus.label} à ${newStatus.label}',
+      message:
+          'Le cours ${cours.id} est passé de ${oldStatus.label} à ${newStatus.label}',
       type: NotificationType.statusChange,
       priority: NotificationPriority.medium,
       coursId: cours.id,
@@ -272,13 +268,15 @@ class NotificationWidget extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 4),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: color.withOpacity(0.2),
+          backgroundColor: color.withValues(alpha: 0.2),
           child: Icon(icon, color: color),
         ),
         title: Text(
           notification.title,
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            fontWeight: notification.isRead ? FontWeight.normal : FontWeight.bold,
+            fontWeight: notification.isRead
+                ? FontWeight.normal
+                : FontWeight.bold,
           ),
         ),
         subtitle: Column(
@@ -301,10 +299,7 @@ class NotificationWidget extends StatelessWidget {
               Container(
                 width: 8,
                 height: 8,
-                decoration: BoxDecoration(
-                  color: color,
-                  shape: BoxShape.circle,
-                ),
+                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
               ),
             const SizedBox(width: 8),
             IconButton(
@@ -362,3 +357,4 @@ class NotificationWidget extends StatelessWidget {
     }
   }
 }
+

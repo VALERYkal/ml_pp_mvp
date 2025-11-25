@@ -10,7 +10,7 @@ class DashboardHeader extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final profilAsync = ref.watch(profilProvider);
     final theme = Theme.of(context);
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 32),
       padding: const EdgeInsets.all(24),
@@ -20,17 +20,17 @@ class DashboardHeader extends ConsumerWidget {
           end: Alignment.bottomRight,
           colors: [
             theme.colorScheme.surface,
-            theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+            theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
           ],
         ),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: theme.colorScheme.outline.withOpacity(0.1),
+          color: theme.colorScheme.outline.withValues(alpha: 0.1),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: theme.colorScheme.shadow.withOpacity(0.05),
+            color: theme.colorScheme.shadow.withValues(alpha: 0.05),
             blurRadius: 20,
             offset: const Offset(0, 10),
             spreadRadius: 0,
@@ -65,13 +65,13 @@ class DashboardHeader extends ConsumerWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                theme.colorScheme.primary.withOpacity(0.15),
-                theme.colorScheme.primary.withOpacity(0.08),
+                theme.colorScheme.primary.withValues(alpha: 0.15),
+                theme.colorScheme.primary.withValues(alpha: 0.08),
               ],
             ),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: theme.colorScheme.primary.withOpacity(0.2),
+              color: theme.colorScheme.primary.withValues(alpha: 0.2),
               width: 1,
             ),
           ),
@@ -90,7 +90,9 @@ class DashboardHeader extends ConsumerWidget {
                 _getGreeting(),
                 style: theme.textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.w400,
-                  color: theme.colorScheme.onSurfaceVariant.withOpacity(0.8),
+                  color: theme.colorScheme.onSurfaceVariant.withValues(
+                    alpha: 0.8,
+                  ),
                   letterSpacing: 0.2,
                 ),
               ),
@@ -115,10 +117,10 @@ class DashboardHeader extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: theme.colorScheme.outline.withOpacity(0.1),
+          color: theme.colorScheme.outline.withValues(alpha: 0.1),
           width: 1,
         ),
       ),
@@ -133,7 +135,7 @@ class DashboardHeader extends ConsumerWidget {
           Text(
             _getCurrentDate(),
             style: theme.textTheme.bodyLarge?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant.withOpacity(0.8),
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
               fontWeight: FontWeight.w500,
               letterSpacing: 0.1,
             ),
@@ -148,7 +150,7 @@ class DashboardHeader extends ConsumerWidget {
           Text(
             _getCurrentTime(),
             style: theme.textTheme.bodyLarge?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant.withOpacity(0.8),
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
               fontWeight: FontWeight.w500,
               letterSpacing: 0.1,
             ),
@@ -167,10 +169,30 @@ class DashboardHeader extends ConsumerWidget {
 
   String _getCurrentDate() {
     final now = DateTime.now();
-    final weekdays = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
-    final months = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 
-                   'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
-    
+    final weekdays = [
+      'Lundi',
+      'Mardi',
+      'Mercredi',
+      'Jeudi',
+      'Vendredi',
+      'Samedi',
+      'Dimanche',
+    ];
+    final months = [
+      'janvier',
+      'février',
+      'mars',
+      'avril',
+      'mai',
+      'juin',
+      'juillet',
+      'août',
+      'septembre',
+      'octobre',
+      'novembre',
+      'décembre',
+    ];
+
     return '${weekdays[now.weekday - 1]} ${now.day} ${months[now.month - 1]} ${now.year}';
   }
 
@@ -189,3 +211,4 @@ class DashboardHeader extends ConsumerWidget {
     return parts.isNotEmpty ? parts.first : 'Directeur';
   }
 }
+

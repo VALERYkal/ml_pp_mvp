@@ -1,3 +1,4 @@
+@Tags(['integration'])
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 // import 'package:mockito/mockito.dart'; // unused
@@ -21,53 +22,57 @@ class FakeCiterneServiceInactive extends CiterneService {
   FakeCiterneServiceInactive() : super.withClient(_TestSupabaseClient());
   @override
   Future<CiterneInfo?> getById(String id) async => CiterneInfo(
-        id: id,
-        capaciteTotale: 5000,
-        capaciteSecurite: 500,
-        statut: 'inactive',
-        produitId: 'prod-1',
-      );
+    id: id,
+    capaciteTotale: 5000,
+    capaciteSecurite: 500,
+    statut: 'inactive',
+    produitId: 'prod-1',
+  );
 }
 
 class FakeCiterneServiceIncompatible extends CiterneService {
   FakeCiterneServiceIncompatible() : super.withClient(_TestSupabaseClient());
   @override
   Future<CiterneInfo?> getById(String id) async => CiterneInfo(
-        id: id,
-        capaciteTotale: 5000,
-        capaciteSecurite: 500,
-        statut: 'active',
-        produitId: 'autre-prod',
-      );
+    id: id,
+    capaciteTotale: 5000,
+    capaciteSecurite: 500,
+    statut: 'active',
+    produitId: 'autre-prod',
+  );
 }
 
 class FakeCiterneServiceCapacity extends CiterneService {
   FakeCiterneServiceCapacity() : super.withClient(_TestSupabaseClient());
   @override
   Future<CiterneInfo?> getById(String id) async => CiterneInfo(
-        id: id,
-        capaciteTotale: 2000,
-        capaciteSecurite: 500,
-        statut: 'active',
-        produitId: 'prod-1',
-      );
+    id: id,
+    capaciteTotale: 2000,
+    capaciteSecurite: 500,
+    statut: 'active',
+    produitId: 'prod-1',
+  );
 }
 
 class FakeStocksServiceHigh extends StocksService {
   FakeStocksServiceHigh() : super.withClient(_TestSupabaseClient());
   @override
-  Future<double> getAmbientForToday({required String citerneId, required String produitId, DateTime? dateJour}) async => 600.0;
+  Future<double> getAmbientForToday({
+    required String citerneId,
+    required String produitId,
+    DateTime? dateJour,
+  }) async => 600.0;
 }
 
 class FakeRefRepo extends ReferentielsRepo {
   FakeRefRepo() : super(Supabase.instance.client);
-  
+
   @override
   Future<void> loadProduits() async {}
-  
+
   @override
   Future<void> loadCiternesActives() async {}
-  
+
   @override
   String? getProduitIdByCodeSync(String code) => 'prod-1';
 }
@@ -78,20 +83,20 @@ void main() {
     late MockSupabaseClient mockClient;
 
     Reception buildReception({double indexAvant = 0, double indexApres = 1000}) => Reception(
-          id: '',
-          coursDeRouteId: 'cours-1',
-          citerneId: 'cit-1',
-          produitId: 'prod-1',
-          indexAvant: indexAvant,
-          indexApres: indexApres,
-          proprietaireType: OwnerType.monaluxe,
-        );
+      id: '',
+      coursDeRouteId: 'cours-1',
+      citerneId: 'cit-1',
+      produitId: 'prod-1',
+      indexAvant: indexAvant,
+      indexApres: indexApres,
+      proprietaireType: OwnerType.monaluxe,
+    );
 
     setUp(() {
       mockClient = MockSupabaseClient();
     });
 
-    test('rejette indices incohérents (volume <= 0)', () async {
+    test('rejette indices incohÃ©rents (volume <= 0)', () async {
       final service = ReceptionService.withClient(mockClient, refRepo: FakeRefRepo());
       final r = buildReception(indexApres: 0);
       expect(() => service.createReception(r), throwsA(isA<ArgumentError>()));
@@ -107,7 +112,9 @@ void main() {
 
       expect(
         () => service.createReception(buildReception()),
-        throwsA(isA<ArgumentError>().having((e) => e.toString(), 'message', contains('Citerne inactive'))),
+        throwsA(
+          isA<ArgumentError>().having((e) => e.toString(), 'message', contains('Citerne inactive')),
+        ),
       );
     });
 
@@ -121,11 +128,17 @@ void main() {
 
       expect(
         () => service.createReception(buildReception()),
-        throwsA(isA<ArgumentError>().having((e) => e.toString(), 'message', contains('Produit incompatible'))),
+        throwsA(
+          isA<ArgumentError>().having(
+            (e) => e.toString(),
+            'message',
+            contains('Produit incompatible'),
+          ),
+        ),
       );
     });
 
-    test('rejette capacité insuffisante (volume > capacitéDisponible)', () async {
+    test('rejette capacitÃ© insuffisante (volume > capacitÃ©Disponible)', () async {
       final service = ReceptionService.withClient(
         mockClient,
         citerneServiceFactory: (_) => FakeCiterneServiceCapacity(),
@@ -133,11 +146,18 @@ void main() {
         refRepo: FakeRefRepo(),
       );
 
-      // vObs = 1000, capacityDisponible = 2000 - 500 - 600 = 900 → 1000 > 900
+      // vObs = 1000, capacityDisponible = 2000 - 500 - 600 = 900 â 1000 > 900
       expect(
         () => service.createReception(buildReception()),
-        throwsA(isA<ArgumentError>().having((e) => e.toString(), 'message', contains('capacité disponible'))),
+        throwsA(
+          isA<ArgumentError>().having(
+            (e) => e.toString(),
+            'message',
+            contains('capacitÃ© disponible'),
+          ),
+        ),
       );
     });
   });
 }
+

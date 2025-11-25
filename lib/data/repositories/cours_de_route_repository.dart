@@ -16,10 +16,7 @@ class CoursDeRouteRepository {
   /// - enRoute: statut IN ('CHARGEMENT','TRANSIT','FRONTIERE')
   /// - attente: statut = 'ARRIVE'
   /// NB: On suppose que `cours_de_route.volume` est en litres (sinon convertir en amont).
-  Future<CoursCounts> countsEnRouteEtAttente({
-    String? depotId,
-    String? produitId,
-  }) async {
+  Future<CoursCounts> countsEnRouteEtAttente({String? depotId, String? produitId}) async {
     final query = _supa
         .from('cours_de_route')
         .select('id, statut, volume, depot_destination_id, produit_id');
@@ -48,8 +45,10 @@ class CoursDeRouteRepository {
 
     // Debug (retirable)
     if (kDebugMode) {
-      print('🚚 KPI1: enRoute=$enRoute (${enRouteL}L), attente=$attente (${attenteL}L)'
-            '${depotId != null ? ' depot=' + depotId : ''}${produitId != null ? ' produit=' + produitId : ''}');
+      print(
+        '?? KPI1: enRoute=$enRoute (${enRouteL}L), attente=$attente (${attenteL}L)'
+        '${depotId != null ? ' depot=' + depotId : ''}${produitId != null ? ' produit=' + produitId : ''}',
+      );
     }
 
     return CoursCounts(
@@ -60,4 +59,7 @@ class CoursDeRouteRepository {
     );
   }
 }
+
+
+
 

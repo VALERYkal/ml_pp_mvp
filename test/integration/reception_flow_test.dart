@@ -1,8 +1,8 @@
 /* ===========================================================
-   Tests d'intégration — Flux Réception (client-only, sans réseau)
-   Pédagogie:
+   Tests d'intÃ©gration â Flux RÃ©ception (client-only, sans rÃ©seau)
+   PÃ©dagogie:
    - On isole le client via ReceptionServiceV2 + FakeDbPort
-   - On simule les règles serveur pour valider l'UX & la gestion d'erreurs
+   - On simule les rÃ¨gles serveur pour valider l'UX & la gestion d'erreurs
    =========================================================== */
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ml_pp_mvp/features/receptions/data/reception_input.dart';
@@ -42,7 +42,7 @@ void main() {
       await service.validateReception(id); // ne jette pas
     });
 
-    test('ERREUR: indices incohérents (apres <= avant)', () async {
+    test('ERREUR: indices incohÃ©rents (apres <= avant)', () async {
       final input = ReceptionInput(
         proprietaireType: 'MONALUXE',
         citerneId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
@@ -51,14 +51,11 @@ void main() {
         indexApres: 900, // KO
       );
 
-      expect(
-        () => service.createDraft(input),
-        throwsA(isA<Exception>()),
-      );
+      expect(() => service.createDraft(input), throwsA(isA<Exception>()));
     });
 
-    test('ERREUR: capacité insuffisante', () async {
-      // Capacité dispo ~100000-5000-99000 =  -4000 -> clamp 0 => KO dès volAmb > 0
+    test('ERREUR: capacitÃ© insuffisante', () async {
+      // CapacitÃ© dispo ~100000-5000-99000 =  -4000 -> clamp 0 => KO dÃ¨s volAmb > 0
       db = FakeDbPort(
         initialStockAmbiant: 99000.0, // quasi plein
         citerneCapaciteTotale: 100000.0,
@@ -80,28 +77,22 @@ void main() {
       final id = await service.createDraft(input);
       expect(id, isNotEmpty);
 
-      expect(
-        () => service.validateReception(id),
-        throwsA(isA<Exception>()),
-      );
+      expect(() => service.validateReception(id), throwsA(isA<Exception>()));
     });
 
     test('ERREUR: produit incompatible (citerne ESS, saisie AGO)', () async {
       final input = ReceptionInput(
         proprietaireType: 'MONALUXE',
         citerneId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-        produitCode: 'AGO', // KO car citerne mappée sur ESS
+        produitCode: 'AGO', // KO car citerne mappÃ©e sur ESS
         indexAvant: 1000,
         indexApres: 1060,
       );
 
-      expect(
-        () => service.createDraft(input),
-        throwsA(isA<Exception>()),
-      );
+      expect(() => service.createDraft(input), throwsA(isA<Exception>()));
     });
 
-    test('ERREUR: cours non "arrivé"', () async {
+    test('ERREUR: cours non "arrivÃ©"', () async {
       db = FakeDbPort(
         initialStockAmbiant: 0,
         citerneCapaciteTotale: 100000.0,
@@ -123,10 +114,7 @@ void main() {
       final id = await service.createDraft(input);
       expect(id, isNotEmpty);
 
-      expect(
-        () => service.validateReception(id),
-        throwsA(isA<Exception>()),
-      );
+      expect(() => service.validateReception(id), throwsA(isA<Exception>()));
     });
 
     test('ERREUR: PARTENAIRE sans partenaire_id', () async {
@@ -142,12 +130,8 @@ void main() {
       final id = await service.createDraft(input);
       expect(id, isNotEmpty);
 
-      expect(
-        () => service.validateReception(id),
-        throwsA(isA<Exception>()),
-      );
+      expect(() => service.validateReception(id), throwsA(isA<Exception>()));
     });
   });
 }
-
 

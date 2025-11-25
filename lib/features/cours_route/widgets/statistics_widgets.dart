@@ -1,7 +1,7 @@
-// 📌 Module : Cours de Route - Widgets
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-01-27
-// 🧭 Description : Widgets de statistiques pour les cours de route
+// ?? Module : Cours de Route - Widgets
+// ?? Auteur : Valery Kalonga
+// ?? Date : 2025-01-27
+// ?? Description : Widgets de statistiques pour les cours de route
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -48,12 +48,12 @@ class CoursStatisticsWidget extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 16),
-            
+
             // Statistiques principales
             _StatisticsGrid(statistics: statistics),
-            
+
             const SizedBox(height: 16),
-            
+
             // Graphique des statuts
             _StatusChart(statistics: statistics),
           ],
@@ -62,10 +62,13 @@ class CoursStatisticsWidget extends ConsumerWidget {
     );
   }
 
-  void _showDetailedStatistics(BuildContext context, CoursStatistics statistics) {
+  void _showDetailedStatistics(
+    BuildContext context,
+    CoursStatistics statistics,
+  ) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext context) => AlertDialog(
         title: const Text('Statistiques Détaillées'),
         content: SizedBox(
           width: double.maxFinite,
@@ -147,9 +150,9 @@ class _StatisticCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -165,9 +168,9 @@ class _StatisticCard extends StatelessWidget {
           ),
           Text(
             title,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: color,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: color),
             textAlign: TextAlign.center,
           ),
         ],
@@ -189,9 +192,7 @@ class _StatusChart extends StatelessWidget {
         .toList();
 
     if (statusData.isEmpty) {
-      return const Center(
-        child: Text('Aucune donnée disponible'),
-      );
+      return const Center(child: Text('Aucune donnée disponible'));
     }
 
     return Column(
@@ -199,16 +200,18 @@ class _StatusChart extends StatelessWidget {
       children: [
         Text(
           'Répartition par Statut',
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
-        ...statusData.map((entry) => _StatusBar(
-          statut: entry.key,
-          count: entry.value,
-          total: statistics.totalCours,
-        )),
+        ...statusData.map(
+          (entry) => _StatusBar(
+            statut: entry.key,
+            count: entry.value,
+            total: statistics.totalCours,
+          ),
+        ),
       ],
     );
   }
@@ -246,7 +249,7 @@ class _StatusBar extends StatelessWidget {
             child: Container(
               height: 20,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.2),
+                color: color.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: FractionallySizedBox(
@@ -266,9 +269,9 @@ class _StatusBar extends StatelessWidget {
             width: 40,
             child: Text(
               '$count',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
               textAlign: TextAlign.right,
             ),
           ),
@@ -300,6 +303,9 @@ class _StatusBar extends StatelessWidget {
         return Colors.green;
       case StatutCours.decharge:
         return Colors.grey;
+      case StatutCours.inconnu:
+      default:
+        return Colors.grey.shade300;
     }
   }
 }
@@ -322,36 +328,36 @@ class _DetailedStatisticsView extends StatelessWidget {
             data: statistics.topFournisseurs,
             icon: Icons.business,
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Top produits
           _TopList(
             title: 'Top Produits',
             data: statistics.topProduits,
             icon: Icons.inventory,
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Top transporteurs
           _TopList(
             title: 'Top Transporteurs',
             data: statistics.topTransporteurs,
             icon: Icons.local_shipping,
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Top chauffeurs
           _TopList(
             title: 'Top Chauffeurs',
             data: statistics.topChauffeurs,
             icon: Icons.person,
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Top dépôts
           _TopList(
             title: 'Top Dépôts',
@@ -366,11 +372,7 @@ class _DetailedStatisticsView extends StatelessWidget {
 
 /// Liste des tops
 class _TopList extends StatelessWidget {
-  const _TopList({
-    required this.title,
-    required this.data,
-    required this.icon,
-  });
+  const _TopList({required this.title, required this.data, required this.icon});
 
   final String title;
   final List<MapEntry<String, int>> data;
@@ -387,35 +389,38 @@ class _TopList extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               title,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
             ),
           ],
         ),
         const SizedBox(height: 8),
-        ...data.map((entry) => Padding(
-          padding: const EdgeInsets.symmetric(vertical: 2),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 200,
-                child: Text(
-                  entry.key,
-                  style: Theme.of(context).textTheme.bodySmall,
+        ...data.map(
+          (entry) => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 200,
+                  child: Text(
+                    entry.key,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
                 ),
-              ),
-              const Spacer(),
-              Text(
-                entry.value.toString(),
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontWeight: FontWeight.w600,
+                const Spacer(),
+                Text(
+                  entry.value.toString(),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        )),
+        ),
       ],
     );
   }
 }
+

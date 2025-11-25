@@ -1,7 +1,7 @@
 /* ===========================================================
-   ML_PP MVP — FakeDbPort (tests sans réseau)
-   Rôle: Simuler un back-end Supabase pour tester le flux client.
-   Pédagogie: On rejoue les validations serveur côté test pour
+   ML_PP MVP â FakeDbPort (tests sans rÃ©seau)
+   RÃ´le: Simuler un back-end Supabase pour tester le flux client.
+   PÃ©dagogie: On rejoue les validations serveur cÃ´tÃ© test pour
    couvrir les cas d'erreur et le happy path.
    =========================================================== */
 import 'dart:math';
@@ -16,19 +16,19 @@ class FakeDbPort implements DbPort {
     this.coursArrive = true,
   });
 
-  // Paramètres de simulation
+  // ParamÃ¨tres de simulation
   double initialStockAmbiant;
   double citerneCapaciteTotale;
   double citerneCapaciteSecurite;
   bool citerneActive;
   bool coursArrive;
 
-  // Mémoire locale
+  // MÃ©moire locale
   final Map<String, Map<String, dynamic>> receptions = {};
   final List<Map<String, dynamic>> logs = [];
   final Random _rnd = Random(42);
 
-  // Fixtures référentiels
+  // Fixtures rÃ©fÃ©rentiels
   // Produits ESS / AGO
   final _produits = <Map<String, dynamic>>[
     {'id': '11111111-1111-1111-1111-111111111111', 'code': 'ESS', 'nom': 'Essence', 'actif': true},
@@ -43,23 +43,23 @@ class FakeDbPort implements DbPort {
       'capacite_totale': 100000.0,
       'capacite_securite': 5000.0,
       'statut': 'active',
-    }
+    },
   ];
 
   @override
   Future<Map<String, dynamic>> insertReception(Map<String, dynamic> payload) async {
-    // Simuler calc volume_ambiant >= 0 (déjà fait côté client, mais on vérifie)
+    // Simuler calc volume_ambiant >= 0 (dÃ©jÃ  fait cÃ´tÃ© client, mais on vÃ©rifie)
     final before = (payload['index_avant'] as double?) ?? 0;
-    final after  = (payload['index_apres'] as double?) ?? 0;
+    final after = (payload['index_apres'] as double?) ?? 0;
     final volAmb = (after - before);
     if (before < 0 || after < 0 || !(after > before)) {
-      throw Exception('Indices invalides: index_apres doit être > index_avant et >= 0');
+      throw Exception('Indices invalides: index_apres doit Ãªtre > index_avant et >= 0');
     }
     if (volAmb <= 0) {
       throw Exception('Volume ambiant invalide (<=0)');
     }
 
-    // Générer un id "stable"
+    // GÃ©nÃ©rer un id "stable"
     final id = 'rx_${_rnd.nextInt(999999)}';
     final rec = Map<String, dynamic>.from(payload);
     rec['id'] = id;
@@ -74,26 +74,28 @@ class FakeDbPort implements DbPort {
   Future<void> rpcValidateReception(String receptionId) async {
     final rec = receptions[receptionId];
     if (rec == null) {
-      throw Exception('Réception introuvable');
+      throw Exception('RÃ©ception introuvable');
     }
     if (rec['statut'] != 'brouillon') {
-      throw Exception('Seules les réceptions en brouillon peuvent être validées (statut=${rec['statut']})');
+      throw Exception(
+        'Seules les rÃ©ceptions en brouillon peuvent Ãªtre validÃ©es (statut=${rec['statut']})',
+      );
     }
 
-    // Contrôles "serveur"
+    // ContrÃ´les "serveur"
     // 1) Citerne active
     if (!citerneActive) {
       throw Exception('Citerne non active');
     }
 
-    // 2) Compatibilité stricte: produit de la citerne == produit_id de la réception
+    // 2) CompatibilitÃ© stricte: produit de la citerne == produit_id de la rÃ©ception
     final prodIdRec = rec['produit_id'];
     final citerne = _citernes.firstWhere((c) => c['id'] == rec['citerne_id'], orElse: () => {});
     if (citerne.isEmpty || citerne['produit_id'] != prodIdRec) {
       throw Exception('Produit incompatible avec la citerne');
     }
 
-    // 3) Capacité disponible (snapshot approximatif)
+    // 3) CapacitÃ© disponible (snapshot approximatif)
     final capTot = citerneCapaciteTotale;
     final capSec = citerneCapaciteSecurite;
     final stockActuel = initialStockAmbiant;
@@ -103,15 +105,15 @@ class FakeDbPort implements DbPort {
       throw Exception('Volume ambiant invalide (<=0)');
     }
     if (volAmb > dispo) {
-      throw Exception('Capacité insuffisante (disponible=$dispo, demandé=$volAmb)');
+      throw Exception('CapacitÃ© insuffisante (disponible=$dispo, demandÃ©=$volAmb)');
     }
 
-    // 4) Cours de route (si lié) doit être "arrivé"
+    // 4) Cours de route (si liÃ©) doit Ãªtre "arrivÃ©"
     if (rec['cours_de_route_id'] != null && !coursArrive) {
-      throw Exception('Cours de route non éligible (doit être "arrivé")');
+      throw Exception('Cours de route non Ã©ligible (doit Ãªtre "arrivÃ©")');
     }
 
-    // 5) Propriété partenaire: partenaire_id requis
+    // 5) PropriÃ©tÃ© partenaire: partenaire_id requis
     if (rec['proprietaire_type'] == 'PARTENAIRE' && rec['partenaire_id'] == null) {
       throw Exception('partenaire_id requis pour PARTENAIRE');
     }
@@ -129,12 +131,11 @@ class FakeDbPort implements DbPort {
   @override
   Future<List<Map<String, dynamic>>> selectCiternesActives() async {
     final list = List<Map<String, dynamic>>.from(_citernes);
-    // injecter stats de capacité/stock simulées
+    // injecter stats de capacitÃ©/stock simulÃ©es
     list[0]['capacite_totale'] = citerneCapaciteTotale;
     list[0]['capacite_securite'] = citerneCapaciteSecurite;
     list[0]['statut'] = citerneActive ? 'active' : 'inactive';
     return list;
   }
 }
-
 

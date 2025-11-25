@@ -1,7 +1,7 @@
-// 📌 Module : Cours de Route - Tests des Transitions
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-01-27
-// 🧭 Description : Tests unitaires pour les transitions de statuts CDR
+// ð Module : Cours de Route - Tests des Transitions
+// ð§ Auteur : Valery Kalonga
+// ð Date : 2025-01-27
+// ð§­ Description : Tests unitaires pour les transitions de statuts CDR
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
@@ -9,97 +9,76 @@ import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 void main() {
   group('CoursDeRoute Transitions Tests', () {
     group('Valid Transitions', () {
-      test('should allow chargement → transit', () {
+      test('should allow chargement â transit', () {
         expect(
-          CoursDeRouteStateMachine.canTransition(
-            StatutCours.chargement, 
-            StatutCours.transit
-          ), 
-          true
+          CoursDeRouteStateMachine.canTransition(StatutCours.chargement, StatutCours.transit),
+          true,
         );
       });
 
-      test('should allow transit → frontiere', () {
+      test('should allow transit â frontiere', () {
         expect(
-          CoursDeRouteStateMachine.canTransition(
-            StatutCours.transit, 
-            StatutCours.frontiere
-          ), 
-          true
+          CoursDeRouteStateMachine.canTransition(StatutCours.transit, StatutCours.frontiere),
+          true,
         );
       });
 
-      test('should allow frontiere → arrive', () {
+      test('should allow frontiere â arrive', () {
         expect(
-          CoursDeRouteStateMachine.canTransition(
-            StatutCours.frontiere, 
-            StatutCours.arrive
-          ), 
-          true
+          CoursDeRouteStateMachine.canTransition(StatutCours.frontiere, StatutCours.arrive),
+          true,
         );
       });
 
-      test('should allow arrive → decharge (with reception)', () {
+      test('should allow arrive â decharge (with reception)', () {
         expect(
           CoursDeRouteStateMachine.canTransition(
-            StatutCours.arrive, 
+            StatutCours.arrive,
             StatutCours.decharge,
-            fromReception: true
-          ), 
-          true
+            fromReception: true,
+          ),
+          true,
         );
       });
     });
 
     group('Invalid Transitions', () {
-      test('should not allow chargement → arrive (skip transit)', () {
+      test('should not allow chargement â arrive (skip transit)', () {
         expect(
-          CoursDeRouteStateMachine.canTransition(
-            StatutCours.chargement, 
-            StatutCours.arrive
-          ), 
-          false
+          CoursDeRouteStateMachine.canTransition(StatutCours.chargement, StatutCours.arrive),
+          false,
         );
       });
 
-      test('should not allow decharge → transit (backward)', () {
+      test('should not allow decharge â transit (backward)', () {
         expect(
-          CoursDeRouteStateMachine.canTransition(
-            StatutCours.decharge, 
-            StatutCours.transit
-          ), 
-          false
+          CoursDeRouteStateMachine.canTransition(StatutCours.decharge, StatutCours.transit),
+          false,
         );
       });
 
-      test('should not allow arrive → decharge without reception', () {
+      test('should not allow arrive â decharge without reception', () {
         expect(
           CoursDeRouteStateMachine.canTransition(
-            StatutCours.arrive, 
+            StatutCours.arrive,
             StatutCours.decharge,
-            fromReception: false
-          ), 
-          false
+            fromReception: false,
+          ),
+          false,
         );
       });
 
-      test('should not allow chargement → frontiere (skip transit)', () {
+      test('should not allow chargement â frontiere (skip transit)', () {
         expect(
-          CoursDeRouteStateMachine.canTransition(
-            StatutCours.chargement, 
-            StatutCours.frontiere
-          ), 
-          false
+          CoursDeRouteStateMachine.canTransition(StatutCours.chargement, StatutCours.frontiere),
+          false,
         );
       });
 
-      test('should not allow transit → decharge (skip steps)', () {
+      test('should not allow transit â decharge (skip steps)', () {
         expect(
-          CoursDeRouteStateMachine.canTransition(
-            StatutCours.transit, 
-            StatutCours.decharge
-          ), 
-          false
+          CoursDeRouteStateMachine.canTransition(StatutCours.transit, StatutCours.decharge),
+          false,
         );
       });
     });
@@ -122,9 +101,9 @@ void main() {
       });
 
       test('should parse UI accented values', () {
-        expect(StatutCoursDb.parseDb('frontière'), StatutCours.frontiere);
-        expect(StatutCoursDb.parseDb('arrivé'), StatutCours.arrive);
-        expect(StatutCoursDb.parseDb('déchargé'), StatutCours.decharge);
+        expect(StatutCoursDb.parseDb('frontiÃ¨re'), StatutCours.frontiere);
+        expect(StatutCoursDb.parseDb('arrivÃ©'), StatutCours.arrive);
+        expect(StatutCoursDb.parseDb('dÃ©chargÃ©'), StatutCours.decharge);
       });
 
       test('should convert to DB format correctly', () {
@@ -138,9 +117,9 @@ void main() {
       test('should display UI labels correctly', () {
         expect(StatutCours.chargement.label, 'Chargement');
         expect(StatutCours.transit.label, 'Transit');
-        expect(StatutCours.frontiere.label, 'Frontière');
-        expect(StatutCours.arrive.label, 'Arrivé');
-        expect(StatutCours.decharge.label, 'Déchargé');
+        expect(StatutCours.frontiere.label, 'FrontiÃ¨re');
+        expect(StatutCours.arrive.label, 'ArrivÃ©');
+        expect(StatutCours.decharge.label, 'DÃ©chargÃ©');
       });
     });
 
@@ -154,26 +133,17 @@ void main() {
       });
 
       test('should return allowed next statuses', () {
-        expect(
-          CoursDeRouteStateMachine.getAllowedNext(StatutCours.chargement),
-          {StatutCours.transit}
-        );
-        expect(
-          CoursDeRouteStateMachine.getAllowedNext(StatutCours.transit),
-          {StatutCours.frontiere}
-        );
-        expect(
-          CoursDeRouteStateMachine.getAllowedNext(StatutCours.frontiere),
-          {StatutCours.arrive}
-        );
-        expect(
-          CoursDeRouteStateMachine.getAllowedNext(StatutCours.arrive),
-          {StatutCours.decharge}
-        );
-        expect(
-          CoursDeRouteStateMachine.getAllowedNext(StatutCours.decharge),
-          <StatutCours>{}
-        );
+        expect(CoursDeRouteStateMachine.getAllowedNext(StatutCours.chargement), {
+          StatutCours.transit,
+        });
+        expect(CoursDeRouteStateMachine.getAllowedNext(StatutCours.transit), {
+          StatutCours.frontiere,
+        });
+        expect(CoursDeRouteStateMachine.getAllowedNext(StatutCours.frontiere), {
+          StatutCours.arrive,
+        });
+        expect(CoursDeRouteStateMachine.getAllowedNext(StatutCours.arrive), {StatutCours.decharge});
+        expect(CoursDeRouteStateMachine.getAllowedNext(StatutCours.decharge), <StatutCours>{});
       });
     });
 
@@ -201,18 +171,18 @@ void main() {
         for (int i = 0; i < sequence.length - 1; i++) {
           final current = sequence[i];
           final next = sequence[i + 1];
-          
+
           if (next == StatutCours.decharge) {
             expect(
               CoursDeRouteStateMachine.canTransition(current, next, fromReception: true),
               true,
-              reason: 'Transition from $current to $next should be allowed with reception'
+              reason: 'Transition from $current to $next should be allowed with reception',
             );
           } else {
             expect(
               CoursDeRouteStateMachine.canTransition(current, next),
               true,
-              reason: 'Transition from $current to $next should be allowed'
+              reason: 'Transition from $current to $next should be allowed',
             );
           }
         }
@@ -220,3 +190,4 @@ void main() {
     });
   });
 }
+

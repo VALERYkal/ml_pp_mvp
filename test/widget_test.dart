@@ -12,7 +12,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   testWidgets('placeholder', (WidgetTester tester) async {
-    // Test placeholder désactivé car l\'app requiert Supabase.initialize
+    // Test placeholder dÃ©sactivÃ© car l\'app requiert Supabase.initialize
     expect(true, isTrue);
   });
 }
+

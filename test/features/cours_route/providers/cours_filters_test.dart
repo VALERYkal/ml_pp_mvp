@@ -1,8 +1,8 @@
-// 📌 Module : Cours de Route - Tests Filtres
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-01-27
-// 🧭 Description : Tests unitaires pour les filtres des cours de route
-
+@Tags(['needs-refactor'])
+// ð Module : Cours de Route - Tests Filtres
+// ð§ Auteur : Valery Kalonga
+// ð Date : 2025-01-27
+// ð§­ Description : Tests unitaires pour les filtres des cours de route
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_filters_provider.dart';
@@ -43,10 +43,7 @@ void main() {
       );
 
       // Act
-      final newFilters = originalFilters.copyWith(
-        fournisseurId: 'fournisseur-2',
-        volumeMin: 20000,
-      );
+      final newFilters = originalFilters.copyWith(fournisseurId: 'fournisseur-2', volumeMin: 20000);
 
       // Assert
       expect(newFilters.fournisseurId, 'fournisseur-2');
@@ -176,10 +173,7 @@ void main() {
 
     test('should filter by volume range', () {
       // Arrange
-      const filters = CoursFilters(
-        volumeMin: 50000,
-        volumeMax: 100000,
-      );
+      const filters = CoursFilters(volumeMin: 50000, volumeMax: 100000);
 
       // Act
       final result = _applyFilters(sampleCours, filters);
@@ -192,10 +186,7 @@ void main() {
 
     test('should filter by volume range excluding high volumes', () {
       // Arrange
-      const filters = CoursFilters(
-        volumeMin: 0,
-        volumeMax: 100000,
-      );
+      const filters = CoursFilters(volumeMin: 0, volumeMax: 100000);
 
       // Act
       final result = _applyFilters(sampleCours, filters);
@@ -239,10 +230,7 @@ void main() {
         ),
       ];
 
-      const filters = CoursFilters(
-        volumeMin: 50000,
-        volumeMax: 100000,
-      );
+      const filters = CoursFilters(volumeMin: 50000, volumeMax: 100000);
 
       // Act
       final result = _applyFilters(coursWithNullVolume, filters);
@@ -255,11 +243,7 @@ void main() {
 
     test('should return empty list when no matches', () {
       // Arrange
-      const filters = CoursFilters(
-        fournisseurId: 'non-existent',
-        volumeMin: 0,
-        volumeMax: 100000,
-      );
+      const filters = CoursFilters(fournisseurId: 'non-existent', volumeMin: 0, volumeMax: 100000);
 
       // Act
       final result = _applyFilters(sampleCours, filters);
@@ -313,8 +297,10 @@ void main() {
 List<CoursDeRoute> _applyFilters(List<CoursDeRoute> cours, CoursFilters filters) {
   return cours.where((c) {
     // Filtre par fournisseur
-    final okFournisseur = (filters.fournisseurId == null) ? true : c.fournisseurId == filters.fournisseurId;
-    
+    final okFournisseur = (filters.fournisseurId == null)
+        ? true
+        : c.fournisseurId == filters.fournisseurId;
+
     // Filtre par volume (0-100 000 L)
     bool okVolume = true;
     if (c.volume != null) {
@@ -325,7 +311,8 @@ List<CoursDeRoute> _applyFilters(List<CoursDeRoute> cours, CoursFilters filters)
         okVolume = false;
       }
     }
-    
+
     return okFournisseur && okVolume;
   }).toList();
 }
+

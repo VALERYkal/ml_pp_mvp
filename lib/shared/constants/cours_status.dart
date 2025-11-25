@@ -1,32 +1,26 @@
-// 📌 Module : Shared Constants - Cours Status
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-01-27
-// 🧭 Description : Constantes et logique pour les statuts de cours de route
+// ?? Module : Shared Constants - Cours Status
+// ?? Auteur : Valery Kalonga
+// ?? Date : 2025-01-27
+// ?? Description : Constantes et logique pour les statuts de cours de route
 
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 
 /// Flux de progression des statuts de cours de route
-const List<String> kCoursFlow = [
-  'chargement',
-  'transit',
-  'frontière',
-  'arrivé',
-  'déchargé',
-];
+const List<String> kCoursFlow = ['chargement', 'transit', 'frontière', 'arrivé', 'déchargé'];
 
 /// Vérifie si un statut est terminal (fin de progression)
-/// 
+///
 /// [statut] : Le statut à vérifier
-/// 
+///
 /// Retourne :
 /// - `true` : Le statut est terminal
 /// - `false` : Le statut permet encore une progression
 bool isTerminal(String statut) => statut == 'déchargé';
 
 /// Retourne le statut suivant dans la progression
-/// 
+///
 /// [statut] : Le statut actuel
-/// 
+///
 /// Retourne :
 /// - `String?` : Le prochain statut dans la séquence
 /// - `null` : Si le statut est terminal ou invalide
@@ -39,9 +33,9 @@ String? nextOf(String statut) {
 }
 
 /// Retourne le statut précédent dans la progression
-/// 
+///
 /// [statut] : Le statut actuel
-/// 
+///
 /// Retourne :
 /// - `String?` : Le statut précédent dans la séquence
 /// - `null` : Si le statut est le premier ou invalide
@@ -54,41 +48,41 @@ String? previousOf(String statut) {
 }
 
 /// Vérifie si une transition entre deux statuts est autorisée
-/// 
+///
 /// [from] : Statut de départ
 /// [to] : Statut d'arrivée
-/// 
+///
 /// Retourne :
 /// - `true` : La transition est autorisée
 /// - `false` : La transition est interdite
 bool isTransitionAllowed(String from, String to) {
   final fromIndex = kCoursFlow.indexOf(from);
   final toIndex = kCoursFlow.indexOf(to);
-  
+
   if (fromIndex < 0 || toIndex < 0) {
     return false;
   }
-  
+
   // Transition autorisée uniquement vers le statut suivant
   return toIndex == fromIndex + 1;
 }
 
 /// Retourne tous les statuts disponibles
-/// 
+///
 /// Retourne :
 /// - `List<String>` : Liste de tous les statuts dans l'ordre de progression
 List<String> getAllStatuses() => List.from(kCoursFlow);
 
 /// Retourne les statuts actifs (non terminaux)
-/// 
+///
 /// Retourne :
 /// - `List<String>` : Liste des statuts qui permettent encore une progression
 List<String> getActiveStatuses() => kCoursFlow.take(kCoursFlow.length - 1).toList();
 
 /// Convertit un StatutCours enum en String pour l'affichage
-/// 
+///
 /// [statut] : Le statut enum
-/// 
+///
 /// Retourne :
 /// - `String` : Représentation textuelle du statut
 String statutToString(StatutCours statut) {
@@ -107,9 +101,9 @@ String statutToString(StatutCours statut) {
 }
 
 /// Retourne la couleur appropriée pour un statut
-/// 
+///
 /// [statut] : Le statut
-/// 
+///
 /// Retourne :
 /// - `int` : Code couleur ARGB
 int getStatutColor(String statut) {
@@ -130,9 +124,9 @@ int getStatutColor(String statut) {
 }
 
 /// Retourne l'icône appropriée pour un statut
-/// 
+///
 /// [statut] : Le statut
-/// 
+///
 /// Retourne :
 /// - `String` : Nom de l'icône Material
 String getStatutIcon(String statut) {
@@ -151,3 +145,7 @@ String getStatutIcon(String statut) {
       return 'help';
   }
 }
+
+
+
+

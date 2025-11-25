@@ -5,10 +5,9 @@ import 'package:ml_pp_mvp/core/models/user_role.dart';
 
 void main() {
   group('Auth Security Tests - RLS Policies', () {
-
     testWidgets('should validate user role permissions for RLS policies', (tester) async {
       // Test that different user roles have appropriate access levels
-      
+
       // Arrange: Create profiles with different roles
       final operateurProfile = Profil(
         id: 'user123',
@@ -46,7 +45,7 @@ void main() {
 
     testWidgets('should validate profile data integrity for RLS', (tester) async {
       // Test that profile data maintains integrity for RLS policies
-      
+
       // Arrange: Create a profile with all required fields
       final profile = Profil(
         id: 'test_user',
@@ -68,7 +67,7 @@ void main() {
 
     testWidgets('should handle role-based access control validation', (tester) async {
       // Test role-based access control logic for RLS policies
-      
+
       // Arrange: Define access levels
       const adminAccess = ['read', 'write', 'delete', 'admin'];
       const directeurAccess = ['read', 'write', 'delete'];
@@ -79,7 +78,7 @@ void main() {
 
       // Act: Test access permissions
       bool hasAdminAccess(UserRole role) => adminAccess.contains('admin');
-      bool hasWriteAccess(UserRole role) => 
+      bool hasWriteAccess(UserRole role) =>
           [UserRole.admin, UserRole.directeur, UserRole.gerant, UserRole.operateur].contains(role);
       bool hasReadAccess(UserRole role) => true; // All roles have read access
 
@@ -92,3 +91,4 @@ void main() {
     });
   });
 }
+

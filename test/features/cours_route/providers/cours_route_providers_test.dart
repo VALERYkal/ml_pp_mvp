@@ -1,8 +1,8 @@
-// 📌 Module : Cours de Route - Tests Providers
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-01-27
-// 🧭 Description : Tests unitaires pour les providers Riverpod des cours de route
-
+@Tags(['integration'])
+// ð Module : Cours de Route - Tests Providers
+// ð§ Auteur : Valery Kalonga
+// ð Date : 2025-01-27
+// ð§­ Description : Tests unitaires pour les providers Riverpod des cours de route
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mockito/mockito.dart';
@@ -21,9 +21,7 @@ void main() {
     setUp(() {
       mockService = MockCoursDeRouteService();
       container = ProviderContainer(
-        overrides: [
-          coursDeRouteServiceProvider.overrideWithValue(mockService),
-        ],
+        overrides: [coursDeRouteServiceProvider.overrideWithValue(mockService)],
       );
     });
 
@@ -69,10 +67,7 @@ void main() {
         when(mockService.getAll()).thenThrow(Exception('Service error'));
 
         // Act & Assert
-        expect(
-          () => container.read(coursDeRouteListProvider.future),
-          throwsException,
-        );
+        expect(() => container.read(coursDeRouteListProvider.future), throwsException);
       });
     });
 
@@ -118,16 +113,16 @@ void main() {
           depotDestinationId: 'depot-1',
         );
 
-        when(mockService.create(any)).thenAnswer((_) async {});
+        when(mockService.create(any<CoursDeRoute>())).thenAnswer((_) async {});
 
         // Act
         await container.read(createCoursDeRouteProvider(cours).future);
 
         // Assert
         verify(mockService.create(cours)).called(1);
-        
-        // Vérifier que les providers sont invalidés
-        // Note: Dans un vrai test, on vérifierait que les providers sont rechargés
+
+        // VÃ©rifier que les providers sont invalidÃ©s
+        // Note: Dans un vrai test, on vÃ©rifierait que les providers sont rechargÃ©s
       });
 
       test('should handle creation errors', () async {
@@ -139,13 +134,10 @@ void main() {
           depotDestinationId: 'depot-1',
         );
 
-        when(mockService.create(any)).thenThrow(Exception('Creation failed'));
+        when(mockService.create(any<CoursDeRoute>())).thenThrow(Exception('Creation failed'));
 
         // Act & Assert
-        expect(
-          () => container.read(createCoursDeRouteProvider(cours).future),
-          throwsException,
-        );
+        expect(() => container.read(createCoursDeRouteProvider(cours).future), throwsException);
       });
     });
 
@@ -159,7 +151,7 @@ void main() {
           depotDestinationId: 'depot-1',
         );
 
-        when(mockService.update(any)).thenAnswer((_) async {});
+        when(mockService.update(any<CoursDeRoute>())).thenAnswer((_) async {});
 
         // Act
         await container.read(updateCoursDeRouteProvider(cours).future);
@@ -185,27 +177,19 @@ void main() {
     group('updateStatutCoursDeRouteProvider', () {
       test('should update statut and invalidate providers', () async {
         // Arrange
-        final params = {
-          'id': 'test-id',
-          'to': StatutCours.transit,
-          'fromReception': false,
-        };
+        final params = {'id': 'test-id', 'to': StatutCours.transit, 'fromReception': false};
 
-        when(mockService.updateStatut(
-          id: 'test-id',
-          to: StatutCours.transit,
-          fromReception: false,
-        )).thenAnswer((_) async {});
+        when(
+          mockService.updateStatut(id: 'test-id', to: StatutCours.transit, fromReception: false),
+        ).thenAnswer((_) async {});
 
         // Act
         await container.read(updateStatutCoursDeRouteProvider(params).future);
 
         // Assert
-        verify(mockService.updateStatut(
-          id: 'test-id',
-          to: StatutCours.transit,
-          fromReception: false,
-        )).called(1);
+        verify(
+          mockService.updateStatut(id: 'test-id', to: StatutCours.transit, fromReception: false),
+        ).called(1);
       });
     });
 
@@ -257,7 +241,9 @@ void main() {
         when(mockService.getByStatut(StatutCours.chargement)).thenAnswer((_) async => mockCours);
 
         // Act
-        final result = await container.read(coursDeRouteByStatutProvider(StatutCours.chargement).future);
+        final result = await container.read(
+          coursDeRouteByStatutProvider(StatutCours.chargement).future,
+        );
 
         // Assert
         expect(result, mockCours);
@@ -266,3 +252,4 @@ void main() {
     });
   });
 }
+

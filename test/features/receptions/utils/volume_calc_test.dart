@@ -4,7 +4,10 @@ import 'package:ml_pp_mvp/shared/utils/volume_calc.dart';
 void main() {
   group('calcV15', () {
     test('T=15 => v15==vObs', () {
-      expect(calcV15(volumeObserveL: 1000, temperatureC: 15, densiteA15: 0.83), closeTo(1000, 0.0001));
+      expect(
+        calcV15(volumeObserveL: 1000, temperatureC: 15, densiteA15: 0.83),
+        closeTo(1000, 0.0001),
+      );
     });
     test('T>15 => v15 < vObs', () {
       final v15 = calcV15(volumeObserveL: 1000, temperatureC: 30, densiteA15: 0.83);
@@ -16,5 +19,4 @@ void main() {
     });
   });
 }
-
 

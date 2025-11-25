@@ -1,14 +1,14 @@
-// 📌 Module : Shared Utils
-// 🧭 Description : Humanisation des erreurs de base de données
+// ?? Module : Shared Utils
+// ?? Description : Humanisation des erreurs de base de données
 
 import 'package:postgrest/postgrest.dart';
 
 /// Utilitaires pour humaniser les erreurs de base de données
 class ErrorHumanizer {
   /// Humanise une erreur PostgrestException
-  /// 
+  ///
   /// [e] : L'exception PostgrestException
-  /// 
+  ///
   /// Retourne :
   /// - `String` : Message d'erreur humanisé en français
   static String humanizePostgrest(PostgrestException e) {
@@ -55,7 +55,9 @@ class ErrorHumanizer {
       if (details.contains('proprietaire_type')) {
         return 'Type de propriétaire invalide.';
       }
-      if (details.contains('beneficiaire') || details.contains('client_id') || details.contains('partenaire_id')) {
+      if (details.contains('beneficiaire') ||
+          details.contains('client_id') ||
+          details.contains('partenaire_id')) {
         return 'Bénéficiaire requis : sélectionnez un client ou un partenaire.';
       }
       return 'Données invalides. Vérifiez les valeurs saisies.';
@@ -126,9 +128,9 @@ class ErrorHumanizer {
   }
 
   /// Humanise une erreur générique
-  /// 
+  ///
   /// [error] : L'erreur à humaniser
-  /// 
+  ///
   /// Retourne :
   /// - `String` : Message d'erreur humanisé
   static String humanizeError(dynamic error) {
@@ -163,35 +165,37 @@ class ErrorHumanizer {
   }
 
   /// Obtient le niveau de sévérité d'une erreur
-  /// 
+  ///
   /// [error] : L'erreur à analyser
-  /// 
+  ///
   /// Retourne :
   /// - `String` : Niveau de sévérité ('INFO', 'WARNING', 'ERROR', 'CRITICAL')
   static String getErrorSeverity(dynamic error) {
     if (error is PostgrestException) {
       final message = error.message.toLowerCase();
-      
+
       // Erreurs critiques
-      if (message.contains('permission denied') || 
-          message.contains('internal server error')) {
+      if (message.contains('permission denied') || message.contains('internal server error')) {
         return 'CRITICAL';
       }
-      
+
       // Erreurs d'erreur
-      if (message.contains('foreign key') || 
+      if (message.contains('foreign key') ||
           message.contains('check constraint') ||
           message.contains('validation')) {
         return 'ERROR';
       }
-      
+
       // Erreurs d'avertissement
-      if (message.contains('timeout') || 
-          message.contains('network')) {
+      if (message.contains('timeout') || message.contains('network')) {
         return 'WARNING';
       }
     }
-    
+
     return 'ERROR';
   }
 }
+
+
+
+

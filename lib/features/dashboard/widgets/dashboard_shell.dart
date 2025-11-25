@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ml_pp_mvp/shared/dev/hot_reload_hooks.dart';
 import 'package:ml_pp_mvp/core/models/user_role.dart';
 import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart';
 import 'package:ml_pp_mvp/shared/providers/auth_service_provider.dart';
@@ -14,7 +15,7 @@ import 'package:ml_pp_mvp/features/kpi/providers/kpi_providers.dart';
 /// Titre dynamique basé sur la route courante
 class _DashboardTitle extends ConsumerWidget {
   const _DashboardTitle();
-  
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final role = ref.watch(userRoleProvider);
@@ -28,15 +29,15 @@ class _DashboardTitle extends ConsumerWidget {
 class _RoleDepotChips extends StatelessWidget {
   final UserRole role;
   final String depotName;
-  
+
   const _RoleDepotChips({required this.role, required this.depotName});
-  
+
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
         Chip(
-          label: Text(role.value),
+          label: Text(role.wire),
           backgroundColor: Theme.of(context).colorScheme.primaryContainer,
         ),
         const SizedBox(width: 8),
@@ -59,37 +60,37 @@ class DashboardShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final role = ref.watch(userRoleProvider);
-    final profil = ref.watch(profilProvider).maybeWhen(
-      data: (p) => p,
-      orElse: () => null,
-    );
-    
+    final profil = ref
+        .watch(profilProvider)
+        .maybeWhen(data: (p) => p, orElse: () => null);
+
     // Warmup des référentiels
     ref.watch(refDataProvider);
-    
+
     // Safe role pour l'UI (fallback vers lecture si null)
     final safeRole = role ?? UserRole.lecture;
-    
+
     final depotNameAsync = ref.watch(currentDepotNameProvider);
     final depotLabel = depotNameAsync.when(
-      data: (name) => name ?? '—',
-      loading: () => '…',
-      error: (_, __) => '—',
+      data: (name) => name ?? '',
+      loading: () => '',
+      error: (_, __) => '',
     );
     final items = NavConfig.getItemsForRole(role);
-    
+
     // Sélection active depuis la route
     final location = GoRouterState.of(context).uri.toString();
     final selectedIndex = _selectedIndexFor(location, items, role);
 
     return LayoutBuilder(
-      builder: (context, constraints) {
+      builder: (BuildContext context, BoxConstraints constraints) {
         final isWide = constraints.maxWidth >= 1000;
 
         // NavigationRail pour desktop
         final rail = NavigationRail(
           selectedIndex: selectedIndex,
-          onDestinationSelected: (i) => context.go(effectivePath(items[i], role)),
+          onDestinationSelected: (i) =>
+              context.go(effectivePath(items[i], role)),
           extended: isWide,
           destinations: [
             for (final item in items)
@@ -104,13 +105,11 @@ class DashboardShell extends ConsumerWidget {
         // BottomNavigationBar pour mobile
         final bottom = NavigationBar(
           selectedIndex: selectedIndex,
-          onDestinationSelected: (i) => context.go(effectivePath(items[i], role)),
+          onDestinationSelected: (i) =>
+              context.go(effectivePath(items[i], role)),
           destinations: [
             for (final item in items)
-              NavigationDestination(
-                icon: Icon(item.icon),
-                label: item.title,
-              ),
+              NavigationDestination(icon: Icon(item.icon), label: item.title),
           ],
         );
 
@@ -131,7 +130,7 @@ class DashboardShell extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Rôle: ${safeRole.value}',
+                      'Rôle: ${safeRole.wire}',
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ],
@@ -174,9 +173,9 @@ class DashboardShell extends ConsumerWidget {
                   await ref.read(authServiceProvider).signOut();
                   if (context.mounted) {
                     context.go('/login');
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Déconnecté')),
-                    );
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(const SnackBar(content: Text('Déconnecté')));
                   }
                 },
                 icon: const Icon(Icons.logout),
@@ -200,17 +199,8 @@ class DashboardShell extends ConsumerWidget {
         );
 
         if (kDebugMode) {
-          return HotReloadInvalidator(
+          return SizedBox.shrink(
             child: shell,
-            providersToInvalidate: [
-              currentProfilProvider,
-              userRoleProvider,
-              kpiProviderProvider,
-              stocksTotalsProvider,
-              receptionsKpiProvider,
-              sortiesKpiProvider,
-              camionsASuivreProvider,
-            ],
           );
         }
         return shell;
@@ -227,3 +217,4 @@ int _selectedIndexFor(String location, List<NavItem> items, UserRole? role) {
   }
   return 0;
 }
+

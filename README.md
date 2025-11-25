@@ -1,5 +1,7 @@
 # 🚀 Projet : ML_PP MVP
 
+[![Flutter CI](https://github.com/valery-kalonga/ml_pp_mvp/actions/workflows/flutter-ci.yml/badge.svg)](https://github.com/valery-kalonga/ml_pp_mvp/actions/workflows/flutter-ci.yml)
+
 **Objectif** : Application de gestion logistique pétrolière pour Monaluxe  
 **Stack technique** : Flutter + Supabase + Riverpod + GoRouter + Clean Architecture
 

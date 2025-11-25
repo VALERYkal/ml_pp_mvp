@@ -1,10 +1,10 @@
-// 📌 Module : Cours de Route - Utils
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-01-27
-// 🧭 Description : Constantes pour le module cours de route
+// ?? Module : Cours de Route - Utils
+// ?? Auteur : Valery Kalonga
+// ?? Date : 2025-01-27
+// ?? Description : Constantes pour le module cours de route
 
 /// Constantes pour le module cours de route
-/// 
+///
 /// Contient :
 /// - UUIDs des produits ESS/AGO
 /// - Liste des pays pour l'autocomplete
@@ -16,8 +16,16 @@ class CoursRouteConstants {
 
   // Liste des pays pour l'autocomplete
   static const List<String> paysSuggestions = [
-    'RD Congo', 'Rwanda', 'Zambie', 'Tanzanie', 'Angola', 
-    'Namibie', 'Afrique du Sud', 'Kenya', 'Ouganda', 'Burundi',
+    'RD Congo',
+    'Rwanda',
+    'Zambie',
+    'Tanzanie',
+    'Angola',
+    'Namibie',
+    'Afrique du Sud',
+    'Kenya',
+    'Ouganda',
+    'Burundi',
   ];
 
   // Statut initial pour les nouveaux cours
@@ -29,9 +37,10 @@ class CoursRouteConstants {
   // Couleurs pour les badges de statut (usage futur)
   static const Map<String, int> statutColors = {
     'chargement': 0xFF2196F3, // Bleu
-    'transit': 0xFFFF9800,     // Orange
-    'frontiere': 0xFF9C27B0,   // Violet
-    'arrive': 0xFF4CAF50,      // Vert
-    'decharge': 0xFF607D8B,    // Gris
+    'transit': 0xFFFF9800, // Orange
+    'frontiere': 0xFF9C27B0, // Violet
+    'arrive': 0xFF4CAF50, // Vert
+    'decharge': 0xFF607D8B, // Gris
   };
 }
+

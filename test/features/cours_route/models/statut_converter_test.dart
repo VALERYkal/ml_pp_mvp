@@ -3,13 +3,13 @@ import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 
 void main() {
   group('StatutCoursConverter', () {
-    test('fromDb accepte variantes accentuées et non accentuées', () {
+    test('fromDb accepte variantes accentuÃ©es et non accentuÃ©es', () {
       expect(StatutCoursConverter.fromDb('frontiere'), StatutCours.frontiere);
-      expect(StatutCoursConverter.fromDb('frontière'), StatutCours.frontiere);
+      expect(StatutCoursConverter.fromDb('frontiÃ¨re'), StatutCours.frontiere);
       expect(StatutCoursConverter.fromDb('arrive'), StatutCours.arrive);
-      expect(StatutCoursConverter.fromDb('arrivé'), StatutCours.arrive);
+      expect(StatutCoursConverter.fromDb('arrivÃ©'), StatutCours.arrive);
       expect(StatutCoursConverter.fromDb('decharge'), StatutCours.decharge);
-      expect(StatutCoursConverter.fromDb('déchargé'), StatutCours.decharge);
+      expect(StatutCoursConverter.fromDb('dÃ©chargÃ©'), StatutCours.decharge);
     });
 
     test('toDb retourne les formes majuscules sans accents', () {
@@ -21,5 +21,4 @@ void main() {
     });
   });
 }
-
 

@@ -1,8 +1,8 @@
-// 📌 Module : Cours de Route - Tests d'Intégration
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-01-27
-// 🧭 Description : Tests d'intégration pour le module CDR
-
+@Tags(['integration'])
+// ð Module : Cours de Route - Tests d'IntÃ©gration
+// ð§ Auteur : Valery Kalonga
+// ð Date : 2025-01-27
+// ð§­ Description : Tests d'intÃ©gration pour le module CDR
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,6 +13,7 @@ import 'package:ml_pp_mvp/features/cours_route/providers/cours_route_providers.d
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_filters_provider.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 import 'package:ml_pp_mvp/shared/providers/ref_data_provider.dart';
+import 'package:ml_pp_mvp/test_map_extensions.dart';
 
 void main() {
   group('Cours de Route Integration Tests', () {
@@ -33,39 +34,27 @@ void main() {
           ProviderScope(
             parent: container,
             overrides: [
-              refDataProvider.overrideWith((ref) async => RefDataCache(
-                fournisseurs: {
-                  'f1': 'Total',
-                  'f2': 'Shell',
-                },
-                produits: {
-                  'p1': 'Essence',
-                  'p2': 'Gasoil / AGO',
-                },
-                produitCodes: {
-                  'p1': 'ESS',
-                  'p2': 'AGO',
-                },
-                depots: {
-                  'd1': 'Dépôt Kinshasa',
-                  'd2': 'Dépôt Lubumbashi',
-                },
-                loadedAt: DateTime.now(),
-              )),
+              refDataProvider.overrideWith(
+                (ref) async => RefDataCache(
+                  fournisseurs: {'f1': 'Total', 'f2': 'Shell'},
+                  produits: {'p1': 'Essence', 'p2': 'Gasoil / AGO'},
+                  produitCodes: {'p1': 'ESS', 'p2': 'AGO'},
+                  depots: {'d1': 'DÃ©pÃ´t Kinshasa', 'd2': 'DÃ©pÃ´t Lubumbashi'},
+                  loadedAt: DateTime.now(),
+                ),
+              ),
             ],
-            child: const MaterialApp(
-              home: CoursRouteListScreen(),
-            ),
+            child: const MaterialApp(home: CoursRouteListScreen()),
           ),
         );
 
         await tester.pumpAndSettle();
 
-        // Act - Naviguer vers le formulaire de création
+        // Act - Naviguer vers le formulaire de crÃ©ation
         await tester.tap(find.text('Nouveau cours'));
         await tester.pumpAndSettle();
 
-        // Vérifier qu'on est sur le formulaire
+        // VÃ©rifier qu'on est sur le formulaire
         expect(find.text('Nouveau cours'), findsOneWidget);
 
         // Remplir le formulaire
@@ -79,9 +68,9 @@ void main() {
         await tester.tap(find.text('Essence'));
         await tester.pump();
 
-        await tester.tap(find.text('Dépôt Kinshasa'));
+        await tester.tap(find.text('DÃ©pÃ´t Kinshasa'));
         await tester.pump();
-        await tester.tap(find.text('Dépôt Kinshasa'));
+        await tester.tap(find.text('DÃ©pÃ´t Kinshasa'));
         await tester.pump();
 
         await tester.enterText(find.byKey(const Key('pays_field')), 'RDC');
@@ -89,7 +78,7 @@ void main() {
         await tester.enterText(find.byKey(const Key('chauffeur_field')), 'Jean Dupont');
         await tester.enterText(find.byKey(const Key('volume_field')), '50000');
 
-        // Sélectionner une date valide
+        // SÃ©lectionner une date valide
         await tester.tap(find.text('Date de chargement *'));
         await tester.pump();
         await tester.tap(find.text('OK'));
@@ -99,16 +88,16 @@ void main() {
         await tester.tap(find.text('Enregistrer'));
         await tester.pumpAndSettle();
 
-        // Assert - Vérifier le message de succès et la navigation
-        expect(find.text('Cours créé avec succès'), findsOneWidget);
-        
-        // Vérifier qu'on retourne à la liste
+        // Assert - VÃ©rifier le message de succÃ¨s et la navigation
+        expect(find.text('Cours crÃ©Ã© avec succÃ¨s'), findsOneWidget);
+
+        // VÃ©rifier qu'on retourne Ã  la liste
         await tester.pumpAndSettle();
         expect(find.text('Cours de Route'), findsOneWidget);
       });
 
       testWidgets('should filter ARRIVE cours for reception', (WidgetTester tester) async {
-        // Arrange - Créer des cours avec différents statuts
+        // Arrange - CrÃ©er des cours avec diffÃ©rents statuts
         final coursChargement = CoursDeRoute(
           id: 'id1',
           fournisseurId: 'f1',
@@ -125,7 +114,7 @@ void main() {
           statut: StatutCours.arrive,
         );
 
-        // Act - Vérifier que seuls les cours ARRIVE sont disponibles pour réception
+        // Act - VÃ©rifier que seuls les cours ARRIVE sont disponibles pour rÃ©ception
         final arriveCours = [coursArrive];
         final allCours = [coursChargement, coursArrive];
 
@@ -148,16 +137,16 @@ void main() {
 
         // Act & Assert - Tester toutes les transitions
         expect(CoursDeRouteUtils.getStatutSuivant(cours), StatutCours.transit);
-        
+
         final coursTransit = cours.copyWith(statut: StatutCours.transit);
         expect(CoursDeRouteUtils.getStatutSuivant(coursTransit), StatutCours.frontiere);
-        
+
         final coursFrontiere = cours.copyWith(statut: StatutCours.frontiere);
         expect(CoursDeRouteUtils.getStatutSuivant(coursFrontiere), StatutCours.arrive);
-        
+
         final coursArrive = cours.copyWith(statut: StatutCours.arrive);
         expect(CoursDeRouteUtils.getStatutSuivant(coursArrive), StatutCours.decharge);
-        
+
         final coursDecharge = cours.copyWith(statut: StatutCours.decharge);
         expect(CoursDeRouteUtils.getStatutSuivant(coursDecharge), null);
       });
@@ -186,7 +175,9 @@ void main() {
 
         // Act
         const filters = CoursFilters(fournisseurId: 'f1');
-        final filteredCours = allCours.where((c) => c.fournisseurId == filters.fournisseurId).toList();
+        final filteredCours = allCours
+            .where((c) => c.fournisseurId == filters.fournisseurId)
+            .toList();
 
         // Assert
         expect(filteredCours.length, 1);
@@ -265,17 +256,12 @@ void main() {
         final allCours = [cours1, cours2, cours3];
 
         // Act - Filtrer par fournisseur f1 et volume 20000-50000L
-        const filters = CoursFilters(
-          fournisseurId: 'f1',
-          volumeMin: 20000,
-          volumeMax: 50000,
-        );
+        const filters = CoursFilters(fournisseurId: 'f1', volumeMin: 20000, volumeMax: 50000);
 
         final filteredCours = allCours.where((c) {
           final okFournisseur = c.fournisseurId == filters.fournisseurId;
-          final okVolume = c.volume != null && 
-                          c.volume! >= filters.volumeMin && 
-                          c.volume! <= filters.volumeMax;
+          final okVolume =
+              c.volume != null && c.volume! >= filters.volumeMin && c.volume! <= filters.volumeMax;
           return okFournisseur && okVolume;
         }).toList();
 
@@ -288,7 +274,9 @@ void main() {
     });
 
     group('CDR Data Consistency', () {
-      testWidgets('should maintain data consistency across operations', (WidgetTester tester) async {
+      testWidgets('should maintain data consistency across operations', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final cours = CoursDeRoute(
           id: 'test-id',
@@ -302,11 +290,11 @@ void main() {
           statut: StatutCours.chargement,
         );
 
-        // Act - Sérialiser et désérialiser
+        // Act - SÃ©rialiser et dÃ©sÃ©rialiser
         final map = cours.toMap();
         final deserializedCours = CoursDeRoute.fromMap(map);
 
-        // Assert - Vérifier la cohérence des données
+        // Assert - VÃ©rifier la cohÃ©rence des donnÃ©es
         expect(deserializedCours.id, cours.id);
         expect(deserializedCours.fournisseurId, cours.fournisseurId);
         expect(deserializedCours.produitId, cours.produitId);
@@ -319,14 +307,14 @@ void main() {
       });
 
       testWidgets('should handle legacy field names correctly', (WidgetTester tester) async {
-        // Arrange - Données avec noms de champs legacy
+        // Arrange - DonnÃ©es avec noms de champs legacy
         final legacyData = {
           'id': 'test-id',
           'fournisseur_id': 'f1',
           'produit_id': 'p1',
           'depot_destination_id': 'd1',
           'chauffeur_nom': 'Jean Dupont', // Legacy field
-          'depart_pays': 'RDC',           // Legacy field
+          'depart_pays': 'RDC', // Legacy field
           'statut': 'CHARGEMENT',
         };
 
@@ -361,13 +349,13 @@ void main() {
           statut: StatutCours.transit,
         );
 
-        // Act - Vérifier qu'il ne peut y avoir qu'un seul cours "ouvert" par plaque
+        // Act - VÃ©rifier qu'il ne peut y avoir qu'un seul cours "ouvert" par plaque
         final activeCours = [cours1, cours2];
         final openCours = activeCours.where((c) => c.statut != StatutCours.decharge).toList();
 
-        // Assert - Il devrait y avoir une règle métier pour empêcher cela
+        // Assert - Il devrait y avoir une rÃ¨gle mÃ©tier pour empÃªcher cela
         expect(openCours.length, 2);
-        // Dans un vrai système, on vérifierait qu'il n'y a qu'un seul cours ouvert par plaque
+        // Dans un vrai systÃ¨me, on vÃ©rifierait qu'il n'y a qu'un seul cours ouvert par plaque
       });
 
       testWidgets('should validate volume constraints', (WidgetTester tester) async {
@@ -391,11 +379,12 @@ void main() {
         // Act & Assert
         expect(validCours.volume, 50000);
         expect(invalidCours.volume, -100);
-        
-        // Dans un vrai système, on validerait que le volume est positif
+
+        // Dans un vrai systÃ¨me, on validerait que le volume est positif
         expect(validCours.volume! > 0, true);
         expect(invalidCours.volume! > 0, false);
       });
     });
   });
 }
+

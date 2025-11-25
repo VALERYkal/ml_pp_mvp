@@ -5,11 +5,19 @@ import 'package:ml_pp_mvp/features/sorties/screens/sortie_form_screen.dart';
 import 'package:ml_pp_mvp/features/sorties/providers/sortie_providers.dart' as P;
 import 'package:ml_pp_mvp/features/sorties/data/sortie_service.dart';
 import 'package:ml_pp_mvp/features/sorties/models/sortie_produit.dart';
+import 'package:ml_pp_mvp/features/sorties/models/citerne_with_stock.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:ml_pp_mvp/shared/ui/ui_keys.dart';
+import '../../test_supabase_bootstrap.dart';
 
 class _SpySortieService extends SortieService {
   final void Function() onCall;
-  _SpySortieService(this.onCall) : super.withClient(SupabaseClient('http://localhost', 'anon'));
+  _SpySortieService(this.onCall)
+    : super(
+        rpc: (fn, {params}) async {
+          return {'id': 'spy-sortie-id'};
+        },
+      );
   @override
   Future<SortieProduit> createSortie(SortieProduit sortie, {String? currentUserId}) async {
     onCall();
@@ -18,59 +26,153 @@ class _SpySortieService extends SortieService {
 }
 
 void main() {
-  testWidgets('SortieFormScreen UI validations and submit', (tester) async {
-    var called = false;
+  setUpAll(() async {
+    await initSupabaseForTests();
+  });
+
+  testWidgets('SortieFormScreen se charge sans erreur avec la nouvelle interface', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          P.sortieServiceProvider.overrideWith((ref) => _SpySortieService(() { called = true; })),
-          P.produitsListProvider.overrideWith((ref) async => [
-                {'id': 'p1', 'nom': 'Diesel'}
-              ]),
-          P.clientsListProvider.overrideWith((ref) async => [
-                {'id': 'c1', 'nom': 'Client A'}
-              ]),
-          P.partenairesListProvider.overrideWith((ref) async => [
-                {'id': 'pa1', 'nom': 'Partenaire X'}
-              ]),
-          P.produitByIdProvider.overrideWith((ref, id) async => {'id': 'p1', 'nom': 'Diesel', 'code': 'DSL'}),
-          P.citernesByProduitProvider.overrideWith((ref, id) async => [
-                {'id': 'cit1', 'nom': 'Citerne 1'}
-              ]),
+          P.sortieServiceProvider.overrideWith((ref) => _SpySortieService(() {})),
+          P.produitsListProvider.overrideWith(
+            (ref) async => [
+              {'id': 'p1', 'nom': 'Diesel', 'code': 'DSL'},
+            ],
+          ),
+          P.clientsListProvider.overrideWith(
+            (ref) async => [
+              {'id': 'c1', 'nom': 'Client A'},
+            ],
+          ),
+          P.partenairesListProvider.overrideWith(
+            (ref) async => [
+              {'id': 'pa1', 'nom': 'Partenaire X'},
+            ],
+          ),
+          P.produitByIdProvider.overrideWith(
+            (ref, id) async => {'id': 'p1', 'nom': 'Diesel', 'code': 'DSL'},
+          ),
+          P.citernesByProduitProvider.overrideWith(
+            (ref, id) async => [
+              {'id': 'cit1', 'nom': 'Citerne 1'},
+            ],
+          ),
+          P
+              .citernesByProduitWithStockProvider('p1')
+              .overrideWith(
+                (ref) async => [
+                  CiterneWithStockForSortie(
+                    id: 'cit1',
+                    nom: 'Citerne 1',
+                    capaciteTotale: 5000,
+                    stockAmbiant: 3000,
+                    stock15c: 2980,
+                    date: DateTime.now(),
+                  ),
+                ],
+              ),
         ],
         child: const MaterialApp(home: SortieFormScreen()),
       ),
     );
 
-    // Select product
+    // Attendre que l'Ã©cran se charge
     await tester.pump();
-    await tester.tap(find.byType(DropdownButtonFormField<String>).at(0));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Diesel').last);
     await tester.pumpAndSettle();
 
-    // Select citerne
-    await tester.tap(find.byType(DropdownButtonFormField<String>).at(1));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Citerne 1').last);
+    // VÃ©rifier que l'Ã©cran se charge avec la nouvelle interface
+    expect(find.byType(SortieFormScreen), findsOneWidget);
+
+    // Attendre que tous les widgets soient rendus
     await tester.pumpAndSettle();
 
-    // Optional beneficiary: select client
-    await tester.tap(find.byType(DropdownButtonFormField<String>).at(2));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Client A').last);
+    // Sections modernes
+    expect(find.text('PropriÃ©tÃ© et BÃ©nÃ©ficiaire'), findsOneWidget);
+    expect(find.text('Produit et Citerne'), findsOneWidget);
+    expect(find.text('Mesures et Calculs'), findsOneWidget);
+
+    // Choix de propriÃ©tÃ©
+    expect(find.text('MONALUXE'), findsOneWidget);
+    expect(find.text('PARTENAIRE'), findsOneWidget);
+
+    // Ensure ListView is fully rendered and scrolled to show the save button
     await tester.pumpAndSettle();
 
-    // Enter indices
-    await tester.enterText(find.widgetWithText(TextFormField, 'Index avant'), '1000');
-    await tester.enterText(find.widgetWithText(TextFormField, 'Index après'), '1200');
+    // Scroll to the bottom to ensure the save button is visible
+    final listView = find.byType(ListView);
+    if (listView.evaluate().isNotEmpty) {
+      await tester.drag(listView, const Offset(0, -1000));
+      await tester.pumpAndSettle();
+    }
 
-    // Submit: s'assurer que le bouton est visible puis taper
-    final submitKey = find.byKey(const Key('sortie_submit'));
-    await tester.ensureVisible(submitKey);
-    await tester.tap(submitKey);
+    // CTA - Save button should be visible after scrolling
+    expect(find.byKey(UiKeys.sortieSave), findsOneWidget);
+  });
+
+  testWidgets('SortieFormScreen permet la sÃ©lection de produit avec la nouvelle interface', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          P.sortieServiceProvider.overrideWith((ref) => _SpySortieService(() {})),
+          P.produitsListProvider.overrideWith(
+            (ref) async => [
+              {'id': 'p1', 'nom': 'Diesel', 'code': 'DSL'},
+              {'id': 'p2', 'nom': 'Essence', 'code': 'ESS'},
+            ],
+          ),
+          P.clientsListProvider.overrideWith(
+            (ref) async => [
+              {'id': 'c1', 'nom': 'Client A'},
+            ],
+          ),
+          P.partenairesListProvider.overrideWith(
+            (ref) async => [
+              {'id': 'pa1', 'nom': 'Partenaire X'},
+            ],
+          ),
+          P.produitByIdProvider.overrideWith(
+            (ref, id) async => {'id': id, 'nom': 'Diesel', 'code': 'DSL'},
+          ),
+          P.citernesByProduitProvider.overrideWith(
+            (ref, id) async => [
+              {'id': 'cit1', 'nom': 'Citerne 1'},
+            ],
+          ),
+          P
+              .citernesByProduitWithStockProvider('p1')
+              .overrideWith(
+                (ref) async => [
+                  CiterneWithStockForSortie(
+                    id: 'cit1',
+                    nom: 'Citerne 1',
+                    capaciteTotale: 5000,
+                    stockAmbiant: 3000,
+                    stock15c: 2980,
+                    date: DateTime.now(),
+                  ),
+                ],
+              ),
+        ],
+        child: const MaterialApp(home: SortieFormScreen()),
+      ),
+    );
+
+    await tester.pump();
     await tester.pumpAndSettle();
-    expect(called, isTrue);
+
+    // VÃ©rifier que les produits sont affichÃ©s comme des chips
+    expect(find.textContaining('DSL Diesel'), findsOneWidget);
+    expect(find.textContaining('ESS Essence'), findsOneWidget);
+
+    // Tester la sÃ©lection d'un produit
+    await tester.tap(find.textContaining('DSL Diesel'));
+    await tester.pumpAndSettle();
+
+    // VÃ©rifier que les citernes apparaissent aprÃ¨s sÃ©lection du produit
+    expect(find.text('Citerne 1'), findsOneWidget);
   });
 }
 

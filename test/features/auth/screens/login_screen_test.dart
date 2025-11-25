@@ -1,7 +1,7 @@
-// 📌 Module : Auth Tests - LoginScreen Widget Tests
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-01-27
-// 🧭 Description : Tests widget pour LoginScreen (≥90% coverage)
+// ð Module : Auth Tests - LoginScreen Widget Tests
+// ð§ Auteur : Valery Kalonga
+// ð Date : 2025-01-27
+// ð§­ Description : Tests widget pour LoginScreen (â¥90% coverage)
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -15,17 +15,15 @@ import 'package:ml_pp_mvp/shared/providers/auth_service_provider.dart';
 
 import '../mocks.mocks.dart';
 
-@GenerateMocks([AuthService, User])
+// Mock User simple pour les tests
+class MockUser extends Mock implements User {}
+
 void main() {
   group('LoginScreen Widget Tests', () {
     late MockAuthService mockAuthService;
-    late MockUser mockUser;
 
     setUp(() {
       mockAuthService = MockAuthService();
-      mockUser = MockUser();
-      when(mockUser.id).thenReturn('test-user-id');
-      when(mockUser.email).thenReturn('test@example.com');
     });
 
     Widget createTestWidget() {
@@ -34,9 +32,7 @@ void main() {
           // Override the auth service provider with our mock
           authServiceProvider.overrideWithValue(mockAuthService),
         ],
-        child: const MaterialApp(
-          home: LoginScreen(),
-        ),
+        child: const MaterialApp(home: LoginScreen()),
       );
     }
 
@@ -48,12 +44,15 @@ void main() {
         // Assert
         expect(find.text('Connexion ML_PP MVP'), findsOneWidget);
         expect(find.text('Bienvenue'), findsOneWidget);
-        expect(find.text('Connectez-vous à votre compte'), findsOneWidget);
+        expect(find.text('Connectez-vous Ã  votre compte'), findsOneWidget);
         expect(find.byKey(const Key('email')), findsOneWidget);
         expect(find.byKey(const Key('password')), findsOneWidget);
         expect(find.byKey(const Key('login_button')), findsOneWidget);
         expect(find.text('Se connecter'), findsOneWidget);
-        expect(find.text('Utilisez vos identifiants fournis par votre administrateur'), findsOneWidget);
+        expect(
+          find.text('Utilisez vos identifiants fournis par votre administrateur'),
+          findsOneWidget,
+        );
       });
 
       testWidgets('should display logo image', (WidgetTester tester) async {
@@ -103,7 +102,9 @@ void main() {
         verifyNever(mockAuthService.signIn(any, any));
       });
 
-      testWidgets('should show validation error for invalid email format', (WidgetTester tester) async {
+      testWidgets('should show validation error for invalid email format', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         await tester.pumpWidget(createTestWidget());
 
@@ -136,7 +137,9 @@ void main() {
     });
 
     group('Password Visibility Toggle', () {
-      testWidgets('should toggle password visibility when eye icon is tapped', (WidgetTester tester) async {
+      testWidgets('should toggle password visibility when eye icon is tapped', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         await tester.pumpWidget(createTestWidget());
 
@@ -151,7 +154,9 @@ void main() {
         expect(find.byIcon(Icons.visibility_off_rounded), findsOneWidget);
       });
 
-      testWidgets('should toggle back to obscured when eye icon is tapped again', (WidgetTester tester) async {
+      testWidgets('should toggle back to obscured when eye icon is tapped again', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         await tester.pumpWidget(createTestWidget());
 
@@ -180,7 +185,7 @@ void main() {
 
       testWidgets('should handle login button interaction', (WidgetTester tester) async {
         // Arrange
-        when(mockAuthService.signIn(any, any)).thenAnswer((_) async => mockUser);
+        when(mockAuthService.signIn(any, any)).thenAnswer((_) async => MockUser());
 
         await tester.pumpWidget(createTestWidget());
 
@@ -191,14 +196,14 @@ void main() {
         await tester.pumpAndSettle();
 
         // Assert - Should show success message
-        expect(find.text('Connexion réussie'), findsOneWidget);
+        expect(find.text('Connexion rÃ©ussie'), findsOneWidget);
       });
     });
 
     group('Successful Login', () {
       testWidgets('should show success message on successful login', (WidgetTester tester) async {
         // Arrange
-        when(mockAuthService.signIn(any, any)).thenAnswer((_) async => mockUser);
+        when(mockAuthService.signIn(any, any)).thenAnswer((_) async => MockUser());
 
         await tester.pumpWidget(createTestWidget());
 
@@ -209,7 +214,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Assert
-        expect(find.text('Connexion réussie'), findsOneWidget);
+        expect(find.text('Connexion rÃ©ussie'), findsOneWidget);
         verify(mockAuthService.signIn('test@example.com', 'password123')).called(1);
       });
 
@@ -231,8 +236,9 @@ void main() {
     group('Error Handling', () {
       testWidgets('should show error message for invalid credentials', (WidgetTester tester) async {
         // Arrange
-        when(mockAuthService.signIn(any, any))
-            .thenThrow(const AuthException('Invalid login credentials'));
+        when(
+          mockAuthService.signIn(any, any),
+        ).thenThrow(const AuthException('Invalid login credentials'));
 
         await tester.pumpWidget(createTestWidget());
 
@@ -249,8 +255,9 @@ void main() {
 
       testWidgets('should show error message for unconfirmed email', (WidgetTester tester) async {
         // Arrange
-        when(mockAuthService.signIn(any, any))
-            .thenThrow(const AuthException('Email not confirmed'));
+        when(
+          mockAuthService.signIn(any, any),
+        ).thenThrow(const AuthException('Email not confirmed'));
 
         await tester.pumpWidget(createTestWidget());
 
@@ -261,13 +268,12 @@ void main() {
         await tester.pumpAndSettle();
 
         // Assert
-        expect(find.text('Email non confirmé'), findsOneWidget);
+        expect(find.text('Email non confirmÃ©'), findsOneWidget);
       });
 
       testWidgets('should show error message for network issues', (WidgetTester tester) async {
         // Arrange
-        when(mockAuthService.signIn(any, any))
-            .thenThrow(const AuthException('Network error'));
+        when(mockAuthService.signIn(any, any)).thenThrow(const AuthException('Network error'));
 
         await tester.pumpWidget(createTestWidget());
 
@@ -278,13 +284,12 @@ void main() {
         await tester.pumpAndSettle();
 
         // Assert
-        expect(find.text('Problème réseau'), findsOneWidget);
+        expect(find.text('ProblÃ¨me rÃ©seau'), findsOneWidget);
       });
 
       testWidgets('should show error message for too many requests', (WidgetTester tester) async {
         // Arrange
-        when(mockAuthService.signIn(any, any))
-            .thenThrow(const AuthException('Too many requests'));
+        when(mockAuthService.signIn(any, any)).thenThrow(const AuthException('Too many requests'));
 
         await tester.pumpWidget(createTestWidget());
 
@@ -295,13 +300,14 @@ void main() {
         await tester.pumpAndSettle();
 
         // Assert
-        expect(find.text('Trop de tentatives. Réessayez plus tard.'), findsOneWidget);
+        expect(find.text('Trop de tentatives. RÃ©essayez plus tard.'), findsOneWidget);
       });
 
-      testWidgets('should show generic error message for unknown AuthException', (WidgetTester tester) async {
+      testWidgets('should show generic error message for unknown AuthException', (
+        WidgetTester tester,
+      ) async {
         // Arrange
-        when(mockAuthService.signIn(any, any))
-            .thenThrow(const AuthException('Unknown error'));
+        when(mockAuthService.signIn(any, any)).thenThrow(const AuthException('Unknown error'));
 
         await tester.pumpWidget(createTestWidget());
 
@@ -317,13 +323,14 @@ void main() {
 
       testWidgets('should show error message for PostgrestException', (WidgetTester tester) async {
         // Arrange
-        when(mockAuthService.signIn(any, any))
-            .thenThrow(const PostgrestException(
-              message: 'Permission denied',
-              details: 'RLS policy violation',
-              hint: 'Check user permissions',
-              code: 'RLS_ERROR',
-            ));
+        when(mockAuthService.signIn(any, any)).thenThrow(
+          const PostgrestException(
+            message: 'Permission denied',
+            details: 'RLS policy violation',
+            hint: 'Check user permissions',
+            code: 'RLS_ERROR',
+          ),
+        );
 
         await tester.pumpWidget(createTestWidget());
 
@@ -334,13 +341,15 @@ void main() {
         await tester.pumpAndSettle();
 
         // Assert
-        expect(find.text('Accès au profil refusé (policies RLS). Contactez l\'administrateur.'), findsOneWidget);
+        expect(
+          find.text('AccÃ¨s au profil refusÃ© (policies RLS). Contactez l\'administrateur.'),
+          findsOneWidget,
+        );
       });
 
       testWidgets('should show error message for generic exceptions', (WidgetTester tester) async {
         // Arrange
-        when(mockAuthService.signIn(any, any))
-            .thenThrow(Exception('Unexpected error'));
+        when(mockAuthService.signIn(any, any)).thenThrow(Exception('Unexpected error'));
 
         await tester.pumpWidget(createTestWidget());
 
@@ -351,14 +360,16 @@ void main() {
         await tester.pumpAndSettle();
 
         // Assert
-        expect(find.text('Erreur inattendue. Réessaie.'), findsOneWidget);
+        expect(find.text('Erreur inattendue. RÃ©essaie.'), findsOneWidget);
       });
     });
 
     group('Keyboard Navigation', () {
-      testWidgets('should submit form when Enter is pressed on password field', (WidgetTester tester) async {
+      testWidgets('should submit form when Enter is pressed on password field', (
+        WidgetTester tester,
+      ) async {
         // Arrange
-        when(mockAuthService.signIn(any, any)).thenAnswer((_) async => mockUser);
+        when(mockAuthService.signIn(any, any)).thenAnswer((_) async => MockUser());
 
         await tester.pumpWidget(createTestWidget());
 
@@ -372,7 +383,9 @@ void main() {
         verify(mockAuthService.signIn('test@example.com', 'password123')).called(1);
       });
 
-      testWidgets('should have proper form structure for keyboard navigation', (WidgetTester tester) async {
+      testWidgets('should have proper form structure for keyboard navigation', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         await tester.pumpWidget(createTestWidget());
 
@@ -394,7 +407,9 @@ void main() {
         expect(find.byKey(const Key('login_button')), findsOneWidget);
       });
 
-      testWidgets('should have proper form structure for accessibility', (WidgetTester tester) async {
+      testWidgets('should have proper form structure for accessibility', (
+        WidgetTester tester,
+      ) async {
         // Arrange & Act
         await tester.pumpWidget(createTestWidget());
 
@@ -406,3 +421,4 @@ void main() {
     });
   });
 }
+

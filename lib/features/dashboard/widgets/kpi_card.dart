@@ -27,11 +27,11 @@ class KpiCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final foreground = warning 
-        ? theme.colorScheme.error 
+    final foreground = warning
+        ? theme.colorScheme.error
         : color ?? theme.colorScheme.primary;
     final formatted = unit == null
-        ? VolumeFormatter.formatVolumeCompact(value) // 12 345 → 12.3k
+        ? VolumeFormatter.formatVolumeCompact(value) // 12 345 ? 12.3k
         : '${VolumeFormatter.formatVolumeCompact(value)} $unit';
 
     return Card(
@@ -47,8 +47,8 @@ class KpiCard extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                foreground.withOpacity(.08),
-                foreground.withOpacity(.02),
+                foreground.withValues(alpha: .08),
+                foreground.withValues(alpha: .02),
               ],
             ),
           ),
@@ -60,7 +60,7 @@ class KpiCard extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: foreground.withOpacity(.12),
+                  color: foreground.withValues(alpha: .12),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon, color: foreground, size: 24),
@@ -171,3 +171,4 @@ class PercentageKpiCard extends StatelessWidget {
     );
   }
 }
+

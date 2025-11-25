@@ -1,17 +1,18 @@
-// 📌 Module : Auth Tests - AuthService Unit Tests
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-01-27
-// 🧭 Description : Tests unitaires pour AuthService (≥95% coverage)
+// ð Module : Auth Tests - AuthService Unit Tests
+// ð§ Auteur : Valery Kalonga
+// ð Date : 2025-01-27
+// ð§­ Description : Tests unitaires pour AuthService (â¥95% coverage)
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:postgrest/postgrest.dart';
 import 'package:ml_pp_mvp/core/services/auth_service.dart';
 
-import 'mocks.mocks.dart';
+import '../_mocks.mocks.dart'; // Mocks Supabase générés dans test/features/_mocks.dart
 
-@GenerateMocks([SupabaseClient, GoTrueClient, AuthResponse, User, Session, AuthState])
+
 void main() {
   group('AuthService Unit Tests', () {
     late AuthService authService;
@@ -44,8 +45,9 @@ void main() {
         const email = 'test@example.com';
         const password = 'password123';
         when(mockClient.auth).thenReturn(mockAuth);
-        when(mockAuth.signInWithPassword(email: email, password: password))
-            .thenAnswer((_) async => mockResponse);
+        when(
+          mockAuth.signInWithPassword(email: email, password: password),
+        ).thenAnswer((_) async => mockResponse);
 
         // Act
         final result = await authService.signIn(email, password);
@@ -64,11 +66,13 @@ void main() {
         // Act & Assert
         expect(
           () => authService.signIn(email, password),
-          throwsA(isA<AuthException>().having(
-            (e) => e.message,
-            'message',
-            'Email et mot de passe requis',
-          )),
+          throwsA(
+            isA<AuthException>().having(
+              (e) => e.message,
+              'message',
+              'Email et mot de passe requis',
+            ),
+          ),
         );
         verifyNever(mockAuth.signInWithPassword(email: email, password: password));
       });
@@ -81,11 +85,13 @@ void main() {
         // Act & Assert
         expect(
           () => authService.signIn(email, password),
-          throwsA(isA<AuthException>().having(
-            (e) => e.message,
-            'message',
-            'Email et mot de passe requis',
-          )),
+          throwsA(
+            isA<AuthException>().having(
+              (e) => e.message,
+              'message',
+              'Email et mot de passe requis',
+            ),
+          ),
         );
         verifyNever(mockAuth.signInWithPassword(email: email, password: password));
       });
@@ -95,14 +101,17 @@ void main() {
         const email = '  test@example.com  ';
         const password = 'password123';
         when(mockClient.auth).thenReturn(mockAuth);
-        when(mockAuth.signInWithPassword(email: 'test@example.com', password: password))
-            .thenAnswer((_) async => mockResponse);
+        when(
+          mockAuth.signInWithPassword(email: 'test@example.com', password: password),
+        ).thenAnswer((_) async => mockResponse);
 
         // Act
         await authService.signIn(email, password);
 
         // Assert
-        verify(mockAuth.signInWithPassword(email: 'test@example.com', password: password)).called(1);
+        verify(
+          mockAuth.signInWithPassword(email: 'test@example.com', password: password),
+        ).called(1);
       });
 
       test('should throw AuthException when user is null in response', () async {
@@ -111,17 +120,20 @@ void main() {
         const password = 'password123';
         when(mockClient.auth).thenReturn(mockAuth);
         when(mockResponse.user).thenReturn(null);
-        when(mockAuth.signInWithPassword(email: email, password: password))
-            .thenAnswer((_) async => mockResponse);
+        when(
+          mockAuth.signInWithPassword(email: email, password: password),
+        ).thenAnswer((_) async => mockResponse);
 
         // Act & Assert
         expect(
           () => authService.signIn(email, password),
-          throwsA(isA<AuthException>().having(
-            (e) => e.message,
-            'message',
-            'Aucun utilisateur retourné après connexion',
-          )),
+          throwsA(
+            isA<AuthException>().having(
+              (e) => e.message,
+              'message',
+              'Aucun utilisateur retourné après connexion',
+            ),
+          ),
         );
       });
 
@@ -131,17 +143,16 @@ void main() {
         const password = 'wrongpassword';
         when(mockClient.auth).thenReturn(mockAuth);
         final authException = AuthException('Invalid login credentials');
-        when(mockAuth.signInWithPassword(email: email, password: password))
-            .thenThrow(authException);
+        when(
+          mockAuth.signInWithPassword(email: email, password: password),
+        ).thenThrow(authException);
 
         // Act & Assert
         expect(
           () => authService.signIn(email, password),
-          throwsA(isA<AuthException>().having(
-            (e) => e.message,
-            'message',
-            'Invalid login credentials',
-          )),
+          throwsA(
+            isA<AuthException>().having((e) => e.message, 'message', 'Invalid login credentials'),
+          ),
         );
       });
 
@@ -156,17 +167,16 @@ void main() {
           hint: 'Check your connection',
           code: 'CONNECTION_ERROR',
         );
-        when(mockAuth.signInWithPassword(email: email, password: password))
-            .thenThrow(postgrestException);
+        when(
+          mockAuth.signInWithPassword(email: email, password: password),
+        ).thenThrow(postgrestException);
 
         // Act & Assert
         expect(
           () => authService.signIn(email, password),
-          throwsA(isA<PostgrestException>().having(
-            (e) => e.message,
-            'message',
-            'Connection timeout',
-          )),
+          throwsA(
+            isA<PostgrestException>().having((e) => e.message, 'message', 'Connection timeout'),
+          ),
         );
       });
 
@@ -175,17 +185,16 @@ void main() {
         const email = 'test@example.com';
         const password = 'password123';
         when(mockClient.auth).thenReturn(mockAuth);
-        when(mockAuth.signInWithPassword(email: email, password: password))
-            .thenThrow(Exception('Network error'));
+        when(
+          mockAuth.signInWithPassword(email: email, password: password),
+        ).thenThrow(Exception('Network error'));
 
         // Act & Assert
         expect(
           () => authService.signIn(email, password),
-          throwsA(isA<Exception>().having(
-            (e) => e.toString(),
-            'toString',
-            contains('Network error'),
-          )),
+          throwsA(
+            isA<Exception>().having((e) => e.toString(), 'toString', contains('Network error')),
+          ),
         );
       });
     });
@@ -213,11 +222,7 @@ void main() {
         // Act & Assert
         expect(
           () => authService.signOut(),
-          throwsA(isA<AuthException>().having(
-            (e) => e.message,
-            'message',
-            'Sign out failed',
-          )),
+          throwsA(isA<AuthException>().having((e) => e.message, 'message', 'Sign out failed')),
         );
       });
 
@@ -229,11 +234,9 @@ void main() {
         // Act & Assert
         expect(
           () => authService.signOut(),
-          throwsA(isA<Exception>().having(
-            (e) => e.toString(),
-            'toString',
-            contains('Network error'),
-          )),
+          throwsA(
+            isA<Exception>().having((e) => e.toString(), 'toString', contains('Network error')),
+          ),
         );
       });
     });
@@ -311,3 +314,4 @@ void main() {
     });
   });
 }
+

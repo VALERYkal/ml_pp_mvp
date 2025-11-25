@@ -1,4 +1,4 @@
-// ⚠️ DÉPRÉCIÉ - Utiliser kpiProvider à la place
+// ?? DÉPRÉCIÉ - Utiliser kpiProvider à la place
 // Ce fichier sera supprimé dans la prochaine version majeure
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -52,9 +52,7 @@ final adminKpiProvider = FutureProvider<AdminKpis>((ref) async {
       .lt('date_sortie', _isoUtc(dayEnd));
 
   // 4) citernes sous seuil
-  final citernes = await supa
-      .from('citernes')
-      .select('id,capacite_securite');
+  final citernes = await supa.from('citernes').select('id,capacite_securite');
 
   final latest = await supa
       .from('v_citerne_stock_actuel')
@@ -90,3 +88,4 @@ final adminKpiProvider = FutureProvider<AdminKpis>((ref) async {
     produitsActifs: (produitsActifs as List).length,
   );
 });
+

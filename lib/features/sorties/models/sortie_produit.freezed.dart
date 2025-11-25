@@ -12,8 +12,7 @@ part of 'sortie_produit.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 SortieProduit _$SortieProduitFromJson(Map<String, dynamic> json) {
   return _SortieProduit.fromJson(json);
@@ -25,11 +24,11 @@ mixin _$SortieProduit {
   @JsonKey(name: 'citerne_id')
   String get citerneId => throw _privateConstructorUsedError;
   @JsonKey(name: 'produit_id')
-  String get produitId => throw _privateConstructorUsedError; // Bénéficiaire (au moins l'un des deux doit être fourni côté DB via CHECK)
+  String get produitId => throw _privateConstructorUsedError;
   @JsonKey(name: 'client_id')
   String? get clientId => throw _privateConstructorUsedError;
   @JsonKey(name: 'partenaire_id')
-  String? get partenaireId => throw _privateConstructorUsedError; // Mesures
+  String? get partenaireId => throw _privateConstructorUsedError;
   @JsonKey(name: 'index_avant')
   double get indexAvant => throw _privateConstructorUsedError;
   @JsonKey(name: 'index_apres')
@@ -41,11 +40,11 @@ mixin _$SortieProduit {
   @JsonKey(name: 'temperature_ambiante_c')
   double? get temperatureAmbianteC => throw _privateConstructorUsedError;
   @JsonKey(name: 'densite_a_15')
-  double? get densiteA15 => throw _privateConstructorUsedError; // Statut & propriété
+  double? get densiteA15 => throw _privateConstructorUsedError;
   @JsonKey(name: 'statut')
   String get statut => throw _privateConstructorUsedError;
   @JsonKey(name: 'proprietaire_type')
-  String get proprietaireType => throw _privateConstructorUsedError; // Logistique
+  String get proprietaireType => throw _privateConstructorUsedError;
   @JsonKey(name: 'date_sortie')
   DateTime? get dateSortie => throw _privateConstructorUsedError;
   @JsonKey(name: 'chauffeur_nom')
@@ -55,7 +54,7 @@ mixin _$SortieProduit {
   @JsonKey(name: 'plaque_remorque')
   String? get plaqueRemorque => throw _privateConstructorUsedError;
   @JsonKey(name: 'transporteur')
-  String? get transporteur => throw _privateConstructorUsedError; // Audit
+  String? get transporteur => throw _privateConstructorUsedError;
   @JsonKey(name: 'created_at')
   DateTime? get createdAt => throw _privateConstructorUsedError;
   @JsonKey(name: 'created_by')
@@ -77,34 +76,32 @@ mixin _$SortieProduit {
 /// @nodoc
 abstract class $SortieProduitCopyWith<$Res> {
   factory $SortieProduitCopyWith(
-    SortieProduit value,
-    $Res Function(SortieProduit) then,
-  ) = _$SortieProduitCopyWithImpl<$Res, SortieProduit>;
+          SortieProduit value, $Res Function(SortieProduit) then) =
+      _$SortieProduitCopyWithImpl<$Res, SortieProduit>;
   @useResult
-  $Res call({
-    String id,
-    @JsonKey(name: 'citerne_id') String citerneId,
-    @JsonKey(name: 'produit_id') String produitId,
-    @JsonKey(name: 'client_id') String? clientId,
-    @JsonKey(name: 'partenaire_id') String? partenaireId,
-    @JsonKey(name: 'index_avant') double indexAvant,
-    @JsonKey(name: 'index_apres') double indexApres,
-    @JsonKey(name: 'volume_ambiant') double? volumeAmbiant,
-    @JsonKey(name: 'volume_corrige_15c') double? volumeCorrige15c,
-    @JsonKey(name: 'temperature_ambiante_c') double? temperatureAmbianteC,
-    @JsonKey(name: 'densite_a_15') double? densiteA15,
-    @JsonKey(name: 'statut') String statut,
-    @JsonKey(name: 'proprietaire_type') String proprietaireType,
-    @JsonKey(name: 'date_sortie') DateTime? dateSortie,
-    @JsonKey(name: 'chauffeur_nom') String? chauffeurNom,
-    @JsonKey(name: 'plaque_camion') String? plaqueCamion,
-    @JsonKey(name: 'plaque_remorque') String? plaqueRemorque,
-    @JsonKey(name: 'transporteur') String? transporteur,
-    @JsonKey(name: 'created_at') DateTime? createdAt,
-    @JsonKey(name: 'created_by') String? createdBy,
-    @JsonKey(name: 'validated_by') String? validatedBy,
-    String? note,
-  });
+  $Res call(
+      {String id,
+      @JsonKey(name: 'citerne_id') String citerneId,
+      @JsonKey(name: 'produit_id') String produitId,
+      @JsonKey(name: 'client_id') String? clientId,
+      @JsonKey(name: 'partenaire_id') String? partenaireId,
+      @JsonKey(name: 'index_avant') double indexAvant,
+      @JsonKey(name: 'index_apres') double indexApres,
+      @JsonKey(name: 'volume_ambiant') double? volumeAmbiant,
+      @JsonKey(name: 'volume_corrige_15c') double? volumeCorrige15c,
+      @JsonKey(name: 'temperature_ambiante_c') double? temperatureAmbianteC,
+      @JsonKey(name: 'densite_a_15') double? densiteA15,
+      @JsonKey(name: 'statut') String statut,
+      @JsonKey(name: 'proprietaire_type') String proprietaireType,
+      @JsonKey(name: 'date_sortie') DateTime? dateSortie,
+      @JsonKey(name: 'chauffeur_nom') String? chauffeurNom,
+      @JsonKey(name: 'plaque_camion') String? plaqueCamion,
+      @JsonKey(name: 'plaque_remorque') String? plaqueRemorque,
+      @JsonKey(name: 'transporteur') String? transporteur,
+      @JsonKey(name: 'created_at') DateTime? createdAt,
+      @JsonKey(name: 'created_by') String? createdBy,
+      @JsonKey(name: 'validated_by') String? validatedBy,
+      String? note});
 }
 
 /// @nodoc
@@ -145,99 +142,96 @@ class _$SortieProduitCopyWithImpl<$Res, $Val extends SortieProduit>
     Object? validatedBy = freezed,
     Object? note = freezed,
   }) {
-    return _then(
-      _value.copyWith(
-            id: null == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                      as String,
-            citerneId: null == citerneId
-                ? _value.citerneId
-                : citerneId // ignore: cast_nullable_to_non_nullable
-                      as String,
-            produitId: null == produitId
-                ? _value.produitId
-                : produitId // ignore: cast_nullable_to_non_nullable
-                      as String,
-            clientId: freezed == clientId
-                ? _value.clientId
-                : clientId // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            partenaireId: freezed == partenaireId
-                ? _value.partenaireId
-                : partenaireId // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            indexAvant: null == indexAvant
-                ? _value.indexAvant
-                : indexAvant // ignore: cast_nullable_to_non_nullable
-                      as double,
-            indexApres: null == indexApres
-                ? _value.indexApres
-                : indexApres // ignore: cast_nullable_to_non_nullable
-                      as double,
-            volumeAmbiant: freezed == volumeAmbiant
-                ? _value.volumeAmbiant
-                : volumeAmbiant // ignore: cast_nullable_to_non_nullable
-                      as double?,
-            volumeCorrige15c: freezed == volumeCorrige15c
-                ? _value.volumeCorrige15c
-                : volumeCorrige15c // ignore: cast_nullable_to_non_nullable
-                      as double?,
-            temperatureAmbianteC: freezed == temperatureAmbianteC
-                ? _value.temperatureAmbianteC
-                : temperatureAmbianteC // ignore: cast_nullable_to_non_nullable
-                      as double?,
-            densiteA15: freezed == densiteA15
-                ? _value.densiteA15
-                : densiteA15 // ignore: cast_nullable_to_non_nullable
-                      as double?,
-            statut: null == statut
-                ? _value.statut
-                : statut // ignore: cast_nullable_to_non_nullable
-                      as String,
-            proprietaireType: null == proprietaireType
-                ? _value.proprietaireType
-                : proprietaireType // ignore: cast_nullable_to_non_nullable
-                      as String,
-            dateSortie: freezed == dateSortie
-                ? _value.dateSortie
-                : dateSortie // ignore: cast_nullable_to_non_nullable
-                      as DateTime?,
-            chauffeurNom: freezed == chauffeurNom
-                ? _value.chauffeurNom
-                : chauffeurNom // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            plaqueCamion: freezed == plaqueCamion
-                ? _value.plaqueCamion
-                : plaqueCamion // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            plaqueRemorque: freezed == plaqueRemorque
-                ? _value.plaqueRemorque
-                : plaqueRemorque // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            transporteur: freezed == transporteur
-                ? _value.transporteur
-                : transporteur // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            createdAt: freezed == createdAt
-                ? _value.createdAt
-                : createdAt // ignore: cast_nullable_to_non_nullable
-                      as DateTime?,
-            createdBy: freezed == createdBy
-                ? _value.createdBy
-                : createdBy // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            validatedBy: freezed == validatedBy
-                ? _value.validatedBy
-                : validatedBy // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            note: freezed == note
-                ? _value.note
-                : note // ignore: cast_nullable_to_non_nullable
-                      as String?,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      citerneId: null == citerneId
+          ? _value.citerneId
+          : citerneId // ignore: cast_nullable_to_non_nullable
+              as String,
+      produitId: null == produitId
+          ? _value.produitId
+          : produitId // ignore: cast_nullable_to_non_nullable
+              as String,
+      clientId: freezed == clientId
+          ? _value.clientId
+          : clientId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      partenaireId: freezed == partenaireId
+          ? _value.partenaireId
+          : partenaireId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      indexAvant: null == indexAvant
+          ? _value.indexAvant
+          : indexAvant // ignore: cast_nullable_to_non_nullable
+              as double,
+      indexApres: null == indexApres
+          ? _value.indexApres
+          : indexApres // ignore: cast_nullable_to_non_nullable
+              as double,
+      volumeAmbiant: freezed == volumeAmbiant
+          ? _value.volumeAmbiant
+          : volumeAmbiant // ignore: cast_nullable_to_non_nullable
+              as double?,
+      volumeCorrige15c: freezed == volumeCorrige15c
+          ? _value.volumeCorrige15c
+          : volumeCorrige15c // ignore: cast_nullable_to_non_nullable
+              as double?,
+      temperatureAmbianteC: freezed == temperatureAmbianteC
+          ? _value.temperatureAmbianteC
+          : temperatureAmbianteC // ignore: cast_nullable_to_non_nullable
+              as double?,
+      densiteA15: freezed == densiteA15
+          ? _value.densiteA15
+          : densiteA15 // ignore: cast_nullable_to_non_nullable
+              as double?,
+      statut: null == statut
+          ? _value.statut
+          : statut // ignore: cast_nullable_to_non_nullable
+              as String,
+      proprietaireType: null == proprietaireType
+          ? _value.proprietaireType
+          : proprietaireType // ignore: cast_nullable_to_non_nullable
+              as String,
+      dateSortie: freezed == dateSortie
+          ? _value.dateSortie
+          : dateSortie // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      chauffeurNom: freezed == chauffeurNom
+          ? _value.chauffeurNom
+          : chauffeurNom // ignore: cast_nullable_to_non_nullable
+              as String?,
+      plaqueCamion: freezed == plaqueCamion
+          ? _value.plaqueCamion
+          : plaqueCamion // ignore: cast_nullable_to_non_nullable
+              as String?,
+      plaqueRemorque: freezed == plaqueRemorque
+          ? _value.plaqueRemorque
+          : plaqueRemorque // ignore: cast_nullable_to_non_nullable
+              as String?,
+      transporteur: freezed == transporteur
+          ? _value.transporteur
+          : transporteur // ignore: cast_nullable_to_non_nullable
+              as String?,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      createdBy: freezed == createdBy
+          ? _value.createdBy
+          : createdBy // ignore: cast_nullable_to_non_nullable
+              as String?,
+      validatedBy: freezed == validatedBy
+          ? _value.validatedBy
+          : validatedBy // ignore: cast_nullable_to_non_nullable
+              as String?,
+      note: freezed == note
+          ? _value.note
+          : note // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ) as $Val);
   }
 }
 
@@ -245,35 +239,33 @@ class _$SortieProduitCopyWithImpl<$Res, $Val extends SortieProduit>
 abstract class _$$SortieProduitImplCopyWith<$Res>
     implements $SortieProduitCopyWith<$Res> {
   factory _$$SortieProduitImplCopyWith(
-    _$SortieProduitImpl value,
-    $Res Function(_$SortieProduitImpl) then,
-  ) = __$$SortieProduitImplCopyWithImpl<$Res>;
+          _$SortieProduitImpl value, $Res Function(_$SortieProduitImpl) then) =
+      __$$SortieProduitImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    String id,
-    @JsonKey(name: 'citerne_id') String citerneId,
-    @JsonKey(name: 'produit_id') String produitId,
-    @JsonKey(name: 'client_id') String? clientId,
-    @JsonKey(name: 'partenaire_id') String? partenaireId,
-    @JsonKey(name: 'index_avant') double indexAvant,
-    @JsonKey(name: 'index_apres') double indexApres,
-    @JsonKey(name: 'volume_ambiant') double? volumeAmbiant,
-    @JsonKey(name: 'volume_corrige_15c') double? volumeCorrige15c,
-    @JsonKey(name: 'temperature_ambiante_c') double? temperatureAmbianteC,
-    @JsonKey(name: 'densite_a_15') double? densiteA15,
-    @JsonKey(name: 'statut') String statut,
-    @JsonKey(name: 'proprietaire_type') String proprietaireType,
-    @JsonKey(name: 'date_sortie') DateTime? dateSortie,
-    @JsonKey(name: 'chauffeur_nom') String? chauffeurNom,
-    @JsonKey(name: 'plaque_camion') String? plaqueCamion,
-    @JsonKey(name: 'plaque_remorque') String? plaqueRemorque,
-    @JsonKey(name: 'transporteur') String? transporteur,
-    @JsonKey(name: 'created_at') DateTime? createdAt,
-    @JsonKey(name: 'created_by') String? createdBy,
-    @JsonKey(name: 'validated_by') String? validatedBy,
-    String? note,
-  });
+  $Res call(
+      {String id,
+      @JsonKey(name: 'citerne_id') String citerneId,
+      @JsonKey(name: 'produit_id') String produitId,
+      @JsonKey(name: 'client_id') String? clientId,
+      @JsonKey(name: 'partenaire_id') String? partenaireId,
+      @JsonKey(name: 'index_avant') double indexAvant,
+      @JsonKey(name: 'index_apres') double indexApres,
+      @JsonKey(name: 'volume_ambiant') double? volumeAmbiant,
+      @JsonKey(name: 'volume_corrige_15c') double? volumeCorrige15c,
+      @JsonKey(name: 'temperature_ambiante_c') double? temperatureAmbianteC,
+      @JsonKey(name: 'densite_a_15') double? densiteA15,
+      @JsonKey(name: 'statut') String statut,
+      @JsonKey(name: 'proprietaire_type') String proprietaireType,
+      @JsonKey(name: 'date_sortie') DateTime? dateSortie,
+      @JsonKey(name: 'chauffeur_nom') String? chauffeurNom,
+      @JsonKey(name: 'plaque_camion') String? plaqueCamion,
+      @JsonKey(name: 'plaque_remorque') String? plaqueRemorque,
+      @JsonKey(name: 'transporteur') String? transporteur,
+      @JsonKey(name: 'created_at') DateTime? createdAt,
+      @JsonKey(name: 'created_by') String? createdBy,
+      @JsonKey(name: 'validated_by') String? validatedBy,
+      String? note});
 }
 
 /// @nodoc
@@ -281,9 +273,8 @@ class __$$SortieProduitImplCopyWithImpl<$Res>
     extends _$SortieProduitCopyWithImpl<$Res, _$SortieProduitImpl>
     implements _$$SortieProduitImplCopyWith<$Res> {
   __$$SortieProduitImplCopyWithImpl(
-    _$SortieProduitImpl _value,
-    $Res Function(_$SortieProduitImpl) _then,
-  ) : super(_value, _then);
+      _$SortieProduitImpl _value, $Res Function(_$SortieProduitImpl) _then)
+      : super(_value, _then);
 
   /// Create a copy of SortieProduit
   /// with the given fields replaced by the non-null parameter values.
@@ -313,128 +304,125 @@ class __$$SortieProduitImplCopyWithImpl<$Res>
     Object? validatedBy = freezed,
     Object? note = freezed,
   }) {
-    return _then(
-      _$SortieProduitImpl(
-        id: null == id
-            ? _value.id
-            : id // ignore: cast_nullable_to_non_nullable
-                  as String,
-        citerneId: null == citerneId
-            ? _value.citerneId
-            : citerneId // ignore: cast_nullable_to_non_nullable
-                  as String,
-        produitId: null == produitId
-            ? _value.produitId
-            : produitId // ignore: cast_nullable_to_non_nullable
-                  as String,
-        clientId: freezed == clientId
-            ? _value.clientId
-            : clientId // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        partenaireId: freezed == partenaireId
-            ? _value.partenaireId
-            : partenaireId // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        indexAvant: null == indexAvant
-            ? _value.indexAvant
-            : indexAvant // ignore: cast_nullable_to_non_nullable
-                  as double,
-        indexApres: null == indexApres
-            ? _value.indexApres
-            : indexApres // ignore: cast_nullable_to_non_nullable
-                  as double,
-        volumeAmbiant: freezed == volumeAmbiant
-            ? _value.volumeAmbiant
-            : volumeAmbiant // ignore: cast_nullable_to_non_nullable
-                  as double?,
-        volumeCorrige15c: freezed == volumeCorrige15c
-            ? _value.volumeCorrige15c
-            : volumeCorrige15c // ignore: cast_nullable_to_non_nullable
-                  as double?,
-        temperatureAmbianteC: freezed == temperatureAmbianteC
-            ? _value.temperatureAmbianteC
-            : temperatureAmbianteC // ignore: cast_nullable_to_non_nullable
-                  as double?,
-        densiteA15: freezed == densiteA15
-            ? _value.densiteA15
-            : densiteA15 // ignore: cast_nullable_to_non_nullable
-                  as double?,
-        statut: null == statut
-            ? _value.statut
-            : statut // ignore: cast_nullable_to_non_nullable
-                  as String,
-        proprietaireType: null == proprietaireType
-            ? _value.proprietaireType
-            : proprietaireType // ignore: cast_nullable_to_non_nullable
-                  as String,
-        dateSortie: freezed == dateSortie
-            ? _value.dateSortie
-            : dateSortie // ignore: cast_nullable_to_non_nullable
-                  as DateTime?,
-        chauffeurNom: freezed == chauffeurNom
-            ? _value.chauffeurNom
-            : chauffeurNom // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        plaqueCamion: freezed == plaqueCamion
-            ? _value.plaqueCamion
-            : plaqueCamion // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        plaqueRemorque: freezed == plaqueRemorque
-            ? _value.plaqueRemorque
-            : plaqueRemorque // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        transporteur: freezed == transporteur
-            ? _value.transporteur
-            : transporteur // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        createdAt: freezed == createdAt
-            ? _value.createdAt
-            : createdAt // ignore: cast_nullable_to_non_nullable
-                  as DateTime?,
-        createdBy: freezed == createdBy
-            ? _value.createdBy
-            : createdBy // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        validatedBy: freezed == validatedBy
-            ? _value.validatedBy
-            : validatedBy // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        note: freezed == note
-            ? _value.note
-            : note // ignore: cast_nullable_to_non_nullable
-                  as String?,
-      ),
-    );
+    return _then(_$SortieProduitImpl(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      citerneId: null == citerneId
+          ? _value.citerneId
+          : citerneId // ignore: cast_nullable_to_non_nullable
+              as String,
+      produitId: null == produitId
+          ? _value.produitId
+          : produitId // ignore: cast_nullable_to_non_nullable
+              as String,
+      clientId: freezed == clientId
+          ? _value.clientId
+          : clientId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      partenaireId: freezed == partenaireId
+          ? _value.partenaireId
+          : partenaireId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      indexAvant: null == indexAvant
+          ? _value.indexAvant
+          : indexAvant // ignore: cast_nullable_to_non_nullable
+              as double,
+      indexApres: null == indexApres
+          ? _value.indexApres
+          : indexApres // ignore: cast_nullable_to_non_nullable
+              as double,
+      volumeAmbiant: freezed == volumeAmbiant
+          ? _value.volumeAmbiant
+          : volumeAmbiant // ignore: cast_nullable_to_non_nullable
+              as double?,
+      volumeCorrige15c: freezed == volumeCorrige15c
+          ? _value.volumeCorrige15c
+          : volumeCorrige15c // ignore: cast_nullable_to_non_nullable
+              as double?,
+      temperatureAmbianteC: freezed == temperatureAmbianteC
+          ? _value.temperatureAmbianteC
+          : temperatureAmbianteC // ignore: cast_nullable_to_non_nullable
+              as double?,
+      densiteA15: freezed == densiteA15
+          ? _value.densiteA15
+          : densiteA15 // ignore: cast_nullable_to_non_nullable
+              as double?,
+      statut: null == statut
+          ? _value.statut
+          : statut // ignore: cast_nullable_to_non_nullable
+              as String,
+      proprietaireType: null == proprietaireType
+          ? _value.proprietaireType
+          : proprietaireType // ignore: cast_nullable_to_non_nullable
+              as String,
+      dateSortie: freezed == dateSortie
+          ? _value.dateSortie
+          : dateSortie // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      chauffeurNom: freezed == chauffeurNom
+          ? _value.chauffeurNom
+          : chauffeurNom // ignore: cast_nullable_to_non_nullable
+              as String?,
+      plaqueCamion: freezed == plaqueCamion
+          ? _value.plaqueCamion
+          : plaqueCamion // ignore: cast_nullable_to_non_nullable
+              as String?,
+      plaqueRemorque: freezed == plaqueRemorque
+          ? _value.plaqueRemorque
+          : plaqueRemorque // ignore: cast_nullable_to_non_nullable
+              as String?,
+      transporteur: freezed == transporteur
+          ? _value.transporteur
+          : transporteur // ignore: cast_nullable_to_non_nullable
+              as String?,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      createdBy: freezed == createdBy
+          ? _value.createdBy
+          : createdBy // ignore: cast_nullable_to_non_nullable
+              as String?,
+      validatedBy: freezed == validatedBy
+          ? _value.validatedBy
+          : validatedBy // ignore: cast_nullable_to_non_nullable
+              as String?,
+      note: freezed == note
+          ? _value.note
+          : note // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$SortieProduitImpl implements _SortieProduit {
-  const _$SortieProduitImpl({
-    required this.id,
-    @JsonKey(name: 'citerne_id') required this.citerneId,
-    @JsonKey(name: 'produit_id') required this.produitId,
-    @JsonKey(name: 'client_id') this.clientId,
-    @JsonKey(name: 'partenaire_id') this.partenaireId,
-    @JsonKey(name: 'index_avant') required this.indexAvant,
-    @JsonKey(name: 'index_apres') required this.indexApres,
-    @JsonKey(name: 'volume_ambiant') this.volumeAmbiant,
-    @JsonKey(name: 'volume_corrige_15c') this.volumeCorrige15c,
-    @JsonKey(name: 'temperature_ambiante_c') this.temperatureAmbianteC,
-    @JsonKey(name: 'densite_a_15') this.densiteA15,
-    @JsonKey(name: 'statut') this.statut = 'brouillon',
-    @JsonKey(name: 'proprietaire_type') this.proprietaireType = 'MONALUXE',
-    @JsonKey(name: 'date_sortie') this.dateSortie,
-    @JsonKey(name: 'chauffeur_nom') this.chauffeurNom,
-    @JsonKey(name: 'plaque_camion') this.plaqueCamion,
-    @JsonKey(name: 'plaque_remorque') this.plaqueRemorque,
-    @JsonKey(name: 'transporteur') this.transporteur,
-    @JsonKey(name: 'created_at') this.createdAt,
-    @JsonKey(name: 'created_by') this.createdBy,
-    @JsonKey(name: 'validated_by') this.validatedBy,
-    this.note,
-  });
+  const _$SortieProduitImpl(
+      {required this.id,
+      @JsonKey(name: 'citerne_id') required this.citerneId,
+      @JsonKey(name: 'produit_id') required this.produitId,
+      @JsonKey(name: 'client_id') this.clientId,
+      @JsonKey(name: 'partenaire_id') this.partenaireId,
+      @JsonKey(name: 'index_avant') required this.indexAvant,
+      @JsonKey(name: 'index_apres') required this.indexApres,
+      @JsonKey(name: 'volume_ambiant') this.volumeAmbiant,
+      @JsonKey(name: 'volume_corrige_15c') this.volumeCorrige15c,
+      @JsonKey(name: 'temperature_ambiante_c') this.temperatureAmbianteC,
+      @JsonKey(name: 'densite_a_15') this.densiteA15,
+      @JsonKey(name: 'statut') required this.statut,
+      @JsonKey(name: 'proprietaire_type') required this.proprietaireType,
+      @JsonKey(name: 'date_sortie') this.dateSortie,
+      @JsonKey(name: 'chauffeur_nom') this.chauffeurNom,
+      @JsonKey(name: 'plaque_camion') this.plaqueCamion,
+      @JsonKey(name: 'plaque_remorque') this.plaqueRemorque,
+      @JsonKey(name: 'transporteur') this.transporteur,
+      @JsonKey(name: 'created_at') this.createdAt,
+      @JsonKey(name: 'created_by') this.createdBy,
+      @JsonKey(name: 'validated_by') this.validatedBy,
+      this.note});
 
   factory _$SortieProduitImpl.fromJson(Map<String, dynamic> json) =>
       _$$SortieProduitImplFromJson(json);
@@ -447,14 +435,12 @@ class _$SortieProduitImpl implements _SortieProduit {
   @override
   @JsonKey(name: 'produit_id')
   final String produitId;
-  // Bénéficiaire (au moins l'un des deux doit être fourni côté DB via CHECK)
   @override
   @JsonKey(name: 'client_id')
   final String? clientId;
   @override
   @JsonKey(name: 'partenaire_id')
   final String? partenaireId;
-  // Mesures
   @override
   @JsonKey(name: 'index_avant')
   final double indexAvant;
@@ -473,14 +459,12 @@ class _$SortieProduitImpl implements _SortieProduit {
   @override
   @JsonKey(name: 'densite_a_15')
   final double? densiteA15;
-  // Statut & propriété
   @override
   @JsonKey(name: 'statut')
   final String statut;
   @override
   @JsonKey(name: 'proprietaire_type')
   final String proprietaireType;
-  // Logistique
   @override
   @JsonKey(name: 'date_sortie')
   final DateTime? dateSortie;
@@ -496,7 +480,6 @@ class _$SortieProduitImpl implements _SortieProduit {
   @override
   @JsonKey(name: 'transporteur')
   final String? transporteur;
-  // Audit
   @override
   @JsonKey(name: 'created_at')
   final DateTime? createdAt;
@@ -565,30 +548,30 @@ class _$SortieProduitImpl implements _SortieProduit {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hashAll([
-    runtimeType,
-    id,
-    citerneId,
-    produitId,
-    clientId,
-    partenaireId,
-    indexAvant,
-    indexApres,
-    volumeAmbiant,
-    volumeCorrige15c,
-    temperatureAmbianteC,
-    densiteA15,
-    statut,
-    proprietaireType,
-    dateSortie,
-    chauffeurNom,
-    plaqueCamion,
-    plaqueRemorque,
-    transporteur,
-    createdAt,
-    createdBy,
-    validatedBy,
-    note,
-  ]);
+        runtimeType,
+        id,
+        citerneId,
+        produitId,
+        clientId,
+        partenaireId,
+        indexAvant,
+        indexApres,
+        volumeAmbiant,
+        volumeCorrige15c,
+        temperatureAmbianteC,
+        densiteA15,
+        statut,
+        proprietaireType,
+        dateSortie,
+        chauffeurNom,
+        plaqueCamion,
+        plaqueRemorque,
+        transporteur,
+        createdAt,
+        createdBy,
+        validatedBy,
+        note
+      ]);
 
   /// Create a copy of SortieProduit
   /// with the given fields replaced by the non-null parameter values.
@@ -600,35 +583,38 @@ class _$SortieProduitImpl implements _SortieProduit {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$SortieProduitImplToJson(this);
+    return _$$SortieProduitImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _SortieProduit implements SortieProduit {
-  const factory _SortieProduit({
-    required final String id,
-    @JsonKey(name: 'citerne_id') required final String citerneId,
-    @JsonKey(name: 'produit_id') required final String produitId,
-    @JsonKey(name: 'client_id') final String? clientId,
-    @JsonKey(name: 'partenaire_id') final String? partenaireId,
-    @JsonKey(name: 'index_avant') required final double indexAvant,
-    @JsonKey(name: 'index_apres') required final double indexApres,
-    @JsonKey(name: 'volume_ambiant') final double? volumeAmbiant,
-    @JsonKey(name: 'volume_corrige_15c') final double? volumeCorrige15c,
-    @JsonKey(name: 'temperature_ambiante_c') final double? temperatureAmbianteC,
-    @JsonKey(name: 'densite_a_15') final double? densiteA15,
-    @JsonKey(name: 'statut') final String statut,
-    @JsonKey(name: 'proprietaire_type') final String proprietaireType,
-    @JsonKey(name: 'date_sortie') final DateTime? dateSortie,
-    @JsonKey(name: 'chauffeur_nom') final String? chauffeurNom,
-    @JsonKey(name: 'plaque_camion') final String? plaqueCamion,
-    @JsonKey(name: 'plaque_remorque') final String? plaqueRemorque,
-    @JsonKey(name: 'transporteur') final String? transporteur,
-    @JsonKey(name: 'created_at') final DateTime? createdAt,
-    @JsonKey(name: 'created_by') final String? createdBy,
-    @JsonKey(name: 'validated_by') final String? validatedBy,
-    final String? note,
-  }) = _$SortieProduitImpl;
+  const factory _SortieProduit(
+      {required final String id,
+      @JsonKey(name: 'citerne_id') required final String citerneId,
+      @JsonKey(name: 'produit_id') required final String produitId,
+      @JsonKey(name: 'client_id') final String? clientId,
+      @JsonKey(name: 'partenaire_id') final String? partenaireId,
+      @JsonKey(name: 'index_avant') required final double indexAvant,
+      @JsonKey(name: 'index_apres') required final double indexApres,
+      @JsonKey(name: 'volume_ambiant') final double? volumeAmbiant,
+      @JsonKey(name: 'volume_corrige_15c') final double? volumeCorrige15c,
+      @JsonKey(name: 'temperature_ambiante_c')
+      final double? temperatureAmbianteC,
+      @JsonKey(name: 'densite_a_15') final double? densiteA15,
+      @JsonKey(name: 'statut') required final String statut,
+      @JsonKey(name: 'proprietaire_type')
+      required final String proprietaireType,
+      @JsonKey(name: 'date_sortie') final DateTime? dateSortie,
+      @JsonKey(name: 'chauffeur_nom') final String? chauffeurNom,
+      @JsonKey(name: 'plaque_camion') final String? plaqueCamion,
+      @JsonKey(name: 'plaque_remorque') final String? plaqueRemorque,
+      @JsonKey(name: 'transporteur') final String? transporteur,
+      @JsonKey(name: 'created_at') final DateTime? createdAt,
+      @JsonKey(name: 'created_by') final String? createdBy,
+      @JsonKey(name: 'validated_by') final String? validatedBy,
+      final String? note}) = _$SortieProduitImpl;
 
   factory _SortieProduit.fromJson(Map<String, dynamic> json) =
       _$SortieProduitImpl.fromJson;
@@ -640,13 +626,13 @@ abstract class _SortieProduit implements SortieProduit {
   String get citerneId;
   @override
   @JsonKey(name: 'produit_id')
-  String get produitId; // Bénéficiaire (au moins l'un des deux doit être fourni côté DB via CHECK)
+  String get produitId;
   @override
   @JsonKey(name: 'client_id')
   String? get clientId;
   @override
   @JsonKey(name: 'partenaire_id')
-  String? get partenaireId; // Mesures
+  String? get partenaireId;
   @override
   @JsonKey(name: 'index_avant')
   double get indexAvant;
@@ -664,13 +650,13 @@ abstract class _SortieProduit implements SortieProduit {
   double? get temperatureAmbianteC;
   @override
   @JsonKey(name: 'densite_a_15')
-  double? get densiteA15; // Statut & propriété
+  double? get densiteA15;
   @override
   @JsonKey(name: 'statut')
   String get statut;
   @override
   @JsonKey(name: 'proprietaire_type')
-  String get proprietaireType; // Logistique
+  String get proprietaireType;
   @override
   @JsonKey(name: 'date_sortie')
   DateTime? get dateSortie;
@@ -685,7 +671,7 @@ abstract class _SortieProduit implements SortieProduit {
   String? get plaqueRemorque;
   @override
   @JsonKey(name: 'transporteur')
-  String? get transporteur; // Audit
+  String? get transporteur;
   @override
   @JsonKey(name: 'created_at')
   DateTime? get createdAt;

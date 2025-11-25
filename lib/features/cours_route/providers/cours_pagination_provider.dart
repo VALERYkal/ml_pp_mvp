@@ -1,8 +1,9 @@
-// 📌 Module : Cours de Route - Providers
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-01-27
-// 🧭 Description : Provider pour la pagination des cours de route
+// ?? Module : Cours de Route - Providers
+// ?? Auteur : Valery Kalonga
+// ?? Date : 2025-01-27
+// ?? Description : Provider pour la pagination des cours de route
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_filters_provider.dart';
@@ -41,10 +42,12 @@ class CoursPaginationConfig {
   }
 
   @override
-  int get hashCode => pageSize.hashCode ^ currentPage.hashCode ^ hasMore.hashCode;
+  int get hashCode =>
+      pageSize.hashCode ^ currentPage.hashCode ^ hasMore.hashCode;
 
   @override
-  String toString() => 'CoursPaginationConfig(pageSize: $pageSize, currentPage: $currentPage, hasMore: $hasMore)';
+  String toString() =>
+      'CoursPaginationConfig(pageSize: $pageSize, currentPage: $currentPage, hasMore: $hasMore)';
 }
 
 /// Provider pour la configuration de pagination
@@ -57,14 +60,17 @@ final coursPaginationProvider = StateProvider<CoursPaginationConfig>((ref) {
 });
 
 /// Fonction de pagination des cours
-List<CoursDeRoute> paginateCours(List<CoursDeRoute> cours, CoursPaginationConfig config) {
+List<CoursDeRoute> paginateCours(
+  List<CoursDeRoute> cours,
+  CoursPaginationConfig config,
+) {
   final startIndex = (config.currentPage - 1) * config.pageSize;
   final endIndex = startIndex + config.pageSize;
-  
+
   if (startIndex >= cours.length) {
     return [];
   }
-  
+
   return cours.sublist(
     startIndex,
     endIndex > cours.length ? cours.length : endIndex,
@@ -75,7 +81,7 @@ List<CoursDeRoute> paginateCours(List<CoursDeRoute> cours, CoursPaginationConfig
 final paginatedCoursProvider = Provider<List<CoursDeRoute>>((ref) {
   final cours = ref.watch(filteredCoursProvider);
   final pagination = ref.watch(coursPaginationProvider);
-  
+
   return paginateCours(cours, pagination);
 });
 
@@ -83,7 +89,7 @@ final paginatedCoursProvider = Provider<List<CoursDeRoute>>((ref) {
 final hasMorePagesProvider = Provider<bool>((ref) {
   final cours = ref.watch(filteredCoursProvider);
   final pagination = ref.watch(coursPaginationProvider);
-  
+
   final totalPages = (cours.length / pagination.pageSize).ceil();
   return pagination.currentPage < totalPages;
 });
@@ -92,7 +98,7 @@ final hasMorePagesProvider = Provider<bool>((ref) {
 final totalPagesProvider = Provider<int>((ref) {
   final cours = ref.watch(filteredCoursProvider);
   final pagination = ref.watch(coursPaginationProvider);
-  
+
   return (cours.length / pagination.pageSize).ceil();
 });
 
@@ -108,11 +114,11 @@ final paginationInfoProvider = Provider<Map<String, dynamic>>((ref) {
   final pagination = ref.watch(coursPaginationProvider);
   final totalPages = ref.watch(totalPagesProvider);
   final hasMore = ref.watch(hasMorePagesProvider);
-  
+
   final startItem = (pagination.currentPage - 1) * pagination.pageSize + 1;
   final endItem = pagination.currentPage * pagination.pageSize;
   final actualEndItem = endItem > cours.length ? cours.length : endItem;
-  
+
   return {
     'currentPage': pagination.currentPage,
     'totalPages': totalPages,
@@ -123,3 +129,4 @@ final paginationInfoProvider = Provider<Map<String, dynamic>>((ref) {
     'hasMore': hasMore,
   };
 });
+

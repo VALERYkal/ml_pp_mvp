@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+@Tags(['integration'])
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ml_pp_mvp/features/sorties/screens/sortie_form_screen.dart';
@@ -50,19 +51,29 @@ void main() {
       ProviderScope(
         overrides: [
           SP.sortieServiceProvider.overrideWith((ref) => _SpySortieService((s) => called = s)),
-          SP.produitsListProvider.overrideWith((ref) async => [
-                {'id': 'p1', 'nom': 'Diesel'}
-              ]),
-          SP.clientsListProvider.overrideWith((ref) async => [
-                {'id': 'c1', 'nom': 'Client A'}
-              ]),
-          SP.partenairesListProvider.overrideWith((ref) async => [
-                {'id': 'pa1', 'nom': 'Partenaire X'}
-              ]),
-          SP.produitByIdProvider.overrideWith((ref, id) async => {'id': 'p1', 'nom': 'Diesel', 'code': 'DSL'}),
-          SP.citernesByProduitProvider.overrideWith((ref, id) async => [
-                {'id': 'cit1', 'nom': 'Citerne 1'}
-              ]),
+          SP.produitsListProvider.overrideWith(
+            (ref) async => [
+              {'id': 'p1', 'nom': 'Diesel'},
+            ],
+          ),
+          SP.clientsListProvider.overrideWith(
+            (ref) async => [
+              {'id': 'c1', 'nom': 'Client A'},
+            ],
+          ),
+          SP.partenairesListProvider.overrideWith(
+            (ref) async => [
+              {'id': 'pa1', 'nom': 'Partenaire X'},
+            ],
+          ),
+          SP.produitByIdProvider.overrideWith(
+            (ref, id) async => {'id': 'p1', 'nom': 'Diesel', 'code': 'DSL'},
+          ),
+          SP.citernesByProduitProvider.overrideWith(
+            (ref, id) async => [
+              {'id': 'cit1', 'nom': 'Citerne 1'},
+            ],
+          ),
         ],
         child: const MaterialApp(home: SortieFormScreen()),
       ),
@@ -89,10 +100,10 @@ void main() {
 
     // Enter indices
     await tester.enterText(find.widgetWithText(TextFormField, 'Index avant'), '0');
-    await tester.enterText(find.widgetWithText(TextFormField, 'Index après'), '100');
+    await tester.enterText(find.widgetWithText(TextFormField, 'Index aprÃ¨s'), '100');
 
-    // Submit (assurer visibilité)
-    final submitKey = find.byKey(const Key('sortie_submit'));
+    // Submit (assurer visibilitÃ©)
+    const submitKey = find.byKey(Key('sortie_submit'));
     await tester.ensureVisible(submitKey);
     await tester.tap(submitKey);
     await tester.pumpAndSettle();

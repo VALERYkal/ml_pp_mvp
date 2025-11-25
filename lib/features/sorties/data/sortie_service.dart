@@ -1,12 +1,26 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:developer';
 import 'package:supabase_flutter/supabase_flutter.dart';
 // no riverpod import here; provider is defined in providers/sortie_providers.dart
 
-class SortieService {
-  final SupabaseClient _supa;
-  SortieService(this._supa);
+/// Type pour l'injection de dépendance des appels RPC
+typedef RpcRunner =
+    Future<Map<String, dynamic>?> Function(
+      String fn, {
+      Map<String, dynamic>? params,
+    });
 
-  /// Insert direct "validée" (ne PAS envoyer 'statut' → défaut DB = 'validee').
+class SortieService {
+  final RpcRunner _rpc;
+
+  SortieService({RpcRunner? rpc})
+    : _rpc =
+          rpc ??
+          ((fn, {params}) => Supabase.instance.client
+              .rpc(fn, params: params)
+              .then((r) => r as Map<String, dynamic>?));
+
+  /// Insert direct "validée" (ne PAS envoyer 'statut' ? défaut DB = 'validee').
   /// Les triggers DB calculent volume_ambiant si besoin, débitent le stock et loggent.
   Future<String> createValidated({
     required String citerneId,
@@ -15,7 +29,7 @@ class SortieService {
     double? indexApres,
     double? temperatureCAmb,
     double? densiteA15,
-    double? volumeCorrige15C, // si null → DB fallback sur ambiant
+    double? volumeCorrige15C, // si null ? DB fallback sur ambiant
     String proprietaireType = 'MONALUXE', // 'MONALUXE' | 'PARTENAIRE'
     String? clientId,
     String? partenaireId,
@@ -24,7 +38,7 @@ class SortieService {
     String? plaqueRemorque,
     String? transporteur,
     String? note,
-    DateTime? dateSortie, // si null → DB met now()
+    DateTime? dateSortie, // si null ? DB met now()
   }) async {
     final payload = <String, dynamic>{
       'citerne_id': citerneId,
@@ -38,12 +52,16 @@ class SortieService {
       if (volumeCorrige15C != null) 'volume_corrige_15c': volumeCorrige15C,
       'proprietaire_type': proprietaireType,
       if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
-      if (chauffeurNom != null && chauffeurNom.trim().isNotEmpty) 'chauffeur_nom': chauffeurNom.trim(),
-      if (plaqueCamion != null && plaqueCamion.trim().isNotEmpty) 'plaque_camion': plaqueCamion.trim(),
-      if (plaqueRemorque != null && plaqueRemorque.trim().isNotEmpty) 'plaque_remorque': plaqueRemorque.trim(),
-      if (transporteur != null && transporteur.trim().isNotEmpty) 'transporteur': transporteur.trim(),
+      if (chauffeurNom != null && chauffeurNom.trim().isNotEmpty)
+        'chauffeur_nom': chauffeurNom.trim(),
+      if (plaqueCamion != null && plaqueCamion.trim().isNotEmpty)
+        'plaque_camion': plaqueCamion.trim(),
+      if (plaqueRemorque != null && plaqueRemorque.trim().isNotEmpty)
+        'plaque_remorque': plaqueRemorque.trim(),
+      if (transporteur != null && transporteur.trim().isNotEmpty)
+        'transporteur': transporteur.trim(),
       if (dateSortie != null) 'date_sortie': dateSortie.toIso8601String(),
-      // NE PAS inclure 'statut' → défaut DB = 'validee'
+      // NE PAS inclure 'statut' ? défaut DB = 'validee'
     };
 
     // Petit garde UX (les triggers DB lèveront aussi)
@@ -55,25 +73,32 @@ class SortieService {
     log('[SortieService] payload=$payload');
 
     try {
-      final res = await _supa
-          .from('sorties_produit')
-          .insert(payload)
-          .select('id')
-          .single();
+      // Utilisation de l'injection de dépendance pour les tests
+      final res = await _rpc('create_sortie', params: payload);
 
-      final id = (res['id'] as String);
+      if (res == null || res['id'] == null) {
+        throw StateError('Réponse invalide du serveur');
+      }
+
+      final id = res['id'] as String;
       log('[SortieService] OK id=$id');
       return id;
     } on PostgrestException catch (e, st) {
-      log('[SortieService][PostgrestException] message=${e.message}', stackTrace: st);
+      log(
+        '[SortieService][PostgrestException] message=${e.message}',
+        stackTrace: st,
+      );
       log('[SortieService] code=${e.code} hint=${e.hint} details=${e.details}');
       log('[SortieService] payload=${payload}');
-      
+
       // Log spécifique pour identifier les "duplicate update" sur la même journée
-      if (e.message?.contains('duplicate') == true || e.message?.contains('unique') == true) {
-        log('[SortieService] ⚠️ Possible double application détectée: ${e.message}');
+      if (e.message?.contains('duplicate') == true ||
+          e.message?.contains('unique') == true) {
+        log(
+          '[SortieService] ?? Possible double application détectée: ${e.message}',
+        );
       }
-      
+
       rethrow;
     } catch (e, st) {
       log('[SortieService][Unknown] $e', stackTrace: st);
@@ -84,3 +109,4 @@ class SortieService {
 }
 
 // Provider is defined in lib/features/sorties/providers/sortie_providers.dart
+

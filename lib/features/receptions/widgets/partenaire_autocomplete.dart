@@ -1,5 +1,5 @@
 /* ===========================================================
-   ML_PP MVP — PartenaireAutocomplete
+   ML_PP MVP  PartenaireAutocomplete
    Rôle: Autocomplete simple pour sélectionner un partenaire
    (id, nom). Remonte l'item sélectionné via callback.
    =========================================================== */
@@ -31,7 +31,10 @@ class PartenaireAutocomplete extends ConsumerWidget {
           fieldViewBuilder: (ctx, ctrl, focus, onSubmit) => TextField(
             controller: ctrl,
             focusNode: focus,
-            decoration: const InputDecoration(labelText: 'Partenaire', hintText: 'Rechercher partenaire…'),
+            decoration: const InputDecoration(
+              labelText: 'Partenaire',
+              hintText: 'Rechercher partenaire',
+            ),
           ),
           optionsViewBuilder: (ctx, onSelect, opts) => Align(
             alignment: Alignment.topLeft,
@@ -54,5 +57,4 @@ class PartenaireAutocomplete extends ConsumerWidget {
     );
   }
 }
-
 

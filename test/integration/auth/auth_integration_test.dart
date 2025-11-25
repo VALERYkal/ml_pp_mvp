@@ -1,8 +1,8 @@
-// 📌 Module : Auth Tests - Integration Tests
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-01-27
-// 🧭 Description : Tests d'intégration pour la redirection par rôle (≥85% coverage)
-
+@Tags(['integration'])
+// ð Module : Auth Tests - Integration Tests
+// ð§ Auteur : Valery Kalonga
+// ð Date : 2025-01-27
+// ð§­ Description : Tests d'intÃ©gration pour la redirection par rÃ´le (â¥85% coverage)
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,7 +16,7 @@ import 'package:ml_pp_mvp/core/models/profil.dart';
 import 'package:ml_pp_mvp/shared/navigation/app_router.dart';
 import 'package:ml_pp_mvp/features/auth/screens/login_screen.dart';
 
-import '../mocks.mocks.dart';
+import 'auth_integration_test.mocks.dart';
 
 @GenerateMocks([AuthService, ProfilService, User])
 void main() {
@@ -41,9 +41,7 @@ void main() {
           // Mock the current profil provider
           currentProfilProvider.overrideWith((ref) => AsyncValue.data(profil)),
         ],
-        child: MaterialApp.router(
-          routerConfig: AppRouter.router,
-        ),
+        child: MaterialApp.router(routerConfig: AppRouter.router),
       );
     }
 
@@ -118,7 +116,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Assert
-        expect(find.text('Dashboard Gérant'), findsOneWidget);
+        expect(find.text('Dashboard GÃ©rant'), findsOneWidget);
         expect(find.text('Gestion'), findsOneWidget);
         expect(find.text('Gestion des stocks'), findsOneWidget);
       });
@@ -143,10 +141,10 @@ void main() {
         await tester.pumpAndSettle();
 
         // Assert
-        expect(find.text('Dashboard Opérateur'), findsOneWidget);
-        expect(find.text('Opérations'), findsOneWidget);
+        expect(find.text('Dashboard OpÃ©rateur'), findsOneWidget);
+        expect(find.text('OpÃ©rations'), findsOneWidget);
         expect(find.text('Cours de route'), findsOneWidget);
-        expect(find.text('Réceptions'), findsOneWidget);
+        expect(find.text('RÃ©ceptions'), findsOneWidget);
       });
 
       testWidgets('should redirect pca to pca dashboard', (WidgetTester tester) async {
@@ -222,12 +220,12 @@ void main() {
 
         // Assert - Admin should see all menu items
         expect(find.text('Cours de route'), findsOneWidget);
-        expect(find.text('Réceptions'), findsOneWidget);
+        expect(find.text('RÃ©ceptions'), findsOneWidget);
         expect(find.text('Sorties'), findsOneWidget);
         expect(find.text('Stocks'), findsOneWidget);
         expect(find.text('Administration'), findsOneWidget);
         expect(find.text('Utilisateurs'), findsOneWidget);
-        expect(find.text('Paramètres'), findsOneWidget);
+        expect(find.text('ParamÃ¨tres'), findsOneWidget);
       });
 
       testWidgets('directeur should see management menu items', (WidgetTester tester) async {
@@ -251,7 +249,7 @@ void main() {
 
         // Assert - Directeur should see management items but not admin items
         expect(find.text('Cours de route'), findsOneWidget);
-        expect(find.text('Réceptions'), findsOneWidget);
+        expect(find.text('RÃ©ceptions'), findsOneWidget);
         expect(find.text('Sorties'), findsOneWidget);
         expect(find.text('Stocks'), findsOneWidget);
         expect(find.text('Rapports'), findsOneWidget);
@@ -280,7 +278,7 @@ void main() {
 
         // Assert - Operateur should see operational items only
         expect(find.text('Cours de route'), findsOneWidget);
-        expect(find.text('Réceptions'), findsOneWidget);
+        expect(find.text('RÃ©ceptions'), findsOneWidget);
         expect(find.text('Sorties'), findsOneWidget);
         expect(find.text('Stocks'), findsOneWidget);
         expect(find.text('Administration'), findsNothing);
@@ -308,12 +306,12 @@ void main() {
 
         // Assert - Lecture should see read-only items only
         expect(find.text('Cours de route'), findsOneWidget);
-        expect(find.text('Réceptions'), findsOneWidget);
+        expect(find.text('RÃ©ceptions'), findsOneWidget);
         expect(find.text('Sorties'), findsOneWidget);
         expect(find.text('Stocks'), findsOneWidget);
         expect(find.text('Rapports'), findsOneWidget);
         expect(find.text('Administration'), findsNothing);
-        expect(find.text('Créer'), findsNothing);
+        expect(find.text('CrÃ©er'), findsNothing);
         expect(find.text('Modifier'), findsNothing);
       });
     });
@@ -356,9 +354,7 @@ void main() {
               profilServiceProvider.overrideWithValue(mockProfilService),
               currentProfilProvider.overrideWith((ref) => const AsyncValue.loading()),
             ],
-            child: MaterialApp.router(
-              routerConfig: AppRouter.router,
-            ),
+            child: MaterialApp.router(routerConfig: AppRouter.router),
           ),
         );
         await tester.pumpAndSettle();
@@ -377,11 +373,11 @@ void main() {
             overrides: [
               authServiceProvider.overrideWithValue(mockAuthService),
               profilServiceProvider.overrideWithValue(mockProfilService),
-              currentProfilProvider.overrideWith((ref) => AsyncValue.error('Profil error', StackTrace.current)),
+              currentProfilProvider.overrideWith(
+                (ref) => AsyncValue.error('Profil error', StackTrace.current),
+              ),
             ],
-            child: MaterialApp.router(
-              routerConfig: AppRouter.router,
-            ),
+            child: MaterialApp.router(routerConfig: AppRouter.router),
           ),
         );
         await tester.pumpAndSettle();
@@ -392,7 +388,9 @@ void main() {
     });
 
     group('Navigation Guards', () {
-      testWidgets('should prevent access to admin routes for non-admin users', (WidgetTester tester) async {
+      testWidgets('should prevent access to admin routes for non-admin users', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final operateurProfil = Profil(
           id: 'profil-id',
@@ -418,10 +416,12 @@ void main() {
         await tester.pumpAndSettle();
 
         // Assert - Should be redirected or show access denied
-        expect(find.text('Accès refusé'), findsOneWidget);
+        expect(find.text('AccÃ¨s refusÃ©'), findsOneWidget);
       });
 
-      testWidgets('should allow access to admin routes for admin users', (WidgetTester tester) async {
+      testWidgets('should allow access to admin routes for admin users', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final adminProfil = Profil(
           id: 'profil-id',
@@ -473,7 +473,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Act - Click logout button
-        await tester.tap(find.text('Déconnexion'));
+        await tester.tap(find.text('DÃ©connexion'));
         await tester.pumpAndSettle();
 
         // Assert
@@ -483,3 +483,4 @@ void main() {
     });
   });
 }
+

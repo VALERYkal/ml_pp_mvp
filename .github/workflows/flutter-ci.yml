@@ -1,0 +1,40 @@
+name: Flutter CI
+
+on:
+  push:
+    branches: [ main, fix/sorties-ui-keys ]
+  pull_request:
+
+jobs:
+  flutter:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Create .env for CI
+        run: |
+          printf "SUPABASE_URL=http://localhost\nSUPABASE_ANON_KEY=dummy\n" > .env
+          echo "=== .env ==="; cat .env
+
+      - name: Pub get
+        run: flutter pub get
+
+      - name: Format check (lib + test)
+        run: dart format --output=none --set-exit-if-changed --line-length 100 lib test
+
+      - name: Analyze (lib only)
+        run: flutter analyze lib
+
+      - name: Run unit tests only (exclude e2e & integration)
+        run: flutter test --exclude-tags=e2e,integration -r expanded
+
+      - name: Smoke build (web)
+        run: flutter build web --release --pwa-strategy=none

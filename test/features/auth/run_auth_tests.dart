@@ -1,27 +1,27 @@
-// 📌 Module : Auth Tests - Test Runner
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-01-27
-// 🧭 Description : Script pour exécuter tous les tests d'authentification
+// ð Module : Auth Tests - Test Runner
+// ð§ Auteur : Valery Kalonga
+// ð Date : 2025-01-27
+// ð§­ Description : Script pour exÃ©cuter tous les tests d'authentification
 
 import 'dart:io';
 
-/// Script pour exécuter tous les tests d'authentification
-/// 
+/// Script pour exÃ©cuter tous les tests d'authentification
+///
 /// Usage:
 /// dart run test/features/auth/run_auth_tests.dart
-/// 
+///
 /// Options:
-/// --unit: Exécuter seulement les tests unitaires
-/// --widget: Exécuter seulement les tests widget
-/// --integration: Exécuter seulement les tests d'intégration
-/// --e2e: Exécuter seulement les tests E2E
-/// --security: Exécuter seulement les tests sécurité
-/// --coverage: Générer un rapport de couverture
-/// --verbose: Affichage détaillé
+/// --unit: ExÃ©cuter seulement les tests unitaires
+/// --widget: ExÃ©cuter seulement les tests widget
+/// --integration: ExÃ©cuter seulement les tests d'intÃ©gration
+/// --e2e: ExÃ©cuter seulement les tests E2E
+/// --security: ExÃ©cuter seulement les tests sÃ©curitÃ©
+/// --coverage: GÃ©nÃ©rer un rapport de couverture
+/// --verbose: Affichage dÃ©taillÃ©
 void main(List<String> args) async {
-  print('🔐 ML_PP MVP - Auth Testing Suite');
+  print('ð ML_PP MVP - Auth Testing Suite');
   print('================================');
-  
+
   final bool unitOnly = args.contains('--unit');
   final bool widgetOnly = args.contains('--widget');
   final bool integrationOnly = args.contains('--integration');
@@ -29,121 +29,120 @@ void main(List<String> args) async {
   final bool securityOnly = args.contains('--security');
   final bool coverage = args.contains('--coverage');
   final bool verbose = args.contains('--verbose');
-  
+
   if (args.contains('--help') || args.isEmpty) {
     _printHelp();
     return;
   }
-  
+
   final List<String> testCommands = [];
-  
+
   if (unitOnly || args.isEmpty) {
     testCommands.addAll([
       'flutter test test/features/auth/auth_service_test.dart',
       'flutter test test/features/auth/profil_service_test.dart',
     ]);
   }
-  
+
   if (widgetOnly || args.isEmpty) {
     testCommands.add('flutter test test/features/auth/screens/login_screen_test.dart');
   }
-  
+
   if (integrationOnly || args.isEmpty) {
     testCommands.add('flutter test test/features/auth/integration/auth_integration_test.dart');
   }
-  
+
   if (e2eOnly || args.isEmpty) {
     testCommands.add('flutter test integration_test/features/auth/e2e/auth_e2e_test.dart');
   }
-  
+
   if (securityOnly || args.isEmpty) {
     testCommands.add('flutter test test/features/auth/security/auth_security_test.dart');
   }
-  
+
   if (coverage) {
     testCommands.clear();
     testCommands.add('flutter test --coverage test/features/auth/');
   }
-  
+
   if (testCommands.isEmpty) {
-    print('❌ Aucun test à exécuter');
+    print('â Aucun test Ã  exÃ©cuter');
     return;
   }
-  
-  print('📋 Tests à exécuter:');
+
+  print('ð Tests Ã  exÃ©cuter:');
   for (final command in testCommands) {
-    print('  • $command');
+    print('  â¢ $command');
   }
   print('');
-  
+
   int successCount = 0;
   int totalCount = testCommands.length;
-  
+
   for (final command in testCommands) {
-    print('🚀 Exécution: $command');
-    print('─' * 50);
-    
+    print('ð ExÃ©cution: $command');
+    print('â' * 50);
+
     try {
       final result = await Process.run(
         'flutter',
         command.split(' ').skip(1).toList(),
         workingDirectory: Directory.current.path,
       );
-      
+
       if (result.exitCode == 0) {
-        print('✅ Succès');
+        print('â SuccÃ¨s');
         successCount++;
       } else {
-        print('❌ Échec');
+        print('â Ãchec');
         print('Sortie d\'erreur:');
         print(result.stderr);
       }
-      
+
       if (verbose && result.stdout.isNotEmpty) {
         print('Sortie:');
         print(result.stdout);
       }
-      
     } catch (e) {
-      print('❌ Erreur d\'exécution: $e');
+      print('â Erreur d\'exÃ©cution: $e');
     }
-    
+
     print('');
   }
-  
-  print('📊 Résumé');
+
+  print('ð RÃ©sumÃ©');
   print('=========');
-  print('Tests réussis: $successCount/$totalCount');
-  
+  print('Tests rÃ©ussis: $successCount/$totalCount');
+
   if (successCount == totalCount) {
-    print('🎉 Tous les tests sont passés!');
+    print('ð Tous les tests sont passÃ©s!');
   } else {
-    print('⚠️  Certains tests ont échoué');
+    print('â ï¸  Certains tests ont Ã©chouÃ©');
     exit(1);
   }
-  
+
   if (coverage) {
     print('');
-    print('📈 Rapport de couverture généré dans coverage/lcov.info');
+    print('ð Rapport de couverture gÃ©nÃ©rÃ© dans coverage/lcov.info');
     print('Pour visualiser: genhtml coverage/lcov.info -o coverage/html');
   }
 }
 
 void _printHelp() {
   print('''
-🔐 ML_PP MVP - Auth Testing Suite
+ð ML_PP MVP - Auth Testing Suite
 ================================
 
 Usage: dart run test/features/auth/run_auth_tests.dart [options]
 
 Options:
-  --unit         Exécuter seulement les tests unitaires
-  --widget       Exécuter seulement les tests widget
-  --integration  Exécuter seulement les tests d'intégration
-  --e2e          Exécuter seulement les tests E2E
-  --security     Exécuter seulement les tests sécurité
-  --coverage     Générer un rapport de couverture
-  --verbose      Affichage détaillé
+  --unit         ExÃ©cuter seulement les tests unitaires
+  --widget       ExÃ©cuter seulement les tests widget
+  --integration  ExÃ©cuter seulement les tests d'intÃ©gration
+  --e2e          ExÃ©cuter seulement les tests E2E
+  --security     ExÃ©cuter seulement les tests sÃ©curitÃ©
+  --coverage     GÃ©nÃ©rer un rapport de couverture
+  --verbose      Affichage dÃ©taillÃ©
   --help         Afficher cette aide
 
 Exemples:
@@ -152,11 +151,12 @@ Exemples:
   dart run test/features/auth/run_auth_tests.dart --e2e --verbose
 
 Tests inclus:
-  • AuthService unit tests (≥95% coverage)
-  • ProfilService unit tests (≥95% coverage)
-  • LoginScreen widget tests (≥90% coverage)
-  • Auth integration tests (≥85% coverage)
-  • Auth E2E tests (100% coverage)
-  • Auth security tests (100% coverage)
+  â¢ AuthService unit tests (â¥95% coverage)
+  â¢ ProfilService unit tests (â¥95% coverage)
+  â¢ LoginScreen widget tests (â¥90% coverage)
+  â¢ Auth integration tests (â¥85% coverage)
+  â¢ Auth E2E tests (100% coverage)
+  â¢ Auth security tests (100% coverage)
 ''');
 }
+

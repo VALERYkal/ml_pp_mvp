@@ -18,7 +18,9 @@ class AreaChart extends StatelessWidget {
   double? _getVariation(int index, bool isReceptions) {
     if (index <= 0) return null;
     final current = isReceptions ? points[index].rec : points[index].sort;
-    final previous = isReceptions ? points[index-1].rec : points[index-1].sort;
+    final previous = isReceptions
+        ? points[index - 1].rec
+        : points[index - 1].sort;
     if (previous == 0) return current > 0 ? 100 : 0;
     return ((current - previous) / previous * 100);
   }
@@ -28,7 +30,7 @@ class AreaChart extends StatelessWidget {
     final theme = Theme.of(context);
     final spotsRec = <FlSpot>[];
     final spotsSort = <FlSpot>[];
-    for (int i=0; i<points.length; i++) {
+    for (int i = 0; i < points.length; i++) {
       spotsRec.add(FlSpot(i.toDouble(), points[i].rec));
       spotsSort.add(FlSpot(i.toDouble(), points[i].sort));
     }
@@ -52,18 +54,18 @@ class AreaChart extends StatelessWidget {
             LineChartData(
               minY: 0,
               gridData: FlGridData(
-                show: true, 
+                show: true,
                 drawVerticalLine: false,
                 horizontalInterval: 1,
                 getDrawingHorizontalLine: (value) => FlLine(
-                  color: theme.dividerColor.withOpacity(0.3),
+                  color: theme.dividerColor.withValues(alpha: 0.3),
                   strokeWidth: 1,
                 ),
               ),
               titlesData: FlTitlesData(
                 leftTitles: AxisTitles(
                   sideTitles: SideTitles(
-                    showTitles: true, 
+                    showTitles: true,
                     reservedSize: 50,
                     getTitlesWidget: (value, meta) {
                       return Padding(
@@ -76,52 +78,62 @@ class AreaChart extends StatelessWidget {
                     },
                   ),
                 ),
-                bottomTitles: AxisTitles(sideTitles: SideTitles(
-                  showTitles: true,
-                  getTitlesWidget: (v, meta) {
-                    final i = v.toInt();
-                    if (i<0 || i>=points.length) return const SizedBox.shrink();
-                    final d = points[i].day;
-                    return Text('${d.day}/${d.month}', style: theme.textTheme.labelSmall);
-                  },
-                )),
-                rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    getTitlesWidget: (v, meta) {
+                      final i = v.toInt();
+                      if (i < 0 || i >= points.length)
+                        return const SizedBox.shrink();
+                      final d = points[i].day;
+                      return Text(
+                        '${d.day}/${d.month}',
+                        style: theme.textTheme.labelSmall,
+                      );
+                    },
+                  ),
+                ),
+                rightTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                topTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
               ),
               lineBarsData: [
                 LineChartBarData(
-                  isCurved: true, 
+                  isCurved: true,
                   spots: spotsRec,
-                  barWidth: 3, 
+                  barWidth: 3,
                   belowBarData: BarAreaData(
-                    show: true, 
-                    cutOffY: 0, 
+                    show: true,
+                    cutOffY: 0,
                     applyCutOffY: true,
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        theme.colorScheme.primary.withOpacity(0.3),
-                        theme.colorScheme.primary.withOpacity(0.1),
+                        theme.colorScheme.primary.withValues(alpha: 0.3),
+                        theme.colorScheme.primary.withValues(alpha: 0.1),
                       ],
                     ),
                   ),
                   color: theme.colorScheme.primary,
                 ),
                 LineChartBarData(
-                  isCurved: true, 
+                  isCurved: true,
                   spots: spotsSort,
-                  barWidth: 3, 
+                  barWidth: 3,
                   belowBarData: BarAreaData(
-                    show: true, 
-                    cutOffY: 0, 
+                    show: true,
+                    cutOffY: 0,
                     applyCutOffY: true,
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        theme.colorScheme.secondary.withOpacity(0.3),
-                        theme.colorScheme.secondary.withOpacity(0.1),
+                        theme.colorScheme.secondary.withValues(alpha: 0.3),
+                        theme.colorScheme.secondary.withValues(alpha: 0.1),
                       ],
                     ),
                   ),
@@ -130,7 +142,7 @@ class AreaChart extends StatelessWidget {
               ],
               lineTouchData: LineTouchData(
                 touchTooltipData: LineTouchTooltipData(
-                  tooltipBgColor: theme.colorScheme.surface,
+                  backgroundColor: theme.colorScheme.surface,
                   tooltipBorder: BorderSide(color: theme.dividerColor),
                   getTooltipItems: (touchedSpots) {
                     return touchedSpots.map((s) {
@@ -140,14 +152,19 @@ class AreaChart extends StatelessWidget {
                       final label = isReceptions ? 'Réceptions' : 'Sorties';
                       final volume = _formatVolume(s.y);
                       final variation = _getVariation(i, isReceptions);
-                      
-                      String tooltipText = '$label\n${d.day}/${d.month} : $volume';
+
+                      String tooltipText =
+                          '$label\n${d.day}/${d.month} : $volume';
                       if (variation != null) {
-                        final variationText = variation >= 0 ? '+${variation.toStringAsFixed(1)}%' : '${variation.toStringAsFixed(1)}%';
-                        final variationColor = variation >= 0 ? Colors.green : Colors.red;
+                        final variationText = variation >= 0
+                            ? '+${variation.toStringAsFixed(1)}%'
+                            : '${variation.toStringAsFixed(1)}%';
+                        final variationColor = variation >= 0
+                            ? Colors.green
+                            : Colors.red;
                         tooltipText += '\nVar: $variationText';
                       }
-                      
+
                       return LineTooltipItem(
                         tooltipText,
                         TextStyle(
@@ -188,3 +205,4 @@ class AreaChart extends StatelessWidget {
     );
   }
 }
+

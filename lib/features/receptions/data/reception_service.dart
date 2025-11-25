@@ -1,11 +1,10 @@
-// 📌 Module : Réceptions - Service
-// 🧭 Description : Service Supabase pour créer/valider des réceptions
+// ?? Module : Réceptions - Service
+// ?? Description : Service Supabase pour créer/valider des réceptions
 
 import 'package:flutter/foundation.dart';
 import 'dart:convert';
-import 'package:postgrest/postgrest.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart' as Riverpod;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/reception_input.dart';
 import '../../citernes/data/citerne_service.dart';
@@ -24,9 +23,10 @@ class ReceptionService {
     CiterneService Function(SupabaseClient)? citerneServiceFactory,
     StocksService Function(SupabaseClient)? stocksServiceFactory,
     required refs.ReferentielsRepo refRepo,
-  })  : _citerneServiceFactory = citerneServiceFactory ?? CiterneService.withClient,
-        _stocksServiceFactory = stocksServiceFactory ?? StocksService.withClient,
-        _refRepo = refRepo;
+  }) : _citerneServiceFactory =
+           citerneServiceFactory ?? CiterneService.withClient,
+       _stocksServiceFactory = stocksServiceFactory ?? StocksService.withClient,
+       _refRepo = refRepo;
 
   /// Crée une réception "validée" (par défaut DB) et déclenche les effets (stocks + CDR DECHARGE).
   /// NE PAS envoyer 'statut' : la DB a DEFAULT 'validee' et un trigger applique les effets.
@@ -55,7 +55,8 @@ class ReceptionService {
       if (volumeCorrige15C != null) 'volume_corrige_15c': volumeCorrige15C,
       'proprietaire_type': proprietaireType,
       if (partenaireId != null) 'partenaire_id': partenaireId,
-      if (dateReception != null) 'date_reception': dateReception.toIso8601String().substring(0, 10),
+      if (dateReception != null)
+        'date_reception': dateReception.toIso8601String().substring(0, 10),
       if ((note ?? '').trim().isNotEmpty) 'note': note!.trim(),
     };
 
@@ -65,11 +66,9 @@ class ReceptionService {
     debugPrint('[ReceptionService] payload=${jsonEncode(payload)}');
 
     try {
-      final row = await _client
-          .from('receptions')
-          .insert(payload)
-          .select('id')
-          .single() as Map<String, dynamic>;
+      final row =
+          await _client.from('receptions').insert(payload).select('id').single()
+              as Map<String, dynamic>;
 
       debugPrint('[ReceptionService] OK id=${row['id']}');
       return row['id'] as String;
@@ -90,14 +89,14 @@ class ReceptionService {
 
   /// Crée un brouillon de réception avec toutes les validations métier
   Future<String> createDraft(ReceptionInput input) async {
-  
-  /// Alias pour compatibilité avec les tests
-  Future<String> createReception(
-    ReceptionInput input, {
-    required Object refRepo, // param accepté mais ignoré pour compatibilité
-  }) async {
-    return createDraft(input);
-  }
+    /// Alias pour compatibilité avec les tests
+    Future<String> createReception(
+      ReceptionInput input, {
+      required Object refRepo, // param accepté mais ignoré pour compatibilité
+    }) async {
+      return createDraft(input);
+    }
+
     try {
       // Charger référentiels si nécessaire
       await _refRepo.loadProduits();
@@ -107,7 +106,9 @@ class ReceptionService {
       final produitId = (input.produitId != null && input.produitId!.isNotEmpty)
           ? input.produitId!
           : (_refRepo.getProduitIdByCodeSync(input.produitCode) ??
-              (throw ArgumentError('Produit introuvable pour code ${input.produitCode}')));
+                (throw ArgumentError(
+                  'Produit introuvable pour code ${input.produitCode}',
+                )));
 
       // Validations métier
       await _validateInput(input, produitId);
@@ -140,11 +141,9 @@ class ReceptionService {
       };
 
       // Insertion
-      final inserted = await _client
-          .from('receptions')
-          .insert(payload)
-          .select('id')
-          .single() as Map<String, dynamic>;
+      final inserted =
+          await _client.from('receptions').insert(payload).select('id').single()
+              as Map<String, dynamic>;
 
       final receptionId = inserted['id'] as String;
 
@@ -164,7 +163,9 @@ class ReceptionService {
 
       return receptionId;
     } on PostgrestException catch (e) {
-      debugPrint('❌ ReceptionService.createDraft: Erreur Supabase - ${e.message}');
+      debugPrint(
+        '? ReceptionService.createDraft: Erreur Supabase - ${e.message}',
+      );
       rethrow;
     }
   }
@@ -179,14 +180,18 @@ class ReceptionService {
       }
 
       // Récupération de la réception
-      final receptionData = await _client
-          .from('receptions')
-          .select()
-          .eq('id', receptionId)
-          .single() as Map<String, dynamic>;
+      final receptionData =
+          await _client
+                  .from('receptions')
+                  .select()
+                  .eq('id', receptionId)
+                  .single()
+              as Map<String, dynamic>;
 
       if (receptionData['statut'] != 'brouillon') {
-        throw ArgumentError('Seules les réceptions en brouillon peuvent être validées');
+        throw ArgumentError(
+          'Seules les réceptions en brouillon peuvent être validées',
+        );
       }
 
       // Mise à jour du statut
@@ -219,14 +224,19 @@ class ReceptionService {
         'cible_id': receptionId,
       });
     } on PostgrestException catch (e) {
-      debugPrint('❌ ReceptionService.validate: Erreur Supabase - ${e.message}');
-      debugPrint('❌ ReceptionService.validate: code=${e.code} hint=${e.hint} details=${e.details}');
-      
+      debugPrint('? ReceptionService.validate: Erreur Supabase - ${e.message}');
+      debugPrint(
+        '? ReceptionService.validate: code=${e.code} hint=${e.hint} details=${e.details}',
+      );
+
       // Log spécifique pour identifier les "duplicate update" sur la même journée
-      if (e.message?.contains('duplicate') == true || e.message?.contains('unique') == true) {
-        debugPrint('⚠️ ReceptionService.validate: Possible double application détectée: ${e.message}');
+      if (e.message?.contains('duplicate') == true ||
+          e.message?.contains('unique') == true) {
+        debugPrint(
+          '?? ReceptionService.validate: Possible double application détectée: ${e.message}',
+        );
       }
-      
+
       rethrow;
     }
   }
@@ -238,7 +248,9 @@ class ReceptionService {
       throw ArgumentError('Les indices avant et après sont requis');
     }
     if (input.indexApres! <= input.indexAvant!) {
-      throw ArgumentError('Les indices sont incohérents (index après <= index avant)');
+      throw ArgumentError(
+        'Les indices sont incohérents (index après <= index avant)',
+      );
     }
 
     // Validation citerne
@@ -263,7 +275,8 @@ class ReceptionService {
       citerneId: input.citerneId,
       produitId: produitId,
     );
-    final capaciteDisponible = citerne.capaciteTotale - citerne.capaciteSecurite - stockToday;
+    final capaciteDisponible =
+        citerne.capaciteTotale - citerne.capaciteSecurite - stockToday;
     if (volAmb > capaciteDisponible) {
       throw ArgumentError('Volume > capacité disponible (sécurité incluse)');
     }
@@ -271,7 +284,9 @@ class ReceptionService {
     // Validation propriétaire
     if (input.proprietaireType == 'MONALUXE') {
       if (input.coursDeRouteId == null) {
-        throw ArgumentError('Cours de route requis pour une réception Monaluxe');
+        throw ArgumentError(
+          'Cours de route requis pour une réception Monaluxe',
+        );
       }
     } else if (input.proprietaireType == 'PARTENAIRE') {
       if (input.partenaireId == null || input.partenaireId!.isEmpty) {
@@ -293,9 +308,8 @@ String _safeJson(dynamic v) {
   }
 }
 
-final receptionServiceProvider = Riverpod.Provider<ReceptionService>((ref) {
+final receptionServiceProvider = Provider<ReceptionService>((ref) {
   final repo = ref.read(refs.referentielsRepoProvider);
   return ReceptionService.withClient(Supabase.instance.client, refRepo: repo);
 });
-
 

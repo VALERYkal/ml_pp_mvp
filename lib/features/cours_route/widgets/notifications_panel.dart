@@ -1,7 +1,7 @@
-// 📌 Module : Cours de Route - Widgets
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-01-27
-// 🧭 Description : Panneau de notifications pour les cours de route
+// ?? Module : Cours de Route - Widgets
+// ?? Auteur : Valery Kalonga
+// ?? Date : 2025-01-27
+// ?? Description : Panneau de notifications pour les cours de route
 
 import 'package:flutter/material.dart';
 import 'package:ml_pp_mvp/features/cours_route/services/notification_service.dart';
@@ -61,14 +61,17 @@ class _NotificationsPanelState extends State<NotificationsPanel> {
               const SizedBox(width: 8),
               Text(
                 'Notifications',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
               ),
               if (unreadCount > 0) ...[
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.error,
                     borderRadius: BorderRadius.circular(12),
@@ -94,7 +97,9 @@ class _NotificationsPanelState extends State<NotificationsPanel> {
                 icon: Icon(
                   _showUnreadOnly ? Icons.visibility : Icons.visibility_off,
                 ),
-                tooltip: _showUnreadOnly ? 'Voir toutes' : 'Voir non lues seulement',
+                tooltip: _showUnreadOnly
+                    ? 'Voir toutes'
+                    : 'Voir non lues seulement',
               ),
               // Actions
               PopupMenuButton<String>(
@@ -119,9 +124,9 @@ class _NotificationsPanelState extends State<NotificationsPanel> {
             ],
           ),
         ),
-        
+
         const Divider(height: 1),
-        
+
         // Liste des notifications
         Expanded(
           child: _notifications.isEmpty
@@ -157,9 +162,11 @@ class _NotificationsPanelState extends State<NotificationsPanel> {
   void _showClearConfirmation() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext context) => AlertDialog(
         title: const Text('Supprimer toutes les notifications'),
-        content: const Text('Êtes-vous sûr de vouloir supprimer toutes les notifications ?'),
+        content: const Text(
+          'Êtes-vous sûr de vouloir supprimer toutes les notifications ?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -183,7 +190,7 @@ class _NotificationsPanelState extends State<NotificationsPanel> {
       CoursNotificationService.markAsRead(notification.id);
       _loadNotifications();
     }
-    
+
     // Navigation vers le cours si applicable
     if (notification.coursId != null) {
       // context.go('/cours/${notification.coursId}');
@@ -215,14 +222,16 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            showUnreadOnly ? 'Aucune notification non lue' : 'Aucune notification',
+            showUnreadOnly
+                ? 'Aucune notification non lue'
+                : 'Aucune notification',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            showUnreadOnly 
+            showUnreadOnly
                 ? 'Toutes vos notifications ont été lues'
                 : 'Vous n\'avez pas encore de notifications',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -289,10 +298,7 @@ class _NotificationButtonState extends State<NotificationButton> {
                 color: Theme.of(context).colorScheme.error,
                 borderRadius: BorderRadius.circular(10),
               ),
-              constraints: const BoxConstraints(
-                minWidth: 16,
-                minHeight: 16,
-              ),
+              constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
               child: Text(
                 _unreadCount > 99 ? '99+' : _unreadCount.toString(),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -311,10 +317,11 @@ class _NotificationButtonState extends State<NotificationButton> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (context) => SizedBox(
+      builder: (BuildContext context) => SizedBox(
         height: MediaQuery.of(context).size.height * 0.8,
         child: const NotificationsPanel(),
       ),
     );
   }
 }
+

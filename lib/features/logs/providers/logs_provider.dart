@@ -6,17 +6,9 @@ class LogsFilter {
   final String? module;
   final String? utilisateur;
 
-  const LogsFilter({
-    this.period = '30d',
-    this.module,
-    this.utilisateur,
-  });
+  const LogsFilter({this.period = '30d', this.module, this.utilisateur});
 
-  LogsFilter copyWith({
-    String? period,
-    String? module,
-    String? utilisateur,
-  }) {
+  LogsFilter copyWith({String? period, String? module, String? utilisateur}) {
     return LogsFilter(
       period: period ?? this.period,
       module: module ?? this.module,
@@ -57,7 +49,7 @@ final logsFilterProvider = StateProvider<LogsFilter>((ref) => const LogsFilter()
 final logsProvider = FutureProvider.family<List<LogActivite>, LogsFilter>((ref, filter) async {
   // Simuler un délai de chargement
   await Future.delayed(const Duration(milliseconds: 400));
-  
+
   // Simuler des données de logs
   final now = DateTime.now();
   return [
@@ -108,3 +100,7 @@ final logsProvider = FutureProvider.family<List<LogActivite>, LogsFilter>((ref, 
     ),
   ];
 });
+
+
+
+
