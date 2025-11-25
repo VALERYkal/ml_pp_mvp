@@ -4,6 +4,23 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 
 ## [Unreleased]
 
+### ✅ **CORRECTION TEST E2E LOGIN (08/11/2025)**
+
+#### **🎯 Objectif**
+Assurer que le test end-to-end `login_flow_e2e_test.dart` compile et valide correctement l'appel à `AuthService.signIn` avec le véritable modèle `User` de Supabase.
+
+#### **✅ Actions réalisées**
+- **Mock dédié** : Création d'un `MockAuthService` local avec surcharge de `signIn` pour enregistrer les credentials et retourner un `User` Supabase réel.
+- **Override provider** : Injection du mock via `ProviderScope` en surchargeant `authServiceProvider` dans le test.
+- **Scenario UI complet** : Saisie des champs email/mot de passe et clic sur le bouton de connexion pour reproduire le flux utilisateur.
+- **Vérifications explicites** : Assertions sur le nombre d'appels et les paramètres transmis à `signIn`.
+
+#### **📁 Fichier impacté**
+- `test/e2e/auth/login_flow_e2e_test.dart`
+
+#### **🏆 Résultat**
+Le scénario de connexion E2E compile sans conflit de types et garantit l'appel correct à `AuthService.signIn` avec le type `User` de Supabase.
+
 ### 🔧 **CORRECTION OVERFLOW STOCKS JOURNALIERS (20/09/2025)**
 
 #### **🎯 Objectif**

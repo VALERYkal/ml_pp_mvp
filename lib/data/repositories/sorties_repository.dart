@@ -47,7 +47,7 @@ class SortiesRepository {
     if (kDebugMode) {
       // ignore: avoid_print
       print(
-        '📤 Sorties(jour) ${depotId != null ? 'depot=$depotId ' : ''}'
+        '?? Sorties(jour) ${depotId != null ? 'depot=$depotId ' : ''}'
         '>= $startUtcIso < $endUtcIso  => nb=$count, amb=$sAmb, 15C=$s15',
       );
     }
@@ -55,3 +55,7 @@ class SortiesRepository {
     return SortiesStats(nbCamions: count, volAmbiant: sAmb, vol15c: s15);
   }
 }
+
+
+
+

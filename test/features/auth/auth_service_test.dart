@@ -1,15 +1,17 @@
-// 📌 Module : Auth Tests - AuthService Unit Tests
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-01-27
-// 🧭 Description : Tests unitaires pour AuthService (≥95% coverage)
+// ð Module : Auth Tests - AuthService Unit Tests
+// ð§ Auteur : Valery Kalonga
+// ð Date : 2025-01-27
+// ð§­ Description : Tests unitaires pour AuthService (â¥95% coverage)
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:postgrest/postgrest.dart';
 import 'package:ml_pp_mvp/core/services/auth_service.dart';
 
-import '../../_mocks.mocks.dart';
+import '../_mocks.mocks.dart'; // Mocks Supabase générés dans test/features/_mocks.dart
+
 
 void main() {
   group('AuthService Unit Tests', () {
@@ -312,3 +314,4 @@ void main() {
     });
   });
 }
+

@@ -14,9 +14,12 @@ class SortieListItem extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final date = DateFormatter.formatDate(sortie['date_sortie'] ?? sortie['created_at']);
+    final date = DateFormatter.formatDate(
+      sortie['date_sortie'] ?? sortie['created_at'],
+    );
     final prop = (sortie['proprietaire_type'] ?? 'MONALUXE').toString();
-    final prod = '${sortie['produit_code'] ?? ''} ${sortie['produit_nom'] ?? ''}'.trim();
+    final prod =
+        '${sortie['produit_code'] ?? ''} ${sortie['produit_nom'] ?? ''}'.trim();
     final cit = (sortie['citerne_nom'] ?? '').toString();
     final v15 = VolumeFormatter.formatVolume(sortie['volume_corrige_15c']);
     final vAmb = VolumeFormatter.formatVolume(sortie['volume_ambiant']);
@@ -31,12 +34,15 @@ class SortieListItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
-        border: Border.all(color: colorScheme.outline.withOpacity(0.1), width: 1),
+        border: Border.all(
+          color: colorScheme.outline.withValues(alpha: 0.1),
+          width: 1,
+        ),
       ),
       child: Material(
         color: Colors.transparent,
@@ -52,16 +58,19 @@ class SortieListItem extends StatelessWidget {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: isMonaluxe
-                            ? colorScheme.primary.withOpacity(0.1)
-                            : colorScheme.secondary.withOpacity(0.1),
+                            ? colorScheme.primary.withValues(alpha: 0.1)
+                            : colorScheme.secondary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(6),
                         border: Border.all(
                           color: isMonaluxe
-                              ? colorScheme.primary.withOpacity(0.3)
-                              : colorScheme.secondary.withOpacity(0.3),
+                              ? colorScheme.primary.withValues(alpha: 0.3)
+                              : colorScheme.secondary.withValues(alpha: 0.3),
                           width: 1,
                         ),
                       ),
@@ -71,13 +80,17 @@ class SortieListItem extends StatelessWidget {
                           Icon(
                             isMonaluxe ? Icons.business : Icons.handshake,
                             size: 12,
-                            color: isMonaluxe ? colorScheme.primary : colorScheme.secondary,
+                            color: isMonaluxe
+                                ? colorScheme.primary
+                                : colorScheme.secondary,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             prop,
                             style: theme.textTheme.labelSmall?.copyWith(
-                              color: isMonaluxe ? colorScheme.primary : colorScheme.secondary,
+                              color: isMonaluxe
+                                  ? colorScheme.primary
+                                  : colorScheme.secondary,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -86,15 +99,24 @@ class SortieListItem extends StatelessWidget {
                     ),
                     const Spacer(),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
-                        color: colorScheme.surfaceVariant.withOpacity(0.5),
+                        color: colorScheme.surfaceVariant.withValues(
+                          alpha: 0.5,
+                        ),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.calendar_today, size: 12, color: colorScheme.onSurfaceVariant),
+                          Icon(
+                            Icons.calendar_today,
+                            size: 12,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             date,
@@ -142,7 +164,11 @@ class SortieListItem extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          _VolumeDisplay(label: '15°C', value: v15, color: colorScheme.primary),
+                          _VolumeDisplay(
+                            label: '15°C',
+                            value: v15,
+                            color: colorScheme.primary,
+                          ),
                           const SizedBox(height: 4),
                           _VolumeDisplay(
                             label: 'Ambiant',
@@ -158,14 +184,21 @@ class SortieListItem extends StatelessWidget {
                 if (benef.isNotEmpty) ...[
                   const SizedBox(height: 12),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
-                      color: colorScheme.surfaceVariant.withOpacity(0.3),
+                      color: colorScheme.surfaceVariant.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.person, size: 14, color: colorScheme.onSurfaceVariant),
+                        Icon(
+                          Icons.person,
+                          size: 14,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
@@ -194,7 +227,11 @@ class _VolumeDisplay extends StatelessWidget {
   final String value;
   final Color color;
 
-  const _VolumeDisplay({required this.label, required this.value, required this.color});
+  const _VolumeDisplay({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -204,16 +241,19 @@ class _VolumeDisplay extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withOpacity(0.3), width: 1),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
             value,
-            style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.bold, color: color),
+            style: theme.textTheme.labelSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
           ),
           Text(
             label,
@@ -227,3 +267,4 @@ class _VolumeDisplay extends StatelessWidget {
     );
   }
 }
+

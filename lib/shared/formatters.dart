@@ -12,7 +12,7 @@ String fmtL(double? v, {int fixed = 1}) {
 
 String fmtDelta(double? v15c) {
   final x = (v15c == null || v15c.isNaN || v15c.isInfinite) ? 0.0 : v15c;
-  final s = x >= 0 ? '+' : '–';
+  final s = x >= 0 ? '+' : '';
   return '$s${fmtL(x.abs())}';
 }
 
@@ -24,3 +24,7 @@ String fmtPct(num? v) {
 String fmtCount(int? n) {
   return _int0.format((n ?? 0).clamp(0, 1 << 31));
 }
+
+
+
+

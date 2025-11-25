@@ -1,14 +1,14 @@
-// 📌 Module : Cours de Route - Tests Widget Détail Déchargé (Simplifié)
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-01-27
-// 🧭 Description : Test widget simplifié pour l'écran de détail CDR avec statut "déchargé"
+// ð Module : Cours de Route - Tests Widget DÃ©tail DÃ©chargÃ© (SimplifiÃ©)
+// ð§ Auteur : Valery Kalonga
+// ð Date : 2025-01-27
+// ð§­ Description : Test widget simplifiÃ© pour l'Ã©cran de dÃ©tail CDR avec statut "dÃ©chargÃ©"
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 
-/// Widget de test simple pour vérifier l'affichage du statut déchargé
+/// Widget de test simple pour vÃ©rifier l'affichage du statut dÃ©chargÃ©
 class SimpleCdrDetailWidget extends StatelessWidget {
   final CoursDeRoute cours;
 
@@ -18,7 +18,7 @@ class SimpleCdrDetailWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(title: const Text('Détail CDR')),
+        appBar: AppBar(title: const Text('DÃ©tail CDR')),
         body: Column(
           children: [
             // Affichage du statut
@@ -49,14 +49,14 @@ class SimpleCdrDetailWidget extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('ID: ${cours.id}'),
-                  Text('Transporteur: ${cours.transporteur ?? '—'}'),
-                  Text('Plaque: ${cours.plaqueCamion ?? '—'}'),
-                  Text('Chauffeur: ${cours.chauffeur ?? '—'}'),
-                  Text('Volume: ${cours.volume ?? '—'} L'),
+                  Text('Transporteur: ${cours.transporteur ?? 'â'}'),
+                  Text('Plaque: ${cours.plaqueCamion ?? 'â'}'),
+                  Text('Chauffeur: ${cours.chauffeur ?? 'â'}'),
+                  Text('Volume: ${cours.volume ?? 'â'} L'),
                 ],
               ),
             ),
-            // Message informatif pour les cours déchargés
+            // Message informatif pour les cours dÃ©chargÃ©s
             if (cours.statut == StatutCours.decharge)
               Container(
                 margin: const EdgeInsets.all(16),
@@ -72,7 +72,7 @@ class SimpleCdrDetailWidget extends StatelessWidget {
                     SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Ce cours a été déchargé. Seul un administrateur peut le modifier ou le supprimer.',
+                        'Ce cours a Ã©tÃ© dÃ©chargÃ©. Seul un administrateur peut le modifier ou le supprimer.',
                         style: TextStyle(
                           color: Colors.amber,
                           fontSize: 14,
@@ -91,7 +91,7 @@ class SimpleCdrDetailWidget extends StatelessWidget {
 }
 
 void main() {
-  group('CDR Detail Widget - Déchargé Status Tests (Simplifié)', () {
+  group('CDR Detail Widget - DÃ©chargÃ© Status Tests (SimplifiÃ©)', () {
     late CoursDeRoute coursDecharge;
 
     setUp(() {
@@ -104,49 +104,49 @@ void main() {
         plaqueCamion: 'ABC123',
         chauffeur: 'Jean Dupont',
         volume: 50000.0,
-        statut: StatutCours.decharge, // ✅ Statut déchargé
-        note: 'Cours de test déchargé',
+        statut: StatutCours.decharge, // â Statut dÃ©chargÃ©
+        note: 'Cours de test dÃ©chargÃ©',
       );
     });
 
-    testWidgets('should render without exceptions for déchargé status', (
+    testWidgets('should render without exceptions for dÃ©chargÃ© status', (
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(ProviderScope(child: SimpleCdrDetailWidget(cours: coursDecharge)));
 
-      // Vérifier qu'il n'y a pas d'exception de rendu
+      // VÃ©rifier qu'il n'y a pas d'exception de rendu
       expect(tester.takeException(), isNull);
 
       // Attendre que le widget soit construit
       await tester.pumpAndSettle();
 
-      // Vérifier qu'il n'y a toujours pas d'exception
+      // VÃ©rifier qu'il n'y a toujours pas d'exception
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('should display déchargé status chip', (WidgetTester tester) async {
+    testWidgets('should display dÃ©chargÃ© status chip', (WidgetTester tester) async {
       await tester.pumpWidget(ProviderScope(child: SimpleCdrDetailWidget(cours: coursDecharge)));
 
       await tester.pumpAndSettle();
 
-      // Chercher le chip de statut "Déchargé"
-      final statutChip = find.text('Déchargé');
+      // Chercher le chip de statut "DÃ©chargÃ©"
+      final statutChip = find.text('DÃ©chargÃ©');
       expect(statutChip, findsOneWidget);
 
-      // Vérifier que le texte "Statut:" est présent
+      // VÃ©rifier que le texte "Statut:" est prÃ©sent
       expect(find.textContaining('Statut'), findsOneWidget);
     });
 
-    testWidgets('should show informative message for déchargé status', (WidgetTester tester) async {
+    testWidgets('should show informative message for dÃ©chargÃ© status', (WidgetTester tester) async {
       await tester.pumpWidget(ProviderScope(child: SimpleCdrDetailWidget(cours: coursDecharge)));
 
       await tester.pumpAndSettle();
 
-      // Vérifier que le message informatif est affiché
-      final infoMessage = find.textContaining('Ce cours a été déchargé');
+      // VÃ©rifier que le message informatif est affichÃ©
+      final infoMessage = find.textContaining('Ce cours a Ã©tÃ© dÃ©chargÃ©');
       expect(infoMessage, findsOneWidget);
 
-      // Vérifier que l'icône d'information est présente
+      // VÃ©rifier que l'icÃ´ne d'information est prÃ©sente
       expect(find.byIcon(Icons.info_outline), findsOneWidget);
     });
 
@@ -155,14 +155,14 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Vérifier les informations principales
+      // VÃ©rifier les informations principales
       expect(find.textContaining('Transport Express'), findsOneWidget);
       expect(find.textContaining('ABC123'), findsOneWidget);
       expect(find.textContaining('Jean Dupont'), findsOneWidget);
       expect(find.textContaining('50000'), findsOneWidget);
     });
 
-    testWidgets('should not show informative message for non-déchargé status', (
+    testWidgets('should not show informative message for non-dÃ©chargÃ© status', (
       WidgetTester tester,
     ) async {
       final coursTransit = coursDecharge.copyWith(statut: StatutCours.transit);
@@ -171,11 +171,11 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Vérifier que le message informatif n'est PAS affiché
-      final infoMessage = find.textContaining('Ce cours a été déchargé');
+      // VÃ©rifier que le message informatif n'est PAS affichÃ©
+      final infoMessage = find.textContaining('Ce cours a Ã©tÃ© dÃ©chargÃ©');
       expect(infoMessage, findsNothing);
 
-      // Vérifier que le statut "Transit" est affiché
+      // VÃ©rifier que le statut "Transit" est affichÃ©
       expect(find.text('Transit'), findsOneWidget);
     });
 
@@ -195,11 +195,11 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        // Vérifier que le statut est affiché
+        // VÃ©rifier que le statut est affichÃ©
         expect(find.text(statut.label), findsOneWidget);
 
-        // Vérifier que le message informatif n'est affiché que pour déchargé
-        final infoMessage = find.textContaining('Ce cours a été déchargé');
+        // VÃ©rifier que le message informatif n'est affichÃ© que pour dÃ©chargÃ©
+        final infoMessage = find.textContaining('Ce cours a Ã©tÃ© dÃ©chargÃ©');
         if (statut == StatutCours.decharge) {
           expect(infoMessage, findsOneWidget);
         } else {
@@ -209,3 +209,4 @@ void main() {
     });
   });
 }
+

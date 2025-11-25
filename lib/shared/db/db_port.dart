@@ -1,5 +1,5 @@
 /* ===========================================================
-   ML_PP MVP — DbPort (Port d'accès DB minimal)
+   ML_PP MVP  DbPort (Port d'accès DB minimal)
    Rôle: Abstraction très légère pour faciliter le test sans réseau.
    =========================================================== */
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -7,7 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 abstract class DbPort {
   Future<Map<String, dynamic>> insertReception(Map<String, dynamic> payload);
   Future<void> rpcValidateReception(String receptionId);
-  // Référentiels pour tests (produits, citernes) — renvoyés en brut:
+  // Référentiels pour tests (produits, citernes)  renvoyés en brut:
   Future<List<Map<String, dynamic>>> selectProduitsActifs();
   Future<List<Map<String, dynamic>>> selectCiternesActives();
 }
@@ -22,7 +22,7 @@ class SupabaseDbPort implements DbPort {
     final Map<String, dynamic> res = await client
         .from('receptions')
         .insert(payload)
-        .select<Map<String, dynamic>>('id')
+        .select('id')
         .single();
     return res;
   }
@@ -36,7 +36,7 @@ class SupabaseDbPort implements DbPort {
   Future<List<Map<String, dynamic>>> selectProduitsActifs() async {
     final List<Map<String, dynamic>> rows = await client
         .from('produits')
-        .select<List<Map<String, dynamic>>>('id, code, nom, actif')
+        .select('id, code, nom, actif')
         .eq('actif', true);
     return rows;
   }
@@ -45,10 +45,14 @@ class SupabaseDbPort implements DbPort {
   Future<List<Map<String, dynamic>>> selectCiternesActives() async {
     final List<Map<String, dynamic>> rows = await client
         .from('citernes')
-        .select<List<Map<String, dynamic>>>(
+        .select(
           'id, produit_id, capacite_totale, capacite_securite, statut',
         )
         .eq('statut', 'active');
     return rows;
   }
 }
+
+
+
+

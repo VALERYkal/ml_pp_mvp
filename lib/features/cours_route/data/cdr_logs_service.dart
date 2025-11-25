@@ -1,5 +1,5 @@
-// 📌 Module : Cours de Route - Audit Logs
-// 🧭 Description : Service de logging des transitions d'état CDR
+// ?? Module : Cours de Route - Audit Logs
+// ?? Description : Service de logging des transitions d'état CDR
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cdr_etat.dart';
@@ -56,3 +56,4 @@ class CdrLogsService {
     }
   }
 }
+

@@ -1,8 +1,9 @@
-// 📌 Module : Cours de Route - Providers Filters
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-01-27
-// 🧭 Description : Providers pour le filtrage des cours de route
+// ?? Module : Cours de Route - Providers Filters
+// ?? Auteur : Valery Kalonga
+// ?? Date : 2025-01-27
+// ?? Description : Providers pour le filtrage des cours de route
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_route_providers.dart';
@@ -23,10 +24,18 @@ class CoursFilters {
   /// Volume maximum (par défaut 100 000)
   final double volumeMax;
 
-  const CoursFilters({this.fournisseurId, this.volumeMin = 0, this.volumeMax = 100000});
+  const CoursFilters({
+    this.fournisseurId,
+    this.volumeMin = 0,
+    this.volumeMax = 100000,
+  });
 
   /// Crée une copie avec des modifications
-  CoursFilters copyWith({String? fournisseurId, double? volumeMin, double? volumeMax}) {
+  CoursFilters copyWith({
+    String? fournisseurId,
+    double? volumeMin,
+    double? volumeMax,
+  }) {
     return CoursFilters(
       fournisseurId: fournisseurId ?? this.fournisseurId,
       volumeMin: volumeMin ?? this.volumeMin,
@@ -44,7 +53,8 @@ class CoursFilters {
   }
 
   @override
-  int get hashCode => fournisseurId.hashCode ^ volumeMin.hashCode ^ volumeMax.hashCode;
+  int get hashCode =>
+      fournisseurId.hashCode ^ volumeMin.hashCode ^ volumeMax.hashCode;
 
   @override
   String toString() {
@@ -88,7 +98,10 @@ final filteredCoursProvider = Provider<List<CoursDeRoute>>((ref) {
 /// [filters] : Filtres à appliquer
 ///
 /// Retourne la liste filtrée selon les critères (fournisseur et volume uniquement)
-List<CoursDeRoute> _applyFilters(List<CoursDeRoute> cours, CoursFilters filters) {
+List<CoursDeRoute> _applyFilters(
+  List<CoursDeRoute> cours,
+  CoursFilters filters,
+) {
   return cours.where((c) {
     // Filtre par fournisseur
     final okFournisseur = (filters.fournisseurId == null)
@@ -109,3 +122,4 @@ List<CoursDeRoute> _applyFilters(List<CoursDeRoute> cours, CoursFilters filters)
     return okFournisseur && okVolume;
   }).toList();
 }
+

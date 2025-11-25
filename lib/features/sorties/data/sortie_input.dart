@@ -1,5 +1,5 @@
 /* ===========================================================
-   ML_PP — SortieInput (DTO brouillon)
+   ML_PP  SortieInput (DTO brouillon)
    Conforme à public.sorties_produit
    =========================================================== */
 class SortieInput {
@@ -39,3 +39,4 @@ class SortieInput {
     this.transporteur,
   });
 }
+

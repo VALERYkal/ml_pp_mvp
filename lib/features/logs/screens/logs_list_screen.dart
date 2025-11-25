@@ -153,7 +153,7 @@ class LogsListScreen extends ConsumerWidget {
             const SizedBox(height: 12),
             Row(
               children: [
-                Text('Page ${page + 1} • ${pageSize} éléments'),
+                Text('Page ${page + 1}  ${pageSize} éléments'),
                 const Spacer(),
                 Row(
                   children: [
@@ -275,8 +275,8 @@ class LogsListScreen extends ConsumerWidget {
   String _fmtIso(DateTime d) => d.toIso8601String().replaceFirst('T', ' ').split('.').first;
   String _fmtRange(DateTimeRange? r) => r == null
       ? 'Période'
-      : '${r.start.year}-${r.start.month.toString().padLeft(2, '0')}-${r.start.day.toString().padLeft(2, '0')} → ${r.end.year}-${r.end.month.toString().padLeft(2, '0')}-${r.end.day.toString().padLeft(2, '0')}';
-  String _shorten(String s, int max) => s.length <= max ? s : '${s.substring(0, max)}…';
+      : '${r.start.year}-${r.start.month.toString().padLeft(2, '0')}-${r.start.day.toString().padLeft(2, '0')} ? ${r.end.year}-${r.end.month.toString().padLeft(2, '0')}-${r.end.day.toString().padLeft(2, '0')}';
+  String _shorten(String s, int max) => s.length <= max ? s : '${s.substring(0, max)}';
 
   // Formatters pour le popup
   String _fmtYmd(DateTime? d) => d == null
@@ -314,7 +314,7 @@ class LogsListScreen extends ConsumerWidget {
             : const JsonEncoder.withIndent('  ').convert(e.rawDetails);
 
         return AlertDialog(
-          title: Text('${e.module} • ${e.action}'),
+          title: Text('${e.module}  ${e.action}'),
           content: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 720),
             child: Column(
@@ -383,3 +383,7 @@ class LogsListScreen extends ConsumerWidget {
     }
   }
 }
+
+
+
+

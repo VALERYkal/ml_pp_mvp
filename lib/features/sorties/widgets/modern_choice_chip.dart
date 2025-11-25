@@ -25,7 +25,8 @@ class ModernChoiceChip extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     final effectiveSelectedColor = selectedColor ?? colorScheme.primary;
-    final effectiveUnselectedColor = unselectedColor ?? colorScheme.surfaceVariant;
+    final effectiveUnselectedColor =
+        unselectedColor ?? colorScheme.surfaceVariant;
 
     return GestureDetector(
       onTap: onSelected,
@@ -34,16 +35,20 @@ class ModernChoiceChip extends StatelessWidget {
         curve: Curves.easeInOut,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: selected ? effectiveSelectedColor.withOpacity(0.1) : effectiveUnselectedColor,
+          color: selected
+              ? effectiveSelectedColor.withValues(alpha: 0.1)
+              : effectiveUnselectedColor,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: selected ? effectiveSelectedColor : colorScheme.outline.withOpacity(0.3),
+            color: selected
+                ? effectiveSelectedColor
+                : colorScheme.outline.withValues(alpha: 0.3),
             width: selected ? 2 : 1,
           ),
           boxShadow: selected
               ? [
                   BoxShadow(
-                    color: effectiveSelectedColor.withOpacity(0.2),
+                    color: effectiveSelectedColor.withValues(alpha: 0.2),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -57,14 +62,18 @@ class ModernChoiceChip extends StatelessWidget {
               Icon(
                 icon,
                 size: 18,
-                color: selected ? effectiveSelectedColor : colorScheme.onSurfaceVariant,
+                color: selected
+                    ? effectiveSelectedColor
+                    : colorScheme.onSurfaceVariant,
               ),
               const SizedBox(width: 8),
             ],
             Text(
               label,
               style: theme.textTheme.labelMedium?.copyWith(
-                color: selected ? effectiveSelectedColor : colorScheme.onSurfaceVariant,
+                color: selected
+                    ? effectiveSelectedColor
+                    : colorScheme.onSurfaceVariant,
                 fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
               ),
             ),
@@ -74,3 +83,4 @@ class ModernChoiceChip extends StatelessWidget {
     );
   }
 }
+

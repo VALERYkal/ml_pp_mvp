@@ -24,3 +24,7 @@ String fmtLitersSigned(num liters, {int decimals = 0, String locale = 'fr'}) {
   final sign = liters > 0 ? '+' : '';
   return '$sign${fmtLiters(liters, decimals: decimals, locale: locale)}';
 }
+
+
+
+

@@ -1,7 +1,7 @@
-// 📌 Module : Shared UI - Toast
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-01-27
-// 🧭 Description : Utilitaires pour les toasts uniformes
+// ?? Module : Shared UI - Toast
+// ?? Auteur : Valery Kalonga
+// ?? Date : 2025-01-27
+// ?? Description : Utilitaires pour les toasts uniformes
 
 import 'package:flutter/material.dart';
 
@@ -83,3 +83,4 @@ IconData? _getIconForType(ToastType type) {
       return Icons.info;
   }
 }
+

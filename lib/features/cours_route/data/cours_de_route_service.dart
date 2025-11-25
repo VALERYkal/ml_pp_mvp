@@ -1,8 +1,8 @@
-// 📌 Module : Cours de Route - Data Layer
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-08-07
-// 🗃️ Source SQL : Table `public.cours_de_route`
-// 🧭 Description : Service de gestion des cours de route avec Supabase
+// ?? Module : Cours de Route - Data Layer
+// ?? Auteur : Valery Kalonga
+// ?? Date : 2025-08-07
+// ??? Source SQL : Table `public.cours_de_route`
+// ?? Description : Service de gestion des cours de route avec Supabase
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
@@ -56,7 +56,7 @@ class CoursDeRouteService {
     try {
       final List<Map<String, dynamic>> response = await _supabase
           .from('cours_de_route')
-          .select<List<Map<String, dynamic>>>('*')
+          .select('*')
           .order('created_at', ascending: false);
 
       return response.map((data) {
@@ -71,7 +71,9 @@ class CoursDeRouteService {
         return CoursDeRoute.fromMap(data);
       }).toList();
     } on PostgrestException catch (e) {
-      throw Exception('Erreur lors de la récupération des cours de route: ${e.message}');
+      throw Exception(
+        'Erreur lors de la récupération des cours de route: ${e.message}',
+      );
     } catch (e) {
       throw Exception('Erreur inattendue: $e');
     }
@@ -89,8 +91,8 @@ class CoursDeRouteService {
     try {
       final List<Map<String, dynamic>> response = await _supabase
           .from('cours_de_route')
-          .select<List<Map<String, dynamic>>>('*')
-          .neq('statut', StatutCours.decharge.db)
+          .select('*')
+          .neq('statut', StatutCours.decharge.toDb())
           .order('created_at', ascending: false);
 
       return response.map((data) {
@@ -105,7 +107,9 @@ class CoursDeRouteService {
         return CoursDeRoute.fromMap(data);
       }).toList();
     } on PostgrestException catch (e) {
-      throw Exception('Erreur lors de la récupération des cours actifs: ${e.message}');
+      throw Exception(
+        'Erreur lors de la récupération des cours actifs: ${e.message}',
+      );
     } catch (e) {
       throw Exception('Erreur inattendue: $e');
     }
@@ -126,14 +130,15 @@ class CoursDeRouteService {
     try {
       final Map<String, dynamic>? response = await _supabase
           .from('cours_de_route')
-          .select<Map<String, dynamic>>('*')
+          .select('*')
           .eq('id', id)
           .maybeSingle();
 
       if (response == null) return null;
 
       // Harmonisation des clés côté UI/modèle
-      if (response.containsKey('chauffeur_nom') && response['chauffeur'] == null) {
+      if (response.containsKey('chauffeur_nom') &&
+          response['chauffeur'] == null) {
         response['chauffeur'] = response['chauffeur_nom'];
       }
       if (response.containsKey('depart_pays') && response['pays'] == null) {
@@ -169,7 +174,9 @@ class CoursDeRouteService {
     if (cours.fournisseurId.isEmpty ||
         cours.depotDestinationId.isEmpty ||
         cours.produitId.isEmpty) {
-      throw ArgumentError('fournisseur, dépôt destination et produit sont requis.');
+      throw ArgumentError(
+        'fournisseur, dépôt destination et produit sont requis.',
+      );
     }
     if (cours.volume != null && cours.volume! <= 0) {
       throw ArgumentError('volume must be > 0');
@@ -185,9 +192,12 @@ class CoursDeRouteService {
         'chauffeur_nom': cours.chauffeur,
         'transporteur': cours.transporteur,
         'depart_pays': cours.pays,
-        'date_chargement': cours.dateChargement?.toIso8601String().substring(0, 10),
+        'date_chargement': cours.dateChargement?.toIso8601String().substring(
+          0,
+          10,
+        ),
         'volume': cours.volume,
-        'statut': cours.statut.db,
+        'statut': cours.statut.toDb(),
         'note': cours.note,
       };
       await _supabase.from('cours_de_route').insert(payload);
@@ -230,9 +240,12 @@ class CoursDeRouteService {
         'chauffeur_nom': cours.chauffeur,
         'transporteur': cours.transporteur,
         'depart_pays': cours.pays,
-        'date_chargement': cours.dateChargement?.toIso8601String().substring(0, 10),
+        'date_chargement': cours.dateChargement?.toIso8601String().substring(
+          0,
+          10,
+        ),
         'volume': cours.volume,
-        'statut': cours.statut.db,
+        'statut': cours.statut.toDb(),
         'note': cours.note,
       };
       await _supabase.from('cours_de_route').update(payload).eq('id', cours.id);
@@ -293,15 +306,17 @@ class CoursDeRouteService {
   }) async {
     // Verrou applicatif: DECHARGE uniquement via la validation de Réception
     if (to == StatutCours.decharge && !fromReception) {
-      throw StateError('Le passage à DECHARGE se fait via la validation de réception.');
+      throw StateError(
+        'Le passage à DECHARGE se fait via la validation de réception.',
+      );
     }
 
     // Force un retour: lève une erreur si 0 ligne (RLS/ID/condition)
     await _supabase
         .from('cours_de_route')
-        .update({'statut': to.db})
+        .update({'statut': to.toDb()})
         .eq('id', id)
-        .select<Map<String, dynamic>>('id')
+        .select('id')
         .single();
   }
 
@@ -320,13 +335,15 @@ class CoursDeRouteService {
     try {
       final List<Map<String, dynamic>> response = await _supabase
           .from('cours_de_route')
-          .select<List<Map<String, dynamic>>>()
-          .eq('statut', StatutCoursConverter.toDb(statut))
+          .select()
+          .eq('statut', statut.toDb())
           .order('created_at', ascending: false);
 
       return response.map((data) => CoursDeRoute.fromMap(data)).toList();
     } on PostgrestException catch (e) {
-      throw Exception('Erreur lors de la récupération par statut: ${e.message}');
+      throw Exception(
+        'Erreur lors de la récupération par statut: ${e.message}',
+      );
     } catch (e) {
       throw Exception('Erreur inattendue: $e');
     }
@@ -339,7 +356,10 @@ class CoursDeRouteService {
   ///
   /// Retourne :
   /// - `Future<bool>` : true si la transition est autorisée
-  Future<bool> canTransition({required CdrEtat from, required CdrEtat to}) async {
+  Future<bool> canTransition({
+    required CdrEtat from,
+    required CdrEtat to,
+  }) async {
     // Pure guard: no I/O; business pre-checks could be added later.
     return from.canTransitionTo(to);
   }
@@ -363,7 +383,7 @@ class CoursDeRouteService {
 
     // Pré-validations métier (soft guards)
 
-    // Si from==planifie && to==termine → return false (interdit)
+    // Si from==planifie && to==termine ? return false (interdit)
     if (from == CdrEtat.planifie && to == CdrEtat.termine) {
       return false;
     }
@@ -372,7 +392,7 @@ class CoursDeRouteService {
     if (to == CdrEtat.enCours) {
       final current = await _supabase
           .from('cours_de_route')
-          .select<Map<String, dynamic>>('id, chauffeur_nom, citerne_id')
+          .select('id, chauffeur_nom, citerne_id')
           .eq('id', cdrId)
           .maybeSingle();
 
@@ -392,13 +412,18 @@ class CoursDeRouteService {
         .from('cours_de_route')
         .update({'etat': to.name})
         .eq('id', cdrId)
-        .select<Map<String, dynamic>>()
+        .select()
         .maybeSingle();
 
     if (res != null && userId != null) {
       // Enregistrer le log de transition (best-effort)
       try {
-        await _logsService.logTransition(cdrId: cdrId, from: from, to: to, userId: userId);
+        await _logsService.logTransition(
+          cdrId: cdrId,
+          from: from,
+          to: to,
+          userId: userId,
+        );
       } catch (e) {
         // Ne pas faire échouer la transition si le log échoue
         print('Erreur lors du logging de la transition CDR: $e');
@@ -413,14 +438,23 @@ class CoursDeRouteService {
   /// Retourne :
   /// - `Future<Map<String, int>>` : Map avec le nombre de cours par statut
   Future<Map<String, int>> countByStatut() async {
-    final statuts = ['CHARGEMENT', 'TRANSIT', 'FRONTIERE', 'ARRIVE', 'DECHARGE'];
+    final statuts = [
+      'CHARGEMENT',
+      'TRANSIT',
+      'FRONTIERE',
+      'ARRIVE',
+      'DECHARGE',
+    ];
     final out = <String, int>{};
 
     for (final statut in statuts) {
       final rows = await _supabase
           .from('cours_de_route')
-          .select<List<Map<String, dynamic>>>('id')
-          .eq('statut', statut); // ✅ Utilise 'statut' (nom correct de la colonne)
+          .select('id')
+          .eq(
+            'statut',
+            statut,
+          ); // ? Utilise 'statut' (nom correct de la colonne)
       out[statut] = rows.length;
     }
     return out;
@@ -436,24 +470,25 @@ class CoursDeRouteService {
     // En route (chargement + transit + frontière)
     final enRoute = await _supabase
         .from('cours_de_route')
-        .select<List<Map<String, dynamic>>>('id')
-        .in_('statut', ['CHARGEMENT', 'TRANSIT', 'FRONTIERE']);
+        .select('id')
+        .inFilter('statut', ['CHARGEMENT', 'TRANSIT', 'FRONTIERE']);
     out['en_route'] = enRoute.length;
 
     // En attente de déchargement (arrivé)
     final enAttente = await _supabase
         .from('cours_de_route')
-        .select<List<Map<String, dynamic>>>('id')
+        .select('id')
         .eq('statut', 'ARRIVE');
     out['en_attente'] = enAttente.length;
 
     // Terminés (déchargé)
     final termines = await _supabase
         .from('cours_de_route')
-        .select<List<Map<String, dynamic>>>('id')
+        .select('id')
         .eq('statut', 'DECHARGE');
     out['termines'] = termines.length;
 
     return out;
   }
 }
+

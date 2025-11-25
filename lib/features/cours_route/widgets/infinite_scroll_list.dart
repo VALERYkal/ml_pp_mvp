@@ -1,7 +1,7 @@
-// 📌 Module : Cours de Route - Widgets
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-01-27
-// 🧭 Description : Liste avec scroll infini pour les cours de route
+// ?? Module : Cours de Route - Widgets
+// ?? Auteur : Valery Kalonga
+// ?? Date : 2025-01-27
+// ?? Description : Liste avec scroll infini pour les cours de route
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -32,10 +32,12 @@ class InfiniteScrollCoursList extends ConsumerStatefulWidget {
   final void Function(CoursDeRoute) onCreateReception;
 
   @override
-  ConsumerState<InfiniteScrollCoursList> createState() => _InfiniteScrollCoursListState();
+  ConsumerState<InfiniteScrollCoursList> createState() =>
+      _InfiniteScrollCoursListState();
 }
 
-class _InfiniteScrollCoursListState extends ConsumerState<InfiniteScrollCoursList> {
+class _InfiniteScrollCoursListState
+    extends ConsumerState<InfiniteScrollCoursList> {
   final ScrollController _scrollController = ScrollController();
   bool _isLoadingMore = false;
 
@@ -53,7 +55,8 @@ class _InfiniteScrollCoursListState extends ConsumerState<InfiniteScrollCoursLis
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
       _loadMore();
     }
   }
@@ -137,8 +140,8 @@ class _CoursCard extends StatelessWidget {
     String plaquesLabel(String? plaqueCamion, String? plaqueRemorque) {
       final c = (plaqueCamion ?? '').trim();
       final r = (plaqueRemorque ?? '').trim();
-      final left = c.isEmpty ? '—' : c;
-      final right = r.isEmpty ? '—' : r;
+      final left = c.isEmpty ? '' : c;
+      final right = r.isEmpty ? '' : r;
       return '$left / $right';
     }
 
@@ -152,22 +155,26 @@ class _CoursCard extends StatelessWidget {
       final nom = (c.produitNom ?? '').trim();
       if (code.isNotEmpty) return code;
       if (nom.isNotEmpty) return nom;
-      return '—';
+      return '';
     }
 
     return Card(
       child: ListTile(
         title: Text(
-          '${nameOf(fournisseurs, cours.fournisseurId)} • ${produitLabel(cours, produits, produitCodes)}',
+          '${nameOf(fournisseurs, cours.fournisseurId)}  ${produitLabel(cours, produits, produitCodes)}',
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '${plaquesLabel(cours.plaqueCamion, cours.plaqueRemorque)} • ${cours.chauffeur ?? '—'}',
+              '${plaquesLabel(cours.plaqueCamion, cours.plaqueRemorque)}  ${cours.chauffeur ?? ''}',
             ),
-            Text('${cours.transporteur ?? '—'} • ${fmtDate(cours.dateChargement)}'),
-            Text('${fmtVolume(cours.volume)} • ${nameOf(depots, cours.depotDestinationId)}'),
+            Text(
+              '${cours.transporteur ?? ''}  ${fmtDate(cours.dateChargement)}',
+            ),
+            Text(
+              '${fmtVolume(cours.volume)}  ${nameOf(depots, cours.depotDestinationId)}',
+            ),
             const SizedBox(height: 8),
             Row(
               children: [
@@ -203,12 +210,15 @@ class _ActionButtons extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final nextStatut = StatutCoursDb.next(cours.statut);
+    // Calcul du prochain statut uniquement une fois
+    final nextStatut = nextStatutCours(cours.statut);
 
+    // Aucun statut suivant -> pas d'action
     if (nextStatut == null) {
       return const SizedBox.shrink();
     }
 
+    // Si le prochain statut est "DECHARGE", afficher le bouton "Réception"
     if (nextStatut == StatutCours.decharge) {
       return FilledButton.tonalIcon(
         onPressed: onCreateReception,
@@ -221,6 +231,7 @@ class _ActionButtons extends ConsumerWidget {
       );
     }
 
+    // Sinon, afficher le bouton "Suivant"
     return FilledButton.tonalIcon(
       onPressed: onAdvanceStatus,
       icon: const Icon(Icons.trending_flat, size: 16),
@@ -248,14 +259,21 @@ class _LoadingIndicator extends StatelessWidget {
             ? const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+                  SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
                   SizedBox(width: 8),
                   Text('Chargement...'),
                 ],
               )
             : const Text(
                 'Tous les cours ont été chargés',
-                style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontStyle: FontStyle.italic,
+                ),
               ),
       ),
     );
@@ -287,6 +305,11 @@ Widget _statutBadge(StatutCours statut) {
       bg = Colors.grey.shade300;
       icon = Icons.task_alt;
       break;
+    case StatutCours.inconnu:
+    default:
+      bg = Colors.grey.shade200;
+      icon = Icons.help_outline;
+      break;
   }
   return Chip(
     avatar: Icon(icon, size: 16),
@@ -295,3 +318,4 @@ Widget _statutBadge(StatutCours statut) {
     visualDensity: VisualDensity.compact,
   );
 }
+

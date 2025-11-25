@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ml_pp_mvp/features/receptions/models/reception.dart';
 
@@ -17,5 +18,8 @@ final receptionsListProvider = FutureProvider<List<Reception>>((ref) async {
       .order('created_at', ascending: false)
       .range(start, end);
 
-  return (res as List<dynamic>).map((e) => Reception.fromJson(e as Map<String, dynamic>)).toList();
+  return (res as List<dynamic>)
+      .map((e) => Reception.fromJson(e as Map<String, dynamic>))
+      .toList();
 });
+

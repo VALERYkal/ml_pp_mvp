@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart' as Riverpod;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class RefDataCache {
@@ -17,7 +17,7 @@ class RefDataCache {
   });
 }
 
-final refDataProvider = Riverpod.FutureProvider<RefDataCache>((ref) async {
+final refDataProvider = FutureProvider<RefDataCache>((ref) async {
   final client = Supabase.instance.client;
   try {
     final now = DateTime.now();
@@ -47,13 +47,13 @@ final refDataProvider = Riverpod.FutureProvider<RefDataCache>((ref) async {
       loadedAt: now,
     );
   } catch (e) {
-    debugPrint('❌ refDataProvider load error: $e');
+    debugPrint('? refDataProvider load error: $e');
     rethrow;
   }
 });
 
 String resolveName(RefDataCache cache, String id, String type) {
-  if (id.isEmpty) return '—';
+  if (id.isEmpty) return '';
   final key = id.trim();
   switch (type) {
     case 'fournisseur':
@@ -79,7 +79,7 @@ String resolveName(RefDataCache cache, String id, String type) {
       if (_matchesIdOrPrefix(key, '452b557c-e974-4315-b6c2-cda8487db428')) return 'Gasoil / AGO';
       return _shortId(key);
     default:
-      return '—';
+      return '';
   }
 }
 
@@ -145,3 +145,7 @@ bool _matchesIdOrPrefix(String key, String fullId) {
   final fids = fid.length >= 6 ? fid.substring(0, 6) : fid;
   return ks == fids;
 }
+
+
+
+

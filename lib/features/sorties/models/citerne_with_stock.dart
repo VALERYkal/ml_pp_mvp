@@ -1,5 +1,5 @@
-// 📌 Module : Sorties - Models
-// 🧭 Description : Modèle pour afficher les citernes avec leurs stocks
+// ?? Module : Sorties - Models
+// ?? Description : Modèle pour afficher les citernes avec leurs stocks
 
 /// Modèle léger pour afficher une citerne avec ses stocks actuels
 class CiterneWithStockForSortie {
@@ -45,15 +45,20 @@ class CiterneWithStockForSortie {
       stockAmbiant != null ? '${stockAmbiant!.toStringAsFixed(1)} L' : 'N/A';
 
   /// Formate le stock 15°C avec 1 décimale
-  String get stock15cFormatted => stock15c != null ? '${stock15c!.toStringAsFixed(1)} L' : 'N/A';
+  String get stock15cFormatted =>
+      stock15c != null ? '${stock15c!.toStringAsFixed(1)} L' : 'N/A';
 
   /// Formate la capacité avec 1 décimale
-  String get capaciteTotaleFormatted =>
-      capaciteTotale != null ? '${capaciteTotale!.toStringAsFixed(1)} L' : 'N/A';
+  String get capaciteTotaleFormatted => capaciteTotale != null
+      ? '${capaciteTotale!.toStringAsFixed(1)} L'
+      : 'N/A';
 
   /// Retourne le texte pour l'affichage dans le subtitle
-  String get stockDisplayText => 'Stock: $stockAmbiantFormatted • $stock15cFormatted (15°C)';
+  String get stockDisplayText =>
+      'Stock: $stockAmbiantFormatted  $stock15cFormatted (15°C)';
 
   /// Retourne le texte complet avec capacité
-  String get fullDisplayText => '$stockDisplayText — Capacité: $capaciteTotaleFormatted';
+  String get fullDisplayText =>
+      '$stockDisplayText  Capacité: $capaciteTotaleFormatted';
 }
+

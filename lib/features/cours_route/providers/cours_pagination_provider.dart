@@ -1,8 +1,9 @@
-// 📌 Module : Cours de Route - Providers
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-01-27
-// 🧭 Description : Provider pour la pagination des cours de route
+// ?? Module : Cours de Route - Providers
+// ?? Auteur : Valery Kalonga
+// ?? Date : 2025-01-27
+// ?? Description : Provider pour la pagination des cours de route
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_filters_provider.dart';
@@ -13,9 +14,17 @@ class CoursPaginationConfig {
   final int currentPage;
   final bool hasMore;
 
-  const CoursPaginationConfig({this.pageSize = 20, this.currentPage = 1, this.hasMore = true});
+  const CoursPaginationConfig({
+    this.pageSize = 20,
+    this.currentPage = 1,
+    this.hasMore = true,
+  });
 
-  CoursPaginationConfig copyWith({int? pageSize, int? currentPage, bool? hasMore}) {
+  CoursPaginationConfig copyWith({
+    int? pageSize,
+    int? currentPage,
+    bool? hasMore,
+  }) {
     return CoursPaginationConfig(
       pageSize: pageSize ?? this.pageSize,
       currentPage: currentPage ?? this.currentPage,
@@ -33,7 +42,8 @@ class CoursPaginationConfig {
   }
 
   @override
-  int get hashCode => pageSize.hashCode ^ currentPage.hashCode ^ hasMore.hashCode;
+  int get hashCode =>
+      pageSize.hashCode ^ currentPage.hashCode ^ hasMore.hashCode;
 
   @override
   String toString() =>
@@ -50,7 +60,10 @@ final coursPaginationProvider = StateProvider<CoursPaginationConfig>((ref) {
 });
 
 /// Fonction de pagination des cours
-List<CoursDeRoute> paginateCours(List<CoursDeRoute> cours, CoursPaginationConfig config) {
+List<CoursDeRoute> paginateCours(
+  List<CoursDeRoute> cours,
+  CoursPaginationConfig config,
+) {
   final startIndex = (config.currentPage - 1) * config.pageSize;
   final endIndex = startIndex + config.pageSize;
 
@@ -58,7 +71,10 @@ List<CoursDeRoute> paginateCours(List<CoursDeRoute> cours, CoursPaginationConfig
     return [];
   }
 
-  return cours.sublist(startIndex, endIndex > cours.length ? cours.length : endIndex);
+  return cours.sublist(
+    startIndex,
+    endIndex > cours.length ? cours.length : endIndex,
+  );
 }
 
 /// Provider pour la liste paginée des cours de route
@@ -113,3 +129,4 @@ final paginationInfoProvider = Provider<Map<String, dynamic>>((ref) {
     'hasMore': hasMore,
   };
 });
+

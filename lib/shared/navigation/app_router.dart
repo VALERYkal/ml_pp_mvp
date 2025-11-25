@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' hide Provider;
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ml_pp_mvp/shared/providers/session_provider.dart';
 import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart';
 import 'package:ml_pp_mvp/core/models/user_role.dart';
@@ -33,13 +33,13 @@ import 'package:ml_pp_mvp/features/citernes/screens/citerne_list_screen.dart';
 const String kDefaultHome = '/receptions';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
-  // ⚠️ CORRECTIF : Utiliser le refresh composite (auth + rôle)
+  // ?? CORRECTIF : Utiliser le refresh composite (auth + rôle)
   final refresh = ref.watch(goRouterRefreshProvider);
 
   return GoRouter(
     initialLocation: '/login',
     debugLogDiagnostics: false,
-    refreshListenable: refresh, // 👈 composite (auth + rôle)
+    refreshListenable: refresh, // ?? composite (auth + rôle)
     routes: [
       // Routes publiques (inchangées)
       GoRoute(path: '/login', name: 'login', builder: (ctx, st) => const LoginScreen()),
@@ -108,12 +108,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final loc = state.fullPath ?? state.uri.path;
 
-      // ✅ LIRE ICI, à la volée (pas capturé en amont)
+      // ? LIRE ICI, à la volée (pas capturé en amont)
       final isAuthenticated = ref.read(isAuthenticatedProvider);
       final role = ref.read(userRoleProvider); // UserRole? nullable
 
-      // 🧪 Logs ciblés (temporaires)
-      debugPrint('🔁 RedirectEval: loc=$loc, auth=$isAuthenticated, role=$role');
+      // ?? Logs ciblés (temporaires)
+      debugPrint('?? RedirectEval: loc=$loc, auth=$isAuthenticated, role=$role');
 
       // 1) Non connecté -> /login sauf si on y est déjà
       if (!isAuthenticated) {
@@ -134,3 +134,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     },
   );
 });
+
+
+
+

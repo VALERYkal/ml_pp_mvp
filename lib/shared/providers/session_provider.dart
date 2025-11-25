@@ -2,9 +2,9 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' hide Provider;
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// ⚠️ Modèle d'état d'auth interne à l'app (à ne pas confondre avec supabase.AuthState)
+/// ?? Modèle d'état d'auth interne à l'app (à ne pas confondre avec supabase.AuthState)
 @immutable
 class AppAuthState {
   final Session? session;
@@ -40,24 +40,24 @@ final isAuthenticatedProvider = Provider<bool>((ref) {
   final result = asyncState.when(
     data: (s) {
       final auth = s.isAuthenticated;
-      debugPrint('🔐 isAuthenticatedProvider: data state -> auth=$auth');
+      debugPrint('?? isAuthenticatedProvider: data state -> auth=$auth');
       return auth;
     },
     loading: () {
       // Pendant le chargement, vérifier l'état instantané
       final fallback = Supabase.instance.client.auth.currentSession != null;
-      debugPrint('🔐 isAuthenticatedProvider: loading state -> fallback=$fallback');
+      debugPrint('?? isAuthenticatedProvider: loading state -> fallback=$fallback');
       return fallback;
     },
     error: (_, __) {
       // En cas d'erreur, vérifier l'état instantané
       final fallback = Supabase.instance.client.auth.currentSession != null;
-      debugPrint('🔐 isAuthenticatedProvider: error state -> fallback=$fallback');
+      debugPrint('?? isAuthenticatedProvider: error state -> fallback=$fallback');
       return fallback;
     },
   );
 
-  debugPrint('🔐 isAuthenticatedProvider: final result=$result');
+  debugPrint('?? isAuthenticatedProvider: final result=$result');
   return result;
 });
 
@@ -70,3 +70,7 @@ final currentUserProvider = Provider<User?>((ref) {
 final currentSessionProvider = Provider<Session?>((ref) {
   return Supabase.instance.client.auth.currentSession;
 });
+
+
+
+

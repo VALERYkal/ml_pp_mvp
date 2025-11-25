@@ -4,11 +4,11 @@ import 'package:ml_pp_mvp/shared/utils/formatters.dart';
 void main() {
   group('KPI Harmonisation Tests', () {
     test('All KPIs should use the same formatting', () {
-      // Test KPI 1 format (Camions à suivre)
+      // Test KPI 1 format (Camions Ã  suivre)
       final kpi1EnRoute = fmtLiters(10000);
       final kpi1Attente = fmtLiters(5000);
 
-      // Test KPI 2 format (Réceptions du jour)
+      // Test KPI 2 format (RÃ©ceptions du jour)
       final kpi2Ambiant = fmtLiters(15000);
       final kpi2Corrige = fmtLiters(12000);
 
@@ -46,3 +46,4 @@ void main() {
     });
   });
 }
+

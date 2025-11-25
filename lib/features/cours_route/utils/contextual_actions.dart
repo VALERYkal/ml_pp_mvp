@@ -1,7 +1,7 @@
-// 📌 Module : Cours de Route - Utils
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-09-15
-// 🧭 Description : Actions contextuelles intelligentes pour les cours de route
+// ?? Module : Cours de Route - Utils
+// ?? Auteur : Valery Kalonga
+// ?? Date : 2025-09-15
+// ?? Description : Actions contextuelles intelligentes pour les cours de route
 
 import 'package:flutter/material.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
@@ -43,16 +43,27 @@ class ContextualActionsGenerator {
     // Action "Voir" toujours disponible
     if (onView != null) {
       actions.add(
-        ContextualAction(label: 'Voir', icon: Icons.visibility_outlined, onPressed: onView),
+        ContextualAction(
+          label: 'Voir',
+          icon: Icons.visibility_outlined,
+          onPressed: onView,
+        ),
       );
     }
 
     // Actions selon le statut
     switch (cours.statut) {
+      case StatutCours.inconnu:
       case StatutCours.chargement:
         // Cours en chargement
         if (onEdit != null) {
-          actions.add(ContextualAction(label: 'Modifier', icon: Icons.edit, onPressed: onEdit));
+          actions.add(
+            ContextualAction(
+              label: 'Modifier',
+              icon: Icons.edit,
+              onPressed: onEdit,
+            ),
+          );
         }
         if (onAdvanceStatus != null) {
           actions.add(
@@ -91,7 +102,13 @@ class ContextualActionsGenerator {
           );
         }
         if (onEdit != null) {
-          actions.add(ContextualAction(label: 'Modifier', icon: Icons.edit, onPressed: onEdit));
+          actions.add(
+            ContextualAction(
+              label: 'Modifier',
+              icon: Icons.edit,
+              onPressed: onEdit,
+            ),
+          );
         }
         break;
 
@@ -109,7 +126,13 @@ class ContextualActionsGenerator {
           );
         }
         if (onEdit != null) {
-          actions.add(ContextualAction(label: 'Modifier', icon: Icons.edit, onPressed: onEdit));
+          actions.add(
+            ContextualAction(
+              label: 'Modifier',
+              icon: Icons.edit,
+              onPressed: onEdit,
+            ),
+          );
         }
         break;
 
@@ -127,7 +150,13 @@ class ContextualActionsGenerator {
           );
         }
         if (onEdit != null) {
-          actions.add(ContextualAction(label: 'Modifier', icon: Icons.edit, onPressed: onEdit));
+          actions.add(
+            ContextualAction(
+              label: 'Modifier',
+              icon: Icons.edit,
+              onPressed: onEdit,
+            ),
+          );
         }
         break;
 
@@ -150,7 +179,13 @@ class ContextualActionsGenerator {
 
     // Action "Dupliquer" toujours disponible (sauf pour les cours déchargés où elle est déjà ajoutée)
     if (cours.statut != StatutCours.decharge && onDuplicate != null) {
-      actions.add(ContextualAction(label: 'Dupliquer', icon: Icons.copy, onPressed: onDuplicate));
+      actions.add(
+        ContextualAction(
+          label: 'Dupliquer',
+          icon: Icons.copy,
+          onPressed: onDuplicate,
+        ),
+      );
     }
 
     return actions;
@@ -169,12 +204,17 @@ class ContextualActionsGenerator {
     // Action "Voir" toujours en premier
     if (onView != null) {
       actions.add(
-        ContextualAction(label: 'Voir', icon: Icons.visibility_outlined, onPressed: onView),
+        ContextualAction(
+          label: 'Voir',
+          icon: Icons.visibility_outlined,
+          onPressed: onView,
+        ),
       );
     }
 
     // Action principale selon le statut
     switch (cours.statut) {
+      case StatutCours.inconnu:
       case StatutCours.chargement:
       case StatutCours.transit:
       case StatutCours.frontiere:
@@ -216,6 +256,8 @@ class ContextualActionsGenerator {
   /// Obtient le libellé du prochain statut
   static String _getNextStatusLabel(StatutCours statut) {
     switch (statut) {
+      case StatutCours.inconnu:
+        return 'Marquer en transit';
       case StatutCours.chargement:
         return 'En transit';
       case StatutCours.transit:
@@ -232,6 +274,8 @@ class ContextualActionsGenerator {
   /// Obtient l'icône du prochain statut
   static IconData _getNextStatusIcon(StatutCours statut) {
     switch (statut) {
+      case StatutCours.inconnu:
+        return Icons.local_shipping;
       case StatutCours.chargement:
         return Icons.local_shipping;
       case StatutCours.transit:
@@ -248,6 +292,8 @@ class ContextualActionsGenerator {
   /// Obtient la couleur du prochain statut
   static Color _getNextStatusColor(StatutCours statut) {
     switch (statut) {
+      case StatutCours.inconnu:
+        return Colors.blue;
       case StatutCours.chargement:
         return Colors.blue;
       case StatutCours.transit:
@@ -267,7 +313,11 @@ class ContextualActionsWidget extends StatelessWidget {
   final List<ContextualAction> actions;
   final bool isCompact;
 
-  const ContextualActionsWidget({super.key, required this.actions, this.isCompact = false});
+  const ContextualActionsWidget({
+    super.key,
+    required this.actions,
+    this.isCompact = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -276,7 +326,10 @@ class ContextualActionsWidget extends StatelessWidget {
     if (isCompact) {
       return Row(
         mainAxisSize: MainAxisSize.min,
-        children: actions.take(2).map((action) => _buildCompactButton(action)).toList(),
+        children: actions
+            .take(2)
+            .map((action) => _buildCompactButton(action))
+            .toList(),
       );
     }
 
@@ -327,3 +380,4 @@ class ContextualActionsWidget extends StatelessWidget {
     );
   }
 }
+

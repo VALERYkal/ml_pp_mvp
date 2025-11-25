@@ -1,5 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart' as Riverpod;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class LogsService {
   String _isoUtc(DateTime d) => d.toUtc().toIso8601String().split('.').first + 'Z';
@@ -99,4 +99,8 @@ class LogsService {
   }
 }
 
-final logsServiceProvider = Riverpod.Provider<LogsService>((ref) => LogsService());
+final logsServiceProvider = Provider<LogsService>((ref) => LogsService());
+
+
+
+

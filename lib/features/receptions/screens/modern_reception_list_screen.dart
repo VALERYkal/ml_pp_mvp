@@ -1,5 +1,5 @@
 /* ===========================================================
-   ML_PP MVP — Modern Reception List Screen
+   ML_PP MVP  Modern Reception List Screen
    Rôle: Écran moderne pour lister les réceptions avec design Material 3,
    filtres avancés, recherche et animations fluides
    =========================================================== */
@@ -11,10 +11,12 @@ class ModernReceptionListScreen extends ConsumerStatefulWidget {
   const ModernReceptionListScreen({super.key});
 
   @override
-  ConsumerState<ModernReceptionListScreen> createState() => _ModernReceptionListScreenState();
+  ConsumerState<ModernReceptionListScreen> createState() =>
+      _ModernReceptionListScreenState();
 }
 
-class _ModernReceptionListScreenState extends ConsumerState<ModernReceptionListScreen>
+class _ModernReceptionListScreenState
+    extends ConsumerState<ModernReceptionListScreen>
     with TickerProviderStateMixin {
   late AnimationController _fadeController;
   late AnimationController _slideController;
@@ -33,20 +35,22 @@ class _ModernReceptionListScreenState extends ConsumerState<ModernReceptionListS
   }
 
   void _initializeAnimations() {
-    _fadeController = AnimationController(duration: const Duration(milliseconds: 600), vsync: this);
+    _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
     _slideController = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,
     );
 
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _fadeController, curve: Curves.easeOutCubic));
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _fadeController, curve: Curves.easeOutCubic),
+    );
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+          CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
+        );
 
     _fadeController.forward();
     _slideController.forward();
@@ -68,7 +72,7 @@ class _ModernReceptionListScreenState extends ConsumerState<ModernReceptionListS
       backgroundColor: theme.colorScheme.surface,
       body: AnimatedBuilder(
         animation: _fadeAnimation,
-        builder: (context, child) {
+        builder: (BuildContext context, Widget? child) {
           return FadeTransition(
             opacity: _fadeAnimation,
             child: SlideTransition(
@@ -105,13 +109,19 @@ class _ModernReceptionListScreenState extends ConsumerState<ModernReceptionListS
           onPressed: () {
             // TODO: Implémenter l'export
           },
-          icon: Icon(Icons.download_rounded, color: theme.colorScheme.onSurface),
+          icon: Icon(
+            Icons.download_rounded,
+            color: theme.colorScheme.onSurface,
+          ),
         ),
         IconButton(
           onPressed: () {
             // TODO: Implémenter les paramètres
           },
-          icon: Icon(Icons.settings_rounded, color: theme.colorScheme.onSurface),
+          icon: Icon(
+            Icons.settings_rounded,
+            color: theme.colorScheme.onSurface,
+          ),
         ),
       ],
     );
@@ -121,7 +131,11 @@ class _ModernReceptionListScreenState extends ConsumerState<ModernReceptionListS
     return Container(
       padding: const EdgeInsets.all(16),
       child: Column(
-        children: [_buildSearchBar(theme), const SizedBox(height: 12), _buildFilters(theme)],
+        children: [
+          _buildSearchBar(theme),
+          const SizedBox(height: 12),
+          _buildFilters(theme),
+        ],
       ),
     );
   }
@@ -131,7 +145,10 @@ class _ModernReceptionListScreenState extends ConsumerState<ModernReceptionListS
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: theme.colorScheme.outline.withOpacity(0.2), width: 1),
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(alpha: 0.2),
+          width: 1,
+        ),
       ),
       child: TextField(
         controller: _searchController,
@@ -142,7 +159,10 @@ class _ModernReceptionListScreenState extends ConsumerState<ModernReceptionListS
         },
         decoration: InputDecoration(
           hintText: 'Rechercher une réception...',
-          prefixIcon: Icon(Icons.search_rounded, color: theme.colorScheme.onSurfaceVariant),
+          prefixIcon: Icon(
+            Icons.search_rounded,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
           suffixIcon: _searchQuery.isNotEmpty
               ? IconButton(
                   onPressed: () {
@@ -151,11 +171,17 @@ class _ModernReceptionListScreenState extends ConsumerState<ModernReceptionListS
                       _searchQuery = '';
                     });
                   },
-                  icon: Icon(Icons.clear_rounded, color: theme.colorScheme.onSurfaceVariant),
+                  icon: Icon(
+                    Icons.clear_rounded,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 )
               : null,
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
+          ),
         ),
       ),
     );
@@ -164,20 +190,46 @@ class _ModernReceptionListScreenState extends ConsumerState<ModernReceptionListS
   Widget _buildFilters(ThemeData theme) {
     return Row(
       children: [
-        Expanded(child: _buildFilterChip(theme, 'Toutes', 'all', Icons.list_rounded)),
-        const SizedBox(width: 8),
-        Expanded(child: _buildFilterChip(theme, 'Monaluxe', 'monaluxe', Icons.business_rounded)),
-        const SizedBox(width: 8),
         Expanded(
-          child: _buildFilterChip(theme, 'Partenaires', 'partenaires', Icons.handshake_rounded),
+          child: _buildFilterChip(theme, 'Toutes', 'all', Icons.list_rounded),
         ),
         const SizedBox(width: 8),
-        Expanded(child: _buildFilterChip(theme, 'Aujourd\'hui', 'today', Icons.today_rounded)),
+        Expanded(
+          child: _buildFilterChip(
+            theme,
+            'Monaluxe',
+            'monaluxe',
+            Icons.business_rounded,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _buildFilterChip(
+            theme,
+            'Partenaires',
+            'partenaires',
+            Icons.handshake_rounded,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _buildFilterChip(
+            theme,
+            'Aujourd\'hui',
+            'today',
+            Icons.today_rounded,
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildFilterChip(ThemeData theme, String label, String value, IconData icon) {
+  Widget _buildFilterChip(
+    ThemeData theme,
+    String label,
+    String value,
+    IconData icon,
+  ) {
     final isSelected = _selectedFilter == value;
 
     return GestureDetector(
@@ -191,13 +243,13 @@ class _ModernReceptionListScreenState extends ConsumerState<ModernReceptionListS
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? theme.colorScheme.primaryContainer.withOpacity(0.3)
+              ? theme.colorScheme.primaryContainer.withValues(alpha: 0.3)
               : theme.colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected
                 ? theme.colorScheme.primary
-                : theme.colorScheme.outline.withOpacity(0.3),
+                : theme.colorScheme.outline.withValues(alpha: 0.3),
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -207,14 +259,18 @@ class _ModernReceptionListScreenState extends ConsumerState<ModernReceptionListS
             Icon(
               icon,
               size: 16,
-              color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
+              color: isSelected
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.onSurfaceVariant,
             ),
             const SizedBox(width: 6),
             Text(
               label,
               style: theme.textTheme.bodySmall?.copyWith(
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
+                color: isSelected
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.onSurfaceVariant,
               ),
             ),
           ],
@@ -240,7 +296,11 @@ class _ModernReceptionListScreenState extends ConsumerState<ModernReceptionListS
     );
   }
 
-  Widget _buildReceptionCard(ThemeData theme, Map<String, dynamic> reception, int index) {
+  Widget _buildReceptionCard(
+    ThemeData theme,
+    Map<String, dynamic> reception,
+    int index,
+  ) {
     return AnimatedContainer(
       duration: Duration(milliseconds: 300 + (index * 100)),
       margin: const EdgeInsets.only(bottom: 12),
@@ -248,7 +308,10 @@ class _ModernReceptionListScreenState extends ConsumerState<ModernReceptionListS
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: theme.colorScheme.outline.withOpacity(0.1), width: 1),
+          side: BorderSide(
+            color: theme.colorScheme.outline.withValues(alpha: 0.1),
+            width: 1,
+          ),
         ),
         child: InkWell(
           onTap: () {
@@ -273,13 +336,16 @@ class _ModernReceptionListScreenState extends ConsumerState<ModernReceptionListS
     );
   }
 
-  Widget _buildReceptionHeader(ThemeData theme, Map<String, dynamic> reception) {
+  Widget _buildReceptionHeader(
+    ThemeData theme,
+    Map<String, dynamic> reception,
+  ) {
     return Row(
       children: [
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: _getStatusColor(reception['status']).withOpacity(0.1),
+            color: _getStatusColor(reception['status']).withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(
@@ -314,7 +380,10 @@ class _ModernReceptionListScreenState extends ConsumerState<ModernReceptionListS
     );
   }
 
-  Widget _buildReceptionDetails(ThemeData theme, Map<String, dynamic> reception) {
+  Widget _buildReceptionDetails(
+    ThemeData theme,
+    Map<String, dynamic> reception,
+  ) {
     return Row(
       children: [
         Expanded(
@@ -348,7 +417,13 @@ class _ModernReceptionListScreenState extends ConsumerState<ModernReceptionListS
     );
   }
 
-  Widget _buildDetailItem(ThemeData theme, String label, String value, IconData icon, Color color) {
+  Widget _buildDetailItem(
+    ThemeData theme,
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Column(
       children: [
         Icon(icon, color: color, size: 16),
@@ -362,19 +437,26 @@ class _ModernReceptionListScreenState extends ConsumerState<ModernReceptionListS
         ),
         Text(
           label,
-          style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildReceptionFooter(ThemeData theme, Map<String, dynamic> reception) {
+  Widget _buildReceptionFooter(
+    ThemeData theme,
+    Map<String, dynamic> reception,
+  ) {
     return Row(
       children: [
         Expanded(
           child: Text(
             reception['owner'] == 'MONALUXE' ? 'Monaluxe' : 'Partenaire',
-            style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
         ),
         Text(
@@ -394,13 +476,16 @@ class _ModernReceptionListScreenState extends ConsumerState<ModernReceptionListS
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3), width: 1),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
       ),
       child: Text(
         label,
-        style: theme.textTheme.bodySmall?.copyWith(color: color, fontWeight: FontWeight.w600),
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: color,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
@@ -413,18 +498,20 @@ class _ModernReceptionListScreenState extends ConsumerState<ModernReceptionListS
           Icon(
             Icons.inbox_rounded,
             size: 64,
-            color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
+            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           Text(
             'Aucune réception trouvée',
-            style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             'Commencez par créer votre première réception',
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
             ),
           ),
           const SizedBox(height: 24),
@@ -436,7 +523,9 @@ class _ModernReceptionListScreenState extends ConsumerState<ModernReceptionListS
             label: Text('Nouvelle réception'),
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           ),
         ],
@@ -532,3 +621,4 @@ class _ModernReceptionListScreenState extends ConsumerState<ModernReceptionListS
     ];
   }
 }
+

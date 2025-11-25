@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 /// Clés UI stables pour tests & sélecteurs.
-/// ⚠️ Ne pas renommer les valeurs string pour éviter les régressions.
+/// ?? Ne pas renommer les valeurs string pour éviter les régressions.
 @immutable
 class UiKeys {
   const UiKeys._();
@@ -11,8 +11,12 @@ class UiKeys {
   static const Key sortieSubmit = Key('sortie.submit');
 
   // Sections
-  static const Key sortieSectionInfos = Key('sortie.section.infos'); // "Informations générales"
-  static const Key sortieSectionBeneficiaire = Key('sortie.section.beneficiaire'); // "Bénéficiaire"
+  static const Key sortieSectionInfos = Key(
+    'sortie.section.infos',
+  ); // "Informations générales"
+  static const Key sortieSectionBeneficiaire = Key(
+    'sortie.section.beneficiaire',
+  ); // "Bénéficiaire"
   static const Key sortieSectionProduit = Key('sortie.section.produit');
   static const Key sortieSectionQuantites = Key('sortie.section.quantites');
   static const Key sortieSectionTransport = Key('sortie.section.transport');
@@ -47,3 +51,4 @@ class UiKeys {
   static const Key successBanner = Key('sortie.feedback.success');
   static const Key loadingIndicator = Key('sortie.loading');
 }
+

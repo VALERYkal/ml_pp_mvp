@@ -4,7 +4,9 @@ import 'package:ml_pp_mvp/features/receptions/models/reception_row_vm.dart';
 import 'package:ml_pp_mvp/shared/referentiels/referentiels.dart' as refs;
 
 // Table VM prête à afficher
-final receptionsTableProvider = FutureProvider.autoDispose<List<ReceptionRowVM>>((ref) async {
+final receptionsTableProvider = FutureProvider.autoDispose<List<ReceptionRowVM>>((
+  ref,
+) async {
   final supa = Supabase.instance.client;
 
   // 1) Réceptions (noyau)
@@ -21,12 +23,13 @@ final receptionsTableProvider = FutureProvider.autoDispose<List<ReceptionRowVM>>
   final prods = await ref.watch(refs.produitsRefProvider.future);
   final cits = await ref.watch(refs.citernesActivesProvider.future);
 
-  // Récupérer les fournisseurs depuis Supabase
-  // Utiliser directement la table 'partenaires' qui semble être le nom correct
-  final fournisseursRows = await supa.from('partenaires').select('id, nom');
+  // Récupérer les fournisseurs depuis Supabase (table officielle)
+  final fournisseursRows = await supa.from('fournisseurs').select('id, nom');
 
-  print('🔍 DEBUG: Récupération des fournisseurs depuis la table "partenaires"');
-  print('🔍 DEBUG: Nombre de fournisseurs trouvés: ${fournisseursRows.length}');
+  print(
+    '?? DEBUG: Récupération des fournisseurs depuis la table "fournisseurs"',
+  );
+  print('?? DEBUG: Nombre de fournisseurs trouvés: ${fournisseursRows.length}');
 
   final fMap = {
     for (final f in (fournisseursRows as List).cast<Map<String, dynamic>>())
@@ -35,26 +38,32 @@ final receptionsTableProvider = FutureProvider.autoDispose<List<ReceptionRowVM>>
 
   final pCode = {for (final p in prods) p.id: (p.code)};
   final pNom = {for (final p in prods) p.id: p.nom};
-  final cNom = {for (final c in cits) c.id: (c.nom.isNotEmpty ? c.nom : c.id.substring(0, 8))};
+  final cNom = {
+    for (final c in cits)
+      c.id: (c.nom.isNotEmpty ? c.nom : c.id.substring(0, 8)),
+  };
 
   // 3) Cours de route liés (pour plaques + fournisseur)
-  final cdrIds = recList.map((r) => r['cours_de_route_id']).whereType<String>().toSet();
+  final cdrIds = recList
+      .map((r) => r['cours_de_route_id'])
+      .whereType<String>()
+      .toSet();
   final Map<String, Map<String, dynamic>> cdrMap = {};
   if (cdrIds.isNotEmpty) {
     final cdrRows = await supa
         .from('cours_de_route')
         .select('id, plaque_camion, plaque_remorque, fournisseur_id')
-        .in_('id', cdrIds.toList());
+        .inFilter('id', cdrIds.toList());
     for (final m in (cdrRows as List).cast<Map<String, dynamic>>()) {
       cdrMap[m['id'] as String] = m;
     }
   }
 
   // Debug: Vérifier les données récupérées
-  print('🔍 DEBUG Fournisseurs récupérés: ${fMap.length} fournisseurs');
-  print('🔍 DEBUG CDR récupérés: ${cdrMap.length} cours de route');
+  print('?? DEBUG Fournisseurs récupérés: ${fMap.length} fournisseurs');
+  print('?? DEBUG CDR récupérés: ${cdrMap.length} cours de route');
   for (final entry in fMap.entries.take(3)) {
-    print('🔍 DEBUG Fournisseur: ${entry.key} -> ${entry.value}');
+    print('?? DEBUG Fournisseur: ${entry.key} -> ${entry.value}');
   }
 
   // 4) Construire les VM
@@ -81,19 +90,21 @@ final receptionsTableProvider = FutureProvider.autoDispose<List<ReceptionRowVM>>
 
     // Debug pour chaque réception
     print(
-      '🔍 DEBUG Réception ${r['id']}: CDR=${cdrId}, fournisseurId=${fournisseurId}, fournisseurNom=${fournisseurNom}',
+      '?? DEBUG Réception ${r['id']}: CDR=${cdrId}, fournisseurId=${fournisseurId}, fournisseurNom=${fournisseurNom}',
     );
     if (cdr != null) {
-      print('🔍 DEBUG CDR data: $cdr');
+      print('?? DEBUG CDR data: $cdr');
     }
 
     out.add(
       ReceptionRowVM(
         id: r['id'] as String,
-        dateReception: DateTime.tryParse((r['date_reception'] as String? ?? '')) ?? DateTime.now(),
+        dateReception:
+            DateTime.tryParse((r['date_reception'] as String? ?? '')) ??
+            DateTime.now(),
         propriete: (r['proprietaire_type'] as String? ?? '').toUpperCase(),
-        produitLabel: prodLabel.isEmpty ? '—' : prodLabel,
-        citerneNom: cid != null ? (cNom[cid] ?? cid.substring(0, 8)) : '—',
+        produitLabel: prodLabel.isEmpty ? '' : prodLabel,
+        citerneNom: cid != null ? (cNom[cid] ?? cid.substring(0, 8)) : '',
         vol15: (r['volume_corrige_15c'] as num?)?.toDouble(),
         volAmb: (r['volume_ambiant'] as num?)?.toDouble(),
         cdrShort: cdrId != null ? '#${cdrId.substring(0, 8)}' : null,
@@ -106,6 +117,10 @@ final receptionsTableProvider = FutureProvider.autoDispose<List<ReceptionRowVM>>
 });
 
 String _joinNonEmpty(List<String?> parts, String sep) {
-  final nonEmpty = parts.where((s) => (s ?? '').trim().isNotEmpty).cast<String>().toList();
+  final nonEmpty = parts
+      .where((s) => (s ?? '').trim().isNotEmpty)
+      .cast<String>()
+      .toList();
   return nonEmpty.join(sep);
 }
+

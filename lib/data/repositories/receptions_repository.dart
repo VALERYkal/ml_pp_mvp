@@ -51,7 +51,7 @@ class ReceptionsRepository {
       // Debug non intrusif (retire-les si OK)
       if (kDebugMode) {
         print(
-          '🔎 Réceptions(${eqDay}${depotId != null ? ' depot=' + depotId : ''}) => nb=$count, amb=$sAmb, 15C=$s15',
+          '?? Réceptions(${eqDay}${depotId != null ? ' depot=' + depotId : ''}) => nb=$count, amb=$sAmb, 15C=$s15',
         );
       }
 
@@ -59,9 +59,13 @@ class ReceptionsRepository {
     } on PostgrestException catch (e) {
       // Aide au diagnostic RLS/schéma
       if (kDebugMode) {
-        print('❗PostgrestException receptions.statsJour: ${e.message}');
+        print('?PostgrestException receptions.statsJour: ${e.message}');
       }
       rethrow;
     }
   }
 }
+
+
+
+

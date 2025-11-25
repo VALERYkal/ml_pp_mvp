@@ -39,7 +39,7 @@ class KpiCard extends StatelessWidget {
           boxShadow: [
             BoxShadow(
               blurRadius: 24,
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black.withValues(alpha: 0.06),
               offset: const Offset(0, 12),
             ),
           ],
@@ -55,20 +55,29 @@ class KpiCard extends StatelessWidget {
                 children: [
                   _IconTint(icon: icon, color: tintColor),
                   const SizedBox(width: 12),
-                  Text(title, style: t.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+                  Text(
+                    title,
+                    style: t.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 12),
               // primary value
               Text(
                 primaryValue,
-                style: t.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800),
+                style: t.textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
               ),
               if (primaryLabel != null) ...[
                 const SizedBox(height: 4),
                 Text(
                   primaryLabel!,
-                  style: t.textTheme.bodyMedium?.copyWith(color: t.colorScheme.onSurfaceVariant),
+                  style: t.textTheme.bodyMedium?.copyWith(
+                    color: t.colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
               const SizedBox(height: 12),
@@ -77,7 +86,7 @@ class KpiCard extends StatelessWidget {
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
-                  color: t.colorScheme.surfaceVariant.withOpacity(0.25),
+                  color: t.colorScheme.surfaceVariant.withValues(alpha: 0.25),
                 ),
                 child: Row(
                   children: [
@@ -109,7 +118,7 @@ class _IconTint extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: color.withOpacity(.1),
+        color: color.withValues(alpha: .1),
         borderRadius: BorderRadius.circular(12),
       ),
       padding: const EdgeInsets.all(10),
@@ -130,10 +139,19 @@ class _Mini extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: t.textTheme.bodySmall?.copyWith(color: t.colorScheme.onSurfaceVariant)),
+        Text(
+          label,
+          style: t.textTheme.bodySmall?.copyWith(
+            color: t.colorScheme.onSurfaceVariant,
+          ),
+        ),
         const SizedBox(height: 4),
-        Text(value, style: t.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+        Text(
+          value,
+          style: t.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+        ),
       ],
     );
   }
 }
+

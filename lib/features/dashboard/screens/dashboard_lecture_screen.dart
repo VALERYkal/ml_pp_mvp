@@ -6,3 +6,4 @@ class DashboardLectureScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) => const RoleDashboard();
 }
+

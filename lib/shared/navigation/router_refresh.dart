@@ -2,7 +2,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' hide Provider;
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../providers/session_provider.dart';
 import '../../features/profil/providers/profil_provider.dart';
 import '../../core/models/user_role.dart';
@@ -12,14 +12,14 @@ import '../../core/models/user_role.dart';
 class GoRouterCompositeRefresh extends ChangeNotifier {
   GoRouterCompositeRefresh({required Ref ref, required Stream<dynamic> authStream}) {
     _sub = authStream.asBroadcastStream().listen((event) {
-      debugPrint('🔄 GoRouterCompositeRefresh: auth event received -> notifyListeners()');
+      debugPrint('?? GoRouterCompositeRefresh: auth event received -> notifyListeners()');
       notifyListeners();
     });
 
     // Réveille aussi le router quand le rôle devient disponible
     // (évite de dépendre d'un nouvel event d'auth qui n'arrive jamais).
     _roleSub = ref.listen<UserRole?>(userRoleProvider, (prev, next) {
-      debugPrint('🔄 GoRouterCompositeRefresh: role changed $prev -> $next -> notifyListeners()');
+      debugPrint('?? GoRouterCompositeRefresh: role changed $prev -> $next -> notifyListeners()');
       if (prev != next) notifyListeners();
     });
   }
@@ -48,3 +48,7 @@ final goRouterRefreshProvider = Provider<GoRouterCompositeRefresh>((ref) {
   ref.onDispose(refresh.dispose);
   return refresh;
 });
+
+
+
+

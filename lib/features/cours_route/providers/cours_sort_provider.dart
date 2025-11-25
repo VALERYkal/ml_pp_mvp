@@ -1,8 +1,9 @@
-// 📌 Module : Cours de Route - Providers
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-01-27
-// 🧭 Description : Provider pour le tri des cours de route
+// ?? Module : Cours de Route - Providers
+// ?? Auteur : Valery Kalonga
+// ?? Date : 2025-01-27
+// ?? Description : Provider pour le tri des cours de route
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 
@@ -29,26 +30,38 @@ class CoursSortConfig {
 
   const CoursSortConfig({required this.column, required this.direction});
 
-  CoursSortConfig copyWith({CoursSortColumn? column, SortDirection? direction}) {
-    return CoursSortConfig(column: column ?? this.column, direction: direction ?? this.direction);
+  CoursSortConfig copyWith({
+    CoursSortColumn? column,
+    SortDirection? direction,
+  }) {
+    return CoursSortConfig(
+      column: column ?? this.column,
+      direction: direction ?? this.direction,
+    );
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is CoursSortConfig && other.column == column && other.direction == direction;
+    return other is CoursSortConfig &&
+        other.column == column &&
+        other.direction == direction;
   }
 
   @override
   int get hashCode => column.hashCode ^ direction.hashCode;
 
   @override
-  String toString() => 'CoursSortConfig(column: $column, direction: $direction)';
+  String toString() =>
+      'CoursSortConfig(column: $column, direction: $direction)';
 }
 
 /// Provider pour la configuration de tri
 final coursSortProvider = StateProvider<CoursSortConfig>((ref) {
-  return const CoursSortConfig(column: CoursSortColumn.date, direction: SortDirection.descending);
+  return const CoursSortConfig(
+    column: CoursSortColumn.date,
+    direction: SortDirection.descending,
+  );
 });
 
 /// Fonction de tri des cours
@@ -96,8 +109,11 @@ List<CoursDeRoute> sortCours(List<CoursDeRoute> cours, CoursSortConfig config) {
         break;
     }
 
-    return config.direction == SortDirection.ascending ? comparison : -comparison;
+    return config.direction == SortDirection.ascending
+        ? comparison
+        : -comparison;
   });
 
   return sorted;
 }
+

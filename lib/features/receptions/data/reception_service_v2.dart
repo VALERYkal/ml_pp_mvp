@@ -1,10 +1,11 @@
 /* ===========================================================
-   ML_PP MVP — ReceptionService
+   ML_PP MVP  ReceptionService
    Rôle: encapsuler l'accès Supabase pour créer un brouillon
    de réception et valider via la RPC `validate_reception`.
    =========================================================== */
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:ml_pp_mvp/shared/referentiels/referentiels.dart' as refs; // éviter collisions
+import 'package:ml_pp_mvp/shared/referentiels/referentiels.dart'
+    as refs; // éviter collisions
 import 'package:ml_pp_mvp/shared/utils/volume_calc.dart';
 import 'package:ml_pp_mvp/features/receptions/data/reception_input.dart';
 
@@ -14,7 +15,7 @@ class ReceptionService {
   final refs.ReferentielsRepo refRepo;
 
   /// Insère une réception en statut 'brouillon'.
-  /// - Résout produit_id: si input.produitId est fourni → l'utiliser,
+  /// - Résout produit_id: si input.produitId est fourni ? l'utiliser,
   ///   sinon lookup par code via référentiels.
   /// - Calcule volume_ambiant et volume_corrige_15c (approx MVP).
   Future<String> createDraft(ReceptionInput input) async {
@@ -45,7 +46,9 @@ class ReceptionService {
 
     final payload = {
       'proprietaire_type': input.proprietaireType,
-      'partenaire_id': input.proprietaireType == 'PARTENAIRE' ? input.partenaireId : null,
+      'partenaire_id': input.proprietaireType == 'PARTENAIRE'
+          ? input.partenaireId
+          : null,
       'citerne_id': input.citerneId,
       'produit_id': produitId,
       'index_avant': input.indexAvant,
@@ -61,12 +64,20 @@ class ReceptionService {
       // created_by est rempli par trigger si null
     };
 
-    final res = await client.from('receptions').insert(payload).select('id').single();
+    final res = await client
+        .from('receptions')
+        .insert(payload)
+        .select('id')
+        .single();
     return res['id'] as String;
   }
 
   /// Appelle la RPC côté serveur (security definer + contrôles rôle/métier).
   Future<void> validateReception(String receptionId) async {
-    await client.rpc('validate_reception', params: {'p_reception_id': receptionId});
+    await client.rpc(
+      'validate_reception',
+      params: {'p_reception_id': receptionId},
+    );
   }
 }
+

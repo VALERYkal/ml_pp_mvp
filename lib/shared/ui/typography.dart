@@ -1,7 +1,12 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 
-TextStyle withTabs(TextStyle? base, {double? size, FontWeight? weight, Color? color}) {
+TextStyle withTabs(
+  TextStyle? base, {
+  double? size,
+  FontWeight? weight,
+  Color? color,
+}) {
   final b = (base ?? const TextStyle());
   return b.copyWith(
     fontSize: size ?? b.fontSize,
@@ -11,3 +16,4 @@ TextStyle withTabs(TextStyle? base, {double? size, FontWeight? weight, Color? co
     height: 1.15,
   );
 }
+

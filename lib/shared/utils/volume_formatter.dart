@@ -1,5 +1,5 @@
-// 📌 Module : Shared Utils
-// 🧭 Description : Utilitaires de formatage des volumes
+// ?? Module : Shared Utils
+// ?? Description : Utilitaires de formatage des volumes
 
 /// Utilitaires pour le formatage des volumes
 class VolumeFormatter {
@@ -10,17 +10,17 @@ class VolumeFormatter {
   ///
   /// Retourne :
   /// - `String` : Volume formaté avec unité (ex: "1,234.5 L")
-  /// - `'—'` : Si le volume est null ou invalide
+  /// - `''` : Si le volume est null ou invalide
   static String formatVolume(dynamic volume, {int decimals = 1}) {
-    if (volume == null) return '—';
+    if (volume == null) return '';
 
     try {
       final v = double.tryParse(volume.toString());
-      if (v == null || !v.isFinite) return '—';
+      if (v == null || !v.isFinite) return '';
 
       return '${v.toStringAsFixed(decimals)} L';
     } catch (e) {
-      return '—';
+      return '';
     }
   }
 
@@ -30,13 +30,13 @@ class VolumeFormatter {
   ///
   /// Retourne :
   /// - `String` : Volume formaté avec précision adaptée
-  /// - `'—'` : Si le volume est null ou invalide
+  /// - `''` : Si le volume est null ou invalide
   static String formatVolumeSmart(dynamic volume) {
-    if (volume == null) return '—';
+    if (volume == null) return '';
 
     try {
       final v = double.tryParse(volume.toString());
-      if (v == null || !v.isFinite) return '—';
+      if (v == null || !v.isFinite) return '';
 
       // Si le volume est entier, pas de décimales
       if (v == v.toInt()) {
@@ -46,7 +46,7 @@ class VolumeFormatter {
       // Sinon, 1 décimale
       return '${v.toStringAsFixed(1)} L';
     } catch (e) {
-      return '—';
+      return '';
     }
   }
 
@@ -56,13 +56,13 @@ class VolumeFormatter {
   ///
   /// Retourne :
   /// - `String` : Volume formaté en format compact
-  /// - `'—'` : Si le volume est null ou invalide
+  /// - `''` : Si le volume est null ou invalide
   static String formatVolumeCompact(dynamic volume) {
-    if (volume == null) return '—';
+    if (volume == null) return '';
 
     try {
       final v = double.tryParse(volume.toString());
-      if (v == null || !v.isFinite) return '—';
+      if (v == null || !v.isFinite) return '';
 
       if (v >= 1000) {
         return '${(v / 1000).toStringAsFixed(0)} 000 L';
@@ -72,7 +72,7 @@ class VolumeFormatter {
         return '${(v * 1000).toStringAsFixed(0)} mL';
       }
     } catch (e) {
-      return '—';
+      return '';
     }
   }
 
@@ -82,17 +82,21 @@ class VolumeFormatter {
   ///
   /// Retourne :
   /// - `String` : Pourcentage formaté (ex: "85.5%")
-  /// - `'—'` : Si la valeur est null ou invalide
+  /// - `''` : Si la valeur est null ou invalide
   static String formatPercentage(dynamic value) {
-    if (value == null) return '—';
+    if (value == null) return '';
 
     try {
       final v = double.tryParse(value.toString());
-      if (v == null || !v.isFinite) return '—';
+      if (v == null || !v.isFinite) return '';
 
       return '${(v * 100).toStringAsFixed(1)}%';
     } catch (e) {
-      return '—';
+      return '';
     }
   }
 }
+
+
+
+

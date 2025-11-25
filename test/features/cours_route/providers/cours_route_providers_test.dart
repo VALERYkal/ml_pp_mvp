@@ -1,8 +1,8 @@
 @Tags(['integration'])
-// 📌 Module : Cours de Route - Tests Providers
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-01-27
-// 🧭 Description : Tests unitaires pour les providers Riverpod des cours de route
+// ð Module : Cours de Route - Tests Providers
+// ð§ Auteur : Valery Kalonga
+// ð Date : 2025-01-27
+// ð§­ Description : Tests unitaires pour les providers Riverpod des cours de route
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mockito/mockito.dart';
@@ -121,8 +121,8 @@ void main() {
         // Assert
         verify(mockService.create(cours)).called(1);
 
-        // Vérifier que les providers sont invalidés
-        // Note: Dans un vrai test, on vérifierait que les providers sont rechargés
+        // VÃ©rifier que les providers sont invalidÃ©s
+        // Note: Dans un vrai test, on vÃ©rifierait que les providers sont rechargÃ©s
       });
 
       test('should handle creation errors', () async {
@@ -252,3 +252,4 @@ void main() {
     });
   });
 }
+

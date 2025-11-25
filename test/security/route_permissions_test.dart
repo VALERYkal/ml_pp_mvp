@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-
-enum UserRole { admin, operateur }
+import 'package:ml_pp_mvp/core/models/user_role.dart';
 
 final roleProvider = StateProvider<UserRole>((_) => UserRole.operateur);
 
@@ -13,7 +12,7 @@ class _App extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final role = ref.watch(roleProvider);
     String? redirect(BuildContext _, GoRouterState s) {
-      // /admin est réservé admin
+      // /admin est rÃ©servÃ© admin
       if (s.matchedLocation == '/admin' && role != UserRole.admin) {
         return '/forbidden';
       }
@@ -46,13 +45,13 @@ class _Screen extends StatelessWidget {
 }
 
 void main() {
-  testWidgets('operateur ne peut pas accéder à /admin', (tester) async {
+  testWidgets('operateur ne peut pas accÃ©der Ã  /admin', (tester) async {
     await tester.pumpWidget(const ProviderScope(child: _App()));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('screen_forbidden')), findsOneWidget);
   });
 
-  testWidgets('admin accède à /admin', (tester) async {
+  testWidgets('admin accÃ¨de Ã  /admin', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [roleProvider.overrideWith((_) => UserRole.admin)],
@@ -63,3 +62,4 @@ void main() {
     expect(find.byKey(const Key('screen_admin')), findsOneWidget);
   });
 }
+

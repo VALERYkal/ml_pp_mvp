@@ -1,7 +1,7 @@
-// 📌 Module : Shared Constants - Cours Status
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-01-27
-// 🧭 Description : Constantes et logique pour les statuts de cours de route
+// ?? Module : Shared Constants - Cours Status
+// ?? Auteur : Valery Kalonga
+// ?? Date : 2025-01-27
+// ?? Description : Constantes et logique pour les statuts de cours de route
 
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 
@@ -145,3 +145,7 @@ String getStatutIcon(String statut) {
       return 'help';
   }
 }
+
+
+
+

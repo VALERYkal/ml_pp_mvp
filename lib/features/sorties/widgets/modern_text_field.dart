@@ -58,14 +58,22 @@ class ModernTextField extends StatelessWidget {
             prefixIcon: prefixIcon,
             suffixIcon: suffixIcon,
             filled: true,
-            fillColor: enabled ? colorScheme.surface : colorScheme.surfaceVariant.withOpacity(0.5),
+            fillColor: enabled
+                ? colorScheme.surface
+                : colorScheme.surfaceVariant.withValues(alpha: 0.5),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: colorScheme.outline.withOpacity(0.3), width: 1),
+              borderSide: BorderSide(
+                color: colorScheme.outline.withValues(alpha: 0.3),
+                width: 1,
+              ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: colorScheme.outline.withOpacity(0.3), width: 1),
+              borderSide: BorderSide(
+                color: colorScheme.outline.withValues(alpha: 0.3),
+                width: 1,
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -79,16 +87,22 @@ class ModernTextField extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: colorScheme.error, width: 2),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
             hintStyle: theme.textTheme.bodyMedium?.copyWith(
-              color: colorScheme.onSurfaceVariant.withOpacity(0.6),
+              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
             ),
           ),
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: enabled ? colorScheme.onSurface : colorScheme.onSurfaceVariant,
+            color: enabled
+                ? colorScheme.onSurface
+                : colorScheme.onSurfaceVariant,
           ),
         ),
       ],
     );
   }
 }
+

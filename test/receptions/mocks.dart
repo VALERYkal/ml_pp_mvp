@@ -8,3 +8,4 @@ import 'package:postgrest/postgrest.dart';
   MockSpec<PostgrestFilterBuilder>(),
 ])
 void main() {}
+

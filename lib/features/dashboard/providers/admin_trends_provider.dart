@@ -10,13 +10,22 @@ class DayPoint {
 
 String _ymd(DateTime d) =>
     '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
-String _isoUtc(DateTime d) => d.toUtc().toIso8601String().split('.').first + 'Z';
+String _isoUtc(DateTime d) =>
+    d.toUtc().toIso8601String().split('.').first + 'Z';
 
 final adminTrends7dProvider = FutureProvider<List<DayPoint>>((ref) async {
   final supa = Supabase.instance.client;
   final now = DateTime.now().toUtc();
-  final start = DateTime.utc(now.year, now.month, now.day).subtract(const Duration(days: 6));
-  final end = DateTime.utc(now.year, now.month, now.day).add(const Duration(days: 1));
+  final start = DateTime.utc(
+    now.year,
+    now.month,
+    now.day,
+  ).subtract(const Duration(days: 6));
+  final end = DateTime.utc(
+    now.year,
+    now.month,
+    now.day,
+  ).add(const Duration(days: 1));
 
   // Réceptions groupées par date_reception (DATE)
   final recRows = await supa
@@ -35,7 +44,8 @@ final adminTrends7dProvider = FutureProvider<List<DayPoint>>((ref) async {
   final recByDay = <String, double>{};
   for (final m in (recRows as List)) {
     if (m['statut'] != 'validee') continue;
-    final day = (m['date_reception'] as String?) ?? _ymd(DateTime.now().toUtc());
+    final day =
+        (m['date_reception'] as String?) ?? _ymd(DateTime.now().toUtc());
     final v =
         (m['volume_corrige_15c'] as num?)?.toDouble() ??
         (m['volume_ambiant'] as num?)?.toDouble() ??
@@ -65,3 +75,4 @@ final adminTrends7dProvider = FutureProvider<List<DayPoint>>((ref) async {
   }
   return points;
 });
+

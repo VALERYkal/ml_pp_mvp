@@ -36,31 +36,32 @@ void main() {
       ),
     );
 
-    // Attendre chargement initial (produit prérempli par coursId n'est pas simulé ici)
+    // Attendre chargement initial (produit prÃ©rempli par coursId n'est pas simulÃ© ici)
     await tester.pump();
 
-    // Sélection produit
+    // SÃ©lection produit
     await tester.tap(find.byType(DropdownButtonFormField<String>).first);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Diesel').last);
     await tester.pumpAndSettle();
 
-    // Sélection citerne
+    // SÃ©lection citerne
     await tester.tap(find.byType(DropdownButtonFormField<String>).last);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Citerne A').last);
     await tester.pumpAndSettle();
 
-    // Index avant/après
+    // Index avant/aprÃ¨s
     await tester.enterText(find.widgetWithText(TextFormField, 'Index avant *'), '0');
-    await tester.enterText(find.widgetWithText(TextFormField, 'Index après *'), '1000');
+    await tester.enterText(find.widgetWithText(TextFormField, 'Index aprÃ¨s *'), '1000');
 
     // Soumettre
     await tester.tap(find.widgetWithText(ElevatedButton, 'Enregistrer'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
 
-    // Snackbar succès
-    expect(find.text('Réception enregistrée'), findsOneWidget);
+    // Snackbar succÃ¨s
+    expect(find.text('RÃ©ception enregistrÃ©e'), findsOneWidget);
   });
 }
+

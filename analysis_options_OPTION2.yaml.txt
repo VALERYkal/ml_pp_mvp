@@ -1,0 +1,28 @@
+# analysis_options.yaml
+# À utiliser UNIQUEMENT si build_runner pose problème
+# Copier ce contenu dans analysis_options.yaml à la racine
+
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - test/**
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+  
+  language:
+    strict-casts: true
+    strict-raw-types: true
+
+linter:
+  rules:
+    # Désactiver temporairement les règles qui créent du bruit
+    prefer_const_constructors: false
+    avoid_print: false
+    use_build_context_synchronously: false
+    
+    # Garder les règles importantes
+    prefer_const_literals_to_create_immutables: true
+    avoid_unnecessary_containers: true
+    sized_box_for_whitespace: true
+

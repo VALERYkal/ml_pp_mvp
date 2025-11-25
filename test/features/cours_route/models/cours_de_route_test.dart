@@ -1,7 +1,7 @@
-// 📌 Module : Cours de Route - Tests
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-08-07
-// 🧭 Description : Tests unitaires pour le modèle CoursDeRoute
+// ð Module : Cours de Route - Tests
+// ð§ Auteur : Valery Kalonga
+// ð Date : 2025-08-07
+// ð§­ Description : Tests unitaires pour le modÃ¨le CoursDeRoute
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
@@ -200,9 +200,9 @@ void main() {
     test('should validate statut labels', () {
       expect(StatutCours.chargement.label, 'Chargement');
       expect(StatutCours.transit.label, 'Transit');
-      expect(StatutCours.frontiere.label, 'Frontière');
-      expect(StatutCours.arrive.label, 'Arrivé');
-      expect(StatutCours.decharge.label, 'Déchargé');
+      expect(StatutCours.frontiere.label, 'FrontiÃ¨re');
+      expect(StatutCours.arrive.label, 'ArrivÃ©');
+      expect(StatutCours.decharge.label, 'DÃ©chargÃ©');
     });
 
     test('should validate volume constraints', () {
@@ -255,3 +255,4 @@ void main() {
     });
   });
 }
+

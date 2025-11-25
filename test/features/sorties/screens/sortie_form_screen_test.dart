@@ -77,22 +77,22 @@ void main() {
       ),
     );
 
-    // Attendre que l'écran se charge
+    // Attendre que l'Ã©cran se charge
     await tester.pump();
     await tester.pumpAndSettle();
 
-    // Vérifier que l'écran se charge avec la nouvelle interface
+    // VÃ©rifier que l'Ã©cran se charge avec la nouvelle interface
     expect(find.byType(SortieFormScreen), findsOneWidget);
 
     // Attendre que tous les widgets soient rendus
     await tester.pumpAndSettle();
 
     // Sections modernes
-    expect(find.text('Propriété et Bénéficiaire'), findsOneWidget);
+    expect(find.text('PropriÃ©tÃ© et BÃ©nÃ©ficiaire'), findsOneWidget);
     expect(find.text('Produit et Citerne'), findsOneWidget);
     expect(find.text('Mesures et Calculs'), findsOneWidget);
 
-    // Choix de propriété
+    // Choix de propriÃ©tÃ©
     expect(find.text('MONALUXE'), findsOneWidget);
     expect(find.text('PARTENAIRE'), findsOneWidget);
 
@@ -110,7 +110,7 @@ void main() {
     expect(find.byKey(UiKeys.sortieSave), findsOneWidget);
   });
 
-  testWidgets('SortieFormScreen permet la sélection de produit avec la nouvelle interface', (
+  testWidgets('SortieFormScreen permet la sÃ©lection de produit avec la nouvelle interface', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -163,15 +163,16 @@ void main() {
     await tester.pump();
     await tester.pumpAndSettle();
 
-    // Vérifier que les produits sont affichés comme des chips
+    // VÃ©rifier que les produits sont affichÃ©s comme des chips
     expect(find.textContaining('DSL Diesel'), findsOneWidget);
     expect(find.textContaining('ESS Essence'), findsOneWidget);
 
-    // Tester la sélection d'un produit
+    // Tester la sÃ©lection d'un produit
     await tester.tap(find.textContaining('DSL Diesel'));
     await tester.pumpAndSettle();
 
-    // Vérifier que les citernes apparaissent après sélection du produit
+    // VÃ©rifier que les citernes apparaissent aprÃ¨s sÃ©lection du produit
     expect(find.text('Citerne 1'), findsOneWidget);
   });
 }
+

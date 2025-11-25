@@ -28,10 +28,14 @@ class DashboardGrid extends StatelessWidget {
     int columns = crossAxisCount ?? _calculateColumns(screenWidth);
 
     // Ajuster l'aspect ratio selon la taille d'écran
-    double aspectRatio = _calculateAspectRatio(screenWidth, screenHeight, columns);
+    double aspectRatio = _calculateAspectRatio(
+      screenWidth,
+      screenHeight,
+      columns,
+    );
 
     return LayoutBuilder(
-      builder: (context, constraints) {
+      builder: (BuildContext context, BoxConstraints constraints) {
         return GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -58,7 +62,7 @@ class DashboardGrid extends StatelessWidget {
       duration: Duration(milliseconds: 300 + (index * 100)),
       tween: Tween(begin: 0.0, end: 1.0),
       curve: Curves.easeOutCubic,
-      builder: (context, value, child) {
+      builder: (BuildContext context, double value, Widget? child) {
         return Transform.translate(
           offset: Offset(0, 20 * (1 - value)),
           child: Opacity(opacity: value, child: child),
@@ -75,7 +79,11 @@ class DashboardGrid extends StatelessWidget {
     return 1; // Mobile
   }
 
-  double _calculateAspectRatio(double screenWidth, double screenHeight, int columns) {
+  double _calculateAspectRatio(
+    double screenWidth,
+    double screenHeight,
+    int columns,
+  ) {
     // Ajuster l'aspect ratio selon le nombre de colonnes et la taille d'écran
     if (columns == 1) return 1.3; // Mobile : plus haut
     if (columns == 2) return 1.1; // Tablet : équilibré
@@ -112,7 +120,11 @@ class DashboardSection extends StatelessWidget {
       margin: padding ?? const EdgeInsets.only(bottom: 40),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [_buildHeader(theme, accent), const SizedBox(height: 24), child],
+        children: [
+          _buildHeader(theme, accent),
+          const SizedBox(height: 24),
+          child,
+        ],
       ),
     );
   }
@@ -126,7 +138,10 @@ class DashboardSection extends StatelessWidget {
           Container(
             width: 4,
             height: 32,
-            decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(2)),
+            decoration: BoxDecoration(
+              color: accent,
+              borderRadius: BorderRadius.circular(2),
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -147,7 +162,9 @@ class DashboardSection extends StatelessWidget {
                   Text(
                     subtitle!,
                     style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant.withOpacity(0.8),
+                      color: theme.colorScheme.onSurfaceVariant.withValues(
+                        alpha: 0.8,
+                      ),
                       fontWeight: FontWeight.w400,
                       letterSpacing: 0.1,
                     ),
@@ -218,6 +235,7 @@ class KpiColorPalette {
 
   /// Retourne une couleur avec opacité pour les arrière-plans
   static Color withOpacity(Color color, double opacity) {
-    return color.withOpacity(opacity);
+    return color.withValues(alpha: opacity);
   }
 }
+

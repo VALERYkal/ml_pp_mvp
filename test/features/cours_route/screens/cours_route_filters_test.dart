@@ -40,7 +40,7 @@ void main() {
     await tester.tap(find.byIcon(Icons.filter_list));
     await tester.pumpAndSettle();
 
-    // Sélectionne TRANSIT
+    // SÃ©lectionne TRANSIT
     await tester.tap(find.byType(DropdownButtonFormField<StatutCours?>));
     await tester.pumpAndSettle();
     await tester.tap(find.text('TRANSIT').last);
@@ -50,7 +50,7 @@ void main() {
     await tester.tap(find.text('Appliquer'));
     await tester.pumpAndSettle();
 
-    // Vérifie affichage d'un item (carte) et appel service
+    // VÃ©rifie affichage d'un item (carte) et appel service
     expect(find.textContaining('Cours #'), findsOneWidget);
     verify(mockService.getByStatut(StatutCours.transit)).called(1);
   });
@@ -81,3 +81,4 @@ void main() {
     verify(mockService.getActifs()).called(greaterThanOrEqualTo(1));
   });
 }
+

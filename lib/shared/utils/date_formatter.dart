@@ -1,5 +1,5 @@
-// 📌 Module : Shared Utils
-// 🧭 Description : Utilitaires de formatage des dates
+// ?? Module : Shared Utils
+// ?? Description : Utilitaires de formatage des dates
 
 /// Utilitaires pour le formatage des dates
 class DateFormatter {
@@ -9,17 +9,17 @@ class DateFormatter {
   ///
   /// Retourne :
   /// - `String` : Date formatée en YYYY-MM-DD
-  /// - `'—'` : Si la date est null ou invalide
+  /// - `''` : Si la date est null ou invalide
   static String formatDate(dynamic date) {
-    if (date == null) return '—';
+    if (date == null) return '';
 
     try {
       final dt = DateTime.tryParse(date.toString());
-      if (dt == null) return '—';
+      if (dt == null) return '';
 
       return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
     } catch (e) {
-      return '—';
+      return '';
     }
   }
 
@@ -29,18 +29,18 @@ class DateFormatter {
   ///
   /// Retourne :
   /// - `String` : Date et heure formatées
-  /// - `'—'` : Si la date est null ou invalide
+  /// - `''` : Si la date est null ou invalide
   static String formatDateTime(dynamic date) {
-    if (date == null) return '—';
+    if (date == null) return '';
 
     try {
       final dt = DateTime.tryParse(date.toString());
-      if (dt == null) return '—';
+      if (dt == null) return '';
 
       return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')} '
           '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
     } catch (e) {
-      return '—';
+      return '';
     }
   }
 
@@ -50,13 +50,13 @@ class DateFormatter {
   ///
   /// Retourne :
   /// - `String` : Date relative
-  /// - `'—'` : Si la date est null ou invalide
+  /// - `''` : Si la date est null ou invalide
   static String formatRelativeDate(dynamic date) {
-    if (date == null) return '—';
+    if (date == null) return '';
 
     try {
       final dt = DateTime.tryParse(date.toString());
-      if (dt == null) return '—';
+      if (dt == null) return '';
 
       final now = DateTime.now();
       final difference = now.difference(dt);
@@ -71,7 +71,11 @@ class DateFormatter {
         return 'à l\'instant';
       }
     } catch (e) {
-      return '—';
+      return '';
     }
   }
 }
+
+
+
+

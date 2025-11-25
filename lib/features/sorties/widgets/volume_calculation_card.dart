@@ -27,12 +27,15 @@ class VolumeCalculationCard extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            colorScheme.primaryContainer.withOpacity(0.1),
-            colorScheme.secondaryContainer.withOpacity(0.1),
+            colorScheme.primaryContainer.withValues(alpha: 0.1),
+            colorScheme.secondaryContainer.withValues(alpha: 0.1),
           ],
         ),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.outline.withOpacity(0.2), width: 1),
+        border: Border.all(
+          color: colorScheme.outline.withValues(alpha: 0.2),
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -42,10 +45,14 @@ class VolumeCalculationCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: colorScheme.primary.withOpacity(0.1),
+                  color: colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(Icons.calculate, size: 20, color: colorScheme.primary),
+                child: Icon(
+                  Icons.calculate,
+                  size: 20,
+                  color: colorScheme.primary,
+                ),
               ),
               const SizedBox(width: 12),
               Text(
@@ -132,9 +139,9 @@ class _VolumeDisplayItem extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3), width: 1),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -155,7 +162,10 @@ class _VolumeDisplayItem extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             value,
-            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: color),
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
           ),
         ],
       ),
@@ -168,7 +178,11 @@ class _InfoItem extends StatelessWidget {
   final String value;
   final IconData icon;
 
-  const _InfoItem({required this.label, required this.value, required this.icon});
+  const _InfoItem({
+    required this.label,
+    required this.value,
+    required this.icon,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -181,7 +195,9 @@ class _InfoItem extends StatelessWidget {
         const SizedBox(width: 6),
         Text(
           '$label: ',
-          style: theme.textTheme.labelSmall?.copyWith(color: colorScheme.onSurfaceVariant),
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+          ),
         ),
         Text(
           value,
@@ -194,3 +210,4 @@ class _InfoItem extends StatelessWidget {
     );
   }
 }
+

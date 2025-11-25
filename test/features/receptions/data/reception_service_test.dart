@@ -96,7 +96,7 @@ void main() {
       mockClient = MockSupabaseClient();
     });
 
-    test('rejette indices incohérents (volume <= 0)', () async {
+    test('rejette indices incohÃ©rents (volume <= 0)', () async {
       final service = ReceptionService.withClient(mockClient, refRepo: FakeRefRepo());
       final r = buildReception(indexApres: 0);
       expect(() => service.createReception(r), throwsA(isA<ArgumentError>()));
@@ -138,7 +138,7 @@ void main() {
       );
     });
 
-    test('rejette capacité insuffisante (volume > capacitéDisponible)', () async {
+    test('rejette capacitÃ© insuffisante (volume > capacitÃ©Disponible)', () async {
       final service = ReceptionService.withClient(
         mockClient,
         citerneServiceFactory: (_) => FakeCiterneServiceCapacity(),
@@ -146,17 +146,18 @@ void main() {
         refRepo: FakeRefRepo(),
       );
 
-      // vObs = 1000, capacityDisponible = 2000 - 500 - 600 = 900 → 1000 > 900
+      // vObs = 1000, capacityDisponible = 2000 - 500 - 600 = 900 â 1000 > 900
       expect(
         () => service.createReception(buildReception()),
         throwsA(
           isA<ArgumentError>().having(
             (e) => e.toString(),
             'message',
-            contains('capacité disponible'),
+            contains('capacitÃ© disponible'),
           ),
         ),
       );
     });
   });
 }
+

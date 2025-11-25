@@ -1,13 +1,19 @@
-// 📌 Module : Cours de Route - Services
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-01-27
-// 🧭 Description : Service de notifications pour les cours de route
+// ?? Module : Cours de Route - Services
+// ?? Auteur : Valery Kalonga
+// ?? Date : 2025-01-27
+// ?? Description : Service de notifications pour les cours de route
 
 import 'package:flutter/material.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 
 /// Types de notifications
-enum NotificationType { statusChange, newCours, overdueCours, volumeAlert, systemAlert }
+enum NotificationType {
+  statusChange,
+  newCours,
+  overdueCours,
+  volumeAlert,
+  systemAlert,
+}
 
 /// Priorité des notifications
 enum NotificationPriority { low, medium, high, critical }
@@ -156,23 +162,34 @@ class CoursNotificationService {
   }) {
     return createNotification(
       title: 'Statut mis à jour',
-      message: 'Le cours ${cours.id} est passé de ${oldStatus.label} à ${newStatus.label}',
+      message:
+          'Le cours ${cours.id} est passé de ${oldStatus.label} à ${newStatus.label}',
       type: NotificationType.statusChange,
       priority: NotificationPriority.medium,
       coursId: cours.id,
-      data: {'oldStatus': oldStatus.name, 'newStatus': newStatus.name, 'coursId': cours.id},
+      data: {
+        'oldStatus': oldStatus.name,
+        'newStatus': newStatus.name,
+        'coursId': cours.id,
+      },
     );
   }
 
   /// Créer une notification de nouveau cours
-  static CoursNotification createNewCoursNotification({required CoursDeRoute cours}) {
+  static CoursNotification createNewCoursNotification({
+    required CoursDeRoute cours,
+  }) {
     return createNotification(
       title: 'Nouveau cours de route',
       message: 'Un nouveau cours a été créé pour ${cours.fournisseurId}',
       type: NotificationType.newCours,
       priority: NotificationPriority.high,
       coursId: cours.id,
-      data: {'coursId': cours.id, 'fournisseurId': cours.fournisseurId, 'volume': cours.volume},
+      data: {
+        'coursId': cours.id,
+        'fournisseurId': cours.fournisseurId,
+        'volume': cours.volume,
+      },
     );
   }
 
@@ -187,7 +204,11 @@ class CoursNotificationService {
       type: NotificationType.overdueCours,
       priority: NotificationPriority.critical,
       coursId: cours.id,
-      data: {'coursId': cours.id, 'daysOverdue': daysOverdue, 'statut': cours.statut.name},
+      data: {
+        'coursId': cours.id,
+        'daysOverdue': daysOverdue,
+        'statut': cours.statut.name,
+      },
     );
   }
 
@@ -202,7 +223,11 @@ class CoursNotificationService {
       type: NotificationType.volumeAlert,
       priority: NotificationPriority.medium,
       coursId: cours.id,
-      data: {'coursId': cours.id, 'volume': cours.volume, 'threshold': threshold},
+      data: {
+        'coursId': cours.id,
+        'volume': cours.volume,
+        'threshold': threshold,
+      },
     );
   }
 
@@ -223,7 +248,12 @@ class CoursNotificationService {
 
 /// Widget de notification
 class NotificationWidget extends StatelessWidget {
-  const NotificationWidget({super.key, required this.notification, this.onTap, this.onDismiss});
+  const NotificationWidget({
+    super.key,
+    required this.notification,
+    this.onTap,
+    this.onDismiss,
+  });
 
   final CoursNotification notification;
   final VoidCallback? onTap;
@@ -238,13 +268,15 @@ class NotificationWidget extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 4),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: color.withOpacity(0.2),
+          backgroundColor: color.withValues(alpha: 0.2),
           child: Icon(icon, color: color),
         ),
         title: Text(
           notification.title,
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            fontWeight: notification.isRead ? FontWeight.normal : FontWeight.bold,
+            fontWeight: notification.isRead
+                ? FontWeight.normal
+                : FontWeight.bold,
           ),
         ),
         subtitle: Column(
@@ -270,7 +302,11 @@ class NotificationWidget extends StatelessWidget {
                 decoration: BoxDecoration(color: color, shape: BoxShape.circle),
               ),
             const SizedBox(width: 8),
-            IconButton(onPressed: onDismiss, icon: const Icon(Icons.close), iconSize: 16),
+            IconButton(
+              onPressed: onDismiss,
+              icon: const Icon(Icons.close),
+              iconSize: 16,
+            ),
           ],
         ),
         onTap: onTap,
@@ -321,3 +357,4 @@ class NotificationWidget extends StatelessWidget {
     }
   }
 }
+

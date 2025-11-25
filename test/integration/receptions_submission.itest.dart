@@ -80,7 +80,7 @@ void main() {
 
     // enter indices
     await tester.enterText(find.widgetWithText(TextFormField, 'Index avant *'), '0');
-    await tester.enterText(find.widgetWithText(TextFormField, 'Index après *'), '100');
+    await tester.enterText(find.widgetWithText(TextFormField, 'Index aprÃ¨s *'), '100');
 
     // submit
     await tester.tap(find.widgetWithText(ElevatedButton, 'Enregistrer'));
@@ -91,3 +91,4 @@ void main() {
     expect(called!.citerneId, 'cit1');
   });
 }
+

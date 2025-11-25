@@ -4,18 +4,18 @@ import 'package:ml_pp_mvp/features/sorties/data/sortie_input.dart';
 import 'package:ml_pp_mvp/shared/utils/volume_calc.dart';
 
 void main() {
-  test('calcV15: calcule correctement le volume corrigé à 15°C', () {
-    // Test de la fonction de calcul utilisée par le service
+  test('calcV15: calcule correctement le volume corrigÃ© Ã  15Â°C', () {
+    // Test de la fonction de calcul utilisÃ©e par le service
     final volObs = 100.0;
     final temp = 30.0;
     final densite = 0.835;
 
     final v15 = calcV15(volumeObserveL: volObs, temperatureC: temp, densiteA15: densite);
 
-    // Vérification que le calcul est cohérent
+    // VÃ©rification que le calcul est cohÃ©rent
     expect(v15, isA<double>());
-    expect(v15, isNot(volObs)); // Le volume corrigé doit être différent
-    expect(v15, greaterThan(0)); // Doit être positif
+    expect(v15, isNot(volObs)); // Le volume corrigÃ© doit Ãªtre diffÃ©rent
+    expect(v15, greaterThan(0)); // Doit Ãªtre positif
   });
 
   test('SortieInput: validation des champs requis', () {
@@ -47,7 +47,7 @@ void main() {
     expect(input.transporteur, 'DHL');
   });
 
-  test('SortieInput: validation des indices cohérents', () {
+  test('SortieInput: validation des indices cohÃ©rents', () {
     // Test que les indices sont logiques
     final input = SortieInput(
       citerneId: 'c1',
@@ -72,8 +72,8 @@ void main() {
     expect(volumeAmbiant, greaterThan(0));
   });
 
-  test('SortieInput: validation propriétaire valide', () {
-    // Test des valeurs autorisées pour proprietaireType
+  test('SortieInput: validation propriÃ©taire valide', () {
+    // Test des valeurs autorisÃ©es pour proprietaireType
     final input1 = SortieInput(
       citerneId: 'c1',
       produitId: 'p1',
@@ -83,7 +83,7 @@ void main() {
       indexApres: 1100,
       temperatureC: 25,
       densiteA15: 0.83,
-      proprietaireType: 'MONALUXE', // ✅ Valide
+      proprietaireType: 'MONALUXE', // â Valide
       note: null,
       dateSortie: DateTime(2025, 8, 14),
       chauffeurNom: 'John',
@@ -101,7 +101,7 @@ void main() {
       indexApres: 1100,
       temperatureC: 25,
       densiteA15: 0.83,
-      proprietaireType: 'PARTENAIRE', // ✅ Valide
+      proprietaireType: 'PARTENAIRE', // â Valide
       note: null,
       dateSortie: DateTime(2025, 8, 14),
       chauffeurNom: 'John',
@@ -114,12 +114,12 @@ void main() {
     expect(input2.proprietaireType, 'PARTENAIRE');
   });
 
-  test('SortieInput: validation bénéficiaire requis', () {
-    // Test qu'au moins un bénéficiaire est fourni
+  test('SortieInput: validation bÃ©nÃ©ficiaire requis', () {
+    // Test qu'au moins un bÃ©nÃ©ficiaire est fourni
     final input = SortieInput(
       citerneId: 'c1',
       produitId: 'p1',
-      clientId: 'cl1', // ✅ Client fourni
+      clientId: 'cl1', // â Client fourni
       partenaireId: null,
       indexAvant: 1000,
       indexApres: 1100,
@@ -134,7 +134,7 @@ void main() {
       transporteur: 'DHL',
     );
 
-    // Au moins un des deux doit être non-null
+    // Au moins un des deux doit Ãªtre non-null
     expect(input.clientId != null || input.partenaireId != null, isTrue);
   });
 
@@ -152,10 +152,10 @@ void main() {
       proprietaireType: 'MONALUXE',
       note: null,
       dateSortie: DateTime(2025, 8, 14),
-      chauffeurNom: 'John Doe', // ✅ Non vide
-      plaqueCamion: 'ABC-123', // ✅ Non vide
+      chauffeurNom: 'John Doe', // â Non vide
+      plaqueCamion: 'ABC-123', // â Non vide
       plaqueRemorque: null, // Optionnel
-      transporteur: 'DHL', // ✅ Non vide
+      transporteur: 'DHL', // â Non vide
     );
 
     expect(input.chauffeurNom?.isNotEmpty ?? false, isTrue);
@@ -163,3 +163,4 @@ void main() {
     expect(input.transporteur?.isNotEmpty ?? false, isTrue);
   });
 }
+

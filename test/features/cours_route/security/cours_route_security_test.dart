@@ -1,12 +1,12 @@
 @Tags(['integration'])
-// 📌 Module : Cours de Route - Tests de Sécurité
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-01-27
-// 🧭 Description : Tests de sécurité et RLS pour le module CDR
+// ð Module : Cours de Route - Tests de SÃ©curitÃ©
+// ð§ Auteur : Valery Kalonga
+// ð Date : 2025-01-27
+// ð§­ Description : Tests de sÃ©curitÃ© et RLS pour le module CDR
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ml_pp_mvp/features/auth/models/user_role.dart';
+import 'package:ml_pp_mvp/core/models/user_role.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_route_providers.dart';
 import 'package:ml_pp_mvp/features/cours_route/data/cours_de_route_service.dart';
@@ -27,7 +27,7 @@ void main() {
 
     group('Role-Based Access Control', () {
       testWidgets('should restrict CDR creation to authorized roles', (WidgetTester tester) async {
-        // Arrange - Utilisateur avec rôle LECTURE
+        // Arrange - Utilisateur avec rÃ´le LECTURE
         await tester.pumpWidget(
           ProviderScope(
             parent: container,
@@ -47,7 +47,7 @@ void main() {
       });
 
       testWidgets('should allow CDR creation for authorized roles', (WidgetTester tester) async {
-        // Arrange - Utilisateur avec rôle ADMIN
+        // Arrange - Utilisateur avec rÃ´le ADMIN
         await tester.pumpWidget(
           ProviderScope(
             parent: container,
@@ -69,7 +69,7 @@ void main() {
       testWidgets('should restrict CDR modification to authorized roles', (
         WidgetTester tester,
       ) async {
-        // Arrange - Utilisateur avec rôle LECTURE
+        // Arrange - Utilisateur avec rÃ´le LECTURE
         await tester.pumpWidget(
           ProviderScope(
             parent: container,
@@ -93,7 +93,7 @@ void main() {
       testWidgets('should allow CDR modification for authorized roles', (
         WidgetTester tester,
       ) async {
-        // Arrange - Utilisateur avec rôle ADMIN
+        // Arrange - Utilisateur avec rÃ´le ADMIN
         await tester.pumpWidget(
           ProviderScope(
             parent: container,
@@ -119,7 +119,7 @@ void main() {
       testWidgets('should filter CDR by user depot for non-admin users', (
         WidgetTester tester,
       ) async {
-        // Arrange - Utilisateur avec rôle OPERATEUR et dépôt spécifique
+        // Arrange - Utilisateur avec rÃ´le OPERATEUR et dÃ©pÃ´t spÃ©cifique
         await tester.pumpWidget(
           ProviderScope(
             parent: container,
@@ -140,14 +140,14 @@ void main() {
         // Act - Charger la liste des cours
         final coursList = await container.read(coursDeRouteListProvider.future);
 
-        // Assert - Seuls les cours du dépôt de l'utilisateur devraient être visibles
+        // Assert - Seuls les cours du dÃ©pÃ´t de l'utilisateur devraient Ãªtre visibles
         for (final cours in coursList) {
           expect(cours.depotDestinationId, 'depot-1');
         }
       });
 
       testWidgets('should show all CDR for admin users', (WidgetTester tester) async {
-        // Arrange - Utilisateur avec rôle ADMIN
+        // Arrange - Utilisateur avec rÃ´le ADMIN
         await tester.pumpWidget(
           ProviderScope(
             parent: container,
@@ -165,9 +165,9 @@ void main() {
         // Act - Charger la liste des cours
         final coursList = await container.read(coursDeRouteListProvider.future);
 
-        // Assert - Tous les cours devraient être visibles pour les ADMIN
+        // Assert - Tous les cours devraient Ãªtre visibles pour les ADMIN
         expect(coursList, isA<List<CoursDeRoute>>());
-        // Pas de restriction par dépôt pour les ADMIN
+        // Pas de restriction par dÃ©pÃ´t pour les ADMIN
       });
     });
 
@@ -176,18 +176,18 @@ void main() {
         // Arrange
         final service = CoursDeRouteService.withClient(mockSupabaseClient);
 
-        // Act & Assert - Tenter d'accéder aux données sans authentification
+        // Act & Assert - Tenter d'accÃ©der aux donnÃ©es sans authentification
         expect(() => service.getAll(), throwsA(isA<PostgrestException>()));
       });
 
       test('should enforce depot-based RLS for non-admin users', () async {
-        // Arrange - Utilisateur avec dépôt spécifique
+        // Arrange - Utilisateur avec dÃ©pÃ´t spÃ©cifique
         final service = CoursDeRouteService.withClient(mockSupabaseClient);
 
-        // Act - Tenter d'accéder aux cours d'un autre dépôt
+        // Act - Tenter d'accÃ©der aux cours d'un autre dÃ©pÃ´t
         final cours = await service.getByDepot('other-depot-id');
 
-        // Assert - Seuls les cours du dépôt de l'utilisateur devraient être retournés
+        // Assert - Seuls les cours du dÃ©pÃ´t de l'utilisateur devraient Ãªtre retournÃ©s
         for (final c in cours) {
           expect(c.depotDestinationId, 'user-depot-id');
         }
@@ -197,7 +197,7 @@ void main() {
         // Arrange
         final service = CoursDeRouteService.withClient(mockSupabaseClient);
 
-        // Act & Assert - Tenter de mettre à jour le statut sans autorisation
+        // Act & Assert - Tenter de mettre Ã  jour le statut sans autorisation
         expect(
           () => service.updateStatut(id: 'test-id', to: StatutCours.decharge, fromReception: false),
           throwsA(isA<PostgrestException>()),
@@ -220,7 +220,7 @@ void main() {
           note: maliciousInput,
         );
 
-        // Assert - Les entrées malveillantes devraient être échappées
+        // Assert - Les entrÃ©es malveillantes devraient Ãªtre Ã©chappÃ©es
         expect(cours.chauffeur, isNot(contains('<script>')));
         expect(cours.note, isNot(contains('<script>')));
       });
@@ -282,14 +282,14 @@ void main() {
           fournisseurId: 'f1',
           produitId: 'p1',
           depotDestinationId: 'd1',
-          plaqueCamion: 'ABC123', // Même plaque
+          plaqueCamion: 'ABC123', // MÃªme plaque
           statut: StatutCours.transit,
         );
 
         // Act
         await service.create(cours1);
 
-        // Assert - Créer un deuxième cours avec la même plaque devrait échouer
+        // Assert - CrÃ©er un deuxiÃ¨me cours avec la mÃªme plaque devrait Ã©chouer
         expect(() => service.create(cours2), throwsA(isA<PostgrestException>()));
       });
 
@@ -302,7 +302,7 @@ void main() {
           () => service.updateStatut(
             id: 'test-id',
             to: StatutCours.decharge,
-            fromReception: false, // Invalide - pas depuis réception
+            fromReception: false, // Invalide - pas depuis rÃ©ception
           ),
           throwsArgumentError,
         );
@@ -311,7 +311,7 @@ void main() {
           () => service.updateStatut(
             id: 'test-id',
             to: StatutCours.transit,
-            fromReception: false, // Invalide - déjà au statut TRANSIT
+            fromReception: false, // Invalide - dÃ©jÃ  au statut TRANSIT
           ),
           throwsArgumentError,
         );
@@ -349,7 +349,7 @@ void main() {
         // Act
         await service.create(cours);
 
-        // Assert - Vérifier que l'opération est loggée
+        // Assert - VÃ©rifier que l'opÃ©ration est loggÃ©e
         verify(
           mockAuditLogger.logOperation(
             operation: 'CREATE',
@@ -367,7 +367,7 @@ void main() {
         // Act
         await service.updateStatut(id: 'test-id', to: StatutCours.transit, fromReception: false);
 
-        // Assert - Vérifier que le changement de statut est loggé
+        // Assert - VÃ©rifier que le changement de statut est loggÃ©
         verify(
           mockAuditLogger.logStatutChange(
             coursId: 'test-id',
@@ -421,3 +421,4 @@ class MockAuditLogger {
 // Mock instances
 final mockSupabaseClient = MockSupabaseClient();
 final mockAuditLogger = MockAuditLogger();
+

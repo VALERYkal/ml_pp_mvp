@@ -1,4 +1,4 @@
-// 📌 Module : Citernes - Service minimal pour validations réception
+// ?? Module : Citernes - Service minimal pour validations réception
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -84,3 +84,4 @@ class CiterneService {
     return CiterneInfo.fromMap(res as Map<String, dynamic>);
   }
 }
+

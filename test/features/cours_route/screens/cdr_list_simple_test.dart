@@ -1,14 +1,14 @@
 @Tags(['integration'])
-// 📌 Module : Cours de Route - Tests Widget Liste (Simplifié)
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-01-27
-// 🧭 Description : Test widget simplifié pour l'écran de liste CDR avec filtres par statut
+// ð Module : Cours de Route - Tests Widget Liste (SimplifiÃ©)
+// ð§ Auteur : Valery Kalonga
+// ð Date : 2025-01-27
+// ð§­ Description : Test widget simplifiÃ© pour l'Ã©cran de liste CDR avec filtres par statut
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 
-/// Widget de test simple pour vérifier l'affichage de la liste CDR
+/// Widget de test simple pour vÃ©rifier l'affichage de la liste CDR
 class SimpleCdrListWidget extends StatefulWidget {
   final List<CoursDeRoute> cours;
   final StatutCours? filterStatut;
@@ -40,7 +40,7 @@ class _SimpleCdrListWidgetState extends State<SimpleCdrListWidget> {
         appBar: AppBar(
           title: const Text('Liste CDR'),
           actions: [
-            // Bouton de filtre pour déchargé
+            // Bouton de filtre pour dÃ©chargÃ©
             IconButton(
               icon: const Icon(Icons.filter_list),
               onPressed: () {
@@ -69,7 +69,7 @@ class _SimpleCdrListWidgetState extends State<SimpleCdrListWidget> {
             // Liste des cours
             Expanded(
               child: _filteredCours.isEmpty
-                  ? const Center(child: Text('Aucun cours trouvé'))
+                  ? const Center(child: Text('Aucun cours trouvÃ©'))
                   : ListView.builder(
                       itemCount: _filteredCours.length,
                       itemBuilder: (context, index) {
@@ -96,9 +96,9 @@ class _SimpleCdrListWidgetState extends State<SimpleCdrListWidget> {
                               ),
                             ),
                             title: Text(
-                              '${cours.transporteur ?? '—'} - ${cours.plaqueCamion ?? '—'}',
+                              '${cours.transporteur ?? 'â'} - ${cours.plaqueCamion ?? 'â'}',
                             ),
-                            subtitle: Text('${cours.chauffeur ?? '—'} - ${cours.volume ?? '—'} L'),
+                            subtitle: Text('${cours.chauffeur ?? 'â'} - ${cours.volume ?? 'â'} L'),
                             trailing: Text(
                               cours.id.length > 8 ? cours.id.substring(0, 8) : cours.id,
                             ),
@@ -130,7 +130,7 @@ class _SimpleCdrListWidgetState extends State<SimpleCdrListWidget> {
 }
 
 void main() {
-  group('CDR List Widget Tests (Simplifié)', () {
+  group('CDR List Widget Tests (SimplifiÃ©)', () {
     late List<CoursDeRoute> coursList;
 
     setUp(() {
@@ -166,7 +166,7 @@ void main() {
           plaqueCamion: 'GHI789',
           chauffeur: 'Pierre Durand',
           volume: 45000.0,
-          statut: StatutCours.decharge, // ✅ Cours déchargé pour le test
+          statut: StatutCours.decharge, // â Cours dÃ©chargÃ© pour le test
         ),
         CoursDeRoute(
           id: 'cdr-4',
@@ -185,13 +185,13 @@ void main() {
     testWidgets('should render list screen without exceptions', (WidgetTester tester) async {
       await tester.pumpWidget(ProviderScope(child: SimpleCdrListWidget(cours: coursList)));
 
-      // Vérifier qu'il n'y a pas d'exception de rendu
+      // VÃ©rifier qu'il n'y a pas d'exception de rendu
       expect(tester.takeException(), isNull);
 
       // Attendre que le widget soit construit
       await tester.pumpAndSettle();
 
-      // Vérifier qu'il n'y a toujours pas d'exception
+      // VÃ©rifier qu'il n'y a toujours pas d'exception
       expect(tester.takeException(), isNull);
     });
 
@@ -200,32 +200,32 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Vérifier que tous les cours sont affichés
+      // VÃ©rifier que tous les cours sont affichÃ©s
       expect(find.text('ABC123'), findsOneWidget); // cdr-1
       expect(find.text('DEF456'), findsOneWidget); // cdr-2
-      expect(find.text('GHI789'), findsOneWidget); // cdr-3 (déchargé)
+      expect(find.text('GHI789'), findsOneWidget); // cdr-3 (dÃ©chargÃ©)
       expect(find.text('JKL012'), findsOneWidget); // cdr-4
     });
 
-    testWidgets('should filter by déchargé status', (WidgetTester tester) async {
+    testWidgets('should filter by dÃ©chargÃ© status', (WidgetTester tester) async {
       await tester.pumpWidget(ProviderScope(child: SimpleCdrListWidget(cours: coursList)));
 
       await tester.pumpAndSettle();
 
-      // Cliquer sur le bouton de filtre pour activer le filtre déchargé
+      // Cliquer sur le bouton de filtre pour activer le filtre dÃ©chargÃ©
       await tester.tap(find.byIcon(Icons.filter_list));
       await tester.pumpAndSettle();
 
-      // Vérifier que seul le cours déchargé est affiché
-      expect(find.text('GHI789'), findsOneWidget); // cdr-3 (déchargé)
+      // VÃ©rifier que seul le cours dÃ©chargÃ© est affichÃ©
+      expect(find.text('GHI789'), findsOneWidget); // cdr-3 (dÃ©chargÃ©)
 
-      // Vérifier que les autres cours ne sont pas affichés
+      // VÃ©rifier que les autres cours ne sont pas affichÃ©s
       expect(find.text('ABC123'), findsNothing); // cdr-1
       expect(find.text('DEF456'), findsNothing); // cdr-2
       expect(find.text('JKL012'), findsNothing); // cdr-4
 
-      // Vérifier que l'indicateur de filtre est affiché
-      expect(find.text('Filtre actif: Déchargé'), findsOneWidget);
+      // VÃ©rifier que l'indicateur de filtre est affichÃ©
+      expect(find.text('Filtre actif: DÃ©chargÃ©'), findsOneWidget);
     });
 
     testWidgets('should toggle filter off', (WidgetTester tester) async {
@@ -233,25 +233,25 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Activer le filtre déchargé
+      // Activer le filtre dÃ©chargÃ©
       await tester.tap(find.byIcon(Icons.filter_list));
       await tester.pumpAndSettle();
 
-      // Vérifier que seul le cours déchargé est affiché
+      // VÃ©rifier que seul le cours dÃ©chargÃ© est affichÃ©
       expect(find.text('GHI789'), findsOneWidget);
 
-      // Désactiver le filtre
+      // DÃ©sactiver le filtre
       await tester.tap(find.byIcon(Icons.filter_list));
       await tester.pumpAndSettle();
 
-      // Vérifier que tous les cours sont à nouveau affichés
+      // VÃ©rifier que tous les cours sont Ã  nouveau affichÃ©s
       expect(find.text('ABC123'), findsOneWidget);
       expect(find.text('DEF456'), findsOneWidget);
       expect(find.text('GHI789'), findsOneWidget);
       expect(find.text('JKL012'), findsOneWidget);
 
-      // Vérifier que l'indicateur de filtre n'est plus affiché
-      expect(find.text('Filtre actif: Déchargé'), findsNothing);
+      // VÃ©rifier que l'indicateur de filtre n'est plus affichÃ©
+      expect(find.text('Filtre actif: DÃ©chargÃ©'), findsNothing);
     });
 
     testWidgets('should display status chips correctly', (WidgetTester tester) async {
@@ -259,11 +259,11 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Vérifier que les chips de statut sont affichés
+      // VÃ©rifier que les chips de statut sont affichÃ©s
       expect(find.text('Chargement'), findsOneWidget);
       expect(find.text('Transit'), findsOneWidget);
-      expect(find.text('Déchargé'), findsOneWidget);
-      expect(find.text('Frontière'), findsOneWidget);
+      expect(find.text('DÃ©chargÃ©'), findsOneWidget);
+      expect(find.text('FrontiÃ¨re'), findsOneWidget);
     });
 
     testWidgets('should handle empty list', (WidgetTester tester) async {
@@ -271,8 +271,8 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Vérifier qu'un message approprié est affiché pour la liste vide
-      expect(find.text('Aucun cours trouvé'), findsOneWidget);
+      // VÃ©rifier qu'un message appropriÃ© est affichÃ© pour la liste vide
+      expect(find.text('Aucun cours trouvÃ©'), findsOneWidget);
     });
 
     testWidgets('should display course information correctly', (WidgetTester tester) async {
@@ -280,7 +280,7 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Vérifier les informations des cours
+      // VÃ©rifier les informations des cours
       expect(find.text('Transport Express'), findsNWidgets(2)); // cdr-1 et cdr-3
       expect(find.text('Transport Rapide'), findsOneWidget); // cdr-2
       expect(find.text('Transport Pro'), findsOneWidget); // cdr-4
@@ -292,3 +292,4 @@ void main() {
     });
   });
 }
+

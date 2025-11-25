@@ -1,7 +1,7 @@
-// 📌 Module : Cours de Route - Tests Provider KPI
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-01-27
-// 🧭 Description : Tests du provider KPI CDR avec fake service
+// ð Module : Cours de Route - Tests Provider KPI
+// ð§ Auteur : Valery Kalonga
+// ð Date : 2025-01-27
+// ð§­ Description : Tests du provider KPI CDR avec fake service
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -34,7 +34,7 @@ class FakeCoursDeRouteService implements CoursDeRouteService {
     return _countByCategorieData;
   }
 
-  // Méthodes non utilisées dans les tests KPI - implémentation minimale
+  // MÃ©thodes non utilisÃ©es dans les tests KPI - implÃ©mentation minimale
   @override
   Future<List<CoursDeRoute>> getAll() async => throw UnimplementedError();
 
@@ -221,11 +221,11 @@ void main() {
         final statusResult = await statusProvider;
         final categoryResult = await categoryProvider;
 
-        // Vérifier que les deux providers retournent des données cohérentes
+        // VÃ©rifier que les deux providers retournent des donnÃ©es cohÃ©rentes
         expect(statusResult, isNotEmpty);
         expect(categoryResult, isNotEmpty);
 
-        // Vérifier que les totaux sont cohérents
+        // VÃ©rifier que les totaux sont cohÃ©rents
         final totalStatus = statusResult.values.reduce((a, b) => a + b);
         final totalCategory = categoryResult.values.reduce((a, b) => a + b);
 
@@ -240,18 +240,18 @@ void main() {
         // Invalidation du provider
         container.invalidate(cdrKpiCountsByStatutProvider);
 
-        // Deuxième appel après invalidation
+        // DeuxiÃ¨me appel aprÃ¨s invalidation
         final provider2 = container.read(cdrKpiCountsByStatutProvider.future);
         final result2 = await provider2;
 
-        // Les résultats doivent être identiques (même fake service)
+        // Les rÃ©sultats doivent Ãªtre identiques (mÃªme fake service)
         expect(result1, result2);
       });
     });
 
     group('Error Handling', () {
       test('should handle service errors gracefully', () async {
-        // Créer un service qui lève une exception
+        // CrÃ©er un service qui lÃ¨ve une exception
         final errorService = FakeCoursDeRouteService();
 
         // Override pour simuler une erreur
@@ -259,10 +259,10 @@ void main() {
           overrides: [coursDeRouteServiceProvider.overrideWithValue(errorService)],
         );
 
-        // Le provider devrait gérer l'erreur et retourner un état d'erreur
+        // Le provider devrait gÃ©rer l'erreur et retourner un Ã©tat d'erreur
         final provider = containerError.read(cdrKpiCountsByStatutProvider);
 
-        // Attendre que le provider soit prêt
+        // Attendre que le provider soit prÃªt
         await containerError.read(cdrKpiCountsByStatutProvider.future);
 
         containerError.dispose();
@@ -270,3 +270,4 @@ void main() {
     });
   });
 }
+

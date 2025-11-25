@@ -1,8 +1,8 @@
-// 📌 Module : Profil Feature - Data Layer
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-08-07
-// 🗃️ Source SQL : Table `public.profils`
-// 🧭 Description : Service de gestion des profils utilisateur via Supabase
+// ?? Module : Profil Feature - Data Layer
+// ?? Auteur : Valery Kalonga
+// ?? Date : 2025-08-07
+// ??? Source SQL : Table `public.profils`
+// ?? Description : Service de gestion des profils utilisateur via Supabase
 
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -44,29 +44,29 @@ class ProfilService {
   /// - `AuthException` : Erreur d'authentification
   Future<Profil?> getCurrentProfil(String userId) async {
     try {
-      debugPrint('🔍 ProfilService: Recherche du profil pour userId: $userId');
+      debugPrint('?? ProfilService: Recherche du profil pour userId: $userId');
 
       // Requête Supabase pour récupérer le profil
       final response = await _client.from('profils').select().eq('user_id', userId).maybeSingle();
 
       if (response == null) {
-        debugPrint('⚠️ ProfilService: Aucun profil trouvé pour userId: $userId');
+        debugPrint('?? ProfilService: Aucun profil trouvé pour userId: $userId');
         return null;
       }
 
       // Conversion des données Supabase vers le modèle Profil
       final profil = Profil.fromJson(response);
-      debugPrint('✅ ProfilService: Profil récupéré avec succès - Role: ${profil.role}');
+      debugPrint('? ProfilService: Profil récupéré avec succès - Role: ${profil.role}');
 
       return profil;
     } on PostgrestException catch (e) {
-      debugPrint('❌ ProfilService: Erreur Supabase - ${e.message}');
+      debugPrint('? ProfilService: Erreur Supabase - ${e.message}');
       rethrow;
     } on AuthException catch (e) {
-      debugPrint('❌ ProfilService: Erreur d\'authentification - ${e.message}');
+      debugPrint('? ProfilService: Erreur d\'authentification - ${e.message}');
       rethrow;
     } catch (e) {
-      debugPrint('❌ ProfilService: Erreur inattendue - $e');
+      debugPrint('? ProfilService: Erreur inattendue - $e');
       rethrow;
     }
   }
@@ -81,7 +81,7 @@ class ProfilService {
   /// Utilisé lors de l'inscription d'un nouvel utilisateur
   Future<void> createProfil(Profil profil) async {
     try {
-      debugPrint('➕ ProfilService: Création d\'un nouveau profil');
+      debugPrint('? ProfilService: Création d\'un nouveau profil');
 
       // Préparation des données pour Supabase
       final data = profil.toJson();
@@ -91,12 +91,12 @@ class ProfilService {
       // Insertion dans Supabase
       await _client.from('profils').insert(data).select().single();
 
-      debugPrint('✅ ProfilService: Profil créé avec succès');
+      debugPrint('? ProfilService: Profil créé avec succès');
     } on PostgrestException catch (e) {
-      debugPrint('❌ ProfilService: Erreur lors de la création - ${e.message}');
+      debugPrint('? ProfilService: Erreur lors de la création - ${e.message}');
       rethrow;
     } catch (e) {
-      debugPrint('❌ ProfilService: Erreur inattendue lors de la création - $e');
+      debugPrint('? ProfilService: Erreur inattendue lors de la création - $e');
       rethrow;
     }
   }
@@ -108,7 +108,7 @@ class ProfilService {
   /// Utilisé pour modifier les informations du profil
   Future<void> updateProfil(Profil profil) async {
     try {
-      debugPrint('🔄 ProfilService: Mise à jour du profil - ID: ${profil.id}');
+      debugPrint('?? ProfilService: Mise à jour du profil - ID: ${profil.id}');
 
       // Préparation des données pour Supabase
       final data = profil.toJson();
@@ -118,12 +118,12 @@ class ProfilService {
       // Mise à jour dans Supabase
       await _client.from('profils').update(data).eq('id', profil.id).select().single();
 
-      debugPrint('✅ ProfilService: Profil mis à jour avec succès');
+      debugPrint('? ProfilService: Profil mis à jour avec succès');
     } on PostgrestException catch (e) {
-      debugPrint('❌ ProfilService: Erreur lors de la mise à jour - ${e.message}');
+      debugPrint('? ProfilService: Erreur lors de la mise à jour - ${e.message}');
       rethrow;
     } catch (e) {
-      debugPrint('❌ ProfilService: Erreur inattendue lors de la mise à jour - $e');
+      debugPrint('? ProfilService: Erreur inattendue lors de la mise à jour - $e');
       rethrow;
     }
   }
@@ -139,7 +139,7 @@ class ProfilService {
 
     final res = await _client
         .from('profils')
-        .select<Map<String, dynamic>>()
+        .select()
         .eq('user_id', uid)
         .maybeSingle();
 
@@ -182,7 +182,7 @@ class ProfilService {
     final inserted = await _client
         .from('profils')
         .insert(payload)
-        .select<Map<String, dynamic>>()
+        .select()
         .single();
 
     return Profil.fromJson(inserted);
@@ -216,3 +216,7 @@ class ProfilService {
     );
   }
 }
+
+
+
+

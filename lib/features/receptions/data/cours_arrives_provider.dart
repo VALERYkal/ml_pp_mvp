@@ -1,5 +1,5 @@
 /* ===========================================================
-   ML_PP MVP — cours_arrives_provider.dart
+   ML_PP MVP  cours_arrives_provider.dart
    Rôle: exposer la liste des cours_de_route au statut "arrivé"
    avec les infos utiles pour aider le choix (camion, produit,
    volume, origine/destination, date).
@@ -39,7 +39,7 @@ class CoursArriveItem {
   });
 
   String get title =>
-      '${dateChargement.toIso8601String().split("T").first} – ${departPays ?? "?"} → ${depotNom ?? "?"}';
+      '${dateChargement.toIso8601String().split("T").first}  ${departPays ?? "?"} ? ${depotNom ?? "?"}';
   String get subtitle =>
       'Fournisseur: ${fournisseurNom ?? "-"} · Prod: ${produitCode} ${produitNom} · Vol: ${volume ?? "-"} · Camion: ${plaqueCamion ?? "-"} · Transp: ${transporteur ?? "-"} · Chauf: ${chauffeur ?? "-"}';
 }
@@ -116,3 +116,4 @@ final coursArrivesProvider = FutureProvider<List<CoursArriveItem>>((ref) async {
     );
   }).toList();
 });
+

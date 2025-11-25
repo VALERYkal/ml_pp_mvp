@@ -1,5 +1,5 @@
 /* ===========================================================
-   ML_PP MVP — ReceptionScreen (Stepper)
+   ML_PP MVP  ReceptionScreen (Stepper)
    Rôle: écran 3 étapes pour créer un brouillon de réception
    puis, si autorisé, lancer la validation (RPC).
    Étapes:
@@ -51,8 +51,9 @@ class _ReceptionScreenState extends ConsumerState<ReceptionScreen> {
   }
 
   // Helper local pour parser proprement les nombres (gère virgules/espaces NBSP)
-  double? _num(String s) =>
-      double.tryParse(s.replaceAll(RegExp(r'[^\d\-,\.]'), '').replaceAll(',', '.'));
+  double? _num(String s) => double.tryParse(
+    s.replaceAll(RegExp(r'[^\d\-,\.]'), '').replaceAll(',', '.'),
+  );
 
   Future<void> _enregistrerBrouillon() async {
     setState(() => loading = true);
@@ -65,13 +66,15 @@ class _ReceptionScreenState extends ConsumerState<ReceptionScreen> {
         partenaireId: proprietaireType == 'PARTENAIRE' ? partenaireId : null,
         citerneId: citerneId!,
         produitCode: produitCode,
-        // Patch mineur — parsing robuste
+        // Patch mineur  parsing robuste
         indexAvant: _num(ctrlAvant.text),
         indexApres: _num(ctrlApres.text),
         temperatureC: _num(ctrlTemp.text),
         densiteA15: _num(ctrlDens.text),
         dateReception: dateReception ?? DateTime.now(),
-        coursDeRouteId: (proprietaireType == 'MONALUXE') ? coursDeRouteId : null,
+        coursDeRouteId: (proprietaireType == 'MONALUXE')
+            ? coursDeRouteId
+            : null,
         note: ctrlNote.text.isEmpty ? null : ctrlNote.text.trim(),
       );
 
@@ -136,14 +139,16 @@ class _ReceptionScreenState extends ConsumerState<ReceptionScreen> {
                           Radio<String>(
                             value: 'MONALUXE',
                             groupValue: proprietaireType,
-                            onChanged: (v) => setState(() => proprietaireType = v!),
+                            onChanged: (v) =>
+                                setState(() => proprietaireType = v!),
                           ),
                           const Text('Monaluxe'),
                           const SizedBox(width: 16),
                           Radio<String>(
                             value: 'PARTENAIRE',
                             groupValue: proprietaireType,
-                            onChanged: (v) => setState(() => proprietaireType = v!),
+                            onChanged: (v) =>
+                                setState(() => proprietaireType = v!),
                           ),
                           const Text('Partenaire'),
                         ],
@@ -151,16 +156,21 @@ class _ReceptionScreenState extends ConsumerState<ReceptionScreen> {
                       if (proprietaireType == 'PARTENAIRE')
                         TextField(
                           decoration: const InputDecoration(
-                            labelText: 'Partenaire ID (Autocomplete réel à brancher)',
+                            labelText:
+                                'Partenaire ID (Autocomplete réel à brancher)',
                           ),
-                          onChanged: (v) => partenaireId = v.trim().isEmpty ? null : v.trim(),
+                          onChanged: (v) =>
+                              partenaireId = v.trim().isEmpty ? null : v.trim(),
                         ),
                       if (proprietaireType == 'MONALUXE')
                         TextField(
                           decoration: const InputDecoration(
-                            labelText: 'Cours de route ID (filtrer sur "arrivé")',
+                            labelText:
+                                'Cours de route ID (filtrer sur "arrivé")',
                           ),
-                          onChanged: (v) => coursDeRouteId = v.trim().isEmpty ? null : v.trim(),
+                          onChanged: (v) => coursDeRouteId = v.trim().isEmpty
+                              ? null
+                              : v.trim(),
                         ),
                     ],
                   ),
@@ -173,8 +183,11 @@ class _ReceptionScreenState extends ConsumerState<ReceptionScreen> {
                     children: [
                       // Citerne active (Autocomplete minimal)
                       TextField(
-                        decoration: const InputDecoration(labelText: 'Citerne ID (active)'),
-                        onChanged: (v) => citerneId = v.trim().isEmpty ? null : v.trim(),
+                        decoration: const InputDecoration(
+                          labelText: 'Citerne ID (active)',
+                        ),
+                        onChanged: (v) =>
+                            citerneId = v.trim().isEmpty ? null : v.trim(),
                       ),
                       const SizedBox(height: 8),
                       // Produit toggle ESS/AGO
@@ -184,13 +197,15 @@ class _ReceptionScreenState extends ConsumerState<ReceptionScreen> {
                           ChoiceChip(
                             label: const Text('ESS'),
                             selected: produitCode == 'ESS',
-                            onSelected: (_) => setState(() => produitCode = 'ESS'),
+                            onSelected: (_) =>
+                                setState(() => produitCode = 'ESS'),
                           ),
                           const SizedBox(width: 8),
                           ChoiceChip(
                             label: const Text('AGO'),
                             selected: produitCode == 'AGO',
-                            onSelected: (_) => setState(() => produitCode = 'AGO'),
+                            onSelected: (_) =>
+                                setState(() => produitCode = 'AGO'),
                           ),
                         ],
                       ),
@@ -198,25 +213,35 @@ class _ReceptionScreenState extends ConsumerState<ReceptionScreen> {
                       TextField(
                         controller: ctrlAvant,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: 'Index avant'),
+                        decoration: const InputDecoration(
+                          labelText: 'Index avant',
+                        ),
                       ),
                       TextField(
                         controller: ctrlApres,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: 'Index après'),
+                        decoration: const InputDecoration(
+                          labelText: 'Index après',
+                        ),
                       ),
                       TextField(
                         controller: ctrlTemp,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: 'Température (°C)'),
+                        decoration: const InputDecoration(
+                          labelText: 'Température (°C)',
+                        ),
                       ),
                       TextField(
                         controller: ctrlDens,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: 'Densité @15°C'),
+                        decoration: const InputDecoration(
+                          labelText: 'Densité @15°C',
+                        ),
                       ),
                       const SizedBox(height: 8),
-                      Text('Preview volume ambiant: ${volAmb.toStringAsFixed(2)}'),
+                      Text(
+                        'Preview volume ambiant: ${volAmb.toStringAsFixed(2)}',
+                      ),
                       Text('Preview volume 15°C: ${vol15.toStringAsFixed(2)}'),
                     ],
                   ),
@@ -229,7 +254,9 @@ class _ReceptionScreenState extends ConsumerState<ReceptionScreen> {
                     children: [
                       TextField(
                         controller: ctrlNote,
-                        decoration: const InputDecoration(labelText: 'Note (optionnel)'),
+                        decoration: const InputDecoration(
+                          labelText: 'Note (optionnel)',
+                        ),
                         maxLines: 2,
                       ),
                       const SizedBox(height: 12),
@@ -238,7 +265,9 @@ class _ReceptionScreenState extends ConsumerState<ReceptionScreen> {
                           ElevatedButton.icon(
                             icon: const Icon(Icons.save),
                             label: const Text('Enregistrer (brouillon)'),
-                            onPressed: (citerneId == null) ? null : () => _enregistrerBrouillon(),
+                            onPressed: (citerneId == null)
+                                ? null
+                                : () => _enregistrerBrouillon(),
                           ),
                           const SizedBox(width: 12),
                           // NOTE: Si vous avez un provider de rôle, vous pouvez le lire ici
@@ -248,11 +277,11 @@ class _ReceptionScreenState extends ConsumerState<ReceptionScreen> {
                             label: const Text('Valider (RPC)'),
                             onPressed: () async {
                               // Ici, on suppose que vous avez l'ID après création.
-                              // Dans une vraie intégration, ce bouton se trouve sur l’écran de détail d’une réception.
+                              // Dans une vraie intégration, ce bouton se trouve sur lécran de détail dune réception.
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text(
-                                    'Renseignez d’abord le brouillon, puis validez depuis la fiche.',
+                                    'Renseignez dabord le brouillon, puis validez depuis la fiche.',
                                   ),
                                 ),
                               );
@@ -268,3 +297,4 @@ class _ReceptionScreenState extends ConsumerState<ReceptionScreen> {
     );
   }
 }
+

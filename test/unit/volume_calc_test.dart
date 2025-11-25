@@ -1,5 +1,5 @@
 /* ===========================================================
-   Tests unitaires — volume_calc
+   Tests unitaires â volume_calc
    =========================================================== */
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ml_pp_mvp/shared/utils/volume_calc.dart';
@@ -31,3 +31,4 @@ void main() {
     expect((v - 991.5).abs() < 0.6, true);
   });
 }
+

@@ -3,18 +3,18 @@ import 'package:ml_pp_mvp/features/receptions/data/reception_input.dart';
 import 'package:ml_pp_mvp/shared/utils/volume_calc.dart';
 
 void main() {
-  test('calcV15: calcule correctement le volume corrigé à 15°C', () {
-    // Test de la fonction de calcul utilisée par le service
+  test('calcV15: calcule correctement le volume corrigÃ© Ã  15Â°C', () {
+    // Test de la fonction de calcul utilisÃ©e par le service
     final volObs = 100.0;
     final temp = 30.0;
     final densite = 0.835;
 
     final v15 = calcV15(volumeObserveL: volObs, temperatureC: temp, densiteA15: densite);
 
-    // Vérification que le calcul est cohérent
+    // VÃ©rification que le calcul est cohÃ©rent
     expect(v15, isA<double>());
-    expect(v15, isNot(volObs)); // Le volume corrigé doit être différent
-    expect(v15, greaterThan(0)); // Doit être positif
+    expect(v15, isNot(volObs)); // Le volume corrigÃ© doit Ãªtre diffÃ©rent
+    expect(v15, greaterThan(0)); // Doit Ãªtre positif
   });
 
   test('ReceptionInput: validation des champs requis', () {
@@ -43,7 +43,7 @@ void main() {
     expect(input.coursDeRouteId, 'cdr1');
   });
 
-  test('ReceptionInput: validation des indices cohérents', () {
+  test('ReceptionInput: validation des indices cohÃ©rents', () {
     // Test que les indices sont logiques
     final input = ReceptionInput(
       proprietaireType: 'MONALUXE',
@@ -65,10 +65,10 @@ void main() {
     expect(volumeAmbiant, greaterThan(0));
   });
 
-  test('ReceptionInput: validation propriétaire valide', () {
-    // Test des valeurs autorisées pour proprietaireType
+  test('ReceptionInput: validation propriÃ©taire valide', () {
+    // Test des valeurs autorisÃ©es pour proprietaireType
     final input1 = ReceptionInput(
-      proprietaireType: 'MONALUXE', // ✅ Valide
+      proprietaireType: 'MONALUXE', // â Valide
       coursDeRouteId: 'cdr1',
       produitCode: 'ESS',
       produitId: 'p1',
@@ -83,7 +83,7 @@ void main() {
     );
 
     final input2 = ReceptionInput(
-      proprietaireType: 'PARTENAIRE', // ✅ Valide
+      proprietaireType: 'PARTENAIRE', // â Valide
       coursDeRouteId: null,
       produitCode: 'AGO',
       produitId: 'p2',
@@ -102,10 +102,10 @@ void main() {
   });
 
   test('ReceptionInput: validation Monaluxe avec CDR', () {
-    // Test que Monaluxe nécessite un cours de route
+    // Test que Monaluxe nÃ©cessite un cours de route
     final input = ReceptionInput(
       proprietaireType: 'MONALUXE',
-      coursDeRouteId: 'cdr1', // ✅ CDR fourni
+      coursDeRouteId: 'cdr1', // â CDR fourni
       produitCode: 'ESS',
       produitId: 'p1',
       citerneId: 'c1',
@@ -123,14 +123,14 @@ void main() {
   });
 
   test('ReceptionInput: validation Partenaire avec partenaire', () {
-    // Test que Partenaire nécessite un partenaire
+    // Test que Partenaire nÃ©cessite un partenaire
     final input = ReceptionInput(
       proprietaireType: 'PARTENAIRE',
       coursDeRouteId: null,
       produitCode: 'AGO',
       produitId: 'p2',
       citerneId: 'c2',
-      partenaireId: 'par1', // ✅ Partenaire fourni
+      partenaireId: 'par1', // â Partenaire fourni
       indexAvant: 500,
       indexApres: 650,
       temperatureC: 25,
@@ -150,7 +150,7 @@ void main() {
       coursDeRouteId: 'cdr1',
       produitCode: 'ESS',
       produitId: 'p1',
-      citerneId: 'c1', // ✅ Citerne fournie
+      citerneId: 'c1', // â Citerne fournie
       partenaireId: null,
       indexAvant: 1000,
       indexApres: 1100,
@@ -164,3 +164,4 @@ void main() {
     expect(input.citerneId!.isNotEmpty, isTrue);
   });
 }
+

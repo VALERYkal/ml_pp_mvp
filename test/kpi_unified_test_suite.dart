@@ -1,7 +1,7 @@
-// 📌 Module : KPI Unified Test Suite
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-09-17
-// 🧭 Description : Suite de tests complète pour le système KPI unifié
+// ð Module : KPI Unified Test Suite
+// ð§ Auteur : Valery Kalonga
+// ð Date : 2025-09-17
+// ð§­ Description : Suite de tests complÃ¨te pour le systÃ¨me KPI unifiÃ©
 
 import 'package:flutter_test/flutter_test.dart';
 
@@ -12,21 +12,22 @@ import 'features/dashboard/widgets/role_dashboard_test.dart' as role_dashboard_t
 import 'features/dashboard/screens/dashboard_screens_smoke_test.dart' as dashboard_screens_test;
 
 void main() {
-  group('🚀 KPI Unified System Test Suite', () {
-    group('📊 KPI Models Tests', () {
+  group('ð KPI Unified System Test Suite', () {
+    group('ð KPI Models Tests', () {
       kpi_models_test.main();
     });
 
-    group('🔧 KPI Provider Tests', () {
+    group('ð§ KPI Provider Tests', () {
       kpi_provider_test.main();
     });
 
-    group('🎨 Role Dashboard Tests', () {
+    group('ð¨ Role Dashboard Tests', () {
       role_dashboard_test.main();
     });
 
-    group('📱 Dashboard Screens Smoke Tests', () {
+    group('ð± Dashboard Screens Smoke Tests', () {
       dashboard_screens_test.main();
     });
   });
 }
+

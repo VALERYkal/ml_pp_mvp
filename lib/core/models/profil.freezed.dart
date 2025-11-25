@@ -12,8 +12,7 @@ part of 'profil.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 Profil _$ProfilFromJson(Map<String, dynamic> json) {
   return _Profil.fromJson(json);
@@ -26,9 +25,7 @@ mixin _$Profil {
   String? get userId => throw _privateConstructorUsedError;
   @JsonKey(name: 'nom_complet')
   String? get nomComplet => throw _privateConstructorUsedError;
-  @JsonKey(name: 'role')
-  @UserRoleConverter()
-  UserRole get role => throw _privateConstructorUsedError;
+  String get role => throw _privateConstructorUsedError;
   @JsonKey(name: 'depot_id')
   String? get depotId => throw _privateConstructorUsedError;
   String? get email => throw _privateConstructorUsedError;
@@ -49,19 +46,19 @@ abstract class $ProfilCopyWith<$Res> {
   factory $ProfilCopyWith(Profil value, $Res Function(Profil) then) =
       _$ProfilCopyWithImpl<$Res, Profil>;
   @useResult
-  $Res call({
-    String id,
-    @JsonKey(name: 'user_id') String? userId,
-    @JsonKey(name: 'nom_complet') String? nomComplet,
-    @JsonKey(name: 'role') @UserRoleConverter() UserRole role,
-    @JsonKey(name: 'depot_id') String? depotId,
-    String? email,
-    @JsonKey(name: 'created_at') DateTime? createdAt,
-  });
+  $Res call(
+      {String id,
+      @JsonKey(name: 'user_id') String? userId,
+      @JsonKey(name: 'nom_complet') String? nomComplet,
+      String role,
+      @JsonKey(name: 'depot_id') String? depotId,
+      String? email,
+      @JsonKey(name: 'created_at') DateTime? createdAt});
 }
 
 /// @nodoc
-class _$ProfilCopyWithImpl<$Res, $Val extends Profil> implements $ProfilCopyWith<$Res> {
+class _$ProfilCopyWithImpl<$Res, $Val extends Profil>
+    implements $ProfilCopyWith<$Res> {
   _$ProfilCopyWithImpl(this._value, this._then);
 
   // ignore: unused_field
@@ -82,64 +79,63 @@ class _$ProfilCopyWithImpl<$Res, $Val extends Profil> implements $ProfilCopyWith
     Object? email = freezed,
     Object? createdAt = freezed,
   }) {
-    return _then(
-      _value.copyWith(
-            id: null == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                      as String,
-            userId: freezed == userId
-                ? _value.userId
-                : userId // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            nomComplet: freezed == nomComplet
-                ? _value.nomComplet
-                : nomComplet // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            role: null == role
-                ? _value.role
-                : role // ignore: cast_nullable_to_non_nullable
-                      as UserRole,
-            depotId: freezed == depotId
-                ? _value.depotId
-                : depotId // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            email: freezed == email
-                ? _value.email
-                : email // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            createdAt: freezed == createdAt
-                ? _value.createdAt
-                : createdAt // ignore: cast_nullable_to_non_nullable
-                      as DateTime?,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      userId: freezed == userId
+          ? _value.userId
+          : userId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      nomComplet: freezed == nomComplet
+          ? _value.nomComplet
+          : nomComplet // ignore: cast_nullable_to_non_nullable
+              as String?,
+      role: null == role
+          ? _value.role
+          : role // ignore: cast_nullable_to_non_nullable
+              as String,
+      depotId: freezed == depotId
+          ? _value.depotId
+          : depotId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      email: freezed == email
+          ? _value.email
+          : email // ignore: cast_nullable_to_non_nullable
+              as String?,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$ProfilImplCopyWith<$Res> implements $ProfilCopyWith<$Res> {
-  factory _$$ProfilImplCopyWith(_$ProfilImpl value, $Res Function(_$ProfilImpl) then) =
+  factory _$$ProfilImplCopyWith(
+          _$ProfilImpl value, $Res Function(_$ProfilImpl) then) =
       __$$ProfilImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    String id,
-    @JsonKey(name: 'user_id') String? userId,
-    @JsonKey(name: 'nom_complet') String? nomComplet,
-    @JsonKey(name: 'role') @UserRoleConverter() UserRole role,
-    @JsonKey(name: 'depot_id') String? depotId,
-    String? email,
-    @JsonKey(name: 'created_at') DateTime? createdAt,
-  });
+  $Res call(
+      {String id,
+      @JsonKey(name: 'user_id') String? userId,
+      @JsonKey(name: 'nom_complet') String? nomComplet,
+      String role,
+      @JsonKey(name: 'depot_id') String? depotId,
+      String? email,
+      @JsonKey(name: 'created_at') DateTime? createdAt});
 }
 
 /// @nodoc
-class __$$ProfilImplCopyWithImpl<$Res> extends _$ProfilCopyWithImpl<$Res, _$ProfilImpl>
+class __$$ProfilImplCopyWithImpl<$Res>
+    extends _$ProfilCopyWithImpl<$Res, _$ProfilImpl>
     implements _$$ProfilImplCopyWith<$Res> {
-  __$$ProfilImplCopyWithImpl(_$ProfilImpl _value, $Res Function(_$ProfilImpl) _then)
-    : super(_value, _then);
+  __$$ProfilImplCopyWithImpl(
+      _$ProfilImpl _value, $Res Function(_$ProfilImpl) _then)
+      : super(_value, _then);
 
   /// Create a copy of Profil
   /// with the given fields replaced by the non-null parameter values.
@@ -154,55 +150,53 @@ class __$$ProfilImplCopyWithImpl<$Res> extends _$ProfilCopyWithImpl<$Res, _$Prof
     Object? email = freezed,
     Object? createdAt = freezed,
   }) {
-    return _then(
-      _$ProfilImpl(
-        id: null == id
-            ? _value.id
-            : id // ignore: cast_nullable_to_non_nullable
-                  as String,
-        userId: freezed == userId
-            ? _value.userId
-            : userId // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        nomComplet: freezed == nomComplet
-            ? _value.nomComplet
-            : nomComplet // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        role: null == role
-            ? _value.role
-            : role // ignore: cast_nullable_to_non_nullable
-                  as UserRole,
-        depotId: freezed == depotId
-            ? _value.depotId
-            : depotId // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        email: freezed == email
-            ? _value.email
-            : email // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        createdAt: freezed == createdAt
-            ? _value.createdAt
-            : createdAt // ignore: cast_nullable_to_non_nullable
-                  as DateTime?,
-      ),
-    );
+    return _then(_$ProfilImpl(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      userId: freezed == userId
+          ? _value.userId
+          : userId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      nomComplet: freezed == nomComplet
+          ? _value.nomComplet
+          : nomComplet // ignore: cast_nullable_to_non_nullable
+              as String?,
+      role: null == role
+          ? _value.role
+          : role // ignore: cast_nullable_to_non_nullable
+              as String,
+      depotId: freezed == depotId
+          ? _value.depotId
+          : depotId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      email: freezed == email
+          ? _value.email
+          : email // ignore: cast_nullable_to_non_nullable
+              as String?,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$ProfilImpl implements _Profil {
-  const _$ProfilImpl({
-    required this.id,
-    @JsonKey(name: 'user_id') this.userId,
-    @JsonKey(name: 'nom_complet') this.nomComplet,
-    @JsonKey(name: 'role') @UserRoleConverter() required this.role,
-    @JsonKey(name: 'depot_id') this.depotId,
-    this.email,
-    @JsonKey(name: 'created_at') this.createdAt,
-  });
+  const _$ProfilImpl(
+      {required this.id,
+      @JsonKey(name: 'user_id') this.userId,
+      @JsonKey(name: 'nom_complet') this.nomComplet,
+      required this.role,
+      @JsonKey(name: 'depot_id') this.depotId,
+      this.email,
+      @JsonKey(name: 'created_at') this.createdAt});
 
-  factory _$ProfilImpl.fromJson(Map<String, dynamic> json) => _$$ProfilImplFromJson(json);
+  factory _$ProfilImpl.fromJson(Map<String, dynamic> json) =>
+      _$$ProfilImplFromJson(json);
 
   @override
   final String id;
@@ -213,9 +207,7 @@ class _$ProfilImpl implements _Profil {
   @JsonKey(name: 'nom_complet')
   final String? nomComplet;
   @override
-  @JsonKey(name: 'role')
-  @UserRoleConverter()
-  final UserRole role;
+  final String role;
   @override
   @JsonKey(name: 'depot_id')
   final String? depotId;
@@ -237,17 +229,19 @@ class _$ProfilImpl implements _Profil {
             other is _$ProfilImpl &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.userId, userId) || other.userId == userId) &&
-            (identical(other.nomComplet, nomComplet) || other.nomComplet == nomComplet) &&
+            (identical(other.nomComplet, nomComplet) ||
+                other.nomComplet == nomComplet) &&
             (identical(other.role, role) || other.role == role) &&
             (identical(other.depotId, depotId) || other.depotId == depotId) &&
             (identical(other.email, email) || other.email == email) &&
-            (identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, id, userId, nomComplet, role, depotId, email, createdAt);
+  int get hashCode => Object.hash(
+      runtimeType, id, userId, nomComplet, role, depotId, email, createdAt);
 
   /// Create a copy of Profil
   /// with the given fields replaced by the non-null parameter values.
@@ -259,20 +253,21 @@ class _$ProfilImpl implements _Profil {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ProfilImplToJson(this);
+    return _$$ProfilImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _Profil implements Profil {
-  const factory _Profil({
-    required final String id,
-    @JsonKey(name: 'user_id') final String? userId,
-    @JsonKey(name: 'nom_complet') final String? nomComplet,
-    @JsonKey(name: 'role') @UserRoleConverter() required final UserRole role,
-    @JsonKey(name: 'depot_id') final String? depotId,
-    final String? email,
-    @JsonKey(name: 'created_at') final DateTime? createdAt,
-  }) = _$ProfilImpl;
+  const factory _Profil(
+      {required final String id,
+      @JsonKey(name: 'user_id') final String? userId,
+      @JsonKey(name: 'nom_complet') final String? nomComplet,
+      required final String role,
+      @JsonKey(name: 'depot_id') final String? depotId,
+      final String? email,
+      @JsonKey(name: 'created_at') final DateTime? createdAt}) = _$ProfilImpl;
 
   factory _Profil.fromJson(Map<String, dynamic> json) = _$ProfilImpl.fromJson;
 
@@ -285,9 +280,7 @@ abstract class _Profil implements Profil {
   @JsonKey(name: 'nom_complet')
   String? get nomComplet;
   @override
-  @JsonKey(name: 'role')
-  @UserRoleConverter()
-  UserRole get role;
+  String get role;
   @override
   @JsonKey(name: 'depot_id')
   String? get depotId;
@@ -301,5 +294,6 @@ abstract class _Profil implements Profil {
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$ProfilImplCopyWith<_$ProfilImpl> get copyWith => throw _privateConstructorUsedError;
+  _$$ProfilImplCopyWith<_$ProfilImpl> get copyWith =>
+      throw _privateConstructorUsedError;
 }

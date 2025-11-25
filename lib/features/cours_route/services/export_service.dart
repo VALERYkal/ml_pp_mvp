@@ -1,7 +1,7 @@
-// 📌 Module : Cours de Route - Services
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-01-27
-// 🧭 Description : Service d'export des cours de route
+// ?? Module : Cours de Route - Services
+// ?? Auteur : Valery Kalonga
+// ?? Date : 2025-01-27
+// ?? Description : Service d'export des cours de route
 
 import 'dart:convert';
 import 'dart:typed_data';
@@ -35,7 +35,9 @@ class CoursExportService {
       final transporteur = c.transporteur ?? '';
       final volume = c.volume?.toString() ?? '';
       final depot = c.depotDestinationId;
-      final dateChargement = c.dateChargement != null ? fmtDate(c.dateChargement!) : '';
+      final dateChargement = c.dateChargement != null
+          ? fmtDate(c.dateChargement!)
+          : '';
       final statut = c.statut.label;
 
       buffer.writeln(
@@ -211,17 +213,25 @@ class CoursExportWidget extends StatelessWidget {
         return;
     }
 
-    final fileName = CoursExportService.generateFileName('cours_route', extension);
+    final fileName = CoursExportService.generateFileName(
+      'cours_route',
+      extension,
+    );
 
     // Dans une vraie implémentation, on utiliserait un package comme file_picker
     // Pour l'instant, on affiche le contenu dans un dialog
     _showExportDialog(context, fileName, content, mimeType);
   }
 
-  void _showExportDialog(BuildContext context, String fileName, String content, String mimeType) {
+  void _showExportDialog(
+    BuildContext context,
+    String fileName,
+    String content,
+    String mimeType,
+  ) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext context) => AlertDialog(
         title: Text('Export: $fileName'),
         content: SizedBox(
           width: double.maxFinite,
@@ -237,7 +247,10 @@ class CoursExportWidget extends StatelessWidget {
                 child: SingleChildScrollView(
                   child: SelectableText(
                     content,
-                    style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                    style: const TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 12,
+                    ),
                   ),
                 ),
               ),
@@ -245,15 +258,20 @@ class CoursExportWidget extends StatelessWidget {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Fermer')),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Fermer'),
+          ),
           FilledButton(
             onPressed: () {
               // Copier dans le presse-papiers
               // Clipboard.setData(ClipboardData(text: content));
               Navigator.of(context).pop();
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(const SnackBar(content: Text('Contenu copié dans le presse-papiers')));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Contenu copié dans le presse-papiers'),
+                ),
+              );
             },
             child: const Text('Copier'),
           ),
@@ -262,3 +280,4 @@ class CoursExportWidget extends StatelessWidget {
     );
   }
 }
+

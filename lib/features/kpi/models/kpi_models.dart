@@ -21,7 +21,11 @@ class KpiNumberVolume {
   });
 
   /// Constructeur factory pour valeurs nullable depuis Supabase
-  factory KpiNumberVolume.fromNullable({int? count, num? volume15c, num? volumeAmbient}) {
+  factory KpiNumberVolume.fromNullable({
+    int? count,
+    num? volume15c,
+    num? volumeAmbient,
+  }) {
     return KpiNumberVolume(
       count: count ?? 0,
       volume15c: _nz(volume15c),
@@ -47,7 +51,11 @@ class KpiStocks {
   });
 
   /// Constructeur factory pour valeurs nullable depuis Supabase
-  factory KpiStocks.fromNullable({num? totalAmbient, num? total15c, num? capacityTotal}) {
+  factory KpiStocks.fromNullable({
+    num? totalAmbient,
+    num? total15c,
+    num? capacityTotal,
+  }) {
     return KpiStocks(
       totalAmbient: _nz(totalAmbient),
       total15c: _nz(total15c),
@@ -56,7 +64,8 @@ class KpiStocks {
   }
 
   /// Ratio d'utilisation (0.0 à 1.0)
-  double get utilizationRatio => capacityTotal == 0 ? 0 : (total15c / capacityTotal);
+  double get utilizationRatio =>
+      capacityTotal == 0 ? 0 : (total15c / capacityTotal);
 
   /// Instance vide pour les cas d'erreur
   static const zero = KpiStocks(totalAmbient: 0, total15c: 0, capacityTotal: 0);
@@ -145,10 +154,18 @@ class KpiTrendPoint {
   final double receptions15c;
   final double sorties15c;
 
-  const KpiTrendPoint({required this.day, required this.receptions15c, required this.sorties15c});
+  const KpiTrendPoint({
+    required this.day,
+    required this.receptions15c,
+    required this.sorties15c,
+  });
 
   /// Constructeur factory pour valeurs nullable depuis Supabase
-  factory KpiTrendPoint.fromNullable({DateTime? day, num? receptions15c, num? sorties15c}) {
+  factory KpiTrendPoint.fromNullable({
+    DateTime? day,
+    num? receptions15c,
+    num? sorties15c,
+  }) {
     return KpiTrendPoint(
       day: day ?? DateTime.now(),
       receptions15c: _nz(receptions15c),
@@ -280,9 +297,13 @@ class ReceptionsFilter {
 @immutable
 class ReceptionsStats {
   final int nbCamions; // nb réceptions validées
-  final double volAmbiant; // Σ volume_ambiant
-  final double vol15c; // Σ volume_corrige_15c (null => 0)
-  const ReceptionsStats({required this.nbCamions, required this.volAmbiant, required this.vol15c});
+  final double volAmbiant; // S volume_ambiant
+  final double vol15c; // S volume_corrige_15c (null => 0)
+  const ReceptionsStats({
+    required this.nbCamions,
+    required this.volAmbiant,
+    required this.vol15c,
+  });
 }
 
 @immutable
@@ -298,3 +319,4 @@ class CoursCounts {
     required this.attenteLitres,
   });
 }
+

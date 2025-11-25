@@ -1,7 +1,7 @@
-// 📌 Module : Auth Tests - LoginScreen Widget Tests
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-01-27
-// 🧭 Description : Tests widget pour LoginScreen (≥90% coverage)
+// ð Module : Auth Tests - LoginScreen Widget Tests
+// ð§ Auteur : Valery Kalonga
+// ð Date : 2025-01-27
+// ð§­ Description : Tests widget pour LoginScreen (â¥90% coverage)
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -44,7 +44,7 @@ void main() {
         // Assert
         expect(find.text('Connexion ML_PP MVP'), findsOneWidget);
         expect(find.text('Bienvenue'), findsOneWidget);
-        expect(find.text('Connectez-vous à votre compte'), findsOneWidget);
+        expect(find.text('Connectez-vous Ã  votre compte'), findsOneWidget);
         expect(find.byKey(const Key('email')), findsOneWidget);
         expect(find.byKey(const Key('password')), findsOneWidget);
         expect(find.byKey(const Key('login_button')), findsOneWidget);
@@ -196,7 +196,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Assert - Should show success message
-        expect(find.text('Connexion réussie'), findsOneWidget);
+        expect(find.text('Connexion rÃ©ussie'), findsOneWidget);
       });
     });
 
@@ -214,7 +214,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Assert
-        expect(find.text('Connexion réussie'), findsOneWidget);
+        expect(find.text('Connexion rÃ©ussie'), findsOneWidget);
         verify(mockAuthService.signIn('test@example.com', 'password123')).called(1);
       });
 
@@ -268,7 +268,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Assert
-        expect(find.text('Email non confirmé'), findsOneWidget);
+        expect(find.text('Email non confirmÃ©'), findsOneWidget);
       });
 
       testWidgets('should show error message for network issues', (WidgetTester tester) async {
@@ -284,7 +284,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Assert
-        expect(find.text('Problème réseau'), findsOneWidget);
+        expect(find.text('ProblÃ¨me rÃ©seau'), findsOneWidget);
       });
 
       testWidgets('should show error message for too many requests', (WidgetTester tester) async {
@@ -300,7 +300,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Assert
-        expect(find.text('Trop de tentatives. Réessayez plus tard.'), findsOneWidget);
+        expect(find.text('Trop de tentatives. RÃ©essayez plus tard.'), findsOneWidget);
       });
 
       testWidgets('should show generic error message for unknown AuthException', (
@@ -342,7 +342,7 @@ void main() {
 
         // Assert
         expect(
-          find.text('Accès au profil refusé (policies RLS). Contactez l\'administrateur.'),
+          find.text('AccÃ¨s au profil refusÃ© (policies RLS). Contactez l\'administrateur.'),
           findsOneWidget,
         );
       });
@@ -360,7 +360,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Assert
-        expect(find.text('Erreur inattendue. Réessaie.'), findsOneWidget);
+        expect(find.text('Erreur inattendue. RÃ©essaie.'), findsOneWidget);
       });
     });
 
@@ -421,3 +421,4 @@ void main() {
     });
   });
 }
+

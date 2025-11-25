@@ -30,7 +30,7 @@ class FakeStocksService {
 }
 
 void main() {
-  test('FakeStocksService: test des méthodes de base', () async {
+  test('FakeStocksService: test des mÃ©thodes de base', () async {
     final fakeStocks = FakeStocksService();
 
     // Test getAmbientForToday
@@ -81,7 +81,7 @@ void main() {
       volume15c: 49.0,
     );
 
-    // Deuxième decrement
+    // DeuxiÃ¨me decrement
     await fakeStocks.decrement(
       citerneId: 'c1',
       produitId: 'p1',
@@ -94,10 +94,10 @@ void main() {
     expect(fakeStocks.lastArgs!['vol15'], 29.5);
   });
 
-  test('FakeStocksService: test différents citernes/produits', () async {
+  test('FakeStocksService: test diffÃ©rents citernes/produits', () async {
     final fakeStocks = FakeStocksService();
 
-    // Test avec différents paramètres
+    // Test avec diffÃ©rents paramÃ¨tres
     await fakeStocks.decrement(
       citerneId: 'citerne-essence',
       produitId: 'produit-essence',
@@ -111,3 +111,4 @@ void main() {
     expect(fakeStocks.lastArgs!['vol15'], 198.0);
   });
 }
+

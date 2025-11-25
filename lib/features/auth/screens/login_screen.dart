@@ -1,8 +1,8 @@
-// 📌 Module : Auth Feature - Login Screen
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-08-07
-// 🗃️ Source SQL : Table `auth.users` + `public.profils`
-// 🧭 Description : Écran de connexion avec gestion des rôles et redirection
+// ?? Module : Auth Feature - Login Screen
+// ?? Auteur : Valery Kalonga
+// ?? Date : 2025-08-07
+// ??? Source SQL : Table `auth.users` + `public.profils`
+// ?? Description : Écran de connexion avec gestion des rôles et redirection
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -83,7 +83,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   // Snackbars cosmétiques (succès / erreur)
-  void _showNiceSnack(BuildContext context, {required String message, required bool success}) {
+  void _showNiceSnack(
+    BuildContext context, {
+    required String message,
+    required bool success,
+  }) {
     final bg = success ? const Color(0xFF10B981) : const Color(0xFFEF4444);
     final icon = success ? Icons.check_circle_rounded : Icons.error_rounded;
     ScaffoldMessenger.of(context)
@@ -93,7 +97,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           behavior: SnackBarBehavior.floating,
           backgroundColor: bg,
           elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           content: Row(
             children: [
               Icon(icon, color: Colors.white),
@@ -131,7 +137,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       final authService = ref.read(authServiceProvider);
 
       // Tentative de connexion
-      await authService.signIn(_emailController.text.trim(), _passwordController.text);
+      await authService.signIn(
+        _emailController.text.trim(),
+        _passwordController.text,
+      );
 
       // Succès de connexion
       _showSuccess('Connexion réussie');
@@ -162,7 +171,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (s.contains('invalid')) return 'Identifiants invalides';
     if (s.contains('email not confirmed')) return 'Email non confirmé';
     if (s.contains('network')) return 'Problème réseau';
-    if (s.contains('too many requests')) return 'Trop de tentatives. Réessayez plus tard.';
+    if (s.contains('too many requests'))
+      return 'Trop de tentatives. Réessayez plus tard.';
     return 'Impossible de se connecter';
   }
 
@@ -212,7 +222,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: const [
-                          BoxShadow(color: Color(0x1A000000), blurRadius: 18, offset: Offset(0, 8)),
+                          BoxShadow(
+                            color: Color(0x1A000000),
+                            blurRadius: 18,
+                            offset: Offset(0, 8),
+                          ),
                         ],
                       ),
                       child: SizedBox(
@@ -335,7 +349,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             elevation: 1.5,
                             shape: const StadiumBorder(),
                           ).copyWith(
-                            overlayColor: MaterialStateProperty.all(_primaryDark.withOpacity(.12)),
+                            overlayColor: WidgetStateProperty.all(
+                              _primaryDark.withValues(alpha: .12),
+                            ),
                           ),
                       child: _isLoading
                           ? const SizedBox(
@@ -343,12 +359,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               width: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
                               ),
                             )
                           : const Text(
                               'Se connecter',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                     ),
                   ),
@@ -369,3 +390,4 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 }
+

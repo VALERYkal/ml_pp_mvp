@@ -1,5 +1,5 @@
-// 📌 Module : Shared Utils
-// 🧭 Description : Humanisation des erreurs de base de données
+// ?? Module : Shared Utils
+// ?? Description : Humanisation des erreurs de base de données
 
 import 'package:postgrest/postgrest.dart';
 
@@ -195,3 +195,7 @@ class ErrorHumanizer {
     return 'ERROR';
   }
 }
+
+
+
+

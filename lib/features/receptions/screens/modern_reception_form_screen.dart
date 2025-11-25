@@ -1,5 +1,5 @@
 /* ===========================================================
-   ML_PP MVP — ModernReceptionFormScreen
+   ML_PP MVP  ModernReceptionFormScreen
    Rôle: Écran moderne avec design Material 3 et animations fluides
    pour créer une réception avec une UX/UI professionnelle
    =========================================================== */
@@ -8,20 +8,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ml_pp_mvp/shared/ui/toast.dart';
 import 'package:ml_pp_mvp/shared/ui/errors.dart';
-import 'package:postgrest/postgrest.dart';
 
-import 'package:ml_pp_mvp/shared/referentiels/referentiels.dart' as refs;
-import 'package:ml_pp_mvp/shared/providers/ref_data_provider.dart' as rfd;
-import 'package:ml_pp_mvp/shared/referentiels/role_provider.dart';
 import 'package:ml_pp_mvp/shared/utils/volume_calc.dart';
-import 'package:ml_pp_mvp/features/receptions/data/reception_input.dart';
 import 'package:ml_pp_mvp/features/receptions/data/reception_service.dart';
 import 'package:ml_pp_mvp/features/receptions/widgets/cours_arrive_selector.dart';
-import 'package:ml_pp_mvp/features/receptions/data/citerne_info_provider.dart';
 import 'package:ml_pp_mvp/features/receptions/providers/receptions_list_provider.dart'
-    show receptionsListProvider, receptionsPageProvider, receptionsPageSizeProvider;
+    show receptionsListProvider;
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_route_providers.dart'
-    show coursDeRouteListProvider, coursDeRouteActifsProvider, coursDeRouteArrivesProvider;
+    show
+        coursDeRouteListProvider,
+        coursDeRouteActifsProvider,
+        coursDeRouteArrivesProvider;
 import 'package:ml_pp_mvp/features/citernes/providers/citerne_providers.dart'
     show citernesWithStockProvider;
 import 'package:ml_pp_mvp/features/stocks_journaliers/providers/stocks_providers.dart'
@@ -37,10 +34,12 @@ class ModernReceptionFormScreen extends ConsumerStatefulWidget {
   const ModernReceptionFormScreen({super.key, this.coursDeRouteId});
 
   @override
-  ConsumerState<ModernReceptionFormScreen> createState() => _ModernReceptionFormScreenState();
+  ConsumerState<ModernReceptionFormScreen> createState() =>
+      _ModernReceptionFormScreenState();
 }
 
-class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormScreen>
+class _ModernReceptionFormScreenState
+    extends ConsumerState<ModernReceptionFormScreen>
     with TickerProviderStateMixin {
   // Animation controllers
   late AnimationController _fadeController;
@@ -81,7 +80,11 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
 
   // Form keys for validation
   final _formKey = GlobalKey<FormState>();
-  final _stepKeys = [GlobalKey<FormState>(), GlobalKey<FormState>(), GlobalKey<FormState>()];
+  final _stepKeys = [
+    GlobalKey<FormState>(),
+    GlobalKey<FormState>(),
+    GlobalKey<FormState>(),
+  ];
 
   // Validation state
   final Map<String, bool> _validationState = {};
@@ -94,7 +97,10 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
   }
 
   void _initializeAnimations() {
-    _fadeController = AnimationController(duration: const Duration(milliseconds: 600), vsync: this);
+    _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
     _slideController = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,
@@ -108,22 +114,19 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
       vsync: this,
     );
 
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _fadeController, curve: Curves.easeOutCubic));
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0.3, 0),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic));
-    _scaleAnimation = Tween<double>(
-      begin: 0.8,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _scaleController, curve: Curves.elasticOut));
-    _progressAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _progressController, curve: Curves.easeInOut));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _fadeController, curve: Curves.easeOutCubic),
+    );
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0.3, 0), end: Offset.zero).animate(
+          CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
+        );
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(parent: _scaleController, curve: Curves.elasticOut),
+    );
+    _progressAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _progressController, curve: Curves.easeInOut),
+    );
 
     // Start animations
     _fadeController.forward();
@@ -200,7 +203,7 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
     String? coursId;
     String? produitId;
     String? produitCode;
-    
+
     if (coursItem is CoursDeRoute) {
       coursId = coursItem.id;
       produitId = coursItem.produitId;
@@ -214,20 +217,21 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
       // Create a minimal CoursDeRoute from the item
       _selectedCours = CoursDeRoute(
         id: coursId!,
-        produitId: produitId,
-        produitCode: produitCode,
-        statut: 'ARRIVE',
+        fournisseurId: coursItem.fournisseurId,
+        produitId:
+            produitId ?? '', // Provide empty string fallback for required field
+        depotDestinationId:
+            coursItem.depotDestinationId ?? '', // Required field
+        statut: StatutCours.arrive, // Convert string to enum
         // Add other required fields with defaults
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
-        fournisseurId: coursItem.fournisseurId,
-        transporteurId: coursItem.transporteurId,
         chauffeurNom: coursItem.chauffeur,
         plaqueCamion: coursItem.plaqueCamion,
-        departPays: coursItem.departPays,
+        // Remove non-existent fields: transporteurId, departPays
       );
     }
-    
+
     setState(() {
       selectedCoursId = coursId;
       _produitId = produitId;
@@ -248,13 +252,16 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
       _selectedCours = null;
       selectedCoursId = null;
       _selectedCiterneId = null;
-      _selectedProduitId = (_owner == OwnerType.monaluxe) ? null : _selectedProduitId;
+      _selectedProduitId = (_owner == OwnerType.monaluxe)
+          ? null
+          : _selectedProduitId;
       _validationState.remove('cours');
     });
   }
 
-  double? _num(String s) =>
-      double.tryParse(s.replaceAll(RegExp(r'[^\d\-,\.]'), '').replaceAll(',', '.'));
+  double? _num(String s) => double.tryParse(
+    s.replaceAll(RegExp(r'[^\d\-,\.]'), '').replaceAll(',', '.'),
+  );
   bool get isMonaluxe => _owner == OwnerType.monaluxe;
   bool get isPartenaire => _owner == OwnerType.partenaire;
 
@@ -305,7 +312,9 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
       final id = await ref
           .read(receptionServiceProvider)
           .createValidated(
-            coursDeRouteId: isMonaluxe ? (_selectedCoursId ?? widget.coursDeRouteId) : null,
+            coursDeRouteId: isMonaluxe
+                ? (_selectedCoursId ?? widget.coursDeRouteId)
+                : null,
             citerneId: _selectedCiterneId!,
             produitId: _selectedProduitId!,
             indexAvant: avant,
@@ -324,7 +333,11 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
         _scaleController.forward();
 
         // Show success message
-        showAppToast(context, 'Réception enregistrée avec succès', type: ToastType.success);
+        showAppToast(
+          context,
+          'Réception enregistrée avec succès',
+          type: ToastType.success,
+        );
 
         // Invalidate providers
         _invalidateProviders();
@@ -342,7 +355,11 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
     } catch (e, st) {
       debugPrint('[ModernReceptionForm] UnknownError: $e');
       if (mounted) {
-        showAppToast(context, 'Erreur inattendue: ${e.toString()}', type: ToastType.error);
+        showAppToast(
+          context,
+          'Erreur inattendue: ${e.toString()}',
+          type: ToastType.error,
+        );
       }
     } finally {
       if (mounted) setState(() => isSubmitting = false);
@@ -357,26 +374,46 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
 
     // Additional business logic validation
     if (_selectedProduitId == null) {
-      showAppToast(context, 'Sélectionnez un produit.', type: ToastType.warning);
+      showAppToast(
+        context,
+        'Sélectionnez un produit.',
+        type: ToastType.warning,
+      );
       return false;
     }
     if (_selectedCiterneId == null) {
-      showAppToast(context, 'Sélectionnez une citerne.', type: ToastType.warning);
+      showAppToast(
+        context,
+        'Sélectionnez une citerne.',
+        type: ToastType.warning,
+      );
       return false;
     }
     if (isMonaluxe && (selectedCoursId ?? widget.coursDeRouteId) == null) {
-      showAppToast(context, 'Choisissez un cours "arrivé"', type: ToastType.warning);
+      showAppToast(
+        context,
+        'Choisissez un cours "arrivé"',
+        type: ToastType.warning,
+      );
       return false;
     }
     if (isPartenaire && (partenaireId == null || partenaireId!.isEmpty)) {
-      showAppToast(context, 'Choisissez un partenaire', type: ToastType.warning);
+      showAppToast(
+        context,
+        'Choisissez un partenaire',
+        type: ToastType.warning,
+      );
       return false;
     }
 
     final avant = _num(ctrlAvant.text) ?? 0;
     final apres = _num(ctrlApres.text) ?? 0;
     if (apres <= avant) {
-      showAppToast(context, 'Indices incohérents (après ≤ avant)', type: ToastType.warning);
+      showAppToast(
+        context,
+        'Indices incohérents (après = avant)',
+        type: ToastType.warning,
+      );
       return false;
     }
 
@@ -404,7 +441,7 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
       appBar: _buildAppBar(theme),
       body: AnimatedBuilder(
         animation: _fadeAnimation,
-        builder: (context, child) {
+        builder: (BuildContext context, Widget? child) {
           return FadeTransition(
             opacity: _fadeAnimation,
             child: SlideTransition(
@@ -429,7 +466,10 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
       elevation: 0,
       leading: IconButton(
         onPressed: () => context.go('/receptions'),
-        icon: Icon(Icons.arrow_back_ios_new_rounded, color: theme.colorScheme.onSurface),
+        icon: Icon(
+          Icons.arrow_back_ios_new_rounded,
+          color: theme.colorScheme.onSurface,
+        ),
       ),
       title: Text(
         'Nouvelle réception',
@@ -448,7 +488,9 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
               height: 24,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  theme.colorScheme.primary,
+                ),
               ),
             ),
           ),
@@ -483,11 +525,13 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
           const SizedBox(height: 12),
           AnimatedBuilder(
             animation: _progressAnimation,
-            builder: (context, child) {
+            builder: (BuildContext context, Widget? child) {
               return LinearProgressIndicator(
                 value: progress * _progressAnimation.value,
                 backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  theme.colorScheme.primary,
+                ),
                 minHeight: 8,
               );
             },
@@ -609,17 +653,17 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [color.withOpacity(0.1), color.withOpacity(0.05)],
+          colors: [color.withValues(alpha: 0.1), color.withValues(alpha: 0.05)],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.2), width: 1),
+        border: Border.all(color: color.withValues(alpha: 0.2), width: 1),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.15),
+              color: color.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: color, size: 24),
@@ -701,7 +745,9 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
     OwnerType type,
   ) {
     final isSelected = _owner == type;
-    final color = isSelected ? theme.colorScheme.primary : theme.colorScheme.outline;
+    final color = isSelected
+        ? theme.colorScheme.primary
+        : theme.colorScheme.outline;
 
     return GestureDetector(
       onTap: () => _onOwnerChange(type),
@@ -710,19 +756,19 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isSelected
-              ? theme.colorScheme.primaryContainer.withOpacity(0.3)
+              ? theme.colorScheme.primaryContainer.withValues(alpha: 0.3)
               : theme.colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected
                 ? theme.colorScheme.primary
-                : theme.colorScheme.outline.withOpacity(0.3),
+                : theme.colorScheme.outline.withValues(alpha: 0.3),
             width: isSelected ? 2 : 1,
           ),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: theme.colorScheme.primary.withOpacity(0.1),
+                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
                   ),
@@ -743,7 +789,9 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
             const SizedBox(height: 4),
             Text(
               subtitle,
-              style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
               textAlign: TextAlign.center,
             ),
           ],
@@ -760,7 +808,11 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
         children: [
           Row(
             children: [
-              Icon(Icons.local_shipping_rounded, color: theme.colorScheme.primary, size: 20),
+              Icon(
+                Icons.local_shipping_rounded,
+                color: theme.colorScheme.primary,
+                size: 20,
+              ),
               const SizedBox(width: 8),
               Text(
                 'Cours de route',
@@ -772,11 +824,7 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
             ],
           ),
           const SizedBox(height: 16),
-          CoursArriveSelector(
-            onSelected: _onCoursSelected,
-            selectedCours: _selectedCours,
-            onUnlink: _unlinkCours,
-          ),
+          CoursArriveSelector(onSelected: _onCoursSelected),
         ],
       ),
     );
@@ -790,7 +838,11 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
         children: [
           Row(
             children: [
-              Icon(Icons.handshake_rounded, color: theme.colorScheme.primary, size: 20),
+              Icon(
+                Icons.handshake_rounded,
+                color: theme.colorScheme.primary,
+                size: 20,
+              ),
               const SizedBox(width: 8),
               Text(
                 'Partenaire',
@@ -803,13 +855,14 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
           ),
           const SizedBox(height: 16),
           PartenaireAutocomplete(
-            onSelected: (id) {
+            onSelected: (partenaire) {
               setState(() {
-                partenaireId = id;
-                _validationState['partenaire'] = id != null && id.isNotEmpty;
+                partenaireId =
+                    partenaire.id; // Extract the ID from PartenaireItem
+                _validationState['partenaire'] =
+                    partenaireId != null && partenaireId!.isNotEmpty;
               });
             },
-            selectedPartenaireId: partenaireId,
           ),
         ],
       ),
@@ -824,7 +877,11 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
         children: [
           Row(
             children: [
-              Icon(Icons.local_gas_station_rounded, color: theme.colorScheme.primary, size: 20),
+              Icon(
+                Icons.local_gas_station_rounded,
+                color: theme.colorScheme.primary,
+                size: 20,
+              ),
               const SizedBox(width: 8),
               Text(
                 'Produit',
@@ -842,7 +899,9 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
             decoration: BoxDecoration(
               color: theme.colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: theme.colorScheme.outline.withOpacity(0.3)),
+              border: Border.all(
+                color: theme.colorScheme.outline.withValues(alpha: 0.3),
+              ),
             ),
             child: Text(
               'Sélection du produit (à implémenter)',
@@ -864,7 +923,11 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
         children: [
           Row(
             children: [
-              Icon(Icons.storage_rounded, color: theme.colorScheme.primary, size: 20),
+              Icon(
+                Icons.storage_rounded,
+                color: theme.colorScheme.primary,
+                size: 20,
+              ),
               const SizedBox(width: 8),
               Text(
                 'Citerne',
@@ -882,7 +945,9 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
             decoration: BoxDecoration(
               color: theme.colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: theme.colorScheme.outline.withOpacity(0.3)),
+              border: Border.all(
+                color: theme.colorScheme.outline.withValues(alpha: 0.3),
+              ),
             ),
             child: Text(
               'Sélection de la citerne (à implémenter)',
@@ -904,7 +969,11 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
         children: [
           Row(
             children: [
-              Icon(Icons.science_rounded, color: theme.colorScheme.primary, size: 20),
+              Icon(
+                Icons.science_rounded,
+                color: theme.colorScheme.primary,
+                size: 20,
+              ),
               const SizedBox(width: 8),
               Text(
                 'Mesures',
@@ -1004,7 +1073,11 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
         children: [
           Row(
             children: [
-              Icon(Icons.summarize_rounded, color: theme.colorScheme.primary, size: 20),
+              Icon(
+                Icons.summarize_rounded,
+                color: theme.colorScheme.primary,
+                size: 20,
+              ),
               const SizedBox(width: 8),
               Text(
                 'Résumé',
@@ -1016,7 +1089,11 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
             ],
           ),
           const SizedBox(height: 16),
-          _buildSummaryItem(theme, 'Propriétaire', isMonaluxe ? 'Monaluxe' : 'Partenaire'),
+          _buildSummaryItem(
+            theme,
+            'Propriétaire',
+            isMonaluxe ? 'Monaluxe' : 'Partenaire',
+          ),
           _buildSummaryItem(theme, 'Produit', 'ESS (à implémenter)'),
           _buildSummaryItem(theme, 'Citerne', 'Citerne A (à implémenter)'),
           _buildSummaryItem(
@@ -1037,7 +1114,9 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
         children: [
           Text(
             label,
-            style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
           Text(
             value,
@@ -1068,11 +1147,15 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
         prefixIcon: Icon(icon),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.outline.withOpacity(0.3)),
+          borderSide: BorderSide(
+            color: theme.colorScheme.outline.withValues(alpha: 0.3),
+          ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.outline.withOpacity(0.3)),
+          borderSide: BorderSide(
+            color: theme.colorScheme.outline.withValues(alpha: 0.3),
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -1094,10 +1177,13 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: theme.colorScheme.outline.withOpacity(0.1), width: 1),
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(alpha: 0.1),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: theme.colorScheme.shadow.withOpacity(0.05),
+            color: theme.colorScheme.shadow.withValues(alpha: 0.05),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -1113,7 +1199,10 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         border: Border(
-          top: BorderSide(color: theme.colorScheme.outline.withOpacity(0.1), width: 1),
+          top: BorderSide(
+            color: theme.colorScheme.outline.withValues(alpha: 0.1),
+            width: 1,
+          ),
         ),
       ),
       child: Row(
@@ -1124,7 +1213,9 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
                 onPressed: _previousStep,
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 child: Text('Précédent'),
               ),
@@ -1136,7 +1227,9 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
               onPressed: currentStep < 2 ? _nextStep : _submitReception,
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 backgroundColor: theme.colorScheme.primary,
                 foregroundColor: theme.colorScheme.onPrimary,
               ),
@@ -1146,7 +1239,9 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
                       height: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.onPrimary),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          theme.colorScheme.onPrimary,
+                        ),
                       ),
                     )
                   : Text(
@@ -1160,3 +1255,4 @@ class _ModernReceptionFormScreenState extends ConsumerState<ModernReceptionFormS
     );
   }
 }
+

@@ -100,9 +100,9 @@ void main() {
 
     // Enter indices
     await tester.enterText(find.widgetWithText(TextFormField, 'Index avant'), '0');
-    await tester.enterText(find.widgetWithText(TextFormField, 'Index après'), '100');
+    await tester.enterText(find.widgetWithText(TextFormField, 'Index aprÃ¨s'), '100');
 
-    // Submit (assurer visibilité)
+    // Submit (assurer visibilitÃ©)
     const submitKey = find.byKey(Key('sortie_submit'));
     await tester.ensureVisible(submitKey);
     await tester.tap(submitKey);
@@ -113,3 +113,4 @@ void main() {
     expect(called!.citerneId, 'cit1');
   });
 }
+

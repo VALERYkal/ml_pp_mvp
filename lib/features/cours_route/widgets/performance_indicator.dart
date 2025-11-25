@@ -1,7 +1,7 @@
-// 📌 Module : Cours de Route - Widgets
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-01-27
-// 🧭 Description : Indicateurs de performance pour les cours de route
+// ?? Module : Cours de Route - Widgets
+// ?? Auteur : Valery Kalonga
+// ?? Date : 2025-01-27
+// ?? Description : Indicateurs de performance pour les cours de route
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -26,7 +26,9 @@ class PerformanceIndicator extends ConsumerWidget {
     final cacheHits = performanceStats['cacheHits'] as int;
     final totalRequests = performanceStats['totalRequests'] as int;
 
-    final cacheHitRate = totalRequests > 0 ? (cacheHits / totalRequests * 100).round() : 0;
+    final cacheHitRate = totalRequests > 0
+        ? (cacheHits / totalRequests * 100).round()
+        : 0;
     final isCacheValid = cache?.isValid ?? false;
     final lastRefresh = performanceStats['lastRefresh'] as DateTime;
     final timeSinceRefresh = DateTime.now().difference(lastRefresh);
@@ -34,7 +36,9 @@ class PerformanceIndicator extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceVariant.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -43,25 +47,27 @@ class PerformanceIndicator extends ConsumerWidget {
           Icon(
             isCacheValid ? Icons.cached : Icons.cached_outlined,
             size: 16,
-            color: isCacheValid ? Colors.green : Theme.of(context).colorScheme.onSurfaceVariant,
+            color: isCacheValid
+                ? Colors.green
+                : Theme.of(context).colorScheme.onSurfaceVariant,
           ),
           const SizedBox(width: 8),
 
           // Statistiques de cache
           Text(
             'Cache: ${cacheHitRate}%',
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(width: 16),
 
           // Informations de pagination
           Text(
-            '$totalItems cours • Page $currentPage/$totalPages',
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+            '$totalItems cours  Page $currentPage/$totalPages',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           const Spacer(),
 
@@ -111,7 +117,9 @@ class DetailedPerformanceIndicator extends ConsumerWidget {
     final cacheHits = performanceStats['cacheHits'] as int;
     final totalRequests = performanceStats['totalRequests'] as int;
 
-    final cacheHitRate = totalRequests > 0 ? (cacheHits / totalRequests * 100).round() : 0;
+    final cacheHitRate = totalRequests > 0
+        ? (cacheHits / totalRequests * 100).round()
+        : 0;
     final isCacheValid = cache?.isValid ?? false;
     final lastRefresh = performanceStats['lastRefresh'] as DateTime;
     final timeSinceRefresh = DateTime.now().difference(lastRefresh);
@@ -124,7 +132,9 @@ class DetailedPerformanceIndicator extends ConsumerWidget {
           children: [
             Text(
               'Indicateurs de Performance',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 16),
 
@@ -151,7 +161,11 @@ class DetailedPerformanceIndicator extends ConsumerWidget {
             const Divider(),
 
             // Pagination
-            _PerformanceRow(label: 'Total d\'éléments', value: '$totalItems', icon: Icons.list),
+            _PerformanceRow(
+              label: 'Total d\'éléments',
+              value: '$totalItems',
+              icon: Icons.list,
+            ),
 
             _PerformanceRow(
               label: 'Page actuelle',
@@ -159,7 +173,11 @@ class DetailedPerformanceIndicator extends ConsumerWidget {
               icon: Icons.pages,
             ),
 
-            _PerformanceRow(label: 'Taille de page', value: '$pageSize', icon: Icons.view_list),
+            _PerformanceRow(
+              label: 'Taille de page',
+              value: '$pageSize',
+              icon: Icons.view_list,
+            ),
 
             _PerformanceRow(
               label: 'Éléments affichés',
@@ -187,7 +205,12 @@ class DetailedPerformanceIndicator extends ConsumerWidget {
 
 /// Ligne d'indicateur de performance
 class _PerformanceRow extends StatelessWidget {
-  const _PerformanceRow({required this.label, required this.value, required this.icon, this.color});
+  const _PerformanceRow({
+    required this.label,
+    required this.value,
+    required this.icon,
+    this.color,
+  });
 
   final String label;
   final String value;
@@ -200,11 +223,17 @@ class _PerformanceRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          Icon(icon, size: 16, color: color ?? Theme.of(context).colorScheme.onSurfaceVariant),
+          Icon(
+            icon,
+            size: 16,
+            color: color ?? Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
           const SizedBox(width: 8),
           Text(
             '$label:',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
           ),
           const SizedBox(width: 8),
           Text(
@@ -231,11 +260,14 @@ class PerformanceToggleButton extends ConsumerWidget {
       onPressed: () {
         showDialog(
           context: context,
-          builder: (context) => AlertDialog(
+          builder: (BuildContext context) => AlertDialog(
             title: const Text('Indicateurs de Performance'),
             content: const DetailedPerformanceIndicator(),
             actions: [
-              TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Fermer')),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Fermer'),
+              ),
             ],
           ),
         );
@@ -243,3 +275,4 @@ class PerformanceToggleButton extends ConsumerWidget {
     );
   }
 }
+

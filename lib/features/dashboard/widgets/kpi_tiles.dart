@@ -55,12 +55,13 @@ class KpiCard extends StatelessWidget {
                     const SizedBox(height: 6),
                     Text(
                       v.toStringAsFixed(0),
-                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: warning
-                            ? Theme.of(context).colorScheme.error
-                            : Theme.of(context).colorScheme.onSurface,
-                      ),
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: warning
+                                ? Theme.of(context).colorScheme.error
+                                : Theme.of(context).colorScheme.onSurface,
+                          ),
                     ),
                   ],
                 ),
@@ -115,7 +116,10 @@ class ErrorTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: ListTile(
-        leading: Icon(Icons.error_outline, color: Theme.of(context).colorScheme.error),
+        leading: Icon(
+          Icons.error_outline,
+          color: Theme.of(context).colorScheme.error,
+        ),
         title: Text(message),
         trailing: TextButton.icon(
           onPressed: retry,
@@ -143,10 +147,23 @@ class KpiTiles extends ConsumerWidget {
         spacing: 16,
         runSpacing: 16,
         children: [
-          KpiCard(title: 'Réceptions (jour)', value: 12, icon: Icons.call_received),
+          KpiCard(
+            title: 'Réceptions (jour)',
+            value: 12,
+            icon: Icons.call_received,
+          ),
           KpiCard(title: 'Sorties (jour)', value: 8, icon: Icons.call_made),
-          KpiCard(title: 'Citernes sous seuil', value: 3, warning: true, icon: Icons.warning_amber),
-          KpiCard(title: 'Stock total (L)', value: 45000, icon: Icons.inventory_2),
+          KpiCard(
+            title: 'Citernes sous seuil',
+            value: 3,
+            warning: true,
+            icon: Icons.warning_amber,
+          ),
+          KpiCard(
+            title: 'Stock total (L)',
+            value: 45000,
+            icon: Icons.inventory_2,
+          ),
         ],
       ),
     );
@@ -189,7 +206,9 @@ class CdrKpiTiles extends ConsumerWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.1)),
+        border: Border.all(
+          color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
+        ),
       ),
       child: kpisAsync.when(
         loading: () => _buildLoadingState(context),
@@ -227,9 +246,9 @@ class CdrKpiTiles extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.red.withOpacity(0.1),
+          color: Colors.red.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.red.withOpacity(0.3)),
+          border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
         ),
         child: Column(
           children: [
@@ -237,14 +256,17 @@ class CdrKpiTiles extends ConsumerWidget {
             const SizedBox(height: 8),
             Text(
               'Erreur lors du chargement',
-              style: Theme.of(
-                context,
-              ).textTheme.titleSmall?.copyWith(color: Colors.red, fontWeight: FontWeight.w600),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Colors.red,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const SizedBox(height: 4),
             Text(
               error.toString(),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.red.shade700),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: Colors.red.shade700),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
@@ -255,7 +277,10 @@ class CdrKpiTiles extends ConsumerWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
               ),
             ),
           ],
@@ -316,17 +341,17 @@ class CdrKpiTiles extends ConsumerWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [color.withOpacity(0.1), color.withOpacity(0.05)],
+          colors: [color.withValues(alpha: 0.1), color.withValues(alpha: 0.05)],
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.2), width: 1),
+        border: Border.all(color: color.withValues(alpha: 0.2), width: 1),
       ),
       child: Column(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
+              color: color.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: color, size: 24),
@@ -334,9 +359,10 @@ class CdrKpiTiles extends ConsumerWidget {
           const SizedBox(height: 12),
           Text(
             value,
-            style: Theme.of(
-              context,
-            ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700, color: color),
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
@@ -362,7 +388,10 @@ class CdrKpiTilesDetail extends ConsumerWidget {
     final kpisAsync = ref.watch(cdrKpiCountsByStatutProvider);
 
     return kpisAsync.when(
-      loading: () => const Padding(padding: EdgeInsets.all(16), child: ShimmerRow(count: 5)),
+      loading: () => const Padding(
+        padding: EdgeInsets.all(16),
+        child: ShimmerRow(count: 5),
+      ),
       error: (error, stack) => Padding(
         padding: const EdgeInsets.all(16),
         child: ErrorTile(
@@ -376,11 +405,31 @@ class CdrKpiTilesDetail extends ConsumerWidget {
           spacing: 16,
           runSpacing: 16,
           children: [
-            KpiCard(title: 'Chargement', value: kpis['CHARGEMENT'] ?? 0, icon: Icons.upload),
-            KpiCard(title: 'Transit', value: kpis['TRANSIT'] ?? 0, icon: Icons.local_shipping),
-            KpiCard(title: 'Frontière', value: kpis['FRONTIERE'] ?? 0, icon: Icons.border_clear),
-            KpiCard(title: 'Arrivé', value: kpis['ARRIVE'] ?? 0, icon: Icons.location_on),
-            KpiCard(title: 'Déchargé', value: kpis['DECHARGE'] ?? 0, icon: Icons.check_circle),
+            KpiCard(
+              title: 'Chargement',
+              value: kpis['CHARGEMENT'] ?? 0,
+              icon: Icons.upload,
+            ),
+            KpiCard(
+              title: 'Transit',
+              value: kpis['TRANSIT'] ?? 0,
+              icon: Icons.local_shipping,
+            ),
+            KpiCard(
+              title: 'Frontière',
+              value: kpis['FRONTIERE'] ?? 0,
+              icon: Icons.border_clear,
+            ),
+            KpiCard(
+              title: 'Arrivé',
+              value: kpis['ARRIVE'] ?? 0,
+              icon: Icons.location_on,
+            ),
+            KpiCard(
+              title: 'Déchargé',
+              value: kpis['DECHARGE'] ?? 0,
+              icon: Icons.check_circle,
+            ),
           ],
         ),
       ),
@@ -388,42 +437,67 @@ class CdrKpiTilesDetail extends ConsumerWidget {
   }
 }
 
-// Stock total — 15°C en primary, ambiant en secondaire, % d'utilisation
+// Stock total  15°C en primary, ambiant en secondaire, % d'utilisation
 class StockTotalTile extends ConsumerWidget {
   const StockTotalTile({super.key});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final kpiAsync = ref.watch(kpiProviderProvider);
     return kpiAsync.when(
-      loading: () => KpiCard(title: 'Stock total', value: 0, icon: Icons.inventory_2_outlined),
-      error: (_, __) => KpiCard(title: 'Stock total', value: 0, icon: Icons.inventory_2_outlined),
+      loading: () => KpiCard(
+        title: 'Stock total',
+        value: 0,
+        icon: Icons.inventory_2_outlined,
+      ),
+      error: (_, __) => KpiCard(
+        title: 'Stock total',
+        value: 0,
+        icon: Icons.inventory_2_outlined,
+      ),
       data: (kpi) {
         final total15c = kpi.stocks.total15c;
         final totalAmb = kpi.stocks.totalAmbient;
         final capacity = kpi.stocks.capacityTotal;
         final usagePct = capacity <= 0 ? 0 : (totalAmb / capacity * 100);
-        return KpiCard(title: 'Stock total', value: total15c, icon: Icons.inventory_2_outlined);
+        return KpiCard(
+          title: 'Stock total',
+          value: total15c,
+          icon: Icons.inventory_2_outlined,
+        );
       },
     );
   }
 }
 
-// Tendance 7 jours — net (réceptions - sorties) en primary
+// Tendance 7 jours  net (réceptions - sorties) en primary
 class Trend7dTile extends ConsumerWidget {
   const Trend7dTile({super.key});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final kpiAsync = ref.watch(kpiProviderProvider);
     return kpiAsync.when(
-      loading: () => KpiCard(title: 'Tendance 7 jours', value: 0, icon: Icons.trending_up_rounded),
-      error: (_, __) => KpiCard(title: 'Tendance 7 jours', value: 0, icon: Icons.trending_up_rounded),
+      loading: () => KpiCard(
+        title: 'Tendance 7 jours',
+        value: 0,
+        icon: Icons.trending_up_rounded,
+      ),
+      error: (_, __) => KpiCard(
+        title: 'Tendance 7 jours',
+        value: 0,
+        icon: Icons.trending_up_rounded,
+      ),
       data: (kpi) {
         // Calculer la tendance 7 jours à partir des données disponibles
         final sumIn = kpi.balanceToday.receptions15c;
         final sumOut = kpi.balanceToday.sorties15c;
         final net = sumIn - sumOut;
-        return KpiCard(title: 'Tendance 7 jours', value: net, icon: Icons.trending_up_rounded);
+        return KpiCard(
+          title: 'Tendance 7 jours',
+          value: net,
+          icon: Icons.trending_up_rounded,
+        );
       },
     );
   }
 }
+

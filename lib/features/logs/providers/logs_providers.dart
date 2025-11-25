@@ -1,8 +1,9 @@
-// 📌 Providers pour consultation des logs (log_actions)
+// ?? Providers pour consultation des logs (log_actions)
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show DateTimeRange; // for DateTimeRange filter state
-import 'package:flutter_riverpod/flutter_riverpod.dart' as Riverpod;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 // Utils pour les dates
@@ -72,13 +73,13 @@ DateTime? _asDate(Object? v) {
 }
 
 // Filtres
-final logsDateRangeProvider = Riverpod.StateProvider<DateTimeRange?>((ref) => null);
-final logsModuleProvider = Riverpod.StateProvider<String?>((ref) => null);
-final logsSearchTextProvider = Riverpod.StateProvider<String?>((ref) => null);
-final logsLevelProvider = Riverpod.StateProvider<String?>((ref) => null);
-final logsUserIdProvider = Riverpod.StateProvider<String?>((ref) => null);
-final logsPageProvider = Riverpod.StateProvider<int>((ref) => 0);
-final logsPageSizeProvider = Riverpod.StateProvider<int>((ref) => 50);
+final logsDateRangeProvider = StateProvider<DateTimeRange?>((ref) => null);
+final logsModuleProvider = StateProvider<String?>((ref) => null);
+final logsSearchTextProvider = StateProvider<String?>((ref) => null);
+final logsLevelProvider = StateProvider<String?>((ref) => null);
+final logsUserIdProvider = StateProvider<String?>((ref) => null);
+final logsPageProvider = StateProvider<int>((ref) => 0);
+final logsPageSizeProvider = StateProvider<int>((ref) => 50);
 
 // Référentiels simples
 const List<String> logsModules = <String>[
@@ -92,11 +93,11 @@ const List<String> logsModules = <String>[
 
 const List<String> logsLevels = <String>['INFO', 'WARNING', 'CRITICAL'];
 
-final logsUsersProvider = Riverpod.FutureProvider<List<Map<String, String>>>((ref) async {
+final logsUsersProvider = FutureProvider<List<Map<String, String>>>((ref) async {
   // affiche "user readable" : profils.nom_complet si dispo sinon uuid
   final rows = await Supabase.instance.client
       .from('profils')
-      .select<List<Map<String, dynamic>>>('user_id, nom_complet')
+      .select('user_id, nom_complet')
       .order('nom_complet')
       .limit(2000);
   return rows
@@ -111,7 +112,7 @@ final logsUsersProvider = Riverpod.FutureProvider<List<Map<String, String>>>((re
       .toList();
 });
 
-final logsListProvider = Riverpod.FutureProvider.autoDispose<List<LogEntryView>>((ref) async {
+final logsListProvider = FutureProvider.autoDispose<List<LogEntryView>>((ref) async {
   final client = Supabase.instance.client;
 
   // états UI
@@ -126,7 +127,7 @@ final logsListProvider = Riverpod.FutureProvider.autoDispose<List<LogEntryView>>
   // base query
   var q = client
       .from('log_actions')
-      .select<List<Map<String, dynamic>>>(
+      .select(
         'id, created_at, module, action, niveau, user_id, details',
       );
 
@@ -188,38 +189,38 @@ final logsListProvider = Riverpod.FutureProvider.autoDispose<List<LogEntryView>>
 });
 
 // pour les listes de filtres:
-final logsModulesProvider = Riverpod.FutureProvider<List<String>>((ref) async {
+final logsModulesProvider = FutureProvider<List<String>>((ref) async {
   final rows = await Supabase.instance.client
       .from('log_actions')
-      .select<List<Map<String, dynamic>>>('module')
+      .select('module')
       .order('module')
       .limit(2000);
   return rows.map((e) => e['module']?.toString()).whereType<String>().toSet().toList()..sort();
 });
 
-/// Provider de lookup pour les citernes (ID → nom)
-final citerneLookupProvider = Riverpod.FutureProvider<Map<String, String>>((ref) async {
+/// Provider de lookup pour les citernes (ID ? nom)
+final citerneLookupProvider = FutureProvider<Map<String, String>>((ref) async {
   final rows = await Supabase.instance.client
       .from('citernes')
-      .select<List<Map<String, dynamic>>>('id, nom')
+      .select('id, nom')
       .limit(5000);
   return {for (final r in rows) r['id'] as String: r['nom'] as String};
 });
 
-/// Provider de lookup pour les produits (ID → nom)
-final produitLookupProvider = Riverpod.FutureProvider<Map<String, String>>((ref) async {
+/// Provider de lookup pour les produits (ID ? nom)
+final produitLookupProvider = FutureProvider<Map<String, String>>((ref) async {
   final rows = await Supabase.instance.client
       .from('produits')
-      .select<List<Map<String, dynamic>>>('id, nom')
+      .select('id, nom')
       .limit(5000);
   return {for (final r in rows) r['id'] as String: r['nom'] as String};
 });
 
-/// Provider de lookup pour les utilisateurs (ID → nom complet)
-final usersLookupProvider = Riverpod.FutureProvider<Map<String, String>>((ref) async {
+/// Provider de lookup pour les utilisateurs (ID ? nom complet)
+final usersLookupProvider = FutureProvider<Map<String, String>>((ref) async {
   final rows = await Supabase.instance.client
       .from('profils')
-      .select<List<Map<String, dynamic>>>('user_id, nom_complet, email')
+      .select('user_id, nom_complet, email')
       .limit(5000);
 
   final map = <String, String>{};
@@ -238,3 +239,7 @@ String _escapeCsv(String input) {
   final s = input.replaceAll('"', '""');
   return needs ? '"$s"' : s;
 }
+
+
+
+

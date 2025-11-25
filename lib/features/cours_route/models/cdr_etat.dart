@@ -16,3 +16,4 @@ extension CdrEtatTransitions on CdrEtat {
 
   bool canTransitionTo(CdrEtat to) => _allowed[this]?.contains(to) ?? false;
 }
+

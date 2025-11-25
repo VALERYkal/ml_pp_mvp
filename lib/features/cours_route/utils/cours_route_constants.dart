@@ -1,7 +1,7 @@
-// 📌 Module : Cours de Route - Utils
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-01-27
-// 🧭 Description : Constantes pour le module cours de route
+// ?? Module : Cours de Route - Utils
+// ?? Auteur : Valery Kalonga
+// ?? Date : 2025-01-27
+// ?? Description : Constantes pour le module cours de route
 
 /// Constantes pour le module cours de route
 ///
@@ -43,3 +43,4 @@ class CoursRouteConstants {
     'decharge': 0xFF607D8B, // Gris
   };
 }
+

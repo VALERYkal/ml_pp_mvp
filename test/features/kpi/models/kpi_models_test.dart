@@ -1,7 +1,7 @@
-// 📌 Module : KPI Models - Tests unitaires
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-09-17
-// 🧭 Description : Tests unitaires pour les modèles KPI unifiés
+// ð Module : KPI Models - Tests unitaires
+// ð§ Auteur : Valery Kalonga
+// ð Date : 2025-09-17
+// ð§­ Description : Tests unitaires pour les modÃ¨les KPI unifiÃ©s
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ml_pp_mvp/features/kpi/models/kpi_models.dart';
@@ -54,7 +54,7 @@ void main() {
         const kpi = KpiStocks(totalAmbient: 1000.0, total15c: 1000.0, capacityTotal: 0.0);
 
         // Assert
-        expect(kpi.utilizationRatio, equals(0.0)); // Division par zéro = 0
+        expect(kpi.utilizationRatio, equals(0.0)); // Division par zÃ©ro = 0
       });
 
       test('should handle full capacity', () {
@@ -229,3 +229,4 @@ void main() {
     });
   });
 }
+

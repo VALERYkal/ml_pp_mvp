@@ -27,10 +27,10 @@ class ModernActionCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: theme.dividerColor.withOpacity(0.1)),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -48,7 +48,7 @@ class ModernActionCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: accentColor.withOpacity(0.1),
+                      color: accentColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(icon!, color: accentColor, size: 20),
@@ -61,7 +61,7 @@ class ModernActionCard extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style: theme.textTheme.titleMedium?.copyWith(
+                        style: theme.textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.w600,
                           color: theme.colorScheme.onSurface,
                         ),
@@ -110,12 +110,18 @@ class ModernActionCard extends StatelessWidget {
       return Wrap(
         spacing: 8,
         runSpacing: 8,
-        children: actions.map((action) => _buildActionButton(context, theme, action)).toList(),
+        children: actions
+            .map((action) => _buildActionButton(context, theme, action))
+            .toList(),
       );
     }
   }
 
-  Widget _buildActionButton(BuildContext context, ThemeData theme, ModernActionButton action) {
+  Widget _buildActionButton(
+    BuildContext context,
+    ThemeData theme,
+    ModernActionButton action,
+  ) {
     if (action.isDanger) {
       return OutlinedButton.icon(
         onPressed: action.onPressed,
@@ -123,9 +129,11 @@ class ModernActionCard extends StatelessWidget {
         label: Text(action.label),
         style: OutlinedButton.styleFrom(
           foregroundColor: Colors.red,
-          side: BorderSide(color: Colors.red.withOpacity(0.5)),
+          side: BorderSide(color: Colors.red.withValues(alpha: 0.5)),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       );
     } else {
@@ -137,7 +145,9 @@ class ModernActionCard extends StatelessWidget {
           backgroundColor: action.accentColor,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       );
     }
@@ -160,3 +170,4 @@ class ModernActionButton {
     this.accentColor,
   });
 }
+

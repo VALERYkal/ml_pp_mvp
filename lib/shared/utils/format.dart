@@ -5,3 +5,7 @@ String fmtCompact(num v) {
   if (d.abs() >= 1e3) return '${(d / 1e3).toStringAsFixed(1)} k';
   return d.toStringAsFixed(0);
 }
+
+
+
+

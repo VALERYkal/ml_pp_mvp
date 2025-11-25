@@ -1,7 +1,7 @@
-// 📌 Module : Auth Tests - Test Fixtures
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-01-27
-// 🧭 Description : Fixtures pour les tests d'authentification
+// ð Module : Auth Tests - Test Fixtures
+// ð§ Auteur : Valery Kalonga
+// ð Date : 2025-01-27
+// ð§­ Description : Fixtures pour les tests d'authentification
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ml_pp_mvp/core/models/profil.dart';
@@ -39,7 +39,7 @@ class AuthFixtures {
     updatedAt: DateTime.now().toIso8601String(),
   );
 
-  /// Utilisateur test gérant
+  /// Utilisateur test gÃ©rant
   static User get gerantUser => User(
     id: 'gerant-user-id',
     appMetadata: {},
@@ -54,7 +54,7 @@ class AuthFixtures {
     updatedAt: DateTime.now().toIso8601String(),
   );
 
-  /// Utilisateur test opérateur
+  /// Utilisateur test opÃ©rateur
   static User get operateurUser => User(
     id: 'operateur-user-id',
     appMetadata: {},
@@ -121,7 +121,7 @@ class AuthFixtures {
     createdAt: DateTime.now(),
   );
 
-  /// Profil test gérant
+  /// Profil test gÃ©rant
   static Profil get gerantProfil => Profil(
     id: 'gerant-profil-id',
     userId: 'gerant-user-id',
@@ -132,7 +132,7 @@ class AuthFixtures {
     createdAt: DateTime.now(),
   );
 
-  /// Profil test opérateur
+  /// Profil test opÃ©rateur
   static Profil get operateurProfil => Profil(
     id: 'operateur-profil-id',
     userId: 'operateur-user-id',
@@ -165,7 +165,7 @@ class AuthFixtures {
     createdAt: DateTime.now(),
   );
 
-  /// Données JSON pour profil admin
+  /// DonnÃ©es JSON pour profil admin
   static Map<String, dynamic> get adminProfilJson => {
     'id': 'admin-profil-id',
     'user_id': 'admin-user-id',
@@ -177,7 +177,7 @@ class AuthFixtures {
     'updated_at': DateTime.now().toIso8601String(),
   };
 
-  /// Données JSON pour profil directeur
+  /// DonnÃ©es JSON pour profil directeur
   static Map<String, dynamic> get directeurProfilJson => {
     'id': 'directeur-profil-id',
     'user_id': 'directeur-user-id',
@@ -189,7 +189,7 @@ class AuthFixtures {
     'updated_at': DateTime.now().toIso8601String(),
   };
 
-  /// Données JSON pour profil gérant
+  /// DonnÃ©es JSON pour profil gÃ©rant
   static Map<String, dynamic> get gerantProfilJson => {
     'id': 'gerant-profil-id',
     'user_id': 'gerant-user-id',
@@ -201,7 +201,7 @@ class AuthFixtures {
     'updated_at': DateTime.now().toIso8601String(),
   };
 
-  /// Données JSON pour profil opérateur
+  /// DonnÃ©es JSON pour profil opÃ©rateur
   static Map<String, dynamic> get operateurProfilJson => {
     'id': 'operateur-profil-id',
     'user_id': 'operateur-user-id',
@@ -213,7 +213,7 @@ class AuthFixtures {
     'updated_at': DateTime.now().toIso8601String(),
   };
 
-  /// Données JSON pour profil PCA
+  /// DonnÃ©es JSON pour profil PCA
   static Map<String, dynamic> get pcaProfilJson => {
     'id': 'pca-profil-id',
     'user_id': 'pca-user-id',
@@ -225,7 +225,7 @@ class AuthFixtures {
     'updated_at': DateTime.now().toIso8601String(),
   };
 
-  /// Données JSON pour profil lecture
+  /// DonnÃ©es JSON pour profil lecture
   static Map<String, dynamic> get lectureProfilJson => {
     'id': 'lecture-profil-id',
     'user_id': 'lecture-user-id',
@@ -257,10 +257,10 @@ class AuthFixtures {
     lectureProfil,
   ];
 
-  /// Liste de tous les rôles
+  /// Liste de tous les rÃ´les
   static List<UserRole> get allRoles => UserRole.values;
 
-  /// Credentials de test pour chaque rôle
+  /// Credentials de test pour chaque rÃ´le
   static Map<String, Map<String, String>> get testCredentials => {
     'admin': {'email': 'admin@test.com', 'password': 'admin123'},
     'directeur': {'email': 'directeur@test.com', 'password': 'directeur123'},
@@ -279,14 +279,14 @@ class AuthFixtures {
   /// Messages d'erreur attendus
   static Map<String, String> get expectedErrorMessages => {
     'invalid_credentials': 'Identifiants invalides',
-    'email_not_confirmed': 'Email non confirmé',
-    'network_error': 'Problème réseau',
-    'too_many_requests': 'Trop de tentatives. Réessayez plus tard.',
-    'permission_denied': 'Accès au profil refusé (policies RLS). Contactez l\'administrateur.',
-    'generic_error': 'Erreur inattendue. Réessaie.',
+    'email_not_confirmed': 'Email non confirmÃ©',
+    'network_error': 'ProblÃ¨me rÃ©seau',
+    'too_many_requests': 'Trop de tentatives. RÃ©essayez plus tard.',
+    'permission_denied': 'AccÃ¨s au profil refusÃ© (policies RLS). Contactez l\'administrateur.',
+    'generic_error': 'Erreur inattendue. RÃ©essaie.',
   };
 
-  /// Routes attendues pour chaque rôle
+  /// Routes attendues pour chaque rÃ´le
   static Map<String, String> get expectedRoutes => {
     'admin': '/dashboard/admin',
     'directeur': '/dashboard/directeur',
@@ -296,25 +296,25 @@ class AuthFixtures {
     'lecture': '/dashboard/lecture',
   };
 
-  /// Menu items attendus pour chaque rôle
+  /// Menu items attendus pour chaque rÃ´le
   static Map<String, List<String>> get expectedMenuItems => {
     'admin': [
       'Cours de route',
-      'Réceptions',
+      'RÃ©ceptions',
       'Sorties',
       'Stocks',
       'Administration',
       'Utilisateurs',
-      'Paramètres',
+      'ParamÃ¨tres',
     ],
-    'directeur': ['Cours de route', 'Réceptions', 'Sorties', 'Stocks', 'Rapports'],
-    'gerant': ['Cours de route', 'Réceptions', 'Sorties', 'Stocks', 'Gestion des stocks'],
-    'operateur': ['Cours de route', 'Réceptions', 'Sorties', 'Stocks'],
-    'pca': ['Cours de route', 'Réceptions', 'Sorties', 'Stocks', 'Rapports'],
-    'lecture': ['Cours de route', 'Réceptions', 'Sorties', 'Stocks', 'Rapports'],
+    'directeur': ['Cours de route', 'RÃ©ceptions', 'Sorties', 'Stocks', 'Rapports'],
+    'gerant': ['Cours de route', 'RÃ©ceptions', 'Sorties', 'Stocks', 'Gestion des stocks'],
+    'operateur': ['Cours de route', 'RÃ©ceptions', 'Sorties', 'Stocks'],
+    'pca': ['Cours de route', 'RÃ©ceptions', 'Sorties', 'Stocks', 'Rapports'],
+    'lecture': ['Cours de route', 'RÃ©ceptions', 'Sorties', 'Stocks', 'Rapports'],
   };
 
-  /// Permissions attendues pour chaque rôle
+  /// Permissions attendues pour chaque rÃ´le
   static Map<String, Map<String, bool>> get expectedPermissions => {
     'admin': {
       'canCreateMovements': true,
@@ -360,3 +360,4 @@ class AuthFixtures {
     },
   };
 }
+

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart' as Riverpod;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ml_pp_mvp/core/models/user_role.dart';
 
 class MenuDestination {
@@ -120,7 +120,7 @@ const List<MenuDestination> _allDestinations = [
   ),
 ];
 
-final menuDestinationsForRoleProvider = Riverpod.Provider.family<List<MenuDestination>, UserRole?>((
+final menuDestinationsForRoleProvider = Provider.family<List<MenuDestination>, UserRole?>((
   ref,
   role,
 ) {
@@ -131,3 +131,7 @@ final menuDestinationsForRoleProvider = Riverpod.Provider.family<List<MenuDestin
   list.sort((a, b) => a.order.compareTo(b.order));
   return list;
 });
+
+
+
+

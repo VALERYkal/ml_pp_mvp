@@ -1,8 +1,8 @@
-// 📌 Module : Core Services
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-08-07
-// 🗃️ Source SQL : Table `auth.users` (Supabase Auth)
-// 🧭 Description : Service d'authentification via Supabase Auth
+// ?? Module : Core Services
+// ?? Auteur : Valery Kalonga
+// ?? Date : 2025-08-07
+// ??? Source SQL : Table `auth.users` (Supabase Auth)
+// ?? Description : Service d'authentification via Supabase Auth
 
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -52,7 +52,7 @@ class AuthService {
   /// ```
   Future<User> signIn(String email, String password) async {
     try {
-      debugPrint('🔐 AuthService: Tentative de connexion pour $email');
+      debugPrint('?? AuthService: Tentative de connexion pour $email');
 
       // Validation des paramètres
       if (email.isEmpty || password.isEmpty) {
@@ -69,16 +69,16 @@ class AuthService {
         throw AuthException('Aucun utilisateur retourné après connexion');
       }
 
-      debugPrint('✅ AuthService: Connexion réussie pour ${response.user!.email}');
+      debugPrint('? AuthService: Connexion réussie pour ${response.user!.email}');
       return response.user!;
     } on AuthException catch (e) {
-      debugPrint('❌ AuthService: Erreur d\'authentification - ${e.message}');
+      debugPrint('? AuthService: Erreur d\'authentification - ${e.message}');
       rethrow;
     } on PostgrestException catch (e) {
-      debugPrint('❌ AuthService: Erreur Supabase - ${e.message}');
+      debugPrint('? AuthService: Erreur Supabase - ${e.message}');
       rethrow;
     } catch (e) {
-      debugPrint('❌ AuthService: Erreur inattendue - $e');
+      debugPrint('? AuthService: Erreur inattendue - $e');
       rethrow;
     }
   }
@@ -92,16 +92,16 @@ class AuthService {
   /// - `AuthException` : Erreur lors de la déconnexion
   Future<void> signOut() async {
     try {
-      debugPrint('🚪 AuthService: Déconnexion de l\'utilisateur');
+      debugPrint('?? AuthService: Déconnexion de l\'utilisateur');
 
       await _client.auth.signOut();
 
-      debugPrint('✅ AuthService: Déconnexion réussie');
+      debugPrint('? AuthService: Déconnexion réussie');
     } on AuthException catch (e) {
-      debugPrint('❌ AuthService: Erreur lors de la déconnexion - ${e.message}');
+      debugPrint('? AuthService: Erreur lors de la déconnexion - ${e.message}');
       rethrow;
     } catch (e) {
-      debugPrint('❌ AuthService: Erreur inattendue lors de la déconnexion - $e');
+      debugPrint('? AuthService: Erreur inattendue lors de la déconnexion - $e');
       rethrow;
     }
   }
@@ -128,3 +128,7 @@ class AuthService {
   /// Utilisé pour réagir automatiquement aux connexions/déconnexions
   Stream<AuthState> get authStateChanges => _client.auth.onAuthStateChange;
 }
+
+
+
+

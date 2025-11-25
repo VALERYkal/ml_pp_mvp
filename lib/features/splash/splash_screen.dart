@@ -20,3 +20,7 @@ class SplashScreen extends ConsumerWidget {
     );
   }
 }
+
+
+
+

@@ -3,18 +3,18 @@ import 'package:ml_pp_mvp/features/sorties/data/sortie_service.dart';
 import '../../../helpers/no_network_helper.dart';
 
 void main() {
-  group('SortieService - Tests avec injection de dépendance', () {
+  group('SortieService - Tests avec injection de dÃ©pendance', () {
     late SortieService service;
     late Map<String, dynamic>? lastRpcCall;
     late String? lastRpcFunction;
 
     setUpAll(() {
-      // Bloquer tout accès réseau
+      // Bloquer tout accÃ¨s rÃ©seau
       NoNetworkHelper.blockNetwork();
     });
 
     tearDownAll(() {
-      // Restaurer l'accès réseau
+      // Restaurer l'accÃ¨s rÃ©seau
       NoNetworkHelper.restoreNetwork();
     });
 
@@ -37,7 +37,7 @@ void main() {
       service = SortieService(rpc: rpcMock);
     });
 
-    test('createValidated appelle la bonne fonction RPC avec les bons paramètres', () async {
+    test('createValidated appelle la bonne fonction RPC avec les bons paramÃ¨tres', () async {
       // Arrange
       const citerneId = 'cit-1';
       const produitId = 'prod-1';
@@ -101,7 +101,7 @@ void main() {
       expect(lastRpcCall!['client_id'], isNull);
     });
 
-    test('createValidated avec température et densité', () async {
+    test('createValidated avec tempÃ©rature et densitÃ©', () async {
       // Act
       await service.createValidated(
         citerneId: 'cit-1',
@@ -142,7 +142,7 @@ void main() {
       expect(lastRpcCall!['date_sortie'], equals(dateSortie.toIso8601String()));
     });
 
-    test('createValidated rejette les indices incohérents', () async {
+    test('createValidated rejette les indices incohÃ©rents', () async {
       // Act & Assert
       expect(
         () => service.createValidated(
@@ -161,10 +161,10 @@ void main() {
       );
     });
 
-    test('createValidated gère les erreurs RPC', () async {
+    test('createValidated gÃ¨re les erreurs RPC', () async {
       // Arrange
       final errorRpc = (String fn, {Map<String, dynamic>? params}) async {
-        throw Exception('Erreur RPC simulée');
+        throw Exception('Erreur RPC simulÃ©e');
       };
 
       final errorService = SortieService(rpc: errorRpc);
@@ -182,15 +182,15 @@ void main() {
           transporteur: 'Transport',
         ),
         throwsA(
-          isA<Exception>().having((e) => e.toString(), 'message', contains('Erreur RPC simulée')),
+          isA<Exception>().having((e) => e.toString(), 'message', contains('Erreur RPC simulÃ©e')),
         ),
       );
     });
 
-    test('createValidated gère les réponses invalides', () async {
+    test('createValidated gÃ¨re les rÃ©ponses invalides', () async {
       // Arrange
       final invalidRpc = (String fn, {Map<String, dynamic>? params}) async {
-        return null; // Réponse null
+        return null; // RÃ©ponse null
       };
 
       final invalidService = SortieService(rpc: invalidRpc);
@@ -211,10 +211,11 @@ void main() {
           isA<StateError>().having(
             (e) => e.message,
             'message',
-            contains('Réponse invalide du serveur'),
+            contains('RÃ©ponse invalide du serveur'),
           ),
         ),
       );
     });
   });
 }
+

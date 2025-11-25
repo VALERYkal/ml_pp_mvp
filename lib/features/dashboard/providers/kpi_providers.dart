@@ -33,3 +33,4 @@ final kpiProvider = FutureProvider<KpiData>((ref) async {
 final kpiProviderForRole = FutureProvider<KpiData>((ref) async {
   return ref.watch(kpiProvider.future);
 });
+

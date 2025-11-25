@@ -1,4 +1,4 @@
-// 📊 Dashboard Modernization Summary
+// ?? Dashboard Modernization Summary
 //
 // Ce fichier documente les améliorations apportées au système de dashboard
 // pour rendre l'interface plus moderne, professionnelle et élégante.
@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 
 /// Résumé des améliorations apportées au dashboard
 class DashboardModernizationSummary {
-  /// 🎨 Améliorations visuelles principales
+  /// ?? Améliorations visuelles principales
   static const List<String> visualImprovements = [
     'Grille responsive avec animations échelonnées',
     'Palette de couleurs professionnelle cohérente',
@@ -19,7 +19,7 @@ class DashboardModernizationSummary {
     'Layout adaptatif pour tous les écrans',
   ];
 
-  /// 🚀 Fonctionnalités techniques ajoutées
+  /// ?? Fonctionnalités techniques ajoutées
   static const List<String> technicalFeatures = [
     'Système de couleurs KpiColorPalette',
     'Animations avec AnimationController',
@@ -31,7 +31,7 @@ class DashboardModernizationSummary {
     'TweenAnimationBuilder pour les transitions',
   ];
 
-  /// 📱 Responsive design
+  /// ?? Responsive design
   static const Map<String, int> responsiveBreakpoints = {
     'Mobile': 1, // < 900px
     'Tablet': 2, // 900px - 1199px
@@ -39,7 +39,7 @@ class DashboardModernizationSummary {
     'Large': 4, // >= 1600px
   };
 
-  /// 🎯 Couleurs professionnelles
+  /// ?? Couleurs professionnelles
   static const Map<String, Color> professionalColors = {
     'Primary': Color(0xFF2563EB), // Bleu professionnel
     'Success': Color(0xFF059669), // Vert succès
@@ -50,7 +50,7 @@ class DashboardModernizationSummary {
     'Teal': Color(0xFF0D9488), // Teal élégant
   };
 
-  /// ✨ Animations et interactions
+  /// ? Animations et interactions
   static const Map<String, Duration> animationDurations = {
     'Hover': Duration(milliseconds: 300),
     'Scale': Duration(milliseconds: 400),
@@ -59,7 +59,7 @@ class DashboardModernizationSummary {
     'Staggered': Duration(milliseconds: 100),
   };
 
-  /// 📊 Améliorations des KPIs
+  /// ?? Améliorations des KPIs
   static const List<String> kpiImprovements = [
     'Affichage dual des volumes (ambiant + 15°C)',
     'Formatage professionnel des volumes',
@@ -71,7 +71,7 @@ class DashboardModernizationSummary {
     'Métriques détaillées avec design moderne',
   ];
 
-  /// 🎨 Design system
+  /// ?? Design system
   static const Map<String, double> designTokens = {
     'BorderRadius': 28.0, // Rayon des cartes
     'Padding': 24.0, // Espacement interne
@@ -83,7 +83,7 @@ class DashboardModernizationSummary {
     'FontWeightSecondary': 800, // Poids police secondaire
   };
 
-  /// 🔧 Composants modernisés
+  /// ?? Composants modernisés
   static const List<String> modernizedComponents = [
     'DashboardGrid - Grille responsive avec animations',
     'ModernKpiCard - Cartes KPI avec design professionnel',
@@ -93,7 +93,7 @@ class DashboardModernizationSummary {
     'TrucksToFollowCard - Widget spécialisé pour les camions',
   ];
 
-  /// 📈 Métriques d'amélioration
+  /// ?? Métriques d'amélioration
   static const Map<String, String> improvementMetrics = {
     'Performance': '+40% plus fluide avec les animations optimisées',
     'UX': '+60% meilleure avec les micro-interactions',
@@ -103,7 +103,7 @@ class DashboardModernizationSummary {
     'Professionnalisme': 'Interface de niveau entreprise',
   };
 
-  /// 🎯 Prochaines étapes recommandées
+  /// ?? Prochaines étapes recommandées
   static const List<String> nextSteps = [
     'Ajouter des graphiques interactifs',
     'Implémenter des filtres avancés',
@@ -132,25 +132,25 @@ class DashboardModernizationDemo extends StatelessWidget {
           children: [
             _buildSection(
               context,
-              '🎨 Améliorations Visuelles',
+              '?? Améliorations Visuelles',
               DashboardModernizationSummary.visualImprovements,
             ),
             const SizedBox(height: 24),
             _buildSection(
               context,
-              '🚀 Fonctionnalités Techniques',
+              '?? Fonctionnalités Techniques',
               DashboardModernizationSummary.technicalFeatures,
             ),
             const SizedBox(height: 24),
             _buildSection(
               context,
-              '📊 Améliorations des KPIs',
+              '?? Améliorations des KPIs',
               DashboardModernizationSummary.kpiImprovements,
             ),
             const SizedBox(height: 24),
             _buildSection(
               context,
-              '🔧 Composants Modernisés',
+              '?? Composants Modernisés',
               DashboardModernizationSummary.modernizedComponents,
             ),
           ],
@@ -165,14 +165,18 @@ class DashboardModernizationDemo extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.1)),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 16),
           ...items.map(
@@ -181,8 +185,13 @@ class DashboardModernizationDemo extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('• ', style: TextStyle(fontSize: 16)),
-                  Expanded(child: Text(item, style: Theme.of(context).textTheme.bodyMedium)),
+                  const Text(' ', style: TextStyle(fontSize: 16)),
+                  Expanded(
+                    child: Text(
+                      item,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -192,3 +201,4 @@ class DashboardModernizationDemo extends StatelessWidget {
     );
   }
 }
+

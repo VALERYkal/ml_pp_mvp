@@ -1,14 +1,14 @@
-// 📌 Module : Cours de Route - Fixtures de Test
-// 🧑 Auteur : Valery Kalonga
-// 📅 Date : 2025-01-27
-// 🧭 Description : Fixtures et données de test pour le module CDR
+// ð Module : Cours de Route - Fixtures de Test
+// ð§ Auteur : Valery Kalonga
+// ð Date : 2025-01-27
+// ð§­ Description : Fixtures et donnÃ©es de test pour le module CDR
 
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 import 'package:ml_pp_mvp/shared/providers/ref_data_provider.dart' show RefDataCache;
 
 /// Fixtures pour les tests du module Cours de Route
 class CoursRouteFixtures {
-  /// Crée un cours de route valide pour les tests
+  /// CrÃ©e un cours de route valide pour les tests
   static CoursDeRoute validCours() {
     return CoursDeRoute(
       id: 'test-id',
@@ -29,7 +29,7 @@ class CoursRouteFixtures {
     );
   }
 
-  /// Crée un cours de route invalide pour les tests
+  /// CrÃ©e un cours de route invalide pour les tests
   static CoursDeRoute invalidCours() {
     return CoursDeRoute(
       id: '',
@@ -41,7 +41,7 @@ class CoursRouteFixtures {
     );
   }
 
-  /// Crée un cours de route au statut spécifique
+  /// CrÃ©e un cours de route au statut spÃ©cifique
   static CoursDeRoute coursWithStatut(StatutCours statut) {
     return CoursDeRoute(
       id: 'test-id',
@@ -52,7 +52,7 @@ class CoursRouteFixtures {
     );
   }
 
-  /// Crée un cours de route avec un fournisseur spécifique
+  /// CrÃ©e un cours de route avec un fournisseur spÃ©cifique
   static CoursDeRoute coursWithFournisseur(String fournisseurId) {
     return CoursDeRoute(
       id: 'test-id',
@@ -62,7 +62,7 @@ class CoursRouteFixtures {
     );
   }
 
-  /// Crée un cours de route avec un volume spécifique
+  /// CrÃ©e un cours de route avec un volume spÃ©cifique
   static CoursDeRoute coursWithVolume(double volume) {
     return CoursDeRoute(
       id: 'test-id',
@@ -73,7 +73,7 @@ class CoursRouteFixtures {
     );
   }
 
-  /// Crée un cours de route avec une plaque spécifique
+  /// CrÃ©e un cours de route avec une plaque spÃ©cifique
   static CoursDeRoute coursWithPlaque(String plaque) {
     return CoursDeRoute(
       id: 'test-id',
@@ -84,7 +84,7 @@ class CoursRouteFixtures {
     );
   }
 
-  /// Crée une liste d'exemple de cours de route
+  /// CrÃ©e une liste d'exemple de cours de route
   static List<CoursDeRoute> sampleList() {
     return [
       CoursDeRoute(
@@ -140,27 +140,27 @@ class CoursRouteFixtures {
     ];
   }
 
-  /// Crée une liste de cours actifs (non déchargés)
+  /// CrÃ©e une liste de cours actifs (non dÃ©chargÃ©s)
   static List<CoursDeRoute> activeCoursList() {
     return sampleList().where((c) => c.statut != StatutCours.decharge).toList();
   }
 
-  /// Crée une liste de cours par statut
+  /// CrÃ©e une liste de cours par statut
   static List<CoursDeRoute> coursByStatut(StatutCours statut) {
     return sampleList().where((c) => c.statut == statut).toList();
   }
 
-  /// Crée une liste de cours par fournisseur
+  /// CrÃ©e une liste de cours par fournisseur
   static List<CoursDeRoute> coursByFournisseur(String fournisseurId) {
     return sampleList().where((c) => c.fournisseurId == fournisseurId).toList();
   }
 
-  /// Crée une liste de cours par dépôt
+  /// CrÃ©e une liste de cours par dÃ©pÃ´t
   static List<CoursDeRoute> coursByDepot(String depotId) {
     return sampleList().where((c) => c.depotDestinationId == depotId).toList();
   }
 
-  /// Crée une liste de cours dans une plage de volume
+  /// CrÃ©e une liste de cours dans une plage de volume
   static List<CoursDeRoute> coursByVolumeRange(double minVolume, double maxVolume) {
     return sampleList().where((c) {
       if (c.volume == null) return false;
@@ -168,7 +168,7 @@ class CoursRouteFixtures {
     }).toList();
   }
 
-  /// Crée des données de référence pour les tests
+  /// CrÃ©e des donnÃ©es de rÃ©fÃ©rence pour les tests
   static RefDataCache refDataCache() {
     return RefDataCache(
       fournisseurs: {
@@ -176,18 +176,18 @@ class CoursRouteFixtures {
         'fournisseur-2': 'Shell',
         'fournisseur-3': 'ExxonMobil',
       },
-      produits: {'produit-1': 'Essence', 'produit-2': 'Gasoil / AGO', 'produit-3': 'Kérosène'},
+      produits: {'produit-1': 'Essence', 'produit-2': 'Gasoil / AGO', 'produit-3': 'KÃ©rosÃ¨ne'},
       produitCodes: {'produit-1': 'ESS', 'produit-2': 'AGO', 'produit-3': 'KER'},
       depots: {
-        'depot-1': 'Dépôt Kinshasa',
-        'depot-2': 'Dépôt Lubumbashi',
-        'depot-3': 'Dépôt Matadi',
+        'depot-1': 'DÃ©pÃ´t Kinshasa',
+        'depot-2': 'DÃ©pÃ´t Lubumbashi',
+        'depot-3': 'DÃ©pÃ´t Matadi',
       },
       loadedAt: DateTime.now(),
     );
   }
 
-  /// Crée des données JSON pour les tests de sérialisation
+  /// CrÃ©e des donnÃ©es JSON pour les tests de sÃ©rialisation
   static Map<String, dynamic> validJson() {
     return {
       'id': 'test-id',
@@ -208,7 +208,7 @@ class CoursRouteFixtures {
     };
   }
 
-  /// Crée des données JSON avec des champs legacy
+  /// CrÃ©e des donnÃ©es JSON avec des champs legacy
   static Map<String, dynamic> legacyJson() {
     return {
       'id': 'test-id',
@@ -221,7 +221,7 @@ class CoursRouteFixtures {
     };
   }
 
-  /// Crée des données JSON invalides
+  /// CrÃ©e des donnÃ©es JSON invalides
   static Map<String, dynamic> invalidJson() {
     return {
       'id': '',
@@ -233,7 +233,7 @@ class CoursRouteFixtures {
     };
   }
 
-  /// Crée des données de test pour les filtres
+  /// CrÃ©e des donnÃ©es de test pour les filtres
   static Map<String, dynamic> filterTestData() {
     return {
       'fournisseurs': {
@@ -252,7 +252,7 @@ class CoursRouteFixtures {
     };
   }
 
-  /// Crée des données de test pour les transitions de statut
+  /// CrÃ©e des donnÃ©es de test pour les transitions de statut
   static Map<StatutCours, StatutCours?> statutTransitions() {
     return {
       StatutCours.chargement: StatutCours.transit,
@@ -263,7 +263,7 @@ class CoursRouteFixtures {
     };
   }
 
-  /// Crée des données de test pour la validation des plaques
+  /// CrÃ©e des donnÃ©es de test pour la validation des plaques
   static Map<String, bool> plaqueValidationData() {
     return {
       'ABC123': true,
@@ -277,12 +277,12 @@ class CoursRouteFixtures {
     };
   }
 
-  /// Crée des données de test pour la validation des volumes
+  /// CrÃ©e des donnÃ©es de test pour la validation des volumes
   static Map<double, bool> volumeValidationData() {
     return {1000: true, 50000: true, 200000: true, 0: false, -100: false, 300000: false};
   }
 
-  /// Crée des données de test pour la validation des dates
+  /// CrÃ©e des donnÃ©es de test pour la validation des dates
   static Map<DateTime, bool> dateValidationData() {
     final now = DateTime.now();
     return {
@@ -294,3 +294,4 @@ class CoursRouteFixtures {
     };
   }
 }
+

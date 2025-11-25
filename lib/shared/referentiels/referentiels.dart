@@ -1,11 +1,11 @@
 /* ===========================================================
-   ML_PP MVP — Référentiels (cache mémoire)
+   ML_PP MVP  Référentiels (cache mémoire)
    Rôle: Charger 1x les produits (id, code, nom) & citernes
    actives (id, produit_id, capacités, statut) puis offrir
    des utilitaires de lookup sans requêtes répétées.
    =========================================================== */
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart' as Riverpod;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ProduitRef {
   final String id;
@@ -76,7 +76,7 @@ class ReferentielsRepo {
     return _citernes!;
   }
 
-  /// Patch mineur — lookup produit par code
+  /// Patch mineur  lookup produit par code
   /// Pédagogie: on évite l'usage null-aware sur String non-nullable
   /// et on compare en uppercase pour la robustesse.
   String? getProduitIdByCodeSync(String code) {
@@ -109,14 +109,18 @@ class ReferentielsRepo {
 }
 
 // Providers Riverpod (additifs)
-final referentielsRepoProvider = Riverpod.Provider<ReferentielsRepo>((ref) {
+final referentielsRepoProvider = Provider<ReferentielsRepo>((ref) {
   return ReferentielsRepo(Supabase.instance.client);
 });
 
-final produitsRefProvider = Riverpod.FutureProvider<List<ProduitRef>>((ref) async {
+final produitsRefProvider = FutureProvider<List<ProduitRef>>((ref) async {
   return ref.read(referentielsRepoProvider).loadProduits();
 });
 
-final citernesActivesProvider = Riverpod.FutureProvider<List<CiterneRef>>((ref) async {
+final citernesActivesProvider = FutureProvider<List<CiterneRef>>((ref) async {
   return ref.read(referentielsRepoProvider).loadCiternesActives();
 });
+
+
+
+

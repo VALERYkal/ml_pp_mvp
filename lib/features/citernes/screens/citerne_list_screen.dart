@@ -132,14 +132,21 @@ class CiterneListScreen extends ConsumerWidget {
           const SizedBox(height: 16),
           Text(
             'Chargement des citernes...',
-            style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildErrorState(BuildContext context, Object error, ThemeData theme, WidgetRef ref) {
+  Widget _buildErrorState(
+    BuildContext context,
+    Object error,
+    ThemeData theme,
+    WidgetRef ref,
+  ) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -152,7 +159,11 @@ class CiterneListScreen extends ConsumerWidget {
                 color: theme.colorScheme.errorContainer,
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Icon(Icons.error_outline, size: 48, color: theme.colorScheme.onErrorContainer),
+              child: Icon(
+                Icons.error_outline,
+                size: 48,
+                color: theme.colorScheme.onErrorContainer,
+              ),
             ),
             const SizedBox(height: 16),
             Text(
@@ -174,11 +185,17 @@ class CiterneListScreen extends ConsumerWidget {
             ElevatedButton.icon(
               onPressed: () => ref.invalidate(citernesWithStockProvider),
               icon: Icon(Icons.refresh, color: theme.colorScheme.onPrimary),
-              label: Text('Réessayer', style: TextStyle(color: theme.colorScheme.onPrimary)),
+              label: Text(
+                'Réessayer',
+                style: TextStyle(color: theme.colorScheme.onPrimary),
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: theme.colorScheme.primary,
                 foregroundColor: theme.colorScheme.onPrimary,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
               ),
             ),
           ],
@@ -228,11 +245,18 @@ class CiterneListScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildCiterneGrid(BuildContext context, List<CiterneRow> citernes, ThemeData theme) {
+  Widget _buildCiterneGrid(
+    BuildContext context,
+    List<CiterneRow> citernes,
+    ThemeData theme,
+  ) {
     // Calculer les statistiques
     final totalCiternes = citernes.length;
     final alertesCiternes = citernes.where((c) => c.belowSecurity).length;
-    final capaciteTotale = citernes.fold<double>(0, (sum, c) => sum + (c.capaciteTotale ?? 0));
+    final capaciteTotale = citernes.fold<double>(
+      0,
+      (sum, c) => sum + (c.capaciteTotale ?? 0),
+    );
     final stockTotal = citernes.fold<double>(
       0,
       (sum, c) => sum + (c.stock15c ?? c.stockAmbiant ?? 0),
@@ -269,7 +293,9 @@ class CiterneListScreen extends ConsumerWidget {
                       'Alertes',
                       alertesCiternes.toString(),
                       Icons.warning,
-                      alertesCiternes > 0 ? theme.colorScheme.error : theme.colorScheme.outline,
+                      alertesCiternes > 0
+                          ? theme.colorScheme.error
+                          : theme.colorScheme.outline,
                       theme,
                     ),
                     _buildStatCard(
@@ -304,10 +330,12 @@ class CiterneListScreen extends ConsumerWidget {
               crossAxisCount: 3,
               crossAxisSpacing: 12,
               mainAxisSpacing: 12,
-              childAspectRatio: 1.6, // Plus de hauteur pour la nouvelle typographie
+              childAspectRatio:
+                  1.6, // Plus de hauteur pour la nouvelle typographie
             ),
             delegate: SliverChildBuilderDelegate(
-              (context, index) => _buildCiterneCard(context, citernes[index], theme),
+              (context, index) =>
+                  _buildCiterneCard(context, citernes[index], theme),
               childCount: citernes.length,
             ),
           ),
@@ -331,10 +359,12 @@ class CiterneListScreen extends ConsumerWidget {
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: theme.colorScheme.outlineVariant.withOpacity(0.5)),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
         boxShadow: [
           BoxShadow(
-            color: theme.colorScheme.shadow.withOpacity(0.05),
+            color: theme.colorScheme.shadow.withValues(alpha: 0.05),
             blurRadius: 4,
             offset: const Offset(0, 1),
           ),
@@ -348,7 +378,7 @@ class CiterneListScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Icon(icon, size: 14, color: color),
@@ -378,7 +408,11 @@ class CiterneListScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildCiterneCard(BuildContext context, CiterneRow citerne, ThemeData theme) {
+  Widget _buildCiterneCard(
+    BuildContext context,
+    CiterneRow citerne,
+    ThemeData theme,
+  ) {
     final stock15c = citerne.stock15c ?? citerne.stockAmbiant ?? 0;
     final stockAmbiant = citerne.stockAmbiant ?? 0;
     final capacite = citerne.capaciteTotale ?? 0;
@@ -394,7 +428,12 @@ class CiterneListScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value, ThemeData theme) {
+  Widget _buildInfoRow(
+    IconData icon,
+    String label,
+    String value,
+    ThemeData theme,
+  ) {
     return Row(
       children: [
         Icon(icon, size: 11, color: theme.colorScheme.onSurfaceVariant),
@@ -447,10 +486,12 @@ class TankCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: t.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: t.colorScheme.outlineVariant.withOpacity(0.35)),
+        border: Border.all(
+          color: t.colorScheme.outlineVariant.withValues(alpha: 0.35),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),
@@ -477,7 +518,10 @@ class TankCard extends StatelessWidget {
                 ),
                 Text(
                   '${utilPct.toStringAsFixed(1)}%',
-                  style: t.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800, color: warn),
+                  style: t.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: warn,
+                  ),
                 ),
               ],
             ),
@@ -548,10 +592,16 @@ Widget _metricLine(
   bool alignEnd = false,
 }) {
   final t = Theme.of(context);
-  final ic = Icon(icon, size: 14, color: t.colorScheme.onSurfaceVariant.withOpacity(0.8));
+  final ic = Icon(
+    icon,
+    size: 14,
+    color: t.colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
+  );
   final lab = Text(
     label,
-    style: t.textTheme.bodySmall?.copyWith(color: t.colorScheme.onSurfaceVariant),
+    style: t.textTheme.bodySmall?.copyWith(
+      color: t.colorScheme.onSurfaceVariant,
+    ),
   );
   final val = Text(
     value,
@@ -581,3 +631,4 @@ Widget _metricLine(
     ],
   );
 }
+

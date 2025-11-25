@@ -1,5 +1,5 @@
 /* ===========================================================
-   ML_PP MVP — Modern Reception Validation Service
+   ML_PP MVP  Modern Reception Validation Service
    Rôle: Service de validation moderne avec gestion d'erreurs élégante
    et feedback utilisateur en temps réel
    =========================================================== */
@@ -39,7 +39,8 @@ class ModernReceptionValidationService {
         errors.add(
           ValidationError(
             field: 'coursDeRouteId',
-            message: 'Un cours de route est requis pour les réceptions Monaluxe',
+            message:
+                'Un cours de route est requis pour les réceptions Monaluxe',
             code: 'COURS_REQUIRED',
           ),
         );
@@ -173,13 +174,18 @@ class ModernReceptionValidationService {
       warnings.add(
         ValidationWarning(
           field: 'densite',
-          message: 'Densité inhabituelle (${densite.toStringAsFixed(3)}). Vérifiez la mesure.',
+          message:
+              'Densité inhabituelle (${densite.toStringAsFixed(3)}). Vérifiez la mesure.',
           code: 'UNUSUAL_DENSITY',
         ),
       );
     }
 
-    return ValidationResult(isValid: errors.isEmpty, errors: errors, warnings: warnings);
+    return ValidationResult(
+      isValid: errors.isEmpty,
+      errors: errors,
+      warnings: warnings,
+    );
   }
 
   /// Valide un champ spécifique en temps réel
@@ -206,7 +212,11 @@ class ModernReceptionValidationService {
       case 'citerneId':
         return _validateCiterne(value);
       default:
-        return FieldValidationResult(isValid: true, message: null, type: ValidationType.info);
+        return FieldValidationResult(
+          isValid: true,
+          message: null,
+          type: ValidationType.info,
+        );
     }
   }
 
@@ -388,7 +398,11 @@ class ValidationResult {
   final List<ValidationError> errors;
   final List<ValidationWarning> warnings;
 
-  const ValidationResult({required this.isValid, required this.errors, required this.warnings});
+  const ValidationResult({
+    required this.isValid,
+    required this.errors,
+    required this.warnings,
+  });
 
   /// Retourne le message d'erreur principal
   String? get primaryErrorMessage {
@@ -409,7 +423,11 @@ class FieldValidationResult {
   final String? message;
   final ValidationType type;
 
-  const FieldValidationResult({required this.isValid, required this.message, required this.type});
+  const FieldValidationResult({
+    required this.isValid,
+    required this.message,
+    required this.type,
+  });
 }
 
 /// Erreur de validation
@@ -418,7 +436,11 @@ class ValidationError {
   final String message;
   final String code;
 
-  const ValidationError({required this.field, required this.message, required this.code});
+  const ValidationError({
+    required this.field,
+    required this.message,
+    required this.code,
+  });
 }
 
 /// Avertissement de validation
@@ -427,7 +449,11 @@ class ValidationWarning {
   final String message;
   final String code;
 
-  const ValidationWarning({required this.field, required this.message, required this.code});
+  const ValidationWarning({
+    required this.field,
+    required this.message,
+    required this.code,
+  });
 }
 
 /// Type de validation
@@ -461,3 +487,4 @@ extension ValidationTypeExtension on ValidationType {
     }
   }
 }
+

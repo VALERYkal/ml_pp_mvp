@@ -1,4 +1,4 @@
-// ⚠️ DÉPRÉCIÉ - Utiliser kpiProvider à la place
+// ?? DÉPRÉCIÉ - Utiliser kpiProvider à la place
 // Ce fichier sera supprimé dans la prochaine version majeure
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -20,7 +20,8 @@ class AdminKpis {
 
 String _ymd(DateTime d) =>
     '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
-String _isoUtc(DateTime d) => d.toUtc().toIso8601String().split('.').first + 'Z';
+String _isoUtc(DateTime d) =>
+    d.toUtc().toIso8601String().split('.').first + 'Z';
 
 final adminKpiProvider = FutureProvider<AdminKpis>((ref) async {
   final supa = Supabase.instance.client;
@@ -30,7 +31,10 @@ final adminKpiProvider = FutureProvider<AdminKpis>((ref) async {
   final last24h = now.subtract(const Duration(hours: 24));
 
   // 1) logs 24h (vue de compat)
-  final logsErr = await supa.from('logs').select('id').gte('created_at', _isoUtc(last24h));
+  final logsErr = await supa
+      .from('logs')
+      .select('id')
+      .gte('created_at', _isoUtc(last24h));
 
   // 2) réceptions du jour (DATE)
   final recs = await supa
@@ -50,7 +54,9 @@ final adminKpiProvider = FutureProvider<AdminKpis>((ref) async {
   // 4) citernes sous seuil
   final citernes = await supa.from('citernes').select('id,capacite_securite');
 
-  final latest = await supa.from('v_citerne_stock_actuel').select('citerne_id,stock_ambiant');
+  final latest = await supa
+      .from('v_citerne_stock_actuel')
+      .select('citerne_id,stock_ambiant');
 
   final stockByCiterne = <String, double>{};
   for (final m in (latest as List)) {
@@ -69,7 +75,10 @@ final adminKpiProvider = FutureProvider<AdminKpis>((ref) async {
   }
 
   // 5) produits actifs
-  final produitsActifs = await supa.from('produits').select('id').eq('actif', true);
+  final produitsActifs = await supa
+      .from('produits')
+      .select('id')
+      .eq('actif', true);
 
   return AdminKpis(
     erreurs24h: (logsErr as List).length,
@@ -79,3 +88,4 @@ final adminKpiProvider = FutureProvider<AdminKpis>((ref) async {
     produitsActifs: (produitsActifs as List).length,
   );
 });
+

@@ -29,12 +29,15 @@ class SortieFormSection extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
-        border: Border.all(color: colorScheme.outline.withOpacity(0.1), width: 1),
+        border: Border.all(
+          color: colorScheme.outline.withValues(alpha: 0.1),
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -43,7 +46,7 @@ class SortieFormSection extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: colorScheme.surfaceVariant.withOpacity(0.3),
+              color: colorScheme.surfaceVariant.withValues(alpha: 0.3),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(16),
                 topRight: Radius.circular(16),
@@ -55,10 +58,16 @@ class SortieFormSection extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: (iconColor ?? colorScheme.primary).withOpacity(0.1),
+                      color: (iconColor ?? colorScheme.primary).withValues(
+                        alpha: 0.1,
+                      ),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(icon, size: 20, color: iconColor ?? colorScheme.primary),
+                    child: Icon(
+                      icon,
+                      size: 20,
+                      color: iconColor ?? colorScheme.primary,
+                    ),
                   ),
                   const SizedBox(width: 12),
                 ],
@@ -91,10 +100,14 @@ class SortieFormSection extends StatelessWidget {
           // Contenu
           Padding(
             padding: const EdgeInsets.all(20),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: children),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: children,
+            ),
           ),
         ],
       ),
     );
   }
 }
+

@@ -30,20 +30,17 @@ class _TrucksToFollowCardState extends State<TrucksToFollowCard>
       vsync: this,
     );
 
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.98,
-    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeInOut));
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.98).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
 
-    _fadeAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.95,
-    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeInOut));
+    _fadeAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
 
-    _slideAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic));
+    _slideAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
+    );
   }
 
   @override
@@ -59,7 +56,7 @@ class _TrucksToFollowCardState extends State<TrucksToFollowCard>
 
     return AnimatedBuilder(
       animation: _animationController,
-      builder: (context, child) {
+      builder: (BuildContext context, Widget? child) {
         return Transform.scale(
           scale: _scaleAnimation.value,
           child: Opacity(
@@ -79,28 +76,30 @@ class _TrucksToFollowCardState extends State<TrucksToFollowCard>
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
                     color: _isHovered
-                        ? accentColor.withOpacity(0.15)
-                        : accentColor.withOpacity(0.08),
+                        ? accentColor.withValues(alpha: 0.15)
+                        : accentColor.withValues(alpha: 0.08),
                     width: _isHovered ? 2.0 : 1.5,
                   ),
                   boxShadow: [
                     // Ombre principale avec effet hover
                     BoxShadow(
-                      color: accentColor.withOpacity(_isHovered ? 0.12 : 0.06),
+                      color: accentColor.withValues(
+                        alpha: _isHovered ? 0.12 : 0.06,
+                      ),
                       blurRadius: _isHovered ? 32 : 24,
                       offset: Offset(0, _isHovered ? 16 : 12),
                       spreadRadius: 0,
                     ),
                     // Ombre de profondeur
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
+                      color: Colors.black.withValues(alpha: 0.04),
                       blurRadius: 16,
                       offset: const Offset(0, 8),
                       spreadRadius: 0,
                     ),
                     // Ombre subtile pour la profondeur
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.02),
+                      color: Colors.black.withValues(alpha: 0.02),
                       blurRadius: 8,
                       offset: const Offset(0, 4),
                       spreadRadius: 0,
@@ -127,19 +126,27 @@ class _TrucksToFollowCardState extends State<TrucksToFollowCard>
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                   colors: [
-                                    accentColor.withOpacity(_isHovered ? 0.18 : 0.12),
-                                    accentColor.withOpacity(_isHovered ? 0.12 : 0.08),
+                                    accentColor.withValues(
+                                      alpha: _isHovered ? 0.18 : 0.12,
+                                    ),
+                                    accentColor.withValues(
+                                      alpha: _isHovered ? 0.12 : 0.08,
+                                    ),
                                   ],
                                 ),
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
-                                  color: accentColor.withOpacity(_isHovered ? 0.2 : 0.1),
+                                  color: accentColor.withValues(
+                                    alpha: _isHovered ? 0.2 : 0.1,
+                                  ),
                                   width: _isHovered ? 1.5 : 1,
                                 ),
                                 boxShadow: _isHovered
                                     ? [
                                         BoxShadow(
-                                          color: accentColor.withOpacity(0.15),
+                                          color: accentColor.withValues(
+                                            alpha: 0.15,
+                                          ),
                                           blurRadius: 8,
                                           offset: const Offset(0, 4),
                                         ),
@@ -164,7 +171,7 @@ class _TrucksToFollowCardState extends State<TrucksToFollowCard>
                                     theme.textTheme.titleLarge?.copyWith(
                                       fontWeight: FontWeight.w700,
                                       color: _isHovered
-                                          ? accentColor.withOpacity(0.9)
+                                          ? accentColor.withValues(alpha: 0.9)
                                           : theme.colorScheme.onSurface,
                                       letterSpacing: -0.2,
                                       height: 1.2,
@@ -190,7 +197,9 @@ class _TrucksToFollowCardState extends State<TrucksToFollowCard>
                                         theme.textTheme.headlineLarge?.copyWith(
                                           fontWeight: FontWeight.w800,
                                           color: _isHovered
-                                              ? accentColor.withOpacity(0.8)
+                                              ? accentColor.withValues(
+                                                  alpha: 0.8,
+                                                )
                                               : accentColor,
                                           letterSpacing: -0.5,
                                           height: 1.0,
@@ -202,7 +211,8 @@ class _TrucksToFollowCardState extends State<TrucksToFollowCard>
                                   Text(
                                     'Camions total',
                                     style: theme.textTheme.bodyMedium?.copyWith(
-                                      color: theme.colorScheme.onSurfaceVariant.withOpacity(0.8),
+                                      color: theme.colorScheme.onSurfaceVariant
+                                          .withValues(alpha: 0.8),
                                       fontWeight: FontWeight.w500,
                                       letterSpacing: 0.1,
                                     ),
@@ -222,19 +232,25 @@ class _TrucksToFollowCardState extends State<TrucksToFollowCard>
                                         theme.textTheme.headlineLarge?.copyWith(
                                           fontWeight: FontWeight.w800,
                                           color: _isHovered
-                                              ? theme.colorScheme.onSurface.withOpacity(0.8)
+                                              ? theme.colorScheme.onSurface
+                                                    .withValues(alpha: 0.8)
                                               : theme.colorScheme.onSurface,
                                           letterSpacing: -0.5,
                                           height: 1.0,
                                         ) ??
                                         const TextStyle(),
-                                    child: Text(_formatVolume(widget.data.totalPlannedVolume)),
+                                    child: Text(
+                                      _formatVolume(
+                                        widget.data.totalPlannedVolume,
+                                      ),
+                                    ),
                                   ),
                                   const SizedBox(height: 6),
                                   Text(
                                     'Volume total prévu',
                                     style: theme.textTheme.bodyMedium?.copyWith(
-                                      color: theme.colorScheme.onSurfaceVariant.withOpacity(0.8),
+                                      color: theme.colorScheme.onSurfaceVariant
+                                          .withValues(alpha: 0.8),
                                       fontWeight: FontWeight.w500,
                                       letterSpacing: 0.1,
                                     ),
@@ -252,19 +268,26 @@ class _TrucksToFollowCardState extends State<TrucksToFollowCard>
                             // padding externe conservé via SingleChildScrollView
                             decoration: BoxDecoration(
                               color: _isHovered
-                                  ? theme.colorScheme.surfaceContainerHighest.withOpacity(0.4)
-                                  : theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                                  ? theme.colorScheme.surfaceContainerHighest
+                                        .withValues(alpha: 0.4)
+                                  : theme.colorScheme.surfaceContainerHighest
+                                        .withValues(alpha: 0.3),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
                                 color: _isHovered
-                                    ? theme.colorScheme.outline.withOpacity(0.2)
-                                    : theme.colorScheme.outline.withOpacity(0.1),
+                                    ? theme.colorScheme.outline.withValues(
+                                        alpha: 0.2,
+                                      )
+                                    : theme.colorScheme.outline.withValues(
+                                        alpha: 0.1,
+                                      ),
                                 width: _isHovered ? 1.5 : 1,
                               ),
                               boxShadow: _isHovered
                                   ? [
                                       BoxShadow(
-                                        color: theme.colorScheme.shadow.withOpacity(0.1),
+                                        color: theme.colorScheme.shadow
+                                            .withValues(alpha: 0.1),
                                         blurRadius: 8,
                                         offset: const Offset(0, 4),
                                       ),
@@ -274,7 +297,9 @@ class _TrucksToFollowCardState extends State<TrucksToFollowCard>
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(16),
                               child: SingleChildScrollView(
-                                padding: const EdgeInsets.all(12), // padding interne
+                                padding: const EdgeInsets.all(
+                                  12,
+                                ), // padding interne
                                 child: Column(
                                   children: [
                                     // Première ligne : En route / En attente
@@ -299,7 +324,9 @@ class _TrucksToFollowCardState extends State<TrucksToFollowCard>
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(height: 10), // Réduit de 12 à 10
+                                    const SizedBox(
+                                      height: 10,
+                                    ), // Réduit de 12 à 10
                                     // Deuxième ligne : Volumes
                                     Row(
                                       children: [
@@ -307,7 +334,9 @@ class _TrucksToFollowCardState extends State<TrucksToFollowCard>
                                           child: _buildDetailItem(
                                             theme,
                                             'Vol. en route',
-                                            _formatVolume(widget.data.volumeEnRoute),
+                                            _formatVolume(
+                                              widget.data.volumeEnRoute,
+                                            ),
                                             Colors.green,
                                           ),
                                         ),
@@ -316,7 +345,9 @@ class _TrucksToFollowCardState extends State<TrucksToFollowCard>
                                           child: _buildDetailItem(
                                             theme,
                                             'Vol. en attente',
-                                            _formatVolume(widget.data.volumeEnAttente),
+                                            _formatVolume(
+                                              widget.data.volumeEnAttente,
+                                            ),
                                             Colors.red,
                                           ),
                                         ),
@@ -350,14 +381,26 @@ class _TrucksToFollowCardState extends State<TrucksToFollowCard>
   }
 
   /// Construit un élément de détail avec label et valeur amélioré
-  Widget _buildDetailItem(ThemeData theme, String label, String value, Color accentColor) {
+  Widget _buildDetailItem(
+    ThemeData theme,
+    String label,
+    String value,
+    Color accentColor,
+  ) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
-      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10), // Réduit
+      padding: const EdgeInsets.symmetric(
+        vertical: 6,
+        horizontal: 10,
+      ), // Réduit
       decoration: BoxDecoration(
-        color: _isHovered ? accentColor.withOpacity(0.05) : Colors.transparent,
+        color: _isHovered
+            ? accentColor.withValues(alpha: 0.05)
+            : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
-        border: _isHovered ? Border.all(color: accentColor.withOpacity(0.2), width: 1) : null,
+        border: _isHovered
+            ? Border.all(color: accentColor.withValues(alpha: 0.2), width: 1)
+            : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -365,7 +408,7 @@ class _TrucksToFollowCardState extends State<TrucksToFollowCard>
           Text(
             label,
             style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
               fontWeight: FontWeight.w500,
               fontSize: 12,
             ),
@@ -376,7 +419,9 @@ class _TrucksToFollowCardState extends State<TrucksToFollowCard>
             style:
                 theme.textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: _isHovered ? accentColor.withOpacity(0.9) : theme.colorScheme.onSurface,
+                  color: _isHovered
+                      ? accentColor.withValues(alpha: 0.9)
+                      : theme.colorScheme.onSurface,
                   fontSize: 14,
                 ) ??
                 const TextStyle(),
@@ -387,3 +432,4 @@ class _TrucksToFollowCardState extends State<TrucksToFollowCard>
     );
   }
 }
+

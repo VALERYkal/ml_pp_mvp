@@ -31,7 +31,7 @@ class StocksRepository {
         .select('citerne_id, produit_id, stock_ambiant, stock_15c, date_jour');
 
     if (citerneIds != null) {
-      sel.in_('citerne_id', citerneIds);
+      sel.inFilter('citerne_id', citerneIds);
     }
     if (produitId != null && produitId.isNotEmpty) {
       sel.eq('produit_id', produitId);
@@ -55,10 +55,14 @@ class StocksRepository {
     // Debug (retirable)
     // ignore: avoid_print
     print(
-      '📦 KPI3 stocks: amb=$amb, 15c=$s15, lastDay=$lastDay'
+      '?? KPI3 stocks: amb=$amb, 15c=$s15, lastDay=$lastDay'
       '${depotId != null ? ' depot=' + depotId : ''}${produitId != null ? ' produit=' + produitId : ''}',
     );
 
     return StocksTotals(totalAmbiant: amb, total15c: s15, lastDay: lastDay);
   }
 }
+
+
+
+

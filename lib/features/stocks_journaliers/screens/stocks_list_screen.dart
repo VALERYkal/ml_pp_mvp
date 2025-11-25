@@ -12,7 +12,8 @@ class StocksListScreen extends ConsumerStatefulWidget {
   ConsumerState<StocksListScreen> createState() => _StocksListScreenState();
 }
 
-class _StocksListScreenState extends ConsumerState<StocksListScreen> with TickerProviderStateMixin {
+class _StocksListScreenState extends ConsumerState<StocksListScreen>
+    with TickerProviderStateMixin {
   late AnimationController _fadeController;
   late AnimationController _scaleController;
   late Animation<double> _fadeAnimation;
@@ -21,20 +22,21 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
   @override
   void initState() {
     super.initState();
-    _fadeController = AnimationController(duration: const Duration(milliseconds: 800), vsync: this);
+    _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
     _scaleController = AnimationController(
       duration: const Duration(milliseconds: 600),
       vsync: this,
     );
 
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut));
-    _scaleAnimation = Tween<double>(
-      begin: 0.8,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _scaleController, curve: Curves.elasticOut));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
+    );
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(parent: _scaleController, curve: Curves.elasticOut),
+    );
 
     _fadeController.forward();
     _scaleController.forward();
@@ -61,14 +63,16 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // HEADER — fixe (filters)
+            // HEADER  fixe (filters)
             Padding(
-              padding: const EdgeInsets.only(bottom: 1), // élimine toute ligne résiduelle
+              padding: const EdgeInsets.only(
+                bottom: 1,
+              ), // élimine toute ligne résiduelle
               child: _buildStickyFiltersFixed(context),
             ),
             const SizedBox(height: 8),
 
-            // BODY — scrollable (content)
+            // BODY  scrollable (content)
             Expanded(child: _buildContent(context, stocks, theme)),
           ],
         ),
@@ -142,13 +146,13 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
             color: theme.colorScheme.surface,
             border: Border(
               bottom: BorderSide(
-                color: theme.colorScheme.outlineVariant.withOpacity(0.5),
+                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
                 width: 1,
               ),
             ),
             boxShadow: [
               BoxShadow(
-                color: theme.colorScheme.shadow.withOpacity(0.1),
+                color: theme.colorScheme.shadow.withValues(alpha: 0.1),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -162,15 +166,24 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
                 Row(
                   children: [
                     // Sélecteur de date moderne
-                    Flexible(flex: 1, child: _buildDateSelector(context, date, theme)),
+                    Flexible(
+                      flex: 1,
+                      child: _buildDateSelector(context, date, theme),
+                    ),
                     const SizedBox(width: 16),
 
                     // Filtre produit
-                    Expanded(flex: 2, child: _buildProduitFilter(context, produitsRef, theme)),
+                    Expanded(
+                      flex: 2,
+                      child: _buildProduitFilter(context, produitsRef, theme),
+                    ),
                     const SizedBox(width: 16),
 
                     // Filtre citerne
-                    Expanded(flex: 2, child: _buildCiterneFilter(context, citernesRef, theme)),
+                    Expanded(
+                      flex: 2,
+                      child: _buildCiterneFilter(context, citernesRef, theme),
+                    ),
                   ],
                 ),
               ],
@@ -192,11 +205,14 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         border: Border(
-          bottom: BorderSide(color: theme.colorScheme.outlineVariant.withOpacity(0.5), width: 1),
+          bottom: BorderSide(
+            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+            width: 1,
+          ),
         ),
         boxShadow: [
           BoxShadow(
-            color: theme.colorScheme.shadow.withOpacity(0.1),
+            color: theme.colorScheme.shadow.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -207,7 +223,7 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
         child: ClipRRect(
           borderRadius: BorderRadius.circular(12),
           child: SizedBox(
-            height: 44, // hauteur fixe → plus de débordement
+            height: 44, // hauteur fixe ? plus de débordement
             child: Material(
               color: Colors.transparent,
               child: DefaultTextStyle(
@@ -215,15 +231,24 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
                 child: Row(
                   children: [
                     // Sélecteur de date moderne
-                    Flexible(flex: 1, child: _buildDateSelector(context, date, theme)),
+                    Flexible(
+                      flex: 1,
+                      child: _buildDateSelector(context, date, theme),
+                    ),
                     const SizedBox(width: 16),
 
                     // Filtre produit
-                    Expanded(flex: 2, child: _buildProduitFilter(context, produitsRef, theme)),
+                    Expanded(
+                      flex: 2,
+                      child: _buildProduitFilter(context, produitsRef, theme),
+                    ),
                     const SizedBox(width: 16),
 
                     // Filtre citerne
-                    Expanded(flex: 2, child: _buildCiterneFilter(context, citernesRef, theme)),
+                    Expanded(
+                      flex: 2,
+                      child: _buildCiterneFilter(context, citernesRef, theme),
+                    ),
                   ],
                 ),
               ),
@@ -234,12 +259,18 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
     );
   }
 
-  Widget _buildDateSelector(BuildContext context, DateTime date, ThemeData theme) {
+  Widget _buildDateSelector(
+    BuildContext context,
+    DateTime date,
+    ThemeData theme,
+  ) {
     return Container(
       decoration: BoxDecoration(
-        color: theme.colorScheme.primaryContainer.withOpacity(0.3),
+        color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: theme.colorScheme.outline.withOpacity(0.3)),
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(alpha: 0.3),
+        ),
       ),
       child: Material(
         color: Colors.transparent,
@@ -251,10 +282,12 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
               initialDate: date,
               firstDate: DateTime(2020),
               lastDate: DateTime(2100),
-              builder: (context, child) {
+              builder: (BuildContext context, Widget? child) {
                 return Theme(
                   data: theme.copyWith(
-                    colorScheme: theme.colorScheme.copyWith(primary: theme.colorScheme.primary),
+                    colorScheme: theme.colorScheme.copyWith(
+                      primary: theme.colorScheme.primary,
+                    ),
                   ),
                   child: child!,
                 );
@@ -269,7 +302,11 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.calendar_today_outlined, size: 18, color: theme.colorScheme.primary),
+                Icon(
+                  Icons.calendar_today_outlined,
+                  size: 18,
+                  color: theme.colorScheme.primary,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   _fmtDate(date),
@@ -286,18 +323,27 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
     );
   }
 
-  Widget _buildProduitFilter(BuildContext context, AsyncValue produitsRef, ThemeData theme) {
+  Widget _buildProduitFilter(
+    BuildContext context,
+    AsyncValue produitsRef,
+    ThemeData theme,
+  ) {
     return produitsRef.when(
       data: (items) => Container(
         decoration: BoxDecoration(
-          border: Border.all(color: theme.colorScheme.outline.withOpacity(0.3)),
+          border: Border.all(
+            color: theme.colorScheme.outline.withValues(alpha: 0.3),
+          ),
           borderRadius: BorderRadius.circular(12),
         ),
         child: DropdownButtonFormField<String>(
           decoration: InputDecoration(
             labelText: 'Produit',
             border: InputBorder.none,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 8,
+            ),
             labelStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant),
           ),
           value: ref.watch(stocksSelectedProduitIdProvider),
@@ -306,7 +352,11 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
               value: null,
               child: Row(
                 children: [
-                  Icon(Icons.all_inclusive, size: 16, color: theme.colorScheme.onSurfaceVariant),
+                  Icon(
+                    Icons.all_inclusive,
+                    size: 16,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     'Tous les produits',
@@ -320,7 +370,11 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
                 value: e['id'],
                 child: Row(
                   children: [
-                    Icon(Icons.local_gas_station, size: 16, color: theme.colorScheme.primary),
+                    Icon(
+                      Icons.local_gas_station,
+                      size: 16,
+                      color: theme.colorScheme.primary,
+                    ),
                     const SizedBox(width: 8),
                     Text(e['nom'] ?? ''),
                   ],
@@ -328,13 +382,16 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
               ),
             ),
           ],
-          onChanged: (v) => ref.read(stocksSelectedProduitIdProvider.notifier).state = v,
+          onChanged: (v) =>
+              ref.read(stocksSelectedProduitIdProvider.notifier).state = v,
         ),
       ),
       loading: () => Container(
         height: 56,
         decoration: BoxDecoration(
-          border: Border.all(color: theme.colorScheme.outline.withOpacity(0.3)),
+          border: Border.all(
+            color: theme.colorScheme.outline.withValues(alpha: 0.3),
+          ),
           borderRadius: BorderRadius.circular(12),
         ),
         child: const Center(child: CircularProgressIndicator()),
@@ -346,26 +403,38 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
           borderRadius: BorderRadius.circular(12),
         ),
         child: Center(
-          child: Text('Erreur produits', style: TextStyle(color: theme.colorScheme.error)),
+          child: Text(
+            'Erreur produits',
+            style: TextStyle(color: theme.colorScheme.error),
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildCiterneFilter(BuildContext context, AsyncValue citernesRef, ThemeData theme) {
+  Widget _buildCiterneFilter(
+    BuildContext context,
+    AsyncValue citernesRef,
+    ThemeData theme,
+  ) {
     return citernesRef.when(
       data: (items) {
         final selectedProduitId = ref.watch(stocksSelectedProduitIdProvider);
         return Container(
           decoration: BoxDecoration(
-            border: Border.all(color: theme.colorScheme.outline.withOpacity(0.3)),
+            border: Border.all(
+              color: theme.colorScheme.outline.withValues(alpha: 0.3),
+            ),
             borderRadius: BorderRadius.circular(12),
           ),
           child: DropdownButtonFormField<String>(
             decoration: InputDecoration(
               labelText: 'Citerne',
               border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
+              ),
               labelStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant),
             ),
             value: ref.watch(stocksSelectedCiterneIdProvider),
@@ -374,11 +443,17 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
                 value: null,
                 child: Row(
                   children: [
-                    Icon(Icons.storage, size: 16, color: theme.colorScheme.onSurfaceVariant),
+                    Icon(
+                      Icons.storage,
+                      size: 16,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       'Toutes les citernes',
-                      style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                      style: TextStyle(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),
@@ -386,14 +461,19 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
               ...items
                   .where(
                     (e) =>
-                        selectedProduitId == null || (e['produit_id'] ?? '') == selectedProduitId,
+                        selectedProduitId == null ||
+                        (e['produit_id'] ?? '') == selectedProduitId,
                   )
                   .map(
                     (e) => DropdownMenuItem<String>(
                       value: e['id'],
                       child: Row(
                         children: [
-                          Icon(Icons.storage, size: 16, color: theme.colorScheme.primary),
+                          Icon(
+                            Icons.storage,
+                            size: 16,
+                            color: theme.colorScheme.primary,
+                          ),
                           const SizedBox(width: 8),
                           Text(e['nom'] ?? ''),
                         ],
@@ -401,14 +481,17 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
                     ),
                   ),
             ],
-            onChanged: (v) => ref.read(stocksSelectedCiterneIdProvider.notifier).state = v,
+            onChanged: (v) =>
+                ref.read(stocksSelectedCiterneIdProvider.notifier).state = v,
           ),
         );
       },
       loading: () => Container(
         height: 56,
         decoration: BoxDecoration(
-          border: Border.all(color: theme.colorScheme.outline.withOpacity(0.3)),
+          border: Border.all(
+            color: theme.colorScheme.outline.withValues(alpha: 0.3),
+          ),
           borderRadius: BorderRadius.circular(12),
         ),
         child: const Center(child: CircularProgressIndicator()),
@@ -420,7 +503,10 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
           borderRadius: BorderRadius.circular(12),
         ),
         child: Center(
-          child: Text('Erreur citernes', style: TextStyle(color: theme.colorScheme.error)),
+          child: Text(
+            'Erreur citernes',
+            style: TextStyle(color: theme.colorScheme.error),
+          ),
         ),
       ),
     );
@@ -451,7 +537,9 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
             const SizedBox(height: 16),
             Text(
               'Chargement des stocks...',
-              style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
@@ -466,9 +554,11 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
         child: Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: theme.colorScheme.errorContainer.withOpacity(0.1),
+            color: theme.colorScheme.errorContainer.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: theme.colorScheme.error.withOpacity(0.3)),
+            border: Border.all(
+              color: theme.colorScheme.error.withValues(alpha: 0.3),
+            ),
           ),
           child: ErrorTile(
             'Erreur de chargement des stocks',
@@ -490,9 +580,13 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
             child: Container(
               padding: const EdgeInsets.all(48),
               decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                color: theme.colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.3,
+                ),
                 borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: theme.colorScheme.outline.withOpacity(0.2)),
+                border: Border.all(
+                  color: theme.colorScheme.outline.withValues(alpha: 0.2),
+                ),
               ),
               child: Column(
                 children: [
@@ -533,15 +627,21 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
     );
   }
 
-  Widget _buildFallbackWarning(BuildContext context, StocksDataWithMeta data, ThemeData theme) {
+  Widget _buildFallbackWarning(
+    BuildContext context,
+    StocksDataWithMeta data,
+    ThemeData theme,
+  ) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: theme.colorScheme.tertiaryContainer.withOpacity(0.3),
+        color: theme.colorScheme.tertiaryContainer.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: theme.colorScheme.tertiary.withOpacity(0.3)),
+        border: Border.all(
+          color: theme.colorScheme.tertiary.withValues(alpha: 0.3),
+        ),
       ),
       child: Row(
         children: [
@@ -550,7 +650,9 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
           Expanded(
             child: RichText(
               text: TextSpan(
-                style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurface,
+                ),
                 children: [
                   const TextSpan(text: 'Aucun mouvement le '),
                   TextSpan(
@@ -578,7 +680,11 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
     );
   }
 
-  Widget _buildDataTable(BuildContext context, StocksDataWithMeta data, ThemeData theme) {
+  Widget _buildDataTable(
+    BuildContext context,
+    StocksDataWithMeta data,
+    ThemeData theme,
+  ) {
     final items = data.stocks;
     return SingleChildScrollView(
       child: Padding(
@@ -589,10 +695,12 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
             decoration: BoxDecoration(
               color: theme.colorScheme.surface,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: theme.colorScheme.outline.withOpacity(0.2)),
+              border: Border.all(
+                color: theme.colorScheme.outline.withValues(alpha: 0.2),
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: theme.colorScheme.shadow.withOpacity(0.1),
+                  color: theme.colorScheme.shadow.withValues(alpha: 0.1),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -601,30 +709,59 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
             child: Column(
               children: [
                 // Indicateur de fallback si nécessaire
-                if (data.isFallback) _buildFallbackWarning(context, data, theme),
+                if (data.isFallback)
+                  _buildFallbackWarning(context, data, theme),
 
                 // En-tête avec statistiques
                 _buildStatsHeader(context, items, theme),
 
                 // Tableau
                 ClipRRect(
-                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
+                  borderRadius: const BorderRadius.vertical(
+                    bottom: Radius.circular(16),
+                  ),
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: DataTable(
                       headingRowColor: WidgetStateProperty.all(
-                        theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                        theme.colorScheme.surfaceContainerHighest.withValues(
+                          alpha: 0.5,
+                        ),
                       ),
                       columns: [
-                        _buildDataColumn('Date', Icons.calendar_today_outlined, theme),
+                        _buildDataColumn(
+                          'Date',
+                          Icons.calendar_today_outlined,
+                          theme,
+                        ),
                         _buildDataColumn('Citerne', Icons.storage, theme),
-                        _buildDataColumn('Produit', Icons.local_gas_station, theme),
-                        _buildDataColumn('Ambiant (L)', Icons.water_drop_outlined, theme),
+                        _buildDataColumn(
+                          'Produit',
+                          Icons.local_gas_station,
+                          theme,
+                        ),
+                        _buildDataColumn(
+                          'Ambiant (L)',
+                          Icons.water_drop_outlined,
+                          theme,
+                        ),
                         _buildDataColumn('15°C (L)', Icons.thermostat, theme),
-                        _buildDataColumn('Capacité (L)', Icons.straighten, theme),
-                        _buildDataColumn('Sécurité (L)', Icons.warning_outlined, theme),
+                        _buildDataColumn(
+                          'Capacité (L)',
+                          Icons.straighten,
+                          theme,
+                        ),
+                        _buildDataColumn(
+                          'Sécurité (L)',
+                          Icons.warning_outlined,
+                          theme,
+                        ),
                         _buildDataColumn('Ratio', Icons.percent, theme),
-                        _buildDataColumn('Alerte', Icons.notifications_active, theme),
+                        _buildDataColumn(
+                          'Alerte',
+                          Icons.notifications_active,
+                          theme,
+                        ),
                       ],
                       rows: [
                         // Lignes de données avec animations
@@ -667,21 +804,29 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
   }
 
   DataRow _buildDataRow(StockRowView s, int index, ThemeData theme) {
-    final ratio = s.capaciteTotale > 0 ? s.stockAmbiant / s.capaciteTotale : 0.0;
+    final ratio = s.capaciteTotale > 0
+        ? s.stockAmbiant / s.capaciteTotale
+        : 0.0;
     final isLowStock = s.stockAmbiant <= s.capaciteSecurite;
 
     return DataRow(
       color: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.hovered)) {
-          return theme.colorScheme.surfaceContainerHighest.withOpacity(0.3);
+          return theme.colorScheme.surfaceContainerHighest.withValues(
+            alpha: 0.3,
+          );
         }
-        return index.isEven ? theme.colorScheme.surfaceContainerHighest.withOpacity(0.1) : null;
+        return index.isEven
+            ? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.1)
+            : null;
       }),
       cells: [
         DataCell(
           Text(
             s.dateJour,
-            style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ),
         DataCell(_buildCiterneCell(s.citerneNom, theme)),
@@ -700,9 +845,11 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primaryContainer.withOpacity(0.3),
+        color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: theme.colorScheme.primary.withOpacity(0.3)),
+        border: Border.all(
+          color: theme.colorScheme.primary.withValues(alpha: 0.3),
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -725,14 +872,20 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: theme.colorScheme.secondaryContainer.withOpacity(0.3),
+        color: theme.colorScheme.secondaryContainer.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: theme.colorScheme.secondary.withOpacity(0.3)),
+        border: Border.all(
+          color: theme.colorScheme.secondary.withValues(alpha: 0.3),
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.local_gas_station, size: 14, color: theme.colorScheme.secondary),
+          Icon(
+            Icons.local_gas_station,
+            size: 14,
+            color: theme.colorScheme.secondary,
+          ),
           const SizedBox(width: 4),
           Text(
             nom,
@@ -767,13 +920,16 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(
         '${percentage.toStringAsFixed(1)}%',
-        style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600, color: color),
+        style: theme.textTheme.bodySmall?.copyWith(
+          fontWeight: FontWeight.w600,
+          color: color,
+        ),
       ),
     );
   }
@@ -791,7 +947,11 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.warning, size: 14, color: theme.colorScheme.onErrorContainer),
+          Icon(
+            Icons.warning,
+            size: 14,
+            color: theme.colorScheme.onErrorContainer,
+          ),
           const SizedBox(width: 4),
           Text(
             'Stock bas',
@@ -810,7 +970,9 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
     final total15c = _calculateTotal(items, (s) => s.stock15c);
 
     return DataRow(
-      color: WidgetStateProperty.all(theme.colorScheme.primaryContainer.withOpacity(0.2)),
+      color: WidgetStateProperty.all(
+        theme.colorScheme.primaryContainer.withValues(alpha: 0.2),
+      ),
       cells: [
         DataCell(
           Text(
@@ -851,15 +1013,21 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
     );
   }
 
-  Widget _buildStatsHeader(BuildContext context, List<StockRowView> items, ThemeData theme) {
+  Widget _buildStatsHeader(
+    BuildContext context,
+    List<StockRowView> items,
+    ThemeData theme,
+  ) {
     final totalAmbiant = _calculateTotal(items, (s) => s.stockAmbiant);
     final total15c = _calculateTotal(items, (s) => s.stock15c);
-    final lowStockCount = items.where((s) => s.stockAmbiant <= s.capaciteSecurite).length;
+    final lowStockCount = items
+        .where((s) => s.stockAmbiant <= s.capaciteSecurite)
+        .length;
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
       ),
       child: Row(
@@ -894,7 +1062,9 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
               'Alertes',
               '$lowStockCount',
               Icons.warning,
-              lowStockCount > 0 ? theme.colorScheme.error : theme.colorScheme.tertiary,
+              lowStockCount > 0
+                  ? theme.colorScheme.error
+                  : theme.colorScheme.tertiary,
               theme,
             ),
           ),
@@ -903,13 +1073,19 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
     );
   }
 
-  Widget _buildStatCard(String label, String value, IconData icon, Color color, ThemeData theme) {
+  Widget _buildStatCard(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+    ThemeData theme,
+  ) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -930,7 +1106,10 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
           const SizedBox(height: 8),
           Text(
             value,
-            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: color),
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
           ),
         ],
       ),
@@ -983,7 +1162,10 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen> with Ticker
     return '${spacedInteger}${decimalPart} L';
   }
 
-  double _calculateTotal(List<StockRowView> items, double Function(StockRowView) selector) {
+  double _calculateTotal(
+    List<StockRowView> items,
+    double Function(StockRowView) selector,
+  ) {
     return items.fold<double>(0.0, (sum, item) => sum + selector(item));
   }
 }
@@ -1001,8 +1183,14 @@ class _ModernStickyFilters extends SliverPersistentHeaderDelegate {
   double get maxExtent => 80;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) => child;
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) => child;
 
   @override
-  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) => false;
+  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) =>
+      false;
 }
+

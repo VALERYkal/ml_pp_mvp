@@ -46,7 +46,7 @@ class CoursDeRouteRepository {
     // Debug (retirable)
     if (kDebugMode) {
       print(
-        '🚚 KPI1: enRoute=$enRoute (${enRouteL}L), attente=$attente (${attenteL}L)'
+        '?? KPI1: enRoute=$enRoute (${enRouteL}L), attente=$attente (${attenteL}L)'
         '${depotId != null ? ' depot=' + depotId : ''}${produitId != null ? ' produit=' + produitId : ''}',
       );
     }
@@ -59,3 +59,7 @@ class CoursDeRouteRepository {
     );
   }
 }
+
+
+
+
