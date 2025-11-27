@@ -266,54 +266,34 @@ class _TrucksToFollowCardState extends State<TrucksToFollowCard>
                             ),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(16),
-                              child: SingleChildScrollView(
-                                padding: const EdgeInsets.all(12), // padding interne
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
                                 child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    // Première ligne : En route / En attente
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: _buildDetailItem(
-                                            theme,
-                                            'En route',
-                                            '${widget.data.trucksEnRoute}',
-                                            accentColor,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 16),
-                                        Expanded(
-                                          child: _buildDetailItem(
-                                            theme,
-                                            'En attente',
-                                            '${widget.data.trucksEnAttente}',
-                                            Colors.orange,
-                                          ),
-                                        ),
-                                      ],
+                                    // Ligne 1 : Au chargement
+                                    _CamionStatRow(
+                                      label: 'Au chargement',
+                                      count: widget.data.trucksLoading,
+                                      volumeLabel: _formatVolume(widget.data.volumeLoading),
+                                      color: Colors.orange,
                                     ),
-                                    const SizedBox(height: 10), // Réduit de 12 à 10
-                                    // Deuxième ligne : Volumes
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: _buildDetailItem(
-                                            theme,
-                                            'Vol. en route',
-                                            _formatVolume(widget.data.volumeEnRoute),
-                                            Colors.green,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 16),
-                                        Expanded(
-                                          child: _buildDetailItem(
-                                            theme,
-                                            'Vol. en attente',
-                                            _formatVolume(widget.data.volumeEnAttente),
-                                            Colors.red,
-                                          ),
-                                        ),
-                                      ],
+                                    const SizedBox(height: 10),
+                                    // Ligne 2 : En route
+                                    _CamionStatRow(
+                                      label: 'En route',
+                                      count: widget.data.trucksOnRoute,
+                                      volumeLabel: _formatVolume(widget.data.volumeOnRoute),
+                                      color: accentColor,
+                                    ),
+                                    const SizedBox(height: 10),
+                                    // Ligne 3 : Arrivés
+                                    _CamionStatRow(
+                                      label: 'Arrivés',
+                                      count: widget.data.trucksArrived,
+                                      volumeLabel: _formatVolume(widget.data.volumeArrived),
+                                      color: Colors.green,
                                     ),
                                   ],
                                 ),
@@ -341,46 +321,61 @@ class _TrucksToFollowCardState extends State<TrucksToFollowCard>
     }
     return '${volume.toStringAsFixed(0)} L';
   }
+}
 
-  /// Construit un élément de détail avec label et valeur amélioré
-  Widget _buildDetailItem(ThemeData theme, String label, String value, Color accentColor) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10), // Réduit
-      decoration: BoxDecoration(
-        color: _isHovered 
-            ? accentColor.withOpacity(0.05)
-            : Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
-        border: _isHovered 
-            ? Border.all(color: accentColor.withOpacity(0.2), width: 1)
-            : null,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
-              fontWeight: FontWeight.w500,
-              fontSize: 12,
-            ),
+/// Widget privé pour afficher une ligne de statistique (label + count + volume)
+class _CamionStatRow extends StatelessWidget {
+  final String label;
+  final int count;
+  final String volumeLabel;
+  final Color color;
+
+  const _CamionStatRow({
+    required this.label,
+    required this.count,
+    required this.volumeLabel,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      children: [
+        // Pastille colorée pour rappeler le statut
+        Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
           ),
-          const SizedBox(height: 3), // Réduit de 4 à 3
-          AnimatedDefaultTextStyle(
-            duration: const Duration(milliseconds: 200),
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: _isHovered 
-                  ? accentColor.withOpacity(0.9)
-                  : theme.colorScheme.onSurface,
-              fontSize: 14,
-            ) ?? const TextStyle(),
-            child: Text(value),
+        ),
+        const SizedBox(width: 10),
+        // Contenu texte avec Flexible pour éviter overflow
+        Flexible(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: theme.colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                '$count ${count > 1 ? 'camions' : 'camion'} · $volumeLabel',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant.withOpacity(0.8),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

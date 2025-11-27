@@ -341,19 +341,85 @@ Future<_StocksData> _fetchStocksActuels(
 }
 
 /// Récupère les camions à suivre
+/// 
+/// RÈGLE MÉTIER CDR (Cours de Route) :
+/// - DECHARGE est EXCLU (cours terminé, déjà pris en charge dans Réceptions/Stocks)
+/// - "Au chargement" = CHARGEMENT (camion chez le fournisseur)
+/// - "En route" = TRANSIT + FRONTIERE (camions en transit)
+/// - "Arrivés" = ARRIVE (camions arrivés au dépôt mais pas encore déchargés)
+/// - totalCamionsASuivre = cours non déchargés (CHARGEMENT + TRANSIT + FRONTIERE + ARRIVE)
+/// - volumeTotal = somme des volumes des cours non déchargés
 Future<KpiTrucksToFollow> _fetchTrucksToFollow(
   SupabaseClient supa,
   String? depotId,
 ) async {
-  // TODO: Implémenter la logique réelle des camions à suivre
-  // Pour l'instant, retourner des données de test basées sur la capture
-  return const KpiTrucksToFollow(
-    totalTrucks: 6,
-    totalPlannedVolume: 215500.0, // 215 500 L
-    trucksEnRoute: 4,
-    trucksEnAttente: 2,
-    volumeEnRoute: 140500.0, // 140 500 L
-    volumeEnAttente: 75000.0, // 75 000 L
+  print('🔍 DEBUG KPI: Récupération camions à suivre, depotId: $depotId');
+  
+  // Statuts à suivre - On exclut uniquement DECHARGE (cours terminé)
+  const statutsNonDecharges = ['CHARGEMENT', 'TRANSIT', 'FRONTIERE', 'ARRIVE'];
+  
+  // Requête Supabase avec filtrage par statuts non déchargés
+  var query = supa
+      .from('cours_de_route')
+      .select('id, volume, statut, depot_destination_id')
+      .in_('statut', statutsNonDecharges);
+  
+  // Filtrage par dépôt si spécifié
+  if (depotId != null && depotId.isNotEmpty) {
+    query = query.eq('depot_destination_id', depotId);
+  }
+  
+  final rows = await query;
+  print('🔍 DEBUG KPI: ${rows.length} cours de route non déchargés trouvés');
+  
+  // Variables pour les 3 catégories
+  int trucksLoading = 0;   // Au chargement
+  int trucksOnRoute = 0;   // En route
+  int trucksArrived = 0;   // Arrivés
+  double volumeLoading = 0.0;
+  double volumeOnRoute = 0.0;
+  double volumeArrived = 0.0;
+  
+  for (final row in (rows as List)) {
+    final rawStatut = (row['statut'] as String?)?.trim();
+    if (rawStatut == null) continue;
+    
+    final statut = rawStatut.toUpperCase();
+    final volume = _toD(row['volume']);
+    
+    // Classification par catégorie selon la règle métier
+    if (statut == 'CHARGEMENT') {
+      // Au chargement = camions chez le fournisseur
+      trucksLoading++;
+      volumeLoading += volume;
+    } else if (statut == 'TRANSIT' || statut == 'FRONTIERE') {
+      // En route = camions en transit (TRANSIT + FRONTIERE)
+      trucksOnRoute++;
+      volumeOnRoute += volume;
+    } else if (statut == 'ARRIVE') {
+      // Arrivés = camions arrivés au dépôt mais pas encore déchargés
+      trucksArrived++;
+      volumeArrived += volume;
+    }
+    // DECHARGE est exclu par le filtre .in_() ci-dessus
+  }
+  
+  // Totaux
+  final totalTrucks = trucksLoading + trucksOnRoute + trucksArrived;
+  final totalPlannedVolume = volumeLoading + volumeOnRoute + volumeArrived;
+  
+  print('🔍 DEBUG KPI Camions: total=$totalTrucks, loading=$trucksLoading, onRoute=$trucksOnRoute, arrived=$trucksArrived');
+  print('🔍 DEBUG KPI Volumes: total=${totalPlannedVolume}L, loading=${volumeLoading}L, onRoute=${volumeOnRoute}L, arrived=${volumeArrived}L');
+  
+  return KpiTrucksToFollow(
+    totalTrucks: totalTrucks,
+    totalPlannedVolume: totalPlannedVolume,
+    trucksLoading: trucksLoading,
+    trucksOnRoute: trucksOnRoute,
+    trucksArrived: trucksArrived,
+    volumeLoading: volumeLoading,
+    volumeOnRoute: volumeOnRoute,
+    volumeArrived: volumeArrived,
   );
 }
 

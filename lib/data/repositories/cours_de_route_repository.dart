@@ -6,16 +6,29 @@ class CoursDeRouteRepository {
   final SupabaseClient _supa;
   CoursDeRouteRepository(this._supa);
 
-  /// Retourne {enRoute, enAttente} pour un depotId (optionnel) - COMPATIBILITÉ
+  /// Retourne les compteurs pour le KPI "Camions à suivre" - COMPATIBILITÉ LEGACY
+  /// 
+  /// RÈGLE MÉTIER CDR :
+  /// - loading = CHARGEMENT (camion chez le fournisseur)
+  /// - onRoute = TRANSIT + FRONTIERE (camions en transit)
+  /// - arrived = ARRIVE (camions arrivés mais pas encore déchargés)
+  /// - DECHARGE = EXCLU (cours terminé)
   Future<({int enRoute, int enAttente})> countsCamionsASuivre({String? depotId}) async {
     final counts = await countsEnRouteEtAttente(depotId: depotId);
+    // Pour compatibilité: enRoute = onRoute, enAttente = loading
     return (enRoute: counts.enRoute, enAttente: counts.attente);
   }
 
-  /// Compte & volume prévisionnel (litres) par statut:
-  /// - enRoute: statut IN ('CHARGEMENT','TRANSIT','FRONTIERE')
-  /// - attente: statut = 'ARRIVE'
-  /// NB: On suppose que `cours_de_route.volume` est en litres (sinon convertir en amont).
+  /// Compte & volume prévisionnel (litres) par statut pour le KPI "Camions à suivre".
+  /// 
+  /// RÈGLE MÉTIER CDR (Cours de Route) :
+  /// - DECHARGE est EXCLU (cours terminé, déjà pris en charge dans Réceptions/Stocks)
+  /// - Au chargement (attente) : statut = 'CHARGEMENT' → camions chez le fournisseur
+  /// - En route (enRoute) : statut IN ('TRANSIT', 'FRONTIERE') → camions en transit
+  /// - Arrivés : statut = 'ARRIVE' → camions arrivés au dépôt mais pas encore déchargés
+  /// - totalCamionsASuivre = cours non déchargés (CHARGEMENT + TRANSIT + FRONTIERE + ARRIVE)
+  /// 
+  /// NB: On suppose que `cours_de_route.volume` est en litres.
   Future<CoursCounts> countsEnRouteEtAttente({
     String? depotId,
     String? produitId,
@@ -33,23 +46,35 @@ class CoursDeRouteRepository {
     double enRouteL = 0.0, attenteL = 0.0;
 
     for (final m in (rows as List)) {
-      final s = (m['statut'] as String?)?.toUpperCase();
+      final rawStatut = (m['statut'] as String?)?.trim();
+      if (rawStatut == null) continue;
+      
+      final s = rawStatut.toUpperCase();
       final v = (m['volume'] as num?)?.toDouble() ?? 0.0;
 
-      if (s == null) continue;
-      if (s == 'CHARGEMENT' || s == 'TRANSIT' || s == 'FRONTIERE') {
-        enRoute++;
-        enRouteL += v;
-      } else if (s == 'ARRIVE') {
+      // IGNORER DECHARGE (cours terminé, déjà pris en charge)
+      if (s == 'DECHARGE') {
+        continue;
+      }
+
+      // Comptage selon le statut - règle métier à 3 catégories
+      // Note: Ce repository legacy combine onRoute + arrived dans enRoute
+      if (s == 'CHARGEMENT') {
+        // Au chargement = camions chez le fournisseur
         attente++;
         attenteL += v;
+      } else if (s == 'TRANSIT' || s == 'FRONTIERE' || s == 'ARRIVE') {
+        // En route (legacy) = TRANSIT + FRONTIERE + ARRIVE
+        enRoute++;
+        enRouteL += v;
       }
+      // Tout autre statut inconnu est ignoré silencieusement
     }
 
     // Debug (retirable)
     if (kDebugMode) {
-      print('🚚 KPI1: enRoute=$enRoute (${enRouteL}L), attente=$attente (${attenteL}L)'
-            '${depotId != null ? ' depot=' + depotId : ''}${produitId != null ? ' produit=' + produitId : ''}');
+      print('🚚 KPI Camions à suivre: enRoute=$enRoute (${enRouteL}L), attente=$attente (${attenteL}L)'
+            '${depotId != null ? ' depot=$depotId' : ''}${produitId != null ? ' produit=$produitId' : ''}');
     }
 
     return CoursCounts(

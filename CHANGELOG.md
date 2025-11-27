@@ -4,6 +4,71 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 
 ## [Unreleased]
 
+### 🚚 **KPI "CAMIONS À SUIVRE" - 3 Catégories (27/11/2025)**
+
+#### **🎯 Objectif**
+Implémenter le KPI "Camions à suivre" avec 3 sous-compteurs pour un suivi plus précis du pipeline CDR.
+
+#### **📋 Règle métier CDR (3 catégories)**
+| Statut | Catégorie | Label UI | Description |
+|--------|-----------|----------|-------------|
+| `CHARGEMENT` | **Au chargement** | "Au chargement" | Camion en cours de chargement chez le fournisseur |
+| `TRANSIT` | **En route** | "En route" | Camion en transit vers le dépôt |
+| `FRONTIERE` | **En route** | "En route" | Camion à la frontière / en transit avancé |
+| `ARRIVE` | **Arrivés** | "Arrivés" | Camion arrivé au dépôt mais pas encore déchargé |
+| `DECHARGE` | **EXCLU** | — | Cours terminé, déjà pris en charge dans Réceptions/Stocks |
+
+#### **📊 Calculs KPI (nouveau modèle)**
+- `totalTrucks` = nombre total de cours non déchargés
+- `trucksLoading` = nombre de cours CHARGEMENT ("Au chargement")
+- `trucksOnRoute` = nombre de cours TRANSIT + FRONTIERE ("En route")
+- `trucksArrived` = nombre de cours ARRIVE ("Arrivés")
+- `totalPlannedVolume` = somme de tous les volumes non déchargés
+- `volumeLoading` / `volumeOnRoute` / `volumeArrived` = volumes par catégorie
+
+#### **📊 Scénario de référence validé**
+Avec les données suivantes :
+- 2× CHARGEMENT (10000 L + 15000 L)
+- 1× TRANSIT (20000 L)
+- 1× FRONTIERE (25000 L)
+- 1× ARRIVE (30000 L)
+- 1× DECHARGE (35000 L) → **EXCLU**
+
+**Résultat attendu :**
+- `totalTrucks = 5` (tous sauf DECHARGE)
+- `trucksLoading = 2` (CHARGEMENT)
+- `trucksOnRoute = 2` (TRANSIT + FRONTIERE)
+- `trucksArrived = 1` (ARRIVE)
+- `totalPlannedVolume = 100000.0 L`
+
+#### **📁 Fichiers modifiés**
+- `lib/features/kpi/models/kpi_models.dart` - Modèle `KpiTrucksToFollow` avec 3 catégories
+- `lib/features/kpi/providers/kpi_provider.dart` - Fonction `_fetchTrucksToFollow()`
+- `lib/features/dashboard/widgets/trucks_to_follow_card.dart` - Widget avec 3 compteurs
+- `lib/data/repositories/cours_de_route_repository.dart` - Commentaires mis à jour
+- `test/features/dashboard/providers/dashboard_kpi_camions_test.dart` - 12 tests unitaires
+
+#### **🎨 Interface utilisateur**
+La carte KPI affiche maintenant :
+- **Camions total** + **Volume total prévu** (en-tête)
+- **Au chargement** : X camions / Y L
+- **En route** : X camions / Y L
+- **Arrivés** : X camions / Y L
+
+#### **✅ Tests validés**
+- 12 tests unitaires passent avec la nouvelle règle à 3 catégories
+- Scénario de référence complet validé
+- Gestion des cas limites (statuts minuscules, espaces, volumes null)
+
+#### **🏆 Résultats**
+- ✅ **3 catégories distinctes** : Au chargement / En route / Arrivés
+- ✅ **Labels corrects** : "Au chargement" au lieu de "En attente"
+- ✅ **ARRIVE séparé** : Les camions arrivés ont leur propre compteur
+- ✅ **DECHARGE exclu** : Cours terminés non comptés (déjà dans Réceptions)
+- ✅ **Interface responsive** : Wrap pour éviter les overflow
+
+---
+
 ### 🔧 **CORRECTION OVERFLOW STOCKS JOURNALIERS (20/09/2025)**
 
 #### **🎯 Objectif**

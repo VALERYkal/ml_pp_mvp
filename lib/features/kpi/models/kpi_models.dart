@@ -174,40 +174,62 @@ class KpiTrendPoint {
 }
 
 /// Modèle unifié pour les camions à suivre
+/// 
+/// RÈGLE MÉTIER CDR (Cours de Route) :
+/// - trucksLoading (Au chargement) = CHARGEMENT
+/// - trucksOnRoute (En route) = TRANSIT + FRONTIERE
+/// - trucksArrived (Arrivés) = ARRIVE
+/// - DECHARGE = EXCLU (déjà pris en charge dans Réceptions/Stocks)
 @immutable
 class KpiTrucksToFollow {
+  /// Nombre total de camions à suivre (non déchargés)
   final int totalTrucks;
+  /// Volume total prévu en litres
   final double totalPlannedVolume;
-  final int trucksEnRoute;
-  final int trucksEnAttente;
-  final double volumeEnRoute;
-  final double volumeEnAttente;
+  /// Camions au chargement (chez le fournisseur)
+  final int trucksLoading;
+  /// Camions en route (TRANSIT + FRONTIERE)
+  final int trucksOnRoute;
+  /// Camions arrivés (au dépôt mais pas encore déchargés)
+  final int trucksArrived;
+  /// Volume des camions au chargement
+  final double volumeLoading;
+  /// Volume des camions en route
+  final double volumeOnRoute;
+  /// Volume des camions arrivés
+  final double volumeArrived;
   
   const KpiTrucksToFollow({
     required this.totalTrucks,
     required this.totalPlannedVolume,
-    required this.trucksEnRoute,
-    required this.trucksEnAttente,
-    required this.volumeEnRoute,
-    required this.volumeEnAttente,
+    required this.trucksLoading,
+    required this.trucksOnRoute,
+    required this.trucksArrived,
+    required this.volumeLoading,
+    required this.volumeOnRoute,
+    required this.volumeArrived,
   });
 
   /// Constructeur factory pour valeurs nullable depuis Supabase
   factory KpiTrucksToFollow.fromNullable({
     int? totalTrucks,
     num? totalPlannedVolume,
-    int? trucksEnRoute,
-    int? trucksEnAttente,
-    num? volumeEnRoute,
-    num? volumeEnAttente,
+    int? trucksLoading,
+    int? trucksOnRoute,
+    int? trucksArrived,
+    num? volumeLoading,
+    num? volumeOnRoute,
+    num? volumeArrived,
   }) {
     return KpiTrucksToFollow(
       totalTrucks: totalTrucks ?? 0,
       totalPlannedVolume: _nz(totalPlannedVolume),
-      trucksEnRoute: trucksEnRoute ?? 0,
-      trucksEnAttente: trucksEnAttente ?? 0,
-      volumeEnRoute: _nz(volumeEnRoute),
-      volumeEnAttente: _nz(volumeEnAttente),
+      trucksLoading: trucksLoading ?? 0,
+      trucksOnRoute: trucksOnRoute ?? 0,
+      trucksArrived: trucksArrived ?? 0,
+      volumeLoading: _nz(volumeLoading),
+      volumeOnRoute: _nz(volumeOnRoute),
+      volumeArrived: _nz(volumeArrived),
     );
   }
 
@@ -215,10 +237,12 @@ class KpiTrucksToFollow {
   static const zero = KpiTrucksToFollow(
     totalTrucks: 0,
     totalPlannedVolume: 0,
-    trucksEnRoute: 0,
-    trucksEnAttente: 0,
-    volumeEnRoute: 0,
-    volumeEnAttente: 0,
+    trucksLoading: 0,
+    trucksOnRoute: 0,
+    trucksArrived: 0,
+    volumeLoading: 0,
+    volumeOnRoute: 0,
+    volumeArrived: 0,
   );
 }
 

@@ -21,17 +21,16 @@ class DashboardGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-    
-    // Calculer le nombre de colonnes en fonction de la largeur d'écran
-    int columns = crossAxisCount ?? _calculateColumns(screenWidth);
-    
-    // Ajuster l'aspect ratio selon la taille d'écran
-    double aspectRatio = _calculateAspectRatio(screenWidth, screenHeight, columns);
-    
     return LayoutBuilder(
       builder: (context, constraints) {
+        final maxWidth = constraints.maxWidth;
+        
+        // Calculer le nombre de colonnes en fonction de la largeur disponible
+        final int columns = crossAxisCount ?? _calculateColumns(maxWidth);
+        
+        // Ajuster l'aspect ratio selon la largeur et le nombre de colonnes
+        final double aspectRatio = _calculateAspectRatio(maxWidth, columns);
+        
         return GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -71,19 +70,30 @@ class DashboardGrid extends StatelessWidget {
     );
   }
 
-  int _calculateColumns(double screenWidth) {
-    if (screenWidth >= 1600) return 4; // Très large écran
-    if (screenWidth >= 1200) return 3; // Desktop large
-    if (screenWidth >= 900) return 2;  // Desktop/Tablet
-    return 1; // Mobile
+  int _calculateColumns(double maxWidth) {
+    if (maxWidth >= 1600) return 4; // Très large écran
+    if (maxWidth >= 1200) return 3; // Desktop large
+    if (maxWidth >= 800) return 2;  // Desktop/Tablet
+    return 1; // Mobile (< 800px)
   }
 
-  double _calculateAspectRatio(double screenWidth, double screenHeight, int columns) {
-    // Ajuster l'aspect ratio selon le nombre de colonnes et la taille d'écran
-    if (columns == 1) return 1.3; // Mobile : plus haut
-    if (columns == 2) return 1.1; // Tablet : équilibré
-    if (columns == 3) return 1.0; // Desktop : carré
-    return 0.9; // Très large : plus large
+  double _calculateAspectRatio(double maxWidth, int columns) {
+    // Aspect ratio plus petit = carte plus haute (meilleur pour contenu vertical)
+    // Breakpoints ajustés pour éviter l'overflow sur la carte "Camions à suivre"
+    
+    if (columns == 1) {
+      // Mobile : cartes en colonne unique, besoin de beaucoup de hauteur
+      if (maxWidth < 400) return 0.85;  // Très petit écran : très haut
+      if (maxWidth < 600) return 0.95;  // Petit mobile
+      return 1.0;                        // Mobile large
+    }
+    if (columns == 2) {
+      // Tablet : 2 colonnes, besoin d'équilibre
+      if (maxWidth < 1000) return 0.9;  // Tablet étroit
+      return 1.0;                        // Tablet large
+    }
+    if (columns == 3) return 1.1;        // Desktop : légèrement plus large
+    return 1.2;                          // Très large écran : plus compact
   }
 }
 
