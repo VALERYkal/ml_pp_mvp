@@ -70,9 +70,9 @@ final receptionsTableProvider = FutureProvider.autoDispose<List<ReceptionRowVM>>
     final fournisseurNom = () {
       final cdr = cdrId != null ? cdrMap[cdrId] : null;
       final fournisseurId = cdr?['fournisseur_id'] as String?;
-      if (fournisseurId == null) return 'Fournisseur inconnu';
+      if (fournisseurId == null) return null;
       final fournisseur = fMap[fournisseurId];
-      return fournisseur ?? 'Fournisseur inconnu';
+      return fournisseur;
     }();
 
     out.add(ReceptionRowVM(

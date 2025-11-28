@@ -26,7 +26,18 @@ class _ReceptionListScreenState extends ConsumerState<ReceptionListScreen> {
     final asyncRows = ref.watch(receptionsTableProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Réceptions')),
+      appBar: AppBar(
+        title: const Text('Réceptions'),
+        actions: [
+          IconButton(
+            tooltip: 'Nouvelle réception',
+            icon: const Icon(Icons.add_rounded),
+            onPressed: () {
+              context.go('/receptions/new');
+            },
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/receptions/new'),
         child: const Icon(Icons.add),

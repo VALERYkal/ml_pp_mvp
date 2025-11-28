@@ -87,9 +87,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (ctx, st) => CoursRouteFormScreen(coursId: st.pathParameters['id']),
           ),
 
-          GoRoute(path: '/receptions', builder: (ctx, st) => const ReceptionListScreen()),
+          GoRoute(
+            path: '/receptions',
+            name: 'receptionsList',
+            builder: (ctx, st) => const ReceptionListScreen(),
+          ),
           GoRoute(
             path: '/receptions/new',
+            name: 'receptionsNew',
             builder: (ctx, st) {
               final coursId = st.uri.queryParameters['coursId'];
               return ReceptionFormScreen(coursDeRouteId: coursId);
