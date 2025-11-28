@@ -6,6 +6,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ml_pp_mvp/features/receptions/providers/receptions_table_provider.dart';
+import 'package:ml_pp_mvp/features/receptions/models/reception_row_vm.dart';
 
 class ModernReceptionListScreen extends ConsumerStatefulWidget {
   const ModernReceptionListScreen({super.key});
@@ -24,7 +26,6 @@ class _ModernReceptionListScreenState extends ConsumerState<ModernReceptionListS
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   String _selectedFilter = 'all';
-  bool _isFilterExpanded = false;
 
   @override
   void initState() {
@@ -104,6 +105,20 @@ class _ModernReceptionListScreenState extends ConsumerState<ModernReceptionListS
       ),
       centerTitle: false,
       actions: [
+        // ➕ Nouveau bouton pour créer une réception
+        IconButton(
+          tooltip: 'Nouvelle réception',
+          onPressed: () {
+            // On réutilise la même route que le bouton flottant / l'état vide
+            context.go('/receptions/new');
+          },
+          icon: Icon(
+            Icons.add_rounded,
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
+
+        // Bouton export (existant)
         IconButton(
           onPressed: () {
             // TODO: Implémenter l'export
@@ -113,6 +128,8 @@ class _ModernReceptionListScreenState extends ConsumerState<ModernReceptionListS
             color: theme.colorScheme.onSurface,
           ),
         ),
+
+        // Bouton paramètres (existant)
         IconButton(
           onPressed: () {
             // TODO: Implémenter les paramètres
@@ -279,23 +296,96 @@ class _ModernReceptionListScreenState extends ConsumerState<ModernReceptionListS
   }
 
   Widget _buildReceptionsList(ThemeData theme) {
-    // TODO: Remplacer par les vraies données
-    final receptions = _getMockReceptions();
+    final receptionsAsync = ref.watch(receptionsTableProvider);
     
-    if (receptions.isEmpty) {
-      return _buildEmptyState(theme);
-    }
-    
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: receptions.length,
-      itemBuilder: (context, index) {
-        return _buildReceptionCard(theme, receptions[index], index);
+    return receptionsAsync.when(
+      data: (receptions) {
+        if (receptions.isEmpty) {
+          return _buildEmptyState(theme);
+        }
+        
+        // Filtrer selon la recherche et les filtres
+        final filtered = _filterReceptions(receptions);
+        
+        if (filtered.isEmpty) {
+          return _buildEmptyState(theme);
+        }
+        
+        return ListView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          itemCount: filtered.length,
+          itemBuilder: (context, index) {
+            return _buildReceptionCard(theme, filtered[index], index);
+          },
+        );
       },
+      loading: () => Center(
+        child: CircularProgressIndicator(
+          color: theme.colorScheme.primary,
+        ),
+      ),
+      error: (error, stack) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline_rounded,
+              size: 64,
+              color: theme.colorScheme.error,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Erreur lors du chargement',
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: theme.colorScheme.error,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              error.toString(),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
     );
   }
+  
+  List<ReceptionRowVM> _filterReceptions(List<ReceptionRowVM> receptions) {
+    var filtered = receptions;
+    
+    // Filtre par recherche
+    if (_searchQuery.isNotEmpty) {
+      final query = _searchQuery.toLowerCase();
+      filtered = filtered.where((r) {
+        return r.produitLabel.toLowerCase().contains(query) ||
+               r.citerneNom.toLowerCase().contains(query) ||
+               (r.fournisseurNom != null && r.fournisseurNom!.toLowerCase().contains(query)) ||
+               (r.cdrShort != null && r.cdrShort!.toLowerCase().contains(query));
+      }).toList();
+    }
+    
+    // Filtre par type
+    if (_selectedFilter == 'monaluxe') {
+      filtered = filtered.where((r) => r.propriete == 'MONALUXE').toList();
+    } else if (_selectedFilter == 'partenaires') {
+      filtered = filtered.where((r) => r.propriete == 'PARTENAIRE').toList();
+    } else if (_selectedFilter == 'today') {
+      final today = DateTime.now();
+      filtered = filtered.where((r) {
+        return r.dateReception.year == today.year &&
+               r.dateReception.month == today.month &&
+               r.dateReception.day == today.day;
+      }).toList();
+    }
+    
+    return filtered;
+  }
 
-  Widget _buildReceptionCard(ThemeData theme, Map<String, dynamic> reception, int index) {
+  Widget _buildReceptionCard(ThemeData theme, ReceptionRowVM reception, int index) {
     return AnimatedContainer(
       duration: Duration(milliseconds: 300 + (index * 100)),
       margin: const EdgeInsets.only(bottom: 12),
@@ -331,18 +421,18 @@ class _ModernReceptionListScreenState extends ConsumerState<ModernReceptionListS
     );
   }
 
-  Widget _buildReceptionHeader(ThemeData theme, Map<String, dynamic> reception) {
+  Widget _buildReceptionHeader(ThemeData theme, ReceptionRowVM reception) {
     return Row(
       children: [
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: _getStatusColor(reception['status']).withOpacity(0.1),
+            color: theme.colorScheme.primaryContainer.withOpacity(0.3),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(
-            _getStatusIcon(reception['status']),
-            color: _getStatusColor(reception['status']),
+            Icons.local_shipping_rounded,
+            color: theme.colorScheme.primary,
             size: 20,
           ),
         ),
@@ -352,14 +442,14 @@ class _ModernReceptionListScreenState extends ConsumerState<ModernReceptionListS
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                reception['id'] ?? 'Réception #${reception['id']}',
+                'Réception #${reception.id.substring(0, 8)}',
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: theme.colorScheme.onSurface,
                 ),
               ),
               Text(
-                reception['date'] ?? 'Date inconnue',
+                _formatDate(reception.dateReception),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -367,19 +457,23 @@ class _ModernReceptionListScreenState extends ConsumerState<ModernReceptionListS
             ],
           ),
         ),
-        _buildStatusBadge(theme, reception['status']),
+        _buildStatusBadge(theme, 'validee'),
       ],
     );
   }
+  
+  String _formatDate(DateTime date) {
+    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+  }
 
-  Widget _buildReceptionDetails(ThemeData theme, Map<String, dynamic> reception) {
+  Widget _buildReceptionDetails(ThemeData theme, ReceptionRowVM reception) {
     return Row(
       children: [
         Expanded(
           child: _buildDetailItem(
             theme,
             'Produit',
-            reception['produit'] ?? 'ESS',
+            reception.produitLabel,
             Icons.local_gas_station_rounded,
             Colors.blue,
           ),
@@ -388,7 +482,9 @@ class _ModernReceptionListScreenState extends ConsumerState<ModernReceptionListS
           child: _buildDetailItem(
             theme,
             'Volume',
-            '${reception['volume'] ?? 0} L',
+            reception.vol15 != null 
+                ? '${reception.vol15!.toStringAsFixed(0)} L'
+                : '—',
             Icons.water_drop_rounded,
             Colors.green,
           ),
@@ -397,7 +493,7 @@ class _ModernReceptionListScreenState extends ConsumerState<ModernReceptionListS
           child: _buildDetailItem(
             theme,
             'Citerne',
-            reception['citerne'] ?? 'Citerne A',
+            reception.citerneNom,
             Icons.storage_rounded,
             Colors.orange,
           ),
@@ -432,24 +528,36 @@ class _ModernReceptionListScreenState extends ConsumerState<ModernReceptionListS
     );
   }
 
-  Widget _buildReceptionFooter(ThemeData theme, Map<String, dynamic> reception) {
+  Widget _buildReceptionFooter(ThemeData theme, ReceptionRowVM reception) {
     return Row(
       children: [
         Expanded(
           child: Text(
-            reception['owner'] == 'MONALUXE' ? 'Monaluxe' : 'Partenaire',
+            reception.propriete == 'MONALUXE' ? 'Monaluxe' : 'Partenaire',
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
         ),
-        Text(
-          reception['time'] ?? '12:30',
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-            fontWeight: FontWeight.w500,
+        if (reception.fournisseurNom != null)
+          Expanded(
+            child: Text(
+              reception.fournisseurNom!,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.end,
+            ),
           ),
-        ),
+        if (reception.cdrShort != null)
+          Text(
+            reception.cdrShort!,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.primary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
       ],
     );
   }
@@ -574,40 +682,5 @@ class _ModernReceptionListScreenState extends ConsumerState<ModernReceptionListS
       default:
         return (Colors.grey, 'Inconnu');
     }
-  }
-
-  List<Map<String, dynamic>> _getMockReceptions() {
-    return [
-      {
-        'id': 'REC-001',
-        'date': '17/09/2025',
-        'time': '14:30',
-        'status': 'validee',
-        'produit': 'ESS',
-        'volume': 15000,
-        'citerne': 'Citerne A',
-        'owner': 'MONALUXE',
-      },
-      {
-        'id': 'REC-002',
-        'date': '17/09/2025',
-        'time': '12:15',
-        'status': 'validee',
-        'produit': 'AGO',
-        'volume': 12000,
-        'citerne': 'Citerne B',
-        'owner': 'PARTENAIRE',
-      },
-      {
-        'id': 'REC-003',
-        'date': '16/09/2025',
-        'time': '16:45',
-        'status': 'brouillon',
-        'produit': 'ESS',
-        'volume': 8000,
-        'citerne': 'Citerne C',
-        'owner': 'MONALUXE',
-      },
-    ];
   }
 }

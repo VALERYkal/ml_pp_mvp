@@ -20,17 +20,14 @@ final receptionsTableProvider = FutureProvider.autoDispose<List<ReceptionRowVM>>
   final cits  = await ref.watch(refs.citernesActivesProvider.future);
   
   // Récupérer les fournisseurs depuis Supabase
-  // Utiliser directement la table 'partenaires' qui semble être le nom correct
+  // Le CDR utilise fournisseur_id qui pointe vers la table 'fournisseurs'
   final fournisseursRows = await supa
-      .from('partenaires')
+      .from('fournisseurs')
       .select('id, nom');
-  
-  print('🔍 DEBUG: Récupération des fournisseurs depuis la table "partenaires"');
-  print('🔍 DEBUG: Nombre de fournisseurs trouvés: ${fournisseursRows.length}');
   
   final fMap = { 
     for (final f in (fournisseursRows as List).cast<Map<String, dynamic>>()) 
-      f['id'] as String : f['nom'] as String 
+      f['id'] as String : (f['nom'] as String?) ?? 'Fournisseur inconnu'
   };
 
   final pCode = { for (final p in prods) p.id : (p.code) };
@@ -50,12 +47,6 @@ final receptionsTableProvider = FutureProvider.autoDispose<List<ReceptionRowVM>>
     }
   }
 
-  // Debug: Vérifier les données récupérées
-  print('🔍 DEBUG Fournisseurs récupérés: ${fMap.length} fournisseurs');
-  print('🔍 DEBUG CDR récupérés: ${cdrMap.length} cours de route');
-  for (final entry in fMap.entries.take(3)) {
-    print('🔍 DEBUG Fournisseur: ${entry.key} -> ${entry.value}');
-  }
 
   // 4) Construire les VM
   final out = <ReceptionRowVM>[];
@@ -75,15 +66,14 @@ final receptionsTableProvider = FutureProvider.autoDispose<List<ReceptionRowVM>>
       cdr?['plaque_remorque'] as String?,
     ], ' / ');
 
-    // Récupération du nom du fournisseur avec debug
-    final fournisseurId = cdr?['fournisseur_id'] as String?;
-    final fournisseurNom = fournisseurId != null ? fMap[fournisseurId] : null;
-    
-    // Debug pour chaque réception
-    print('🔍 DEBUG Réception ${r['id']}: CDR=${cdrId}, fournisseurId=${fournisseurId}, fournisseurNom=${fournisseurNom}');
-    if (cdr != null) {
-      print('🔍 DEBUG CDR data: $cdr');
-    }
+    // Récupération du nom du fournisseur via CDR
+    final fournisseurNom = () {
+      final cdr = cdrId != null ? cdrMap[cdrId] : null;
+      final fournisseurId = cdr?['fournisseur_id'] as String?;
+      if (fournisseurId == null) return 'Fournisseur inconnu';
+      final fournisseur = fMap[fournisseurId];
+      return fournisseur ?? 'Fournisseur inconnu';
+    }();
 
     out.add(ReceptionRowVM(
       id: r['id'] as String,
