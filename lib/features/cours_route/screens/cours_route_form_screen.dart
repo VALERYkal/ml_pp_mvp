@@ -337,42 +337,80 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
     );
   }
 
-  /// Construit le toggle produit ESS/AGO
+  /// Construit le toggle produit ESS/AGO (responsive)
   Widget _buildProduitToggle() {
     return InputDecorator(
       decoration: const InputDecoration(
         labelText: 'Produit *',
         border: OutlineInputBorder(),
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: RadioListTile<String>(
-              title: const Text('Essence'),
-              value: CoursRouteConstants.produitEssId,
-              groupValue: selectedProduitId,
-              onChanged: (value) {
-                setState(() {
-                  selectedProduitId = value;
-                  _dirty = true;
-                });
-              },
-            ),
-          ),
-          Expanded(
-            child: RadioListTile<String>(
-              title: const Text('Gasoil / AGO'),
-              value: CoursRouteConstants.produitAgoId,
-              groupValue: selectedProduitId,
-              onChanged: (value) {
-                setState(() {
-                  selectedProduitId = value;
-                  _dirty = true;
-                });
-              },
-            ),
-          ),
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth >= 600;
+          
+          if (isWide) {
+            // Desktop/Tablet : côte à côte
+            return Row(
+              children: [
+                Expanded(
+                  child: RadioListTile<String>(
+                    title: const Text('Essence'),
+                    value: CoursRouteConstants.produitEssId,
+                    groupValue: selectedProduitId,
+                    onChanged: (value) {
+                      setState(() {
+                        selectedProduitId = value;
+                        _dirty = true;
+                      });
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: RadioListTile<String>(
+                    title: const Text('Gasoil / AGO'),
+                    value: CoursRouteConstants.produitAgoId,
+                    groupValue: selectedProduitId,
+                    onChanged: (value) {
+                      setState(() {
+                        selectedProduitId = value;
+                        _dirty = true;
+                      });
+                    },
+                  ),
+                ),
+              ],
+            );
+          } else {
+            // Mobile : empilés verticalement
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                RadioListTile<String>(
+                  title: const Text('Essence'),
+                  value: CoursRouteConstants.produitEssId,
+                  groupValue: selectedProduitId,
+                  onChanged: (value) {
+                    setState(() {
+                      selectedProduitId = value;
+                      _dirty = true;
+                    });
+                  },
+                ),
+                RadioListTile<String>(
+                  title: const Text('Gasoil / AGO'),
+                  value: CoursRouteConstants.produitAgoId,
+                  groupValue: selectedProduitId,
+                  onChanged: (value) {
+                    setState(() {
+                      selectedProduitId = value;
+                      _dirty = true;
+                    });
+                  },
+                ),
+              ],
+            );
+          }
+        },
       ),
     );
   }
