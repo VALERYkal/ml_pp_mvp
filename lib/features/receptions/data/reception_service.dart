@@ -12,6 +12,7 @@ import '../../citernes/data/citerne_service.dart';
 import '../../stocks_journaliers/data/stocks_service.dart';
 import 'package:ml_pp_mvp/shared/utils/volume_calc.dart';
 import 'package:ml_pp_mvp/shared/referentiels/referentiels.dart' as refs;
+import 'package:ml_pp_mvp/core/errors/reception_validation_exception.dart';
 
 class ReceptionService {
   final SupabaseClient _client;
@@ -30,6 +31,12 @@ class ReceptionService {
 
   /// Crée une réception "validée" (par défaut DB) et déclenche les effets (stocks + CDR DECHARGE).
   /// NE PAS envoyer 'statut' : la DB a DEFAULT 'validee' et un trigger applique les effets.
+  /// 
+  /// Applique toutes les validations métier avant l'insertion :
+  /// - Indices/volume (index_avant >= 0, index_apres > index_avant, volume_ambiant >= 0)
+  /// - Citerne/produit (citerne active, produit compatible)
+  /// - Propriétaire (normalisation, partenaire_id requis si PARTENAIRE)
+  /// - Volume 15°C (OBLIGATOIRE : température et densité requises, volume_15c toujours calculé)
   Future<String> createValidated({
     String? coursDeRouteId,
     required String citerneId,
@@ -44,19 +51,146 @@ class ReceptionService {
     DateTime? dateReception,
     String? note,
   }) async {
+    // ============================================================
+    // VALIDATIONS MÉTIER AVANT INSERT
+    // ============================================================
+    
+    // 1) Validation indices / volume
+    if (indexAvant < 0) {
+      throw ReceptionValidationException(
+        'L\'index avant doit être supérieur ou égal à 0',
+        field: 'index_avant',
+      );
+    }
+    
+    if (indexApres <= indexAvant) {
+      throw ReceptionValidationException(
+        'L\'index après doit être strictement supérieur à l\'index avant',
+        field: 'index_apres',
+      );
+    }
+    
+    final volumeAmbiant = indexApres - indexAvant;
+    if (volumeAmbiant < 0) {
+      throw ReceptionValidationException(
+        'Le volume ambiant calculé est négatif (index_apres - index_avant < 0)',
+        field: 'volume_ambiant',
+      );
+    }
+    
+    // 2) Validation citerne / produit
+    final citerneService = _citerneServiceFactory(_client);
+    final citerne = await citerneService.getById(citerneId);
+    
+    if (citerne == null) {
+      throw ReceptionValidationException(
+        'Citerne introuvable',
+        field: 'citerne_id',
+      );
+    }
+    
+    if (citerne.statut != 'active') {
+      throw ReceptionValidationException(
+        'Citerne inactive ou en maintenance',
+        field: 'citerne_id',
+      );
+    }
+    
+    if (citerne.produitId != produitId) {
+      throw ReceptionValidationException(
+        'Produit de la réception différent du produit de la citerne',
+        field: 'produit_id',
+      );
+    }
+    
+    // 3) Validation propriétaire
+    // Normaliser proprietaire_type en uppercase
+    final proprietaireTypeNormalized = proprietaireType.toUpperCase().trim();
+    final proprietaireTypeFinal = proprietaireTypeNormalized.isEmpty 
+        ? 'MONALUXE' 
+        : (proprietaireTypeNormalized == 'PARTENAIRE' ? 'PARTENAIRE' : 'MONALUXE');
+    
+    if (proprietaireTypeFinal == 'PARTENAIRE') {
+      if (partenaireId == null || partenaireId.trim().isEmpty) {
+        throw ReceptionValidationException(
+          'Partenaire obligatoire pour une réception PARTENAIRE',
+          field: 'partenaire_id',
+        );
+      }
+    }
+    
+    // 4) Validation et calcul volume 15°C (OBLIGATOIRE)
+    // RÈGLE MÉTIER : La conversion à 15°C est obligatoire pour toutes les réceptions.
+    // Température et densité sont des champs OBLIGATOIRES.
+    
+    if (temperatureCAmb == null) {
+      throw ReceptionValidationException(
+        'La température ambiante (°C) est obligatoire pour calculer le volume à 15°C.',
+        field: 'temperature_ambiante_c',
+      );
+    }
+    
+    if (densiteA15 == null) {
+      throw ReceptionValidationException(
+        'La densité à 15°C est obligatoire pour calculer le volume corrigé.',
+        field: 'densite_a_15',
+      );
+    }
+    
+    // Récupérer le code produit pour le calcul
+    await _refRepo.loadProduits();
+    final produits = await _refRepo.loadProduits();
+    
+    // Trouver le produit correspondant
+    refs.ProduitRef? produit;
+    try {
+      produit = produits.firstWhere((p) => p.id == produitId);
+    } catch (_) {
+      // Si produit non trouvé, utiliser le premier disponible comme fallback
+      if (produits.isNotEmpty) {
+        produit = produits.first;
+      }
+    }
+    
+    // Calculer le volume à 15°C (toujours calculé car température et densité sont non-null)
+    double volumeCorrige15CFinal;
+    if (produit != null) {
+      // Utiliser computeV15 qui gère le produitCode
+      volumeCorrige15CFinal = computeV15(
+        volumeAmbiant: volumeAmbiant,
+        temperatureC: temperatureCAmb, // non-null garanti par validation
+        densiteA15: densiteA15, // non-null garanti par validation
+        produitCode: produit.code,
+      );
+    } else {
+      // Fallback si produit non trouvé : utiliser volume_ambiant
+      // (cas rare, mais on évite une exception)
+      volumeCorrige15CFinal = volumeAmbiant;
+    }
+    
+    // Si volumeCorrige15C était fourni explicitement, on l'utilise (priorité)
+    if (volumeCorrige15C != null) {
+      volumeCorrige15CFinal = volumeCorrige15C;
+    }
+    
+    // ============================================================
+    // PRÉPARATION DU PAYLOAD
+    // ============================================================
     final Map<String, dynamic> payload = {
       if (coursDeRouteId != null) 'cours_de_route_id': coursDeRouteId,
       'citerne_id': citerneId,
       'produit_id': produitId,
       'index_avant': indexAvant,
       'index_apres': indexApres,
-      if (temperatureCAmb != null) 'temperature_ambiante_c': temperatureCAmb,
-      if (densiteA15 != null) 'densite_a_15': densiteA15,
-      if (volumeCorrige15C != null) 'volume_corrige_15c': volumeCorrige15C,
-      'proprietaire_type': proprietaireType,
-      if (partenaireId != null) 'partenaire_id': partenaireId,
+      'volume_ambiant': volumeAmbiant,
+      'temperature_ambiante_c': temperatureCAmb, // toujours présent (validation obligatoire)
+      'densite_a_15': densiteA15, // toujours présent (validation obligatoire)
+      'volume_corrige_15c': volumeCorrige15CFinal, // toujours calculé (non-null)
+      'proprietaire_type': proprietaireTypeFinal,
+      if (partenaireId != null && partenaireId.trim().isNotEmpty) 'partenaire_id': partenaireId.trim(),
       if (dateReception != null) 'date_reception': dateReception.toIso8601String().substring(0, 10),
       if ((note ?? '').trim().isNotEmpty) 'note': note!.trim(),
+      // NE PAS envoyer 'statut' : la DB a DEFAULT 'validee' et un trigger applique les effets
     };
 
     // Logs avant INSERT
@@ -90,14 +224,6 @@ class ReceptionService {
 
   /// Crée un brouillon de réception avec toutes les validations métier
   Future<String> createDraft(ReceptionInput input) async {
-  
-  /// Alias pour compatibilité avec les tests
-  Future<String> createReception(
-    ReceptionInput input, {
-    required Object refRepo, // param accepté mais ignoré pour compatibilité
-  }) async {
-    return createDraft(input);
-  }
     try {
       // Charger référentiels si nécessaire
       await _refRepo.loadProduits();
@@ -223,8 +349,9 @@ class ReceptionService {
       debugPrint('❌ ReceptionService.validate: code=${e.code} hint=${e.hint} details=${e.details}');
       
       // Log spécifique pour identifier les "duplicate update" sur la même journée
-      if (e.message?.contains('duplicate') == true || e.message?.contains('unique') == true) {
-        debugPrint('⚠️ ReceptionService.validate: Possible double application détectée: ${e.message}');
+      final message = e.message;
+      if (message.contains('duplicate') || message.contains('unique')) {
+        debugPrint('⚠️ ReceptionService.validate: Possible double application détectée: $message');
       }
       
       rethrow;

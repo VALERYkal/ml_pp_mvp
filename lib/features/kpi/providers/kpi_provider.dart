@@ -1,6 +1,7 @@
 ﻿import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/kpi_models.dart';
 import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart';
+import 'package:ml_pp_mvp/features/receptions/kpi/receptions_kpi_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Helper de parsing robuste pour convertir num | String → double
@@ -32,26 +33,22 @@ final kpiProviderProvider = FutureProvider.autoDispose<KpiSnapshot>((ref) async 
     final from7d = today.subtract(const Duration(days: 6));
     
     // 3) Requêtes parallèles pour optimiser les performances
+    // Utiliser le nouveau provider pour les réceptions
+    final receptionsKpi = await ref.watch(receptionsKpiTodayProvider.future);
+    
     final futures = await Future.wait([
-      _fetchReceptionsOfDay(supa, depotId, today),
       _fetchSortiesOfDay(supa, depotId, today),
       _fetchStocksActuels(supa, depotId),
       _fetchTrucksToFollow(supa, depotId),
       _fetchTrend7d(supa, depotId, from7d, today),
     ]);
 
-    final receptions = futures[0] as _ReceptionsData;
-    final sorties = futures[1] as _SortiesData;
-    final stocks = futures[2] as _StocksData;
-    final trucks = futures[3] as KpiTrucksToFollow;
-    final trend7d = futures[4] as List<KpiTrendPoint>;
+    final sorties = futures[0] as _SortiesData;
+    final stocks = futures[1] as _StocksData;
+    final trucks = futures[2] as KpiTrucksToFollow;
+    final trend7d = futures[3] as List<KpiTrendPoint>;
   
   // 4) Construction du snapshot unifié avec null-safety
-  final receptionsKpi = KpiNumberVolume.fromNullable(
-    count: receptions.count,
-    volume15c: receptions.volume15c,
-    volumeAmbient: receptions.volumeAmbient,
-  );
   
   // Debug temporaire (peut être retiré ensuite)
   print('[KPI] receptions: 15C=${receptionsKpi.volume15c} | amb=${receptionsKpi.volumeAmbient} | count=${receptionsKpi.count}');
@@ -72,14 +69,14 @@ final kpiProviderProvider = FutureProvider.autoDispose<KpiSnapshot>((ref) async 
   print('[KPI] stocks: 15C=${stocksKpi.total15c} | amb=${stocksKpi.totalAmbient} | cap=${stocksKpi.capacityTotal}');
   
   final balance = KpiBalanceToday.fromNullable(
-    receptions15c: receptions.volume15c,
+    receptions15c: receptionsKpi.volume15c,
     sorties15c: sorties.volume15c,
-    receptionsAmbient: receptions.volumeAmbient,
+    receptionsAmbient: receptionsKpi.volumeAmbient,
     sortiesAmbient: sorties.volumeAmbient,
   );
   
-  print('🔍 DEBUG KPI: Balance calculée - receptions15c=${receptions.volume15c}, sorties15c=${sorties.volume15c}');
-  print('🔍 DEBUG KPI: Balance calculée - receptionsAmbient=${receptions.volumeAmbient}, sortiesAmbient=${sorties.volumeAmbient}');
+  print('🔍 DEBUG KPI: Balance calculée - receptions15c=${receptionsKpi.volume15c}, sorties15c=${sorties.volume15c}');
+  print('🔍 DEBUG KPI: Balance calculée - receptionsAmbient=${receptionsKpi.volumeAmbient}, sortiesAmbient=${sorties.volumeAmbient}');
   print('🔍 DEBUG KPI: Balance finale - delta15c=${balance.delta15c}, deltaAmbient=${balance.deltaAmbient}');
   
     return KpiSnapshot(

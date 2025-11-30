@@ -44,8 +44,68 @@ class _ReceptionListScreenState extends ConsumerState<ReceptionListScreen> {
       ),
       body: asyncRows.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, st) => Padding(padding: const EdgeInsets.all(16), child: Text('Erreur chargement: $e')),
+        error: (e, st) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error_outline, size: 64, color: Theme.of(context).colorScheme.error),
+                const SizedBox(height: 16),
+                Text(
+                  'Erreur lors du chargement des réceptions',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  e.toString(),
+                  style: Theme.of(context).textTheme.bodySmall,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: () => ref.invalidate(receptionsTableProvider),
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Réessayer'),
+                ),
+              ],
+            ),
+          ),
+        ),
         data: (rows) {
+          // État vide
+          if (rows.isEmpty) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.inbox_outlined, size: 64, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Aucune réception enregistrée',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Commencez par créer une nouvelle réception',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: () => context.go('/receptions/new'),
+                      icon: const Icon(Icons.add),
+                      label: const Text('Créer une réception'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
           final sorted = [...rows];
           if (_sortColumnIndex == 0) {
             sorted.sort((a, b) => a.dateReception.compareTo(b.dateReception) * (_sortAsc ? 1 : -1));

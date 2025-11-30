@@ -9,13 +9,14 @@ import 'package:go_router/go_router.dart';
 import 'package:ml_pp_mvp/shared/ui/toast.dart';
 import 'package:ml_pp_mvp/shared/ui/errors.dart';
 import 'package:postgrest/postgrest.dart';
+import 'package:ml_pp_mvp/core/errors/reception_validation_exception.dart';
 
 import 'package:ml_pp_mvp/shared/referentiels/referentiels.dart' as refs;
 import 'package:ml_pp_mvp/shared/providers/ref_data_provider.dart' as rfd;
 import 'package:ml_pp_mvp/shared/referentiels/role_provider.dart';
 import 'package:ml_pp_mvp/shared/utils/volume_calc.dart';
 import 'package:ml_pp_mvp/features/receptions/data/reception_input.dart';
-import 'package:ml_pp_mvp/features/receptions/data/reception_service.dart';
+import 'package:ml_pp_mvp/features/receptions/data/reception_service.dart' show ReceptionService, receptionServiceProvider;
 import 'package:ml_pp_mvp/features/receptions/widgets/cours_arrive_selector.dart';
 import 'package:ml_pp_mvp/features/receptions/data/citerne_info_provider.dart';
 import 'package:ml_pp_mvp/features/receptions/providers/receptions_list_provider.dart' show receptionsListProvider, receptionsPageProvider, receptionsPageSizeProvider;
@@ -180,21 +181,34 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
       return;
     }
 
+    // Validation UI : température et densité obligatoires
     final temp = _num(ctrlTemp.text);
     final dens = _num(ctrlDens.text);
+    if (temp == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('La température ambiante (°C) est obligatoire')),
+      );
+      return;
+    }
+    if (dens == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('La densité à 15°C est obligatoire')),
+      );
+      return;
+    }
     final volAmb = computeVolumeAmbiant(avant, apres);
     final vol15 = calcV15(volumeObserveL: volAmb, temperatureC: temp ?? 15.0, densiteA15: dens ?? 0.83);
 
     setState(() => busy = true);
     try {
-      final id = await ref.read(receptionServiceProvider).createValidated(
+      await ref.read(receptionServiceProvider).createValidated(
             coursDeRouteId: _owner == OwnerType.monaluxe ? (_selectedCoursId ?? widget.coursDeRouteId) : null,
             citerneId: _selectedCiterneId!,
             produitId: _selectedProduitId!, // ✅ source de vérité
             indexAvant: avant,
             indexApres: apres,
-            temperatureCAmb: temp,
-            densiteA15: dens,
+            temperatureCAmb: temp!, // Non-null garanti par validation UI
+            densiteA15: dens!, // Non-null garanti par validation UI
             volumeCorrige15C: vol15,
             proprietaireType: _owner == OwnerType.monaluxe ? 'MONALUXE' : 'PARTENAIRE',
             partenaireId: _owner == OwnerType.partenaire ? partenaireId : null,
@@ -222,6 +236,21 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
         } catch (_) {}
         context.go('/receptions');
       }
+    } on ReceptionValidationException catch (e) {
+      // Erreur métier : afficher un message clair avec le champ concerné
+      debugPrint('[ReceptionForm] ReceptionValidationException: ${e.message} (field: ${e.field})');
+      if (mounted) {
+        final message = e.field != null 
+            ? '${e.message}\n(Champ: ${e.field})'
+            : e.message;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
     } on PostgrestException catch (e, st) {
       debugPrint('[ReceptionForm] PostgrestException: ${e.message} (code=${e.code}, hint=${e.hint}, details=${e.details})');
       debugPrint('[ReceptionForm] stack=\n$st');
@@ -232,7 +261,7 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
       debugPrint('[ReceptionForm] UnknownError: $e');
       debugPrint('[ReceptionForm] stack=\n$st');
       if (mounted) {
-        showAppToast(context, 'Erreur inconnue lors de la réception.', type: ToastType.error);
+        showAppToast(context, 'Erreur technique lors de l\'enregistrement de la réception. Veuillez réessayer.', type: ToastType.error);
       }
     } finally {
       if (mounted) setState(() => busy = false);
@@ -249,7 +278,10 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
     final dens = _num(ctrlDens.text);
     final volAmb = computeVolumeAmbiant(avant, apres);
     final effProdCode = isMonaluxe ? (produitCodeFromCours ?? produitCode) : produitCode;
-    final vol15 = calcV15(volumeObserveL: volAmb, temperatureC: temp ?? 15.0, densiteA15: dens ?? 0.83);
+    // Calcul du volume 15°C : si température et densité sont présents, calculer, sinon afficher volume ambiant
+    final vol15 = (temp != null && dens != null)
+        ? calcV15(volumeObserveL: volAmb, temperatureC: temp, densiteA15: dens)
+        : volAmb;
     final isWide = MediaQuery.of(context).size.width >= 1024;
 
     return Scaffold(
@@ -296,12 +328,12 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
                   Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Expanded(child: _buildProduitCiterneCard(ref, effProdCode, volAmb)),
                     const SizedBox(width: 12),
-                    Expanded(child: _buildMesuresCard(volAmb, vol15)),
+                    Expanded(child: _buildMesuresCard(volAmb, vol15, temp, dens)),
                   ])
                 else ...[
                   _buildProduitCiterneCard(ref, effProdCode, volAmb),
                   const SizedBox(height: 12),
-                  _buildMesuresCard(volAmb, vol15),
+                  _buildMesuresCard(volAmb, vol15, temp, dens),
                 ],
                 const SizedBox(height: 12),
                 // Récap & Note
@@ -338,12 +370,16 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
   bool get _canSubmit {
     final avant = _num(ctrlAvant.text) ?? -1;
     final apres = _num(ctrlApres.text) ?? -1;
+    final temp = _num(ctrlTemp.text);
+    final dens = _num(ctrlDens.text);
     final okOwner = proprietaireType == 'MONALUXE' ? true : (partenaireId != null && partenaireId!.isNotEmpty);
     return _selectedProduitId != null &&
         _selectedCiterneId != null &&
         okOwner &&
         avant >= 0 &&
-        apres > avant;
+        apres > avant &&
+        temp != null && // Température obligatoire
+        dens != null; // Densité obligatoire
   }
 
   Widget _buildProduitCiterneCard(WidgetRef ref, String effProdCode, double volAmb) {
@@ -417,7 +453,7 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
     );
   }
 
-  Widget _buildMesuresCard(double volAmb, double vol15) {
+  Widget _buildMesuresCard(double volAmb, double vol15, double? temp, double? dens) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -430,13 +466,22 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
             Expanded(child: TextField(controller: ctrlApres, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Index après *'), onChanged: (_) => setState(() {}))),
           ]),
           Row(children: [
-            Expanded(child: TextField(controller: ctrlTemp, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Température (°C)'), onChanged: (_) => setState(() {}))),
+            Expanded(child: TextField(controller: ctrlTemp, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Température (°C) *', helperText: 'Obligatoire pour calcul volume 15°C'), onChanged: (_) => setState(() {}))),
             const SizedBox(width: 12),
-            Expanded(child: TextField(controller: ctrlDens, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Densité @15°C'), onChanged: (_) => setState(() {}))),
+            Expanded(child: TextField(controller: ctrlDens, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Densité @15°C *', helperText: 'Obligatoire pour calcul volume 15°C'), onChanged: (_) => setState(() {}))),
           ]),
           const SizedBox(height: 8),
           Text('• Volume ambiant = ${volAmb.toStringAsFixed(2)} L'),
-          Text('• Volume corrigé 15°C ≈ ${vol15.toStringAsFixed(2)} L'),
+          if (temp != null && dens != null)
+            Text('• Volume corrigé 15°C ≈ ${vol15.toStringAsFixed(2)} L')
+          else
+            Text(
+              '• Volume corrigé 15°C : Saisissez température et densité',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
         ]),
       ),
     );
