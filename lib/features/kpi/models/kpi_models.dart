@@ -37,6 +37,138 @@ class KpiNumberVolume {
   static const zero = KpiNumberVolume(count: 0, volume15c: 0, volumeAmbient: 0);
 }
 
+/// Modèle dédié pour les KPI Réceptions avec distinction propriétaires
+/// 
+/// Étend KpiNumberVolume avec des compteurs par type de propriétaire
+/// (MONALUXE vs PARTENAIRE) pour permettre des analyses plus fines.
+@immutable
+class KpiReceptions {
+  final int count;
+  final double volumeAmbient;
+  final double volume15c;
+  final int countMonaluxe;
+  final int countPartenaire;
+
+  const KpiReceptions({
+    required this.count,
+    required this.volumeAmbient,
+    required this.volume15c,
+    this.countMonaluxe = 0,
+    this.countPartenaire = 0,
+  });
+
+  /// Conversion vers KpiNumberVolume pour compatibilité
+  KpiNumberVolume toKpiNumberVolume() {
+    return KpiNumberVolume(
+      count: count,
+      volume15c: volume15c,
+      volumeAmbient: volumeAmbient,
+    );
+  }
+
+  /// Constructeur depuis KpiNumberVolume (pour migration progressive)
+  factory KpiReceptions.fromKpiNumberVolume(KpiNumberVolume volume) {
+    return KpiReceptions(
+      count: volume.count,
+      volume15c: volume.volume15c,
+      volumeAmbient: volume.volumeAmbient,
+      countMonaluxe: 0,
+      countPartenaire: 0,
+    );
+  }
+
+  KpiReceptions copyWith({
+    int? count,
+    double? volumeAmbient,
+    double? volume15c,
+    int? countMonaluxe,
+    int? countPartenaire,
+  }) {
+    return KpiReceptions(
+      count: count ?? this.count,
+      volumeAmbient: volumeAmbient ?? this.volumeAmbient,
+      volume15c: volume15c ?? this.volume15c,
+      countMonaluxe: countMonaluxe ?? this.countMonaluxe,
+      countPartenaire: countPartenaire ?? this.countPartenaire,
+    );
+  }
+
+  /// Instance vide pour les cas d'erreur
+  static const zero = KpiReceptions(
+    count: 0,
+    volumeAmbient: 0,
+    volume15c: 0,
+    countMonaluxe: 0,
+    countPartenaire: 0,
+  );
+}
+
+/// Modèle dédié pour les KPI Sorties avec distinction propriétaires
+/// 
+/// Étend KpiNumberVolume avec des compteurs par type de propriétaire
+/// (MONALUXE vs PARTENAIRE) pour permettre des analyses plus fines.
+@immutable
+class KpiSorties {
+  final int count;
+  final double volumeAmbient;
+  final double volume15c;
+  final int countMonaluxe;
+  final int countPartenaire;
+
+  const KpiSorties({
+    required this.count,
+    required this.volumeAmbient,
+    required this.volume15c,
+    this.countMonaluxe = 0,
+    this.countPartenaire = 0,
+  });
+
+  /// Conversion vers KpiNumberVolume pour compatibilité
+  KpiNumberVolume toKpiNumberVolume() {
+    return KpiNumberVolume(
+      count: count,
+      volume15c: volume15c,
+      volumeAmbient: volumeAmbient,
+    );
+  }
+
+  /// Constructeur depuis KpiNumberVolume (pour migration progressive)
+  factory KpiSorties.fromKpiNumberVolume(KpiNumberVolume volume) {
+    return KpiSorties(
+      count: volume.count,
+      volume15c: volume.volume15c,
+      volumeAmbient: volume.volumeAmbient,
+      countMonaluxe: 0,
+      countPartenaire: 0,
+    );
+  }
+
+  KpiSorties copyWith({
+    int? count,
+    double? volumeAmbient,
+    double? volume15c,
+    int? countMonaluxe,
+    int? countPartenaire,
+  }) {
+    return KpiSorties(
+      count: count ?? this.count,
+      volumeAmbient: volumeAmbient ?? this.volumeAmbient,
+      volume15c: volume15c ?? this.volume15c,
+      countMonaluxe: countMonaluxe ?? this.countMonaluxe,
+      countPartenaire: countPartenaire ?? this.countPartenaire,
+    );
+  }
+
+  /// Instance vide pour les cas d'erreur
+  static const zero = KpiSorties(
+    count: 0,
+    volumeAmbient: 0,
+    volume15c: 0,
+    countMonaluxe: 0,
+    countPartenaire: 0,
+  );
+}
+
 /// Modèle unifié pour les stocks avec capacité
 @immutable
 class KpiStocks {

@@ -315,8 +315,11 @@ class CoursDeRoute with _$CoursDeRoute {
 }
 
 /// Machine d'états sécurisée pour les cours de route
+// 🚫 DO NOT MODIFY — CDR Module is PROD-FROZEN as of 2025-11-30
+// Ensure Cursor suggests NO refactor in this module unless explicitly instructed with "Override CDR freeze".
 class CoursDeRouteStateMachine {
   /// Transitions autorisées entre les statuts
+  // 🚫 PROD-FROZEN: State machine transitions are locked. CHARGEMENT → TRANSIT → FRONTIERE → ARRIVE → DECHARGE (no backward, no skip)
   static const Map<StatutCours, Set<StatutCours>> allowedNext = {
     StatutCours.chargement: {StatutCours.transit},
     StatutCours.transit: {StatutCours.frontiere},
@@ -334,6 +337,7 @@ class CoursDeRouteStateMachine {
   /// Retourne :
   /// - `true` : La transition est autorisée
   /// - `false` : La transition est interdite
+  // 🚫 PROD-FROZEN: ARRIVE → DECHARGE ONLY via fromReception=true. No backward transitions allowed.
   static bool canTransition(StatutCours from, StatutCours to, {bool fromReception = false}) {
     // Vérifier si la transition est dans les transitions autorisées
     if (!allowedNext[from]!.contains(to)) {
@@ -360,6 +364,7 @@ class CoursDeRouteStateMachine {
 }
 
 /// Méthodes utilitaires pour les cours de route
+// 🚫 DO NOT MODIFY — CDR Module is PROD-FROZEN as of 2025-11-30
 class CoursDeRouteUtils {
   /// Vérifie si le cours est actif (non déchargé)
   /// 
@@ -368,6 +373,7 @@ class CoursDeRouteUtils {
   /// Retourne :
   /// - `true` : Le cours est en cours (chargement, transit, frontiere, arrive)
   /// - `false` : Le cours est terminé (decharge)
+  // 🚫 PROD-FROZEN: DECHARGE is ALWAYS excluded from active CDRs. Used by getActifs() and KPI providers.
   static bool isActif(CoursDeRoute cours) => cours.statut != StatutCours.decharge;
   
   /// Vérifie si le cours peut passer au statut suivant

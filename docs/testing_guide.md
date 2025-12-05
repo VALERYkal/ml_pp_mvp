@@ -4,20 +4,62 @@
 
 Ce guide explique comment exécuter et maintenir les tests pour ML_PP MVP, avec un focus sur les tests de l'écran de login.
 
+## 📁 Structure des Tests
+
+### Suite Officielle
+
+La suite de tests officielle se trouve sous `test/features/**`. Cette structure reflète l'architecture modulaire de l'application et contient tous les tests actifs et maintenus :
+
+```
+test/features/
+├── auth/                    # Tests d'authentification
+│   ├── screens/
+│   │   └── login_screen_test.dart
+│   └── ...
+├── cours_route/             # Tests Cours de Route (CDR)
+│   ├── models/
+│   ├── providers/
+│   ├── screens/
+│   └── integration/
+├── receptions/              # Tests Réceptions
+│   ├── data/
+│   ├── e2e/
+│   ├── integration/
+│   ├── kpi/
+│   └── screens/
+├── sorties/                 # Tests Sorties
+│   ├── data/
+│   ├── kpi/
+│   └── screens/
+└── ...                      # Modules futurs
+```
+
+**Important** : Tous les nouveaux tests **DOIVENT** être ajoutés sous `test/features/**` pour garantir la cohérence et la maintenabilité.
+
+### Tests Legacy (Archives)
+
+Le dossier `test_legacy/**` contient d'anciens tests qui ne reflètent plus l'état actuel de l'application. Ces tests sont conservés uniquement à des fins de référence historique ou pour faciliter les migrations futures.
+
+```
+test_legacy/
+├── _attic/
+│   └── cours_route_legacy/   # Anciens tests CDR (ancien modèle, ancienne UI)
+└── receptions/
+    └── reception_form_screen_legacy_test.dart  # Ancien test formulaire Réceptions
+```
+
+**⚠️ Note importante** : Les tests dans `test_legacy/**` **ne sont PAS exécutés par défaut** lors de l'exécution de `flutter test`. Ils sont conservés uniquement pour référence et ne doivent pas être modifiés.
+
 ## 🏗️ Architecture des Tests
 
-### Structure des Tests
+### Structure des Tests (Détail)
+
 ```
 test/
-├── features/
-│   ├── auth/
-│   │   └── screens/
-│   │       └── login_screen_test.dart    # Tests de l'écran de login
-│   └── cours_route/
-│       └── screens/
-│           └── cours_route_list_screen_test.dart
-├── integration/                           # Tests d'intégration
-└── unit/                                 # Tests unitaires
+├── features/                # Suite officielle (voir ci-dessus)
+├── integration/             # Tests d'intégration globaux
+├── unit/                    # Tests unitaires généraux
+└── ...                      # Autres tests utilitaires
 ```
 
 ### Technologies Utilisées
@@ -37,16 +79,47 @@ flutter pub get
 flutter packages pub run build_runner build --delete-conflicting-outputs
 ```
 
-### Exécution Complète
+### Commandes Canoniques
+
+#### Suite Officielle (Recommandé)
+
+Pour lancer uniquement la suite officielle de tests (recommandé pour le développement quotidien) :
+
 ```bash
-# Exécuter tous les tests
-flutter test
+# Exécuter tous les tests de la suite officielle
+flutter test test/features -r expanded
+
+# Exécuter avec couverture
+flutter test test/features --coverage
+```
+
+#### Tous les Tests
+
+Pour lancer tous les tests (y compris les tests dans `test/integration/`, `test/unit/`, etc.) :
+
+```bash
+# Exécuter tous les tests du projet
+flutter test -r expanded
 
 # Exécuter avec couverture
 flutter test --coverage
+```
+
+**Note** : Cette commande n'inclut **PAS** les tests dans `test_legacy/**`, qui ne sont pas exécutés par défaut.
+
+### Exécution de Tests Spécifiques
+
+```bash
+# Exécuter un module spécifique
+flutter test test/features/receptions -r expanded
+flutter test test/features/cours_route -r expanded
+flutter test test/features/sorties -r expanded
 
 # Exécuter un test spécifique
 flutter test test/features/auth/screens/login_screen_test.dart
+
+# Exécuter un test d'intégration
+flutter test test/integration/reception_flow_test.dart
 ```
 
 ### Script Automatisé

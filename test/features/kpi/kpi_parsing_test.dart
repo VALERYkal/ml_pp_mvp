@@ -4,7 +4,49 @@ import 'package:ml_pp_mvp/features/kpi/models/kpi_models.dart';
 double _toD(dynamic v) {
   if (v == null) return 0.0;
   if (v is num) return v.toDouble();
-  if (v is String) return double.tryParse(v.trim().replaceAll(',', '.')) ?? 0.0;
+  if (v is String) {
+    final trimmed = v.trim();
+    if (trimmed.isEmpty) return 0.0;
+    
+    // Détecter le format : si on a à la fois des points et des virgules
+    final hasComma = trimmed.contains(',');
+    final hasDot = trimmed.contains('.');
+    
+    if (hasComma && hasDot) {
+      // Format mixte : déterminer lequel est le séparateur décimal
+      final lastComma = trimmed.lastIndexOf(',');
+      final lastDot = trimmed.lastIndexOf('.');
+      
+      if (lastComma > lastDot) {
+        // Format européen : "9.954,5" -> point = milliers, virgule = décimal
+        final normalized = trimmed.replaceAll('.', '').replaceAll(',', '.');
+        return double.tryParse(normalized) ?? 0.0;
+      } else {
+        // Format US : "9,954.5" -> virgule = milliers, point = décimal
+        final normalized = trimmed.replaceAll(',', '');
+        return double.tryParse(normalized) ?? 0.0;
+      }
+    } else if (hasComma) {
+      // Seulement virgule : probablement format européen (virgule = décimal)
+      final normalized = trimmed.replaceAll(',', '.');
+      return double.tryParse(normalized) ?? 0.0;
+    } else if (hasDot) {
+      // Seulement point : format US (point = décimal) ou milliers uniquement
+      // Si plusieurs points, c'est probablement des milliers
+      final dotCount = '.'.allMatches(trimmed).length;
+      if (dotCount > 1) {
+        // Plusieurs points = séparateurs de milliers, pas de décimales
+        final normalized = trimmed.replaceAll('.', '');
+        return double.tryParse(normalized) ?? 0.0;
+      } else {
+        // Un seul point = séparateur décimal
+        return double.tryParse(trimmed) ?? 0.0;
+      }
+    } else {
+      // Pas de séparateur, nombre entier
+      return double.tryParse(trimmed) ?? 0.0;
+    }
+  }
   return 0.0;
 }
 

@@ -37,8 +37,12 @@ class RoleDashboard extends ConsumerWidget {
                 subtitle: 'Indicateurs clés de performance en temps réel',
                 accentColor: KpiColorPalette.primary,
                 child: kpis.when(
-                       loading: () => const Center(child: CircularProgressIndicator()),
+                       loading: () => const Center(
+                         key: Key('role_dashboard_loading_state'),
+                         child: CircularProgressIndicator(),
+                       ),
                        error: (e, st) => Center(
+                         key: const Key('role_dashboard_error_state'),
                          child: Column(
                            mainAxisAlignment: MainAxisAlignment.center,
                            children: [
@@ -75,6 +79,7 @@ class RoleDashboard extends ConsumerWidget {
                                  print('🔍 DEBUG Dashboard - Réceptions: count=${data.receptionsToday.count}, volume15c=${data.receptionsToday.volume15c}, volumeAmbient=${data.receptionsToday.volumeAmbient}');
                                  print('🔍 DEBUG Dashboard - Formaté: volume15c=${fmtL(data.receptionsToday.volume15c)}, volumeAmbient=${fmtL(data.receptionsToday.volumeAmbient)}');
                                  return KpiCard(
+                                   cardKey: const Key('kpi_receptions_today_card'),
                                    icon: Icons.move_to_inbox_outlined,
                                    title: 'Réceptions du jour',
                                    tintColor: const Color(0xFF4CAF50),
@@ -92,6 +97,7 @@ class RoleDashboard extends ConsumerWidget {
                              Builder(
                                builder: (context) {
                                  return KpiCard(
+                                   cardKey: const Key('kpi_sorties_today_card'),
                                    icon: Icons.outbox_outlined,
                                    title: 'Sorties du jour',
                                    tintColor: const Color(0xFFF44336),
@@ -112,6 +118,7 @@ class RoleDashboard extends ConsumerWidget {
                                  print('🔍 DEBUG Dashboard - Stock: total15c=${data.stocks.total15c}, totalAmbient=${data.stocks.totalAmbient}, capacity=${data.stocks.capacityTotal}');
                                  print('🔍 DEBUG Dashboard - Stock formaté: total15c=${fmtL(data.stocks.total15c)}, totalAmbient=${fmtL(data.stocks.totalAmbient)}');
                                  return KpiCard(
+                                   cardKey: const Key('kpi_stock_total_card'),
                                    icon: Icons.inventory_2_outlined,
                                    title: 'Stock total',
                                    tintColor: const Color(0xFFFF9800),
@@ -131,6 +138,7 @@ class RoleDashboard extends ConsumerWidget {
                                  print('🔍 DEBUG Dashboard - Balance: delta15c=${data.balanceToday.delta15c}, deltaAmbient=${data.balanceToday.deltaAmbient}');
                                  print('🔍 DEBUG Dashboard - Balance formaté: delta15c=${fmtDelta(data.balanceToday.delta15c)}, deltaAmbient=${fmtDelta(data.balanceToday.deltaAmbient)}');
                                  return KpiCard(
+                                   cardKey: const Key('kpi_balance_today_card'),
                                    icon: Icons.compare_arrows_outlined,
                                    title: 'Balance du jour',
                                    tintColor: data.balanceToday.delta15c >= 0 ? const Color(0xFF009688) : const Color(0xFFF44336),
@@ -152,6 +160,7 @@ class RoleDashboard extends ConsumerWidget {
                                  final net = sumIn - sumOut;
                                  print('🔍 DEBUG Dashboard - Tendance: sumIn=$sumIn, sumOut=$sumOut, net=$net');
                                  return KpiCard(
+                                   cardKey: const Key('kpi_tendance_7d_card'),
                                    icon: Icons.trending_up_rounded,
                                    title: 'Tendance 7 jours',
                                    tintColor: const Color(0xFF7C4DFF),

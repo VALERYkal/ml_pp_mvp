@@ -2,16 +2,279 @@
 import '../models/kpi_models.dart';
 import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart';
 import 'package:ml_pp_mvp/features/receptions/kpi/receptions_kpi_provider.dart';
+import 'package:ml_pp_mvp/features/sorties/kpi/sorties_kpi_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Helper de parsing robuste pour convertir num | String → double
 /// Gère null, num, String avec virgules/points, et valeurs invalides
+/// 
+/// Formats supportés :
+/// - "9954.5" (format US : point comme séparateur décimal)
+/// - "9,954.5" (format US avec séparateur de milliers : virgule comme milliers, point comme décimal)
+/// - "9.954,5" (format européen : point comme milliers, virgule comme décimal)
+/// - " 9954.5 " (avec espaces, trimés)
 double _toD(dynamic v) {
   if (v == null) return 0.0;
   if (v is num) return v.toDouble();
-  if (v is String) return double.tryParse(v.trim().replaceAll(',', '.')) ?? 0.0;
+  if (v is String) {
+    final trimmed = v.trim();
+    if (trimmed.isEmpty) return 0.0;
+    
+    // Supprimer les espaces (séparateurs de milliers possibles)
+    final withoutSpaces = trimmed.replaceAll(' ', '');
+    
+    // Détecter le format : si on a à la fois des points et des virgules
+    final hasComma = withoutSpaces.contains(',');
+    final hasDot = withoutSpaces.contains('.');
+    
+    if (hasComma && hasDot) {
+      // Format mixte : déterminer lequel est le séparateur décimal
+      final lastComma = withoutSpaces.lastIndexOf(',');
+      final lastDot = withoutSpaces.lastIndexOf('.');
+      
+      if (lastComma > lastDot) {
+        // Format européen : "9.954,5" -> point = milliers, virgule = décimal
+        final normalized = withoutSpaces.replaceAll('.', '').replaceAll(',', '.');
+        return double.tryParse(normalized) ?? 0.0;
+      } else {
+        // Format US : "9,954.5" -> virgule = milliers, point = décimal
+        final normalized = withoutSpaces.replaceAll(',', '');
+        return double.tryParse(normalized) ?? 0.0;
+      }
+    } else if (hasComma) {
+      // Seulement virgule : probablement format européen (virgule = décimal)
+      final normalized = withoutSpaces.replaceAll(',', '.');
+      return double.tryParse(normalized) ?? 0.0;
+    } else if (hasDot) {
+      // Seulement point : format US (point = décimal) ou milliers uniquement
+      // Si plusieurs points, c'est probablement des milliers
+      final dotCount = '.'.allMatches(withoutSpaces).length;
+      if (dotCount > 1) {
+        // Plusieurs points = séparateurs de milliers, pas de décimales
+        final normalized = withoutSpaces.replaceAll('.', '');
+        return double.tryParse(normalized) ?? 0.0;
+      } else {
+        // Un seul point = séparateur décimal
+        return double.tryParse(withoutSpaces) ?? 0.0;
+      }
+    } else {
+      // Pas de séparateur, nombre entier
+      return double.tryParse(withoutSpaces) ?? 0.0;
+    }
+  }
   return 0.0;
 }
+
+/// Fonction pure pour calculer les KPI Réceptions depuis des rows brutes
+/// 
+/// Cette fonction est 100% pure : pas de dépendance à Supabase, Riverpod, ou RLS.
+/// Elle peut être testée isolément avec des données mockées.
+/// 
+/// RÈGLE MÉTIER :
+/// - Pas de fallback automatique : si volume_15c est null, il reste à 0
+/// - Les écarts entre volume_ambiant et volume_15c sont visibles dans le KPI
+/// - Compte séparément les réceptions MONALUXE vs PARTENAIRE
+KpiReceptions computeKpiReceptions(List<Map<String, dynamic>> rows) {
+  var count = 0;
+  var volumeAmbient = 0.0;
+  var volume15c = 0.0;
+  var countMonaluxe = 0;
+  var countPartenaire = 0;
+
+  for (final row in rows) {
+    count++;
+
+    // Mapping strict des volumes - NE JAMAIS utiliser volume_ambiant comme fallback pour volume_15c
+    final vAmb = _toD(row['volume_ambiant']);
+    final v15c = _toD(row['volume_corrige_15c'] ?? row['volume_15c']);
+
+    volumeAmbient += vAmb;
+    volume15c += v15c;
+
+    // Comptage par type de propriétaire
+    final proprietaireType = (row['proprietaire_type'] as String?)?.toUpperCase();
+    if (proprietaireType == 'MONALUXE') {
+      countMonaluxe++;
+    } else if (proprietaireType == 'PARTENAIRE') {
+      countPartenaire++;
+    }
+  }
+
+  return KpiReceptions(
+    count: count,
+    volumeAmbient: volumeAmbient,
+    volume15c: volume15c,
+    countMonaluxe: countMonaluxe,
+    countPartenaire: countPartenaire,
+  );
+}
+
+/// Fonction pure pour calculer les KPI Sorties depuis des rows brutes
+/// 
+/// Cette fonction est 100% pure : pas de dépendance à Supabase, Riverpod, ou RLS.
+/// Elle peut être testée isolément avec des données mockées.
+/// 
+/// RÈGLE MÉTIER :
+/// - Pas de fallback automatique : si volume_15c est null, il reste à 0
+/// - Les écarts entre volume_ambiant et volume_15c sont visibles dans le KPI
+/// - Compte séparément les sorties MONALUXE vs PARTENAIRE
+KpiSorties computeKpiSorties(List<Map<String, dynamic>> rows) {
+  var count = 0;
+  var volumeAmbient = 0.0;
+  var volume15c = 0.0;
+  var countMonaluxe = 0;
+  var countPartenaire = 0;
+
+  for (final row in rows) {
+    count++;
+
+    // Mapping strict des volumes - NE JAMAIS utiliser volume_ambiant comme fallback pour volume_15c
+    // Priorité à volume_corrige_15c, sinon volume_15c, sinon 0
+    final vAmb = _toD(row['volume_ambiant']);
+    final v15c = _toD(row['volume_corrige_15c'] ?? row['volume_15c']);
+
+    volumeAmbient += vAmb;
+    volume15c += v15c;
+
+    // Comptage par type de propriétaire (normalisé en uppercase)
+    final proprietaireType = (row['proprietaire_type'] as String?)?.toUpperCase();
+    if (proprietaireType == 'MONALUXE') {
+      countMonaluxe++;
+    } else if (proprietaireType == 'PARTENAIRE') {
+      countPartenaire++;
+    }
+  }
+
+  return KpiSorties(
+    count: count,
+    volumeAmbient: volumeAmbient,
+    volume15c: volume15c,
+    countMonaluxe: countMonaluxe,
+    countPartenaire: countPartenaire,
+  );
+}
+
+/// Type alias pour les rows brutes de réceptions
+typedef ReceptionRow = Map<String, dynamic>;
+
+/// Type alias pour les rows brutes de sorties
+typedef SortieRow = Map<String, dynamic>;
+
+/// Provider brut pour les réceptions du jour (rows brutes depuis Supabase)
+/// 
+/// Ce provider est overridable dans les tests pour injecter des données mockées
+/// sans dépendre de Supabase ou de RLS.
+/// 
+/// Retourne les rows brutes avec les champs :
+/// - volume_corrige_15c (ou volume_15c)
+/// - volume_ambiant
+/// - proprietaire_type (optionnel)
+/// - id, date_reception, statut (pour debug)
+Future<List<ReceptionRow>> _fetchReceptionsRawOfDay(
+  SupabaseClient supa,
+  String? depotId,
+  DateTime today,
+) async {
+  // Formatage de la date pour la requête
+  final dayStr = '${today.year.toString().padLeft(4, '0')}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+  
+  print('🔍 DEBUG KPI: Recherche réceptions pour la date: $dayStr, depotId: $depotId');
+  
+  List result;
+  
+  if (depotId != null && depotId.isNotEmpty) {
+    // Filtrage par dépôt via citernes (inner join)
+    result = await supa
+        .from('receptions')
+        .select('id, volume_corrige_15c, volume_ambiant, proprietaire_type, date_reception, statut, citernes!inner(depot_id)')
+        .eq('statut', 'validee')
+        .eq('date_reception', dayStr)
+        .eq('citernes.depot_id', depotId);
+  } else {
+    // Global - récupérer toutes les réceptions validées du jour
+    result = await supa
+        .from('receptions')
+        .select('id, volume_corrige_15c, volume_ambiant, proprietaire_type, date_reception, statut')
+        .eq('statut', 'validee')
+        .eq('date_reception', dayStr);
+  }
+  
+  print('🔍 DEBUG KPI: Nombre de réceptions trouvées: ${result.length}');
+  
+  return List<Map<String, dynamic>>.from(result);
+}
+
+/// Provider brut pour les réceptions du jour (rows brutes)
+/// 
+/// Ce provider peut être override dans les tests avec des données mockées.
+final receptionsRawTodayProvider = FutureProvider.autoDispose<List<ReceptionRow>>((ref) async {
+  final profil = await ref.watch(profilProvider.future);
+  final depotId = profil?.depotId;
+  final now = DateTime.now().toUtc();
+  final today = DateTime.utc(now.year, now.month, now.day);
+  final supa = Supabase.instance.client;
+  
+  return _fetchReceptionsRawOfDay(supa, depotId, today);
+});
+
+/// Récupère les sorties du jour (rows brutes depuis Supabase)
+/// 
+/// Ce provider est overridable dans les tests pour injecter des données mockées
+/// sans dépendre de Supabase ou de RLS.
+/// 
+/// Retourne les rows brutes avec les champs :
+/// - volume_corrige_15c (ou volume_15c)
+/// - volume_ambiant
+/// - proprietaire_type (optionnel)
+/// - id, date_sortie, statut (pour debug)
+Future<List<SortieRow>> _fetchSortiesRawOfDay(
+  SupabaseClient supa,
+  String? depotId,
+  DateTime today,
+) async {
+  final dayStart = today.toUtc().toIso8601String();
+  final dayEnd = today.add(const Duration(days: 1)).toUtc().toIso8601String();
+  
+  print('🔍 DEBUG KPI: Recherche sorties pour la date: $dayStart -> $dayEnd, depotId: $depotId');
+  
+  List result;
+  
+  if (depotId != null && depotId.isNotEmpty) {
+    // Filtrage par dépôt via citernes (inner join)
+    result = await supa
+        .from('sorties_produit')
+        .select('id, volume_corrige_15c, volume_ambiant, proprietaire_type, date_sortie, statut, citernes!inner(depot_id)')
+        .eq('statut', 'validee')
+        .gte('date_sortie', dayStart)
+        .lt('date_sortie', dayEnd)
+        .eq('citernes.depot_id', depotId);
+  } else {
+    // Global - récupérer toutes les sorties validées du jour
+    result = await supa
+        .from('sorties_produit')
+        .select('id, volume_corrige_15c, volume_ambiant, proprietaire_type, date_sortie, statut')
+        .eq('statut', 'validee')
+        .gte('date_sortie', dayStart)
+        .lt('date_sortie', dayEnd);
+  }
+  
+  print('🔍 DEBUG KPI: Nombre de sorties trouvées: ${result.length}');
+  
+  return List<Map<String, dynamic>>.from(result);
+}
+
+/// Provider brut pour les sorties du jour (rows brutes)
+/// 
+/// Ce provider peut être override dans les tests avec des données mockées.
+final sortiesRawTodayProvider = FutureProvider.autoDispose<List<SortieRow>>((ref) async {
+  final profil = await ref.watch(profilProvider.future);
+  final depotId = profil?.depotId;
+  final now = DateTime.now().toUtc();
+  final today = DateTime.utc(now.year, now.month, now.day);
+  final supa = Supabase.instance.client;
+  
+  return _fetchSortiesRawOfDay(supa, depotId, today);
+});
 
 /// Provider unifié pour tous les KPIs du dashboard
 /// 
@@ -33,31 +296,29 @@ final kpiProviderProvider = FutureProvider.autoDispose<KpiSnapshot>((ref) async 
     final from7d = today.subtract(const Duration(days: 6));
     
     // 3) Requêtes parallèles pour optimiser les performances
-    // Utiliser le nouveau provider pour les réceptions
+    // Utiliser les nouveaux providers pour les réceptions et sorties (retournent KpiReceptions et KpiSorties)
     final receptionsKpi = await ref.watch(receptionsKpiTodayProvider.future);
+    final sortiesKpi = await ref.watch(sortiesKpiTodayProvider.future);
     
     final futures = await Future.wait([
-      _fetchSortiesOfDay(supa, depotId, today),
       _fetchStocksActuels(supa, depotId),
       _fetchTrucksToFollow(supa, depotId),
       _fetchTrend7d(supa, depotId, from7d, today),
     ]);
 
-    final sorties = futures[0] as _SortiesData;
-    final stocks = futures[1] as _StocksData;
-    final trucks = futures[2] as KpiTrucksToFollow;
-    final trend7d = futures[3] as List<KpiTrendPoint>;
+    final stocks = futures[0] as _StocksData;
+    final trucks = futures[1] as KpiTrucksToFollow;
+    final trend7d = futures[2] as List<KpiTrendPoint>;
   
   // 4) Construction du snapshot unifié avec null-safety
   
   // Debug temporaire (peut être retiré ensuite)
-  print('[KPI] receptions: 15C=${receptionsKpi.volume15c} | amb=${receptionsKpi.volumeAmbient} | count=${receptionsKpi.count}');
+  print('[KPI] receptions: 15C=${receptionsKpi.volume15c} | amb=${receptionsKpi.volumeAmbient} | count=${receptionsKpi.count} | monaluxe=${receptionsKpi.countMonaluxe} | partenaire=${receptionsKpi.countPartenaire}');
+  print('[KPI Sorties] count=${sortiesKpi.count}, mona=${sortiesKpi.countMonaluxe}, part=${sortiesKpi.countPartenaire}, vol15c=${sortiesKpi.volume15c}');
   
-  final sortiesKpi = KpiNumberVolume.fromNullable(
-    count: sorties.count,
-    volume15c: sorties.volume15c,
-    volumeAmbient: sorties.volumeAmbient,
-  );
+  // Convertir KpiReceptions et KpiSorties en KpiNumberVolume pour KpiSnapshot (compatibilité)
+  final receptionsKpiVolume = receptionsKpi.toKpiNumberVolume();
+  final sortiesKpiVolume = sortiesKpi.toKpiNumberVolume();
   
   final stocksKpi = KpiStocks.fromNullable(
     totalAmbient: stocks.totalAmbient,
@@ -70,18 +331,18 @@ final kpiProviderProvider = FutureProvider.autoDispose<KpiSnapshot>((ref) async 
   
   final balance = KpiBalanceToday.fromNullable(
     receptions15c: receptionsKpi.volume15c,
-    sorties15c: sorties.volume15c,
+    sorties15c: sortiesKpi.volume15c,
     receptionsAmbient: receptionsKpi.volumeAmbient,
-    sortiesAmbient: sorties.volumeAmbient,
+    sortiesAmbient: sortiesKpi.volumeAmbient,
   );
   
-  print('🔍 DEBUG KPI: Balance calculée - receptions15c=${receptionsKpi.volume15c}, sorties15c=${sorties.volume15c}');
-  print('🔍 DEBUG KPI: Balance calculée - receptionsAmbient=${receptionsKpi.volumeAmbient}, sortiesAmbient=${sorties.volumeAmbient}');
+  print('🔍 DEBUG KPI: Balance calculée - receptions15c=${receptionsKpi.volume15c}, sorties15c=${sortiesKpi.volume15c}');
+  print('🔍 DEBUG KPI: Balance calculée - receptionsAmbient=${receptionsKpi.volumeAmbient}, sortiesAmbient=${sortiesKpi.volumeAmbient}');
   print('🔍 DEBUG KPI: Balance finale - delta15c=${balance.delta15c}, deltaAmbient=${balance.deltaAmbient}');
   
     return KpiSnapshot(
-      receptionsToday: receptionsKpi,
-      sortiesToday: sortiesKpi,
+      receptionsToday: receptionsKpiVolume,
+      sortiesToday: sortiesKpiVolume,
       stocks: stocksKpi,
       balanceToday: balance,
       trucksToFollow: trucks,
@@ -97,32 +358,6 @@ final kpiProviderProvider = FutureProvider.autoDispose<KpiSnapshot>((ref) async 
 // FONCTIONS PRIVÉES DE RÉCUPÉRATION DES DONNÉES
 // ============================================================================
 
-/// Données temporaires pour les réceptions
-class _ReceptionsData {
-  final int count;
-  final double volume15c;
-  final double volumeAmbient;
-  
-  _ReceptionsData({
-    required this.count,
-    required this.volume15c,
-    required this.volumeAmbient,
-  });
-}
-
-/// Données temporaires pour les sorties
-class _SortiesData {
-  final int count;
-  final double volume15c;
-  final double volumeAmbient;
-  
-  _SortiesData({
-    required this.count,
-    required this.volume15c,
-    required this.volumeAmbient,
-  });
-}
-
 /// Données temporaires pour les stocks
 class _StocksData {
   final double totalAmbient;
@@ -134,123 +369,6 @@ class _StocksData {
     required this.total15c,
     required this.capacityTotal,
   });
-}
-
-/// Récupère les réceptions du jour
-Future<_ReceptionsData> _fetchReceptionsOfDay(
-  SupabaseClient supa,
-  String? depotId,
-  DateTime today,
-) async {
-  // Formatage de la date pour la requête
-  final dayStr = '${today.year.toString().padLeft(4, '0')}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
-  
-  print('🔍 DEBUG KPI: Recherche réceptions pour la date: $dayStr, depotId: $depotId');
-  
-  List result;
-  
-  if (depotId != null && depotId.isNotEmpty) {
-    // Filtrage par dépôt via citernes (inner join)
-    result = await supa
-        .from('receptions')
-        .select('id, volume_corrige_15c, volume_ambiant, citernes!inner(depot_id)')
-        .eq('statut', 'validee')
-        .eq('date_reception', dayStr)
-        .eq('citernes.depot_id', depotId);
-  } else {
-    // Global - récupérer toutes les réceptions validées du jour
-    result = await supa
-        .from('receptions')
-        .select('id, volume_corrige_15c, volume_ambiant, date_reception, statut')
-        .eq('statut', 'validee')
-        .eq('date_reception', dayStr);
-  }
-  
-  print('🔍 DEBUG KPI: Nombre de réceptions trouvées: ${result.length}');
-  
-  int count = 0;
-  double volume15c = 0.0;
-  double volumeAmbient = 0.0;
-  
-  for (final row in result) {
-    count++;
-    
-    // Mapping strict des volumes - NE JAMAIS utiliser volume_ambiant comme fallback pour volume_corrige_15c
-    final v15 = _toD(row['volume_corrige_15c']);
-    final va = _toD(row['volume_ambiant']);
-    
-    volume15c += v15;
-    volumeAmbient += va;
-    
-    // Debug détaillé pour chaque réception
-    print('🔍 DEBUG Réception $count: v15Raw=${row['volume_corrige_15c']}, vaRaw=${row['volume_ambiant']}');
-    print('🔍 DEBUG Réception $count: v15=$v15, va=$va, total15c=$volume15c, totalAmbient=$volumeAmbient');
-    print('🔍 DEBUG Réception $count: date=${row['date_reception']}, statut=${row['statut']}');
-  }
-  
-  print('🔍 DEBUG FINAL Réceptions du jour: count=$count, volume15c=$volume15c, volumeAmbient=$volumeAmbient');
-  
-  return _ReceptionsData(
-    count: count,
-    volume15c: volume15c,
-    volumeAmbient: volumeAmbient,
-  );
-}
-
-/// Récupère les sorties du jour
-Future<_SortiesData> _fetchSortiesOfDay(
-  SupabaseClient supa,
-  String? depotId,
-  DateTime today,
-) async {
-  final dayStart = today.toUtc().toIso8601String();
-  final dayEnd = today.add(const Duration(days: 1)).toUtc().toIso8601String();
-  
-  List result;
-  
-  if (depotId != null && depotId.isNotEmpty) {
-    // Filtrage par dépôt via citernes (inner join)
-    result = await supa
-        .from('sorties_produit')
-        .select('id, volume_corrige_15c, volume_ambiant, citernes!inner(depot_id)')
-        .eq('statut', 'validee')
-        .gte('date_sortie', dayStart)
-        .lt('date_sortie', dayEnd)
-        .eq('citernes.depot_id', depotId);
-  } else {
-    // Global
-    result = await supa
-        .from('sorties_produit')
-        .select('id, volume_corrige_15c, volume_ambiant')
-        .eq('statut', 'validee')
-        .gte('date_sortie', dayStart)
-        .lt('date_sortie', dayEnd);
-  }
-  
-  int count = 0;
-  double volume15c = 0.0;
-  double volumeAmbient = 0.0;
-  
-  for (final row in result) {
-    count++;
-    
-    // Mapping strict des volumes - NE JAMAIS utiliser volume_ambiant comme fallback pour volume_corrige_15c
-    final v15 = _toD(row['volume_corrige_15c']);
-    final va = _toD(row['volume_ambiant']);
-    
-    volume15c += v15;
-    volumeAmbient += va;
-    
-    // Debug pour les sorties
-    print('🔍 DEBUG Sortie $count: v15Raw=${row['volume_corrige_15c']}, vaRaw=${row['volume_ambiant']}');
-    print('🔍 DEBUG Sortie $count: v15=$v15, va=$va, total15c=$volume15c, totalAmbient=$volumeAmbient');
-  }
-  
-  return _SortiesData(
-    count: count,
-    volume15c: volume15c,
-    volumeAmbient: volumeAmbient,
-  );
 }
 
 /// Récupère les stocks actuels

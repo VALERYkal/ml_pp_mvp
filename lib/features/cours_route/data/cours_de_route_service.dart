@@ -85,6 +85,7 @@ class CoursDeRouteService {
   /// Utilisé pour :
   /// - Afficher les cours en cours dans l'interface
   /// - Filtrer les cours terminés
+  // 🚫 PROD-FROZEN: DECHARGE MUST be excluded from active CDRs. Used by coursDeRouteActifsProvider and KPI providers.
   Future<List<CoursDeRoute>> getActifs() async {
     try {
       final List<Map<String, dynamic>> response = await _supabase
@@ -287,6 +288,7 @@ class CoursDeRouteService {
   /// await service.updateStatut(id: 'uuid-123', to: StatutCours.transit);
   /// await service.updateStatut(id: 'uuid-123', to: StatutCours.decharge, fromReception: true);
   /// ```
+  // 🚫 PROD-FROZEN: ARRIVE → DECHARGE transition ONLY via fromReception=true. This is enforced at service level.
   Future<void> updateStatut({
     required String id,
     required StatutCours to,
@@ -441,6 +443,7 @@ class CoursDeRouteService {
   /// 
   /// Retourne :
   /// - `Future<Map<String, int>>` : Map avec les catégories métier
+  // 🚫 PROD-FROZEN: Category classification is locked. en_route=CHARGEMENT+TRANSIT+FRONTIERE, en_attente=ARRIVE, termines=DECHARGE. Used by KPI providers.
   Future<Map<String, int>> countByCategorie() async {
     final out = <String, int>{};
     

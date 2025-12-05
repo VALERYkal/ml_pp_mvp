@@ -1,40 +1,41 @@
-// 📌 Module : Réceptions - Repository KPI
-// 🧭 Description : Repository pour les KPI des réceptions (agrégations Supabase)
+// 📌 Module : Sorties - Repository KPI
+// 🧭 Description : Repository pour les KPI des sorties (agrégations Supabase)
 
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ml_pp_mvp/features/kpi/models/kpi_models.dart';
 
-class ReceptionsKpiRepository {
+class SortiesKpiRepository {
   final SupabaseClient client;
 
-  ReceptionsKpiRepository(this.client);
+  SortiesKpiRepository(this.client);
 
-  /// 🚨 PROD-LOCK: Structure KPI Réceptions du jour - DO NOT MODIFY
-  /// Retourne les KPI "réceptions du jour" sous forme de KpiNumberVolume
+  /// 🚨 PROD-LOCK: Structure KPI Sorties du jour - DO NOT MODIFY
+  /// Retourne les KPI "sorties du jour" sous forme de KpiNumberVolume
   /// 
   /// Filtre par :
-  /// - date_reception == jour (format YYYY-MM-DD)
+  /// - date_sortie dans le jour donné (format TIMESTAMPTZ, comparaison >= jour 00:00 et < jour+1 00:00)
   /// - statut == 'validee' (OBLIGATOIRE - ne pas accepter 'brouillon')
   /// - depotId (optionnel) : filtre par dépôt via citernes
   /// 
   /// Agrège :
-  /// - count : nombre de réceptions
+  /// - count : nombre de sorties
   /// - volume15c : somme de volume_corrige_15c
   /// - volumeAmbient : somme de volume_ambiant
   /// 
   /// Si cette structure est modifiée, mettre à jour:
-  /// - Tests KPI (receptions_kpi_repository_test.dart, receptions_kpi_provider_test.dart)
+  /// - Tests KPI (sorties_kpi_repository_test.dart, sorties_kpi_provider_test.dart)
   /// - Dashboard (affichage KPI)
   /// - Documentation KPI
-  Future<KpiNumberVolume> getReceptionsKpiForDay(
+  Future<KpiNumberVolume> getSortiesKpiForDay(
     DateTime day, {
     String? depotId,
   }) async {
-    // 1. Calculer la date du jour (sans l'heure) au format YYYY-MM-DD
-    final dateStr = '${day.year.toString().padLeft(4, '0')}-'
-        '${day.month.toString().padLeft(2, '0')}-'
-        '${day.day.toString().padLeft(2, '0')}';
+    // 1. Calculer les bornes du jour (00:00:00 UTC du jour et 00:00:00 UTC du jour suivant)
+    final dayStart = DateTime.utc(day.year, day.month, day.day);
+    final dayEnd = dayStart.add(const Duration(days: 1));
+    final dayStartIso = dayStart.toIso8601String();
+    final dayEndIso = dayEnd.toIso8601String();
 
     try {
       // 2. Requête Supabase avec filtres
@@ -43,22 +44,25 @@ class ReceptionsKpiRepository {
       if (depotId != null && depotId.isNotEmpty) {
         // Filtrage par dépôt via citernes (inner join)
         result = await client
-            .from('receptions')
+            .from('sorties_produit')
             .select('volume_corrige_15c, volume_ambiant, citernes!inner(depot_id)')
-            .eq('date_reception', dateStr)
             .eq('statut', 'validee')
+            .gte('date_sortie', dayStartIso)
+            .lt('date_sortie', dayEndIso)
             .eq('citernes.depot_id', depotId);
       } else {
-        // Global - récupérer toutes les réceptions validées du jour
+        // Global - récupérer toutes les sorties validées du jour
         result = await client
-            .from('receptions')
+            .from('sorties_produit')
             .select('volume_corrige_15c, volume_ambiant')
-            .eq('date_reception', dateStr)
-            .eq('statut', 'validee');
+            .eq('statut', 'validee')
+            .gte('date_sortie', dayStartIso)
+            .lt('date_sortie', dayEndIso);
       }
 
       final response = result;
 
+      // 🚨 PROD-LOCK: KPI aggregation logic, update tests if modified.
       // 3. Agrégation côté Dart
       int count = 0;
       double volume15c = 0.0;
@@ -87,11 +91,11 @@ class ReceptionsKpiRepository {
       // En cas d'erreur, loguer et retourner des valeurs zéro
       // Structure KPI: count + volume15c + volumeAmbient (toujours présents)
       // Si cette structure est modifiée, mettre à jour:
-      // - Tests KPI (receptions_kpi_repository_test.dart, receptions_kpi_provider_test.dart)
+      // - Tests KPI (sorties_kpi_repository_test.dart, sorties_kpi_provider_test.dart)
       // - Dashboard (affichage KPI)
       // - Documentation KPI
       
-      debugPrint('[ReceptionsKpiRepository] Erreur lors de la récupération des KPI: $e');
+      debugPrint('[SortiesKpiRepository] Erreur lors de la récupération des KPI: $e');
       return KpiNumberVolume.zero;
     }
   }

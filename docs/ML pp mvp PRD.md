@@ -1,8 +1,9 @@
-
-# PRD – ML_PP MVP v3.0
+# PRD – ML_PP MVP v4.0 (Décembre 2025)
 
 ## 📌 Objectif général
 Créer une application de gestion logistique pétrolière pour Monaluxe permettant de suivre les flux de carburant à travers les modules : authentification, cours de route, réception, sorties, citernes, stock journalier, logs et dashboard.
+
+**Architecture technique** : Application Flutter avec backend PostgreSQL/Supabase, logique métier centralisée dans les triggers SQL, séparation claire des responsabilités (DB, service, UI), architecture KPI testable et maintenable.
 
 ---
 
@@ -11,37 +12,79 @@ Créer une application de gestion logistique pétrolière pour Monaluxe permetta
 ### 🔐 Authentification
 - Connexion sécurisée via Supabase
 - Gestion des rôles : admin, directeur, gérant, opérateur, pca, lecture
+- Row Level Security (RLS) activée sur toutes les tables sensibles
+- Audit trail pour chaque action critique
 
 ### 🛣 Cours de Route
 - Création dès le chargement chez le fournisseur
 - Champs : produit, plaques, transporteur, date, volume, etc.
-- Statuts : chargement → transit → frontière → arrivé
-- Une fois le statut “arrivé” atteint, déclenchement du formulaire de réception
-- Les cours “déchargés” ne sont plus visibles dans la liste principale
+- Statuts : `CHARGEMENT` → `TRANSIT` → `FRONTIERE` → `ARRIVE` → `DECHARGE`
+- Une fois le statut "ARRIVE" atteint, déclenchement du formulaire de réception
+- Les cours "DECHARGE" ne sont plus visibles dans la liste principale
+- **Trigger automatique** : Passage à `DECHARGE` lors de la création d'une réception liée
 
 ### 📥 Réception Produit
-#### Cas 1 : Propriétaire = Monaluxe
-- Liée à un cours de route
+
+#### Architecture Backend (PostgreSQL)
+- **Trigger unifié** : `fn_receptions_after_insert()` (via `receptions_apply_effects()`)
+- **Fonction de stock** : `stock_upsert_journalier()` avec support `proprietaire_type`, `depot_id`, `source`
+- **Validation métier centralisée** :
+  - Citerne active et compatible avec le produit
+  - Indices cohérents (`index_avant >= 0`, `index_apres > index_avant`)
+  - Calcul automatique du volume ambiant si non fourni
+  - Calcul du volume corrigé 15°C
+- **Mise à jour stocks** : Incrément automatique dans `stocks_journaliers` avec séparation par `proprietaire_type`
+- **Journalisation** : Enregistrement automatique dans `log_actions` avec `action = 'RECEPTION_CREEE'`
+
+#### Cas 1 : Propriétaire = MONALUXE
+- Liée à un cours de route (optionnel)
 - Validation par admin/directeur/gérant
 - Vérification des documents, mesure volume, température, densité
-- Calcul volume 15°C
+- Calcul volume 15°C (OBLIGATOIRE : température et densité requises)
 - Affectation à une citerne compatible
-- Mise à jour stock Monaluxe
+- Mise à jour stock MONALUXE (séparé du stock PARTENAIRE)
 - Journalisation (log_actions)
 
-#### Cas 2 : Propriétaire = Partenaire
+#### Cas 2 : Propriétaire = PARTENAIRE
 - Sans lien avec un cours de route
 - Même processus métier que ci-dessus
 - Affectation à une citerne théoriquement partagée
-- Stock non intégré au stock disponible Monaluxe
+- Stock PARTENAIRE non intégré au stock disponible MONALUXE
+- Séparation complète des stocks par `proprietaire_type` dans `stocks_journaliers`
+
+#### Architecture Frontend (Flutter)
+- **Service** : `ReceptionService.createValidated()` avec validations métier
+- **Formulaire** : Champs obligatoires (produit, citerne, `index_avant`, `index_apres`, température, densité)
+- **Calculs** : Volume ambiant = `index_apres - index_avant`, Volume 15°C calculé automatiquement
+- **Gestion d'erreurs** : Mapping des erreurs SQL vers messages utilisateur lisibles
 
 ### 📤 Sortie Produit
-- Dédution du stock Monaluxe ou partenaire
+
+#### Architecture Backend (PostgreSQL)
+- **Trigger unifié** : `fn_sorties_after_insert()` (remplace les anciens triggers séparés)
+- **Validation métier centralisée** :
+  - Citerne active et compatible avec le produit
+  - Indices cohérents (`index_avant >= 0`, `index_apres > index_avant`)
+  - Propriétaire cohérent : `MONALUXE` → `client_id` obligatoire, `PARTENAIRE` → `partenaire_id` obligatoire
+  - Vérification stock disponible (stock du jour ≥ volume ambiant)
+  - Respect de la capacité de sécurité de la citerne
+- **Mise à jour stocks** : Débit automatique dans `stocks_journaliers` avec séparation par `proprietaire_type`
+- **Journalisation** : Enregistrement automatique dans `log_actions` avec `action = 'SORTIE_CREEE'`
+
+#### Fonctionnalités
+- Déduction du stock MONALUXE ou PARTENAIRE (séparés)
 - Sélection produit + citerne + propriétaire
 - Mesure volume brut/température/densité
-- Calcul du volume à 15°C
-- Journalisation (log_actions)
-- Multi-citerne → Une sortie peut puiser dans plusieurs citernes
+- Calcul du volume à 15°C (OBLIGATOIRE : température et densité requises)
+- **Contrainte bénéficiaire** : Au moins un bénéficiaire (`client_id` OU `partenaire_id`)
+- **Mono-citerne** : Une sortie ne peut concerner qu'une seule citerne (limitation MVP)
+
+#### Architecture Frontend (Flutter)
+- **Service** : `SortieService.createValidated()` avec validations métier
+- **Exception dédiée** : `SortieServiceException` pour erreurs SQL/DB
+- **Mapping d'erreurs** : Messages utilisateur lisibles pour chaque erreur du trigger
+- **Formulaire** : Champs obligatoires (produit, citerne, `index_avant`, `index_apres`, température, densité, bénéficiaire)
+- **Gestion d'erreurs** : Affichage des erreurs SQL dans des SnackBars avec messages clairs
 
 ### 🛢 Citernes
 - Champs : nom, capacité, sécurité, produit, statut (active/inactive)
@@ -49,12 +92,29 @@ Créer une application de gestion logistique pétrolière pour Monaluxe permetta
 - Gestion théorique des volumes par propriétaire
 - Pas de mélange de produits, mais mélange de propriétaires autorisé
 - Journalisation : création, modification, désactivation
+- **Validation** : Vérification produit/citerne avant insertion sortie/réception
 
 ### 📊 Stocks Journaliers
+
+#### Architecture Backend
+- **Table** : `stocks_journaliers` avec colonnes enrichies :
+  - `citerne_id`, `produit_id`, `date_jour` (clés primaires)
+  - `proprietaire_type` (MONALUXE | PARTENAIRE) - **NOUVEAU**
+  - `depot_id` (référence au dépôt) - **NOUVEAU**
+  - `source` (RECEPTION | SORTIE | MANUAL) - **NOUVEAU**
+  - `stock_ambiant`, `stock_15c` (volumes)
+  - `created_at`, `updated_at` (audit)
+- **Contrainte UNIQUE** : `(citerne_id, produit_id, date_jour, proprietaire_type)`
+- **Séparation des stocks** : Les stocks MONALUXE et PARTENAIRE sont complètement séparés
+- **Génération automatique** : Après chaque réception/sortie validée via triggers
+- **Fonction upsert** : `stock_upsert_journalier()` avec support `proprietaire_type`, `depot_id`, `source`
+
+#### Fonctionnalités
 - Générés automatiquement après chaque réception/sortie validée
 - Lecture seule sauf action manuelle admin
-- Affichage brut / 15 °C / par citerne / par propriétaire
-- Exportables en CSV ou PDF
+- Affichage brut / 15°C / par citerne / par propriétaire
+- Exportables en CSV ou PDF (à venir)
+- **Séparation par propriétaire** : Filtrage et agrégation par `proprietaire_type`
 
 ### 📚 Référentiels (Lecture seule via Supabase)
 - Fournisseurs
@@ -62,21 +122,94 @@ Créer une application de gestion logistique pétrolière pour Monaluxe permetta
 - Dépôts
 - Clients
 - Citernes
+- Partenaires
 **⚠️ Alimentation manuelle via Supabase (admin uniquement)**
 
 ### 📈 Dashboard
+
+#### Architecture KPI (Production-Ready)
+- **Architecture modulaire** :
+  - **Providers bruts** : `receptionsRawTodayProvider`, `sortiesRawTodayProvider` (rows brutes depuis Supabase)
+  - **Fonctions pures** : `computeKpiReceptions()`, `computeKpiSorties()` (calcul métier isolé, testable)
+  - **Providers KPI** : `receptionsKpiTodayProvider`, `sortiesKpiTodayProvider` (orchestration)
+  - **Provider global** : `kpiProviderProvider` (agrégation dans `KpiSnapshot`)
+- **Modèles enrichis** :
+  - `KpiReceptions` : `count`, `volumeAmbient`, `volume15c`, `countMonaluxe`, `countPartenaire`
+  - `KpiSorties` : `count`, `volumeAmbient`, `volume15c`, `countMonaluxe`, `countPartenaire`
+  - `KpiSnapshot` : Agrégation de tous les KPI (réceptions, sorties, stocks, balance, tendances, alertes)
+- **Testabilité** : Architecture 100% testable sans dépendance à Supabase (injection de données mockées)
+
+#### Fonctionnalités
 - Récap volumes stockés, reçus, sortis
-- Filtres : date, produit, citerne, propriétaire
+- **KPI Réceptions du jour** : Count, volumes (ambiant/15°C), répartition MONALUXE/PARTENAIRE
+- **KPI Sorties du jour** : Count, volumes (ambiant/15°C), répartition MONALUXE/PARTENAIRE
+- **KPI Stocks** : Stocks totaux par citerne, alertes de sécurité
+- **KPI Balance** : Balance du jour (réceptions - sorties)
+- **Tendances 7 jours** : Graphique des volumes sur 7 jours
+- **Camions à suivre** : Cours de route en cours (CHARGEMENT, TRANSIT, FRONTIERE, ARRIVE)
+- Filtres : date, produit, citerne, propriétaire (à venir)
 - Alertes :
   - ❗ Seuil de sécurité bas
   - 🛢 Citerne vide ou inactive
-  - 🚫 Erreur de validation d’une sortie ou réception
-  - 🔐 Tentative d’accès non autorisé
+  - 🚫 Erreur de validation d'une sortie ou réception
+  - 🔐 Tentative d'accès non autorisé
 
 ### 🧾 Logs
-- Toutes actions critiques sont historisées
-- Exemples : RECEPTION_CREEE, SORTIE_VALIDE, CITERNE_MODIFIEE
+- Toutes actions critiques sont historisées dans `log_actions`
+- Exemples : `RECEPTION_CREEE`, `SORTIE_CREEE`, `CITERNE_MODIFIEE`
+- Champs : `user_id`, `action`, `module`, `niveau`, `details` (JSONB), `cible_id`, `created_at`
 - Visible selon rôle
+- **Journalisation automatique** : Via triggers SQL pour réceptions et sorties
+
+---
+
+## 🏗️ Architecture Technique
+
+### Backend (PostgreSQL/Supabase)
+
+#### Triggers et Fonctions SQL
+- **Réceptions** :
+  - `receptions_apply_effects()` : Calcul volumes, crédit stock, passage cours de route à DECHARGE
+  - `receptions_log_created()` : Journalisation
+  - `trg_receptions_apply_effects` : AFTER INSERT
+  - `trg_receptions_log_created` : AFTER INSERT
+- **Sorties** :
+  - `fn_sorties_after_insert()` : **Trigger unifié** (validation, débit stock, journalisation)
+  - `sorties_check_produit_citerne()` : Validation produit/citerne (BEFORE INSERT)
+  - `sortie_before_upd_trg()` : Immutabilité hors brouillon (BEFORE UPDATE)
+  - `trg_sorties_after_insert` : AFTER INSERT (unifié)
+  - `trg_sorties_check_produit_citerne` : BEFORE INSERT
+  - `trg_sortie_before_upd_trg` : BEFORE UPDATE
+- **Stocks** :
+  - `stock_upsert_journalier()` : Upsert avec support `proprietaire_type`, `depot_id`, `source`
+  - Contrainte UNIQUE : `(citerne_id, produit_id, date_jour, proprietaire_type)`
+
+#### Migrations SQL
+- **Idempotentes** : Toutes les migrations peuvent être rejouées sans erreur
+- **Structure** : Sections claires avec commentaires (STEP 1, STEP 2, etc.)
+- **Backfill** : Mise à jour des données existantes avec valeurs par défaut
+- **Index** : Index composites pour performance
+
+### Frontend (Flutter)
+
+#### Architecture KPI
+- **Séparation des responsabilités** :
+  - **Accès DB** : Providers bruts (`*RawTodayProvider`)
+  - **Calcul métier** : Fonctions pures (`computeKpi*()`)
+  - **Orchestration** : Providers KPI (`*KpiTodayProvider`)
+- **Testabilité** : Injection de données mockées dans les tests
+- **Maintenabilité** : Code clair, documenté, cohérent entre Réceptions et Sorties
+
+#### Gestion d'erreurs
+- **Exceptions métier** : `SortieValidationException` (validations côté Flutter)
+- **Exceptions service** : `SortieServiceException` (erreurs SQL/DB)
+- **Mapping** : Messages utilisateur lisibles pour chaque erreur du trigger
+- **Affichage** : SnackBars avec messages clairs et codes d'erreur
+
+#### State Management
+- **Riverpod** : Providers pour données, services, état
+- **Auto-dispose** : Providers auto-dispose pour performance
+- **Invalidation** : Invalidation automatique après création/modification
 
 ---
 
@@ -85,122 +218,176 @@ Créer une application de gestion logistique pétrolière pour Monaluxe permetta
 - 🧾 RLS activées par table
 - Tables sécurisées par rôle utilisateur
 - Audit trail pour chaque action critique
+- **Fonctions SECURITY DEFINER** : Triggers et fonctions avec privilèges élevés pour logique métier
 
 ---
 
 ## ❗ Gestion des erreurs critiques
+
+### Backend (Triggers SQL)
 - ❌ Volume > capacité citerne → erreur bloquante
-- ❌ Volume négatif → rejet de l’enregistrement
+- ❌ Volume négatif → rejet de l'enregistrement
 - ❌ Saisie dans citerne inactive → rejet
-- ⚠ Rôle non autorisé → interdiction d’action (lecture seule)
+- ❌ Produit incompatible avec citerne → rejet
+- ❌ Stock insuffisant → rejet
+- ❌ Dépassement capacité de sécurité → rejet
+- ❌ MONALUXE sans client_id → rejet
+- ❌ PARTENAIRE sans partenaire_id → rejet
+- ❌ Indices incohérents → rejet
+
+### Frontend (Flutter)
+- ⚠ Rôle non autorisé → interdiction d'action (lecture seule)
+- ⚠ Erreurs SQL → Messages utilisateur lisibles via `SortieServiceException`
+- ⚠ Validations métier → Messages clairs via `SortieValidationException`
 
 ---
 
-## 🧪 Tests critiques recommandés
-- ✅ Tester qu’un opérateur ne peut pas valider une réception
+## 🧪 Tests
+
+### Tests Backend (SQL)
+- **Documentation de tests manuels** : `docs/db/sorties_trigger_tests.md`
+  - 12 cas de test (4 OK, 8 ERREUR)
+  - SQL prêt à exécuter dans Supabase SQL Editor
+  - Vérifications `stocks_journaliers` et `log_actions`
+
+### Tests Frontend (Flutter)
+
+#### Tests Unitaires
+- **Fonctions pures KPI** : `computeKpiReceptions()`, `computeKpiSorties()`
+  - Tests isolés sans dépendance à Supabase
+  - Gestion formats numériques (virgules, points, espaces)
+  - Comptage MONALUXE/PARTENAIRE
+- **Services** : `SortieService`, `ReceptionService`
+  - Validations métier
+  - Gestion d'erreurs
+  - Mapping erreurs SQL
+
+#### Tests Providers
+- **Providers KPI** : `receptionsKpiTodayProvider`, `sortiesKpiTodayProvider`
+  - Injection de données mockées
+  - Agrégation correcte
+  - Conversion en modèles
+
+#### Tests Widgets
+- **Dashboard** : Carte KPI Réceptions, Carte KPI Sorties
+- **Formulaires** : Réception, Sortie
+- **Listes** : Réceptions, Sorties
+
+#### Tests d'Intégration (SKIP par défaut)
+- **Sorties → Stocks** : `sortie_stocks_integration_test.dart`
+  - Vérification mise à jour `stocks_journaliers` via trigger
+  - Vérification séparation MONALUXE/PARTENAIRE
+  - Vérification `log_actions`
+
+### Tests Critiques Recommandés
+- ✅ Tester qu'un opérateur ne peut pas valider une réception
 - ✅ Valider une sortie sur une citerne partagée (stock partenaire)
-- ✅ Vérifier que les volumes à 15 °C sont calculés correctement
+- ✅ Vérifier que les volumes à 15°C sont calculés correctement
 - ✅ Recalcul des stocks après réception/sortie
 - ✅ Vérifier comportement des alertes du dashboard
+- ✅ Vérifier séparation des stocks MONALUXE vs PARTENAIRE
+- ✅ Vérifier journalisation automatique dans `log_actions`
 
 ---
 
 ## 📖 Glossaire des termes métier
 | Terme                  | Définition |
 |------------------------|------------|
-| Volume à 15 °C         | Volume corrigé à température de référence |
+| Volume à 15°C         | Volume corrigé à température de référence (15°C) |
 | BL/CMR                 | Bordereau de Livraison / Convention Marchandise Routière |
 | Capacité de sécurité   | Volume réservé pour la sécurité (ex. incendie) |
 | Partenaire             | Client ou fournisseur tiers non-Monaluxe |
 | Cours de route         | Transport entrant de produits avant réception |
 | RLS (Row Level Security)| Mécanisme de filtrage par utilisateur Supabase |
+| Propriétaire           | Type de propriétaire du stock (MONALUXE ou PARTENAIRE) |
+| Index                  | Mesure de niveau dans une citerne (avant/après) |
+| Stock journalier       | Stock calculé par jour, par citerne, par produit, par propriétaire |
 
 ---
 
 ## ⚠ Risques anticipés
-- ⚡ Recalculs de stock fréquents → impact performance
+- ⚡ Recalculs de stock fréquents → impact performance (mitigé par index composites)
 - 📊 Affichage de gros volumes de données (stocks journaliers) → pagination nécessaire
-- 🔒 Sécurité des rôles mal définie → exposition des données sensibles
-- 🌐 Connectivité lente → fallback partiel offline requis
+- 🔒 Sécurité des rôles mal définie → exposition des données sensibles (mitigé par RLS)
+- 🌐 Connectivité lente → fallback partiel offline requis (à venir)
+- 🔄 Synchronisation stocks MONALUXE/PARTENAIRE → validation manuelle recommandée
 
+---
 
-### SUPPLÉMENT PRD – Version MVP août 2025
+## 📋 SUPPLÉMENT PRD – Version MVP Décembre 2025
 
-#### 1) Réception Produit (mono-citerne, index)
-- Limitation MVP
-  - Une réception ne peut concerner qu’une seule citerne.
-- Données obligatoires (nouveau)
-  - `index_avant` (double precision, NOT NULL)
-  - `index_apres` (double precision, NOT NULL)
-- Calculs
-  - Le volume ambiant est déduit de la différence `index_apres - index_avant`.
-  - Le volume corrigé à 15 °C est calculé à partir du volume ambiant, de `temperature_ambiante_c` et de `densite_a_15`.
-- Clés et intégrité
-  - `citerne_id` et `produit_id` sont désormais NOT NULL.
-  - La propriété (`proprietaire_type` = MONALUXE | PARTENAIRE) est conservée, avec validations métier inchangées.
-- Impacts fonctionnels
-  - Validation des indices (≥ 0 et `index_apres > index_avant`).
-  - Mise à jour des stocks journaliers (incrément) après validation.
+### 1) Architecture KPI Production-Ready
 
-#### 2) Sortie Produit (mono-citerne, bénéficiaire obligatoire)
-- Limitation MVP
-  - Une sortie ne peut concerner qu’une seule citerne.
-- Données obligatoires (nouveau)
-  - `index_avant` (double precision, NOT NULL)
-  - `index_apres` (double precision, NOT NULL)
-  - `citerne_id` et `produit_id` (NOT NULL)
-- Bénéficiaire (nouvelle contrainte)
-  - Au moins un bénéficiaire doit être défini: `client_id` IS NOT NULL OU `partenaire_id` IS NOT NULL.
-- Calculs et mesures
-  - Le volume ambiant est déduit de la différence `index_apres - index_avant`.
-  - Conserver `volume_corrige_15c`, `temperature_ambiante_c`, `densite_a_15` pour calcul réglementaire.
-- Impacts fonctionnels
-  - Vérification produit/citerne (pas de mélange).
-  - Vérification de disponibilité du stock (stock du jour ≥ volume ambiant).
-  - Mise à jour des stocks journaliers (décrément) après validation.
+#### Réceptions et Sorties
+- **Fonctions pures** : `computeKpiReceptions()`, `computeKpiSorties()`
+  - 100% testables sans dépendance à Supabase
+  - Gestion robuste des formats numériques
+  - Comptage séparé MONALUXE/PARTENAIRE
+- **Providers bruts** : `receptionsRawTodayProvider`, `sortiesRawTodayProvider`
+  - Overridables dans les tests
+  - Injection de données mockées
+- **Modèles enrichis** : `KpiReceptions`, `KpiSorties`
+  - Champs : `count`, `volumeAmbient`, `volume15c`, `countMonaluxe`, `countPartenaire`
+  - Méthode `toKpiNumberVolume()` pour compatibilité
+- **Tests complets** : Unitaires, providers, widgets
 
-#### 3) Nouvelles contraintes DB
-- Réceptions
-  ```sql
-  ALTER TABLE public.receptions
-  ALTER COLUMN citerne_id SET NOT NULL,
-  ALTER COLUMN produit_id SET NOT NULL;
-  ```
-- Sorties produit
-  ```sql
-  ALTER TABLE public.sorties_produit
-  ALTER COLUMN citerne_id SET NOT NULL,
-  ALTER COLUMN produit_id SET NOT NULL,
-  ADD CONSTRAINT sorties_produit_beneficiaire_check
-    CHECK (client_id IS NOT NULL OR partenaire_id IS NOT NULL);
-  ```
+### 2) Backend SQL - Triggers Unifiés
 
-#### 4) Impact sur les workflows, UI et validations (Flutter)
-- Formulaire Réception (MVP)
-  - Champs requis: produit, citerne, `index_avant`, `index_apres`.
-  - Validations UI:
-    - `index_avant >= 0`, `index_apres >= 0`, et `index_apres > index_avant`.
-    - produit/citerne sélectionnés.
-  - Calculs:
-    - Volume ambiant = `index_apres - index_avant`.
-    - Volume 15 °C calculé (si `temperature_ambiante_c` et `densite_a_15` fournis; sinon fallback MVP).
-  - Stock:
-    - Incrément du stock journalier après validation.
-- Formulaire Sortie (MVP)
-  - Champs requis: produit, citerne, `index_avant`, `index_apres`, et (client OU partenaire).
-  - Validations UI:
-    - `index_avant >= 0`, `index_apres >= 0`, et `index_apres > index_avant`.
-    - produit/citerne sélectionnés.
-    - bénéficiaire obligatoire (client ou partenaire).
-  - Calculs:
-    - Volume ambiant = `index_apres - index_avant`.
-    - Volume 15 °C calculé (si mesures fournies; sinon fallback MVP).
-  - Stock:
-    - Décrément du stock journalier après validation.
-- Messagerie d’erreur
-  - Messages explicites pour chaque contrainte (indices, sélections, bénéficiaire).
-- Tests (unitaires & E2E)
-  - Adapter les scénarios pour couvrir:
-    - Réception: indices incohérents, citerne inactive, produit incompatible, capacité insuffisante.
-    - Sortie: indices incohérents, citerne inactive, produit incompatible, stock insuffisant, bénéficiaire manquant.
-  - Vérifier l’impact sur MAJ des stocks journaliers (incrément/décrément) et la journalisation (log_actions).
+#### Réceptions
+- **Trigger unifié** : `receptions_apply_effects()`
+  - Calcul volumes (ambiant, 15°C)
+  - Crédit stock via `stock_upsert_journalier()`
+  - Passage cours de route à DECHARGE
+  - Journalisation automatique
+
+#### Sorties
+- **Trigger unifié** : `fn_sorties_after_insert()`
+  - Validation métier complète (citerne, produit, stock, propriétaire)
+  - Débit stock via `stock_upsert_journalier()` avec volumes négatifs
+  - Journalisation automatique
+  - Remplace les anciens triggers séparés
+
+#### Stocks Journaliers
+- **Migration** : Ajout colonnes `proprietaire_type`, `depot_id`, `source`
+- **Contrainte UNIQUE** : `(citerne_id, produit_id, date_jour, proprietaire_type)`
+- **Séparation complète** : Stocks MONALUXE et PARTENAIRE séparés
+- **Fonction upsert** : `stock_upsert_journalier()` avec support nouveaux paramètres
+
+### 3) Gestion d'erreurs robuste
+
+#### Frontend
+- **Exception dédiée** : `SortieServiceException` pour erreurs SQL/DB
+- **Mapping d'erreurs** : Messages utilisateur lisibles pour chaque erreur du trigger
+- **Affichage** : SnackBars avec messages clairs et codes d'erreur
+
+#### Backend
+- **Messages d'erreur explicites** : Chaque validation retourne un message clair
+- **Codes d'erreur** : Codes PostgreSQL standard (23505 pour unique violation, etc.)
+
+### 4) Documentation et Tests
+
+#### Documentation
+- **Tests manuels** : `docs/db/sorties_trigger_tests.md` avec 12 cas de test
+- **Migrations** : Commentaires clairs, sections structurées
+- **CHANGELOG** : Documentation complète des évolutions
+
+#### Tests
+- **Unitaires** : Fonctions pures, services, providers
+- **Widgets** : Dashboard, formulaires, listes
+- **Intégration** : Tests SKIP par défaut (activation manuelle)
+
+---
+
+## 🎯 Prochaines étapes recommandées
+
+1. **Validation manuelle du trigger SQL** : Exécuter les 12 tests manuels dans Supabase
+2. **Activation tests d'intégration** : Configurer SupabaseClient de test et activer les tests SKIP
+3. **Améliorations UX** : Badges propriétaire, filtres avancés, indicateurs visuels
+4. **Export CSV/PDF** : Stocks journaliers, réceptions, sorties
+5. **Offline mode** : Cache local pour fonctionnement hors ligne partiel
+
+---
+
+**Version** : 4.0  
+**Date** : Décembre 2025  
+**Dernière mise à jour** : 02/12/2025

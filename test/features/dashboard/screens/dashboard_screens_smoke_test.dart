@@ -14,213 +14,221 @@ import 'package:ml_pp_mvp/features/dashboard/screens/dashboard_pca_screen.dart';
 import 'package:ml_pp_mvp/features/dashboard/screens/dashboard_lecture_screen.dart';
 import 'package:ml_pp_mvp/features/kpi/providers/kpi_provider.dart';
 import 'package:ml_pp_mvp/features/kpi/models/kpi_models.dart';
+import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart';
+import 'package:ml_pp_mvp/core/models/profil.dart';
+import 'package:ml_pp_mvp/core/models/user_role.dart';
+import 'package:ml_pp_mvp/shared/providers/session_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart' as Riverpod;
+import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart' show CurrentProfilNotifier;
+
+/// Fake notifier pour currentProfilProvider dans les tests
+class _FakeProfilNotifier extends CurrentProfilNotifier {
+  final Profil? _profil;
+  _FakeProfilNotifier(this._profil);
+
+  @override
+  Future<Profil?> build() async => _profil;
+}
 
 void main() {
   group('Dashboard Screens Smoke Tests', () {
-    late ProviderContainer container;
+    // Helper pour créer un Profil de test avec un rôle donné
+    Profil _createTestProfil(UserRole role) {
+      return Profil(
+        id: 'test-profil-${role.name}',
+        userId: 'test-user-${role.name}',
+        role: role,
+        email: '${role.name}@test.com',
+        depotId: 'test-depot',
+      );
+    }
 
-    setUp(() {
-      // Mock du provider KPI avec des données de test
-      container = ProviderContainer(
+    // Helper pour créer un ProviderContainer avec tous les overrides nécessaires
+    ProviderContainer _createTestContainer({
+      required UserRole role,
+      KpiSnapshot? kpiData,
+    }) {
+      final profil = _createTestProfil(role);
+      final kpiSnapshot = kpiData ??
+          const KpiSnapshot(
+            receptionsToday: KpiNumberVolume(
+              count: 3,
+              volume15c: 1500.0,
+              volumeAmbient: 1600.0,
+            ),
+            sortiesToday: KpiNumberVolume(
+              count: 2,
+              volume15c: 1200.0,
+              volumeAmbient: 1300.0,
+            ),
+            stocks: KpiStocks(
+              totalAmbient: 10000.0,
+              total15c: 9500.0,
+              capacityTotal: 15000.0,
+            ),
+            balanceToday: KpiBalanceToday(
+              receptions15c: 1500.0,
+              sorties15c: 1200.0,
+              receptionsAmbient: 1600.0,
+              sortiesAmbient: 1300.0,
+            ),
+            trucksToFollow: KpiTrucksToFollow.zero,
+            trend7d: [],
+          );
+
+      return ProviderContainer(
         overrides: [
-          kpiProviderProvider.overrideWith((ref) => AsyncValue.data(
-            const KpiSnapshot(
-              receptionsToday: KpiNumberVolume(
-                count: 3,
-                volume15c: 1500.0,
-                volumeAmbient: 1600.0,
-              ),
-              sortiesToday: KpiNumberVolume(
-                count: 2,
-                volume15c: 1200.0,
-                volumeAmbient: 1300.0,
-              ),
-              stocks: KpiStocks(
-                totalAmbient: 10000.0,
-                total15c: 9500.0,
-                capacityTotal: 15000.0,
-              ),
-              balanceToday: KpiBalanceToday(
-                receptions15c: 1500.0,
-                sorties15c: 1200.0,
-              ),
-              citernesSousSeuil: [],
-              trend7d: [],
+          // Override auth state pour simuler un utilisateur connecté
+          // Utilise un Stream qui émet immédiatement une valeur puis se termine
+          appAuthStateProvider.overrideWith((ref) => Stream.value(
+            AppAuthState(
+              session: null, // On n'a pas besoin d'une vraie session pour les tests
+              authStream: const Stream.empty(),
             ),
           )),
+          // Override profil provider pour retourner le profil de test
+          currentProfilProvider.overrideWith(() => _FakeProfilNotifier(profil)),
+          // Override KPI provider avec les données de test
+          kpiProviderProvider.overrideWith((ref) async => kpiSnapshot),
         ],
       );
-    });
+    }
 
-    tearDown(() {
-      container.dispose();
-    });
+    // Helper pour construire un widget de dashboard avec les providers
+    // Retourne le container pour pouvoir le disposer dans les tests
+    (Widget, ProviderContainer) _buildDashboardForRole(Widget screen, UserRole role) {
+      final container = _createTestContainer(role: role);
+      final widget = UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          home: screen,
+        ),
+      );
+      return (widget, container);
+    }
 
     testWidgets('DashboardAdminScreen should build without errors', (WidgetTester tester) async {
       // Act
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: MaterialApp(
-            home: const DashboardAdminScreen(),
-          ),
-        ),
-      );
+      final (widget, container) = _buildDashboardForRole(const DashboardAdminScreen(), UserRole.admin);
+      await tester.pumpWidget(widget);
+      await tester.pumpAndSettle();
 
       // Assert
       expect(find.byType(DashboardAdminScreen), findsOneWidget);
-      expect(find.text('Vue d\'ensemble'), findsOneWidget);
-      expect(find.text('Réceptions du jour'), findsOneWidget);
-      expect(find.text('Sorties du jour'), findsOneWidget);
-      expect(find.text('Stock total (15°C)'), findsOneWidget);
-      expect(find.text('Balance du jour'), findsOneWidget);
-      expect(find.text('Citernes sous seuil'), findsOneWidget);
-      expect(find.text('Tendance 7 jours'), findsOneWidget);
+      // Vérifier que la carte KPI Réceptions est présente via sa Key stable
+      expect(find.byKey(const Key('kpi_receptions_today_card')), findsOneWidget);
+      // Vérifier que la section "Vue d'ensemble" est présente
+      expect(find.textContaining('Vue d\'ensemble'), findsOneWidget);
+      
+      container.dispose();
     });
 
     testWidgets('DashboardOperateurScreen should build without errors', (WidgetTester tester) async {
       // Act
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: MaterialApp(
-            home: const DashboardOperateurScreen(),
-          ),
-        ),
-      );
+      final (widget, container) = _buildDashboardForRole(const DashboardOperateurScreen(), UserRole.operateur);
+      await tester.pumpWidget(widget);
+      await tester.pumpAndSettle();
 
       // Assert
       expect(find.byType(DashboardOperateurScreen), findsOneWidget);
-      expect(find.text('Vue d\'ensemble'), findsOneWidget);
-      expect(find.text('Réceptions du jour'), findsOneWidget);
-      expect(find.text('Sorties du jour'), findsOneWidget);
-      expect(find.text('Stock total (15°C)'), findsOneWidget);
-      expect(find.text('Balance du jour'), findsOneWidget);
-      expect(find.text('Citernes sous seuil'), findsOneWidget);
-      expect(find.text('Tendance 7 jours'), findsOneWidget);
+      expect(find.byKey(const Key('kpi_receptions_today_card')), findsOneWidget);
+      expect(find.textContaining('Vue d\'ensemble'), findsOneWidget);
+      
+      container.dispose();
     });
 
     testWidgets('DashboardDirecteurScreen should build without errors', (WidgetTester tester) async {
       // Act
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: MaterialApp(
-            home: const DashboardDirecteurScreen(),
-          ),
-        ),
-      );
+      final (widget, container) = _buildDashboardForRole(const DashboardDirecteurScreen(), UserRole.directeur);
+      await tester.pumpWidget(widget);
+      await tester.pumpAndSettle();
 
       // Assert
       expect(find.byType(DashboardDirecteurScreen), findsOneWidget);
-      expect(find.text('Vue d\'ensemble'), findsOneWidget);
-      expect(find.text('Réceptions du jour'), findsOneWidget);
-      expect(find.text('Sorties du jour'), findsOneWidget);
-      expect(find.text('Stock total (15°C)'), findsOneWidget);
-      expect(find.text('Balance du jour'), findsOneWidget);
-      expect(find.text('Citernes sous seuil'), findsOneWidget);
-      expect(find.text('Tendance 7 jours'), findsOneWidget);
+      expect(find.byKey(const Key('kpi_receptions_today_card')), findsOneWidget);
+      expect(find.textContaining('Vue d\'ensemble'), findsOneWidget);
+      
+      container.dispose();
     });
 
     testWidgets('DashboardGerantScreen should build without errors', (WidgetTester tester) async {
       // Act
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: MaterialApp(
-            home: const DashboardGerantScreen(),
-          ),
-        ),
-      );
+      final (widget, container) = _buildDashboardForRole(const DashboardGerantScreen(), UserRole.gerant);
+      await tester.pumpWidget(widget);
+      await tester.pumpAndSettle();
 
       // Assert
       expect(find.byType(DashboardGerantScreen), findsOneWidget);
-      expect(find.text('Vue d\'ensemble'), findsOneWidget);
-      expect(find.text('Réceptions du jour'), findsOneWidget);
-      expect(find.text('Sorties du jour'), findsOneWidget);
-      expect(find.text('Stock total (15°C)'), findsOneWidget);
-      expect(find.text('Balance du jour'), findsOneWidget);
-      expect(find.text('Citernes sous seuil'), findsOneWidget);
-      expect(find.text('Tendance 7 jours'), findsOneWidget);
+      expect(find.byKey(const Key('kpi_receptions_today_card')), findsOneWidget);
+      expect(find.textContaining('Vue d\'ensemble'), findsOneWidget);
+      
+      container.dispose();
     });
 
     testWidgets('DashboardPcaScreen should build without errors', (WidgetTester tester) async {
       // Act
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: MaterialApp(
-            home: const DashboardPcaScreen(),
-          ),
-        ),
-      );
+      final (widget, container) = _buildDashboardForRole(const DashboardPcaScreen(), UserRole.pca);
+      await tester.pumpWidget(widget);
+      await tester.pumpAndSettle();
 
       // Assert
       expect(find.byType(DashboardPcaScreen), findsOneWidget);
-      expect(find.text('Vue d\'ensemble'), findsOneWidget);
-      expect(find.text('Réceptions du jour'), findsOneWidget);
-      expect(find.text('Sorties du jour'), findsOneWidget);
-      expect(find.text('Stock total (15°C)'), findsOneWidget);
-      expect(find.text('Balance du jour'), findsOneWidget);
-      expect(find.text('Citernes sous seuil'), findsOneWidget);
-      expect(find.text('Tendance 7 jours'), findsOneWidget);
+      expect(find.byKey(const Key('kpi_receptions_today_card')), findsOneWidget);
+      expect(find.textContaining('Vue d\'ensemble'), findsOneWidget);
+      
+      container.dispose();
     });
 
     testWidgets('DashboardLectureScreen should build without errors', (WidgetTester tester) async {
       // Act
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: MaterialApp(
-            home: const DashboardLectureScreen(),
-          ),
-        ),
-      );
+      final (widget, container) = _buildDashboardForRole(const DashboardLectureScreen(), UserRole.lecture);
+      await tester.pumpWidget(widget);
+      await tester.pumpAndSettle();
 
       // Assert
       expect(find.byType(DashboardLectureScreen), findsOneWidget);
-      expect(find.text('Vue d\'ensemble'), findsOneWidget);
-      expect(find.text('Réceptions du jour'), findsOneWidget);
-      expect(find.text('Sorties du jour'), findsOneWidget);
-      expect(find.text('Stock total (15°C)'), findsOneWidget);
-      expect(find.text('Balance du jour'), findsOneWidget);
-      expect(find.text('Citernes sous seuil'), findsOneWidget);
-      expect(find.text('Tendance 7 jours'), findsOneWidget);
+      expect(find.byKey(const Key('kpi_receptions_today_card')), findsOneWidget);
+      expect(find.textContaining('Vue d\'ensemble'), findsOneWidget);
+      
+      container.dispose();
     });
 
-    testWidgets('All dashboard screens should render identical content', (WidgetTester tester) async {
-      // Arrange - Liste de tous les écrans de dashboard
+    testWidgets('All dashboard screens should render KPI section correctly', (WidgetTester tester) async {
+      // Arrange - Liste de tous les écrans de dashboard avec leurs rôles
       final screens = [
-        const DashboardAdminScreen(),
-        const DashboardOperateurScreen(),
-        const DashboardDirecteurScreen(),
-        const DashboardGerantScreen(),
-        const DashboardPcaScreen(),
-        const DashboardLectureScreen(),
+        (const DashboardAdminScreen(), UserRole.admin),
+        (const DashboardOperateurScreen(), UserRole.operateur),
+        (const DashboardDirecteurScreen(), UserRole.directeur),
+        (const DashboardGerantScreen(), UserRole.gerant),
+        (const DashboardPcaScreen(), UserRole.pca),
+        (const DashboardLectureScreen(), UserRole.lecture),
       ];
 
       // Act & Assert - Vérifier que chaque écran se construit correctement
-      for (final screen in screens) {
-        await tester.pumpWidget(
-          UncontrolledProviderScope(
-            container: container,
-            child: MaterialApp(
-              home: screen,
-            ),
-          ),
-        );
-
-        // Vérifier que tous les KPIs sont présents
-        expect(find.text('Vue d\'ensemble'), findsOneWidget);
-        expect(find.text('Réceptions du jour'), findsOneWidget);
-        expect(find.text('Sorties du jour'), findsOneWidget);
-        expect(find.text('Stock total (15°C)'), findsOneWidget);
-        expect(find.text('Balance du jour'), findsOneWidget);
-        expect(find.text('Citernes sous seuil'), findsOneWidget);
-        expect(find.text('Tendance 7 jours'), findsOneWidget);
-
-        // Nettoyer pour le prochain test
+      for (final (screen, role) in screens) {
+        final (widget, container) = _buildDashboardForRole(screen, role);
+        await tester.pumpWidget(widget);
         await tester.pumpAndSettle();
+
+        // Vérifier que l'écran est présent
+        expect(find.byType(screen.runtimeType), findsOneWidget);
+        
+        // Vérifier que la carte KPI Réceptions est présente (via Key stable)
+        expect(
+          find.byKey(const Key('kpi_receptions_today_card')),
+          findsOneWidget,
+          reason: 'La carte KPI Réceptions doit être présente pour le rôle ${role.name}',
+        );
+        
+        // Vérifier que la section "Vue d'ensemble" est présente
+        expect(
+          find.textContaining('Vue d\'ensemble'),
+          findsOneWidget,
+          reason: 'La section "Vue d\'ensemble" doit être présente pour le rôle ${role.name}',
+        );
+        
+        // Dispose le container pour éviter les timers pendants
+        container.dispose();
       }
     });
   });

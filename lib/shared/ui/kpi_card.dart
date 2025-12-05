@@ -11,6 +11,7 @@ class KpiCard extends StatelessWidget {
   final String subRightValue;
   final Color tintColor;
   final VoidCallback? onTap;
+  final Key? cardKey; // Key stable pour les tests
 
   const KpiCard({
     super.key,
@@ -24,6 +25,7 @@ class KpiCard extends StatelessWidget {
     required this.subRightValue,
     required this.tintColor,
     this.onTap,
+    this.cardKey,
   });
 
   @override
@@ -33,6 +35,7 @@ class KpiCard extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(24),
       child: Container(
+        key: cardKey, // Key stable pour les tests
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
           color: t.colorScheme.surface,

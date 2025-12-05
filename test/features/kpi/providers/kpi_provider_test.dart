@@ -1,6 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ml_pp_mvp/features/kpi/models/kpi_models.dart';
 
+/// Helper pour convertir une valeur nullable en double de manière sécurisée
+double _toNumOrZero(dynamic value) {
+  if (value is num) return value.toDouble();
+  return 0.0;
+}
+
 void main() {
   group('KPI Provider - Volume Mapping Tests', () {
     test('should map volume_corrige_15c correctly when null', () {
@@ -13,8 +19,8 @@ void main() {
       final v15Raw = row['volume_corrige_15c'];
       final vaRaw = row['volume_ambiant'];
       
-      final v15 = (v15Raw is num) ? v15Raw.toDouble() : 0.0;
-      final va = (vaRaw is num) ? vaRaw.toDouble() : 0.0;
+      final v15 = _toNumOrZero(v15Raw);
+      final va = _toNumOrZero(vaRaw);
       
       // Vérifier que volume_corrige_15c = 0.0 et non 10000.0
       expect(v15, equals(0.0));
@@ -32,8 +38,8 @@ void main() {
       final v15Raw = row['volume_corrige_15c'];
       final vaRaw = row['volume_ambiant'];
       
-      final v15 = (v15Raw is num) ? v15Raw.toDouble() : 0.0;
-      final va = (vaRaw is num) ? vaRaw.toDouble() : 0.0;
+      final v15 = _toNumOrZero(v15Raw);
+      final va = _toNumOrZero(vaRaw);
       
       // Vérifier que les valeurs sont correctes
       expect(v15, equals(9954.5));
@@ -51,8 +57,8 @@ void main() {
       final v15Raw = row['volume_corrige_15c'];
       final vaRaw = row['volume_ambiant'];
       
-      final v15 = (v15Raw is num) ? v15Raw.toDouble() : 0.0;
-      final va = (vaRaw is num) ? vaRaw.toDouble() : 0.0;
+      final v15 = _toNumOrZero(v15Raw);
+      final va = _toNumOrZero(vaRaw);
       
       // Vérifier que les valeurs sont correctes
       expect(v15, equals(9954.0));
@@ -70,8 +76,8 @@ void main() {
       final v15Raw = row['volume_corrige_15c'];
       final vaRaw = row['volume_ambiant'];
       
-      final v15 = (v15Raw is num) ? v15Raw.toDouble() : 0.0;
-      final va = (vaRaw is num) ? vaRaw.toDouble() : 0.0;
+      final v15 = _toNumOrZero(v15Raw);
+      final va = _toNumOrZero(vaRaw);
       
       // Vérifier que volume_corrige_15c = 0.0 car ce n'est pas un num
       expect(v15, equals(0.0));

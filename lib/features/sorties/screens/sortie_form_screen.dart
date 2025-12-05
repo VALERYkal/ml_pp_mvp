@@ -1,22 +1,23 @@
-import 'dart:math' as math;
+/* ===========================================================
+   ML_PP MVP — SortieFormScreen
+   Rôle: Écran pour créer une sortie validée avec validation métier stricte.
+   =========================================================== */
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:postgrest/postgrest.dart';
-
-import 'package:ml_pp_mvp/features/sorties/data/sortie_service.dart';
-import 'package:ml_pp_mvp/features/sorties/providers/sortie_providers.dart';
-import 'package:ml_pp_mvp/shared/providers/ref_data_provider.dart';
-import 'package:ml_pp_mvp/features/citernes/providers/citerne_providers.dart';
+import 'package:ml_pp_mvp/shared/ui/toast.dart';
+import 'package:ml_pp_mvp/shared/ui/errors.dart';
+import 'package:ml_pp_mvp/core/errors/sortie_validation_exception.dart';
+import 'package:ml_pp_mvp/core/errors/sortie_service_exception.dart';
+import 'package:ml_pp_mvp/shared/referentiels/referentiels.dart' as refs;
+import 'package:ml_pp_mvp/shared/utils/volume_calc.dart';
+import 'package:ml_pp_mvp/features/sorties/providers/sortie_providers.dart' show sortieServiceProvider, sortiesListProvider, clientsListProvider, partenairesListProvider;
+import 'package:ml_pp_mvp/features/sorties/providers/sorties_table_provider.dart';
+import 'package:ml_pp_mvp/features/sorties/kpi/sorties_kpi_provider.dart';
 import 'package:ml_pp_mvp/features/stocks_journaliers/providers/stocks_providers.dart';
-import 'package:ml_pp_mvp/shared/utils/error_humanizer.dart';
 
 enum OwnerType { monaluxe, partenaire }
-enum BenefType { client, partenaire }
-
-// Fonctions de formatage
-String fmtNum(num? v) => v == null ? '0.0' : v.toDouble().toStringAsFixed(1);
-String fmtDate(DateTime? d) => d == null ? '' : '${d.year}-${d.month.toString().padLeft(2,'0')}-${d.day.toString().padLeft(2,'0')}';
 
 class SortieFormScreen extends ConsumerStatefulWidget {
   const SortieFormScreen({super.key});
@@ -25,350 +26,662 @@ class SortieFormScreen extends ConsumerStatefulWidget {
 }
 
 class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
+  bool busy = false;
+
+  final _formKey = GlobalKey<FormState>();
+
+  String proprietaireType = 'MONALUXE';
   OwnerType _owner = OwnerType.monaluxe;
-  BenefType _benefType = BenefType.client;
+  String? partenaireId;
+  String? clientId;
 
-  String? _produitId;
-  String? _citerneId;
+  String? _selectedProduitId;
+  String? _selectedCiterneId;
+  DateTime _selectedDate = DateTime.now();
 
-  String? _clientId;
-  String? _partenaireId;
+  final ctrlAvant = TextEditingController();
+  final ctrlApres = TextEditingController();
+  final ctrlTemp = TextEditingController(text: '15');
+  final ctrlDens = TextEditingController(text: '0.83');
+  final ctrlChauffeur = TextEditingController();
+  final ctrlPlaqueCamion = TextEditingController();
+  final ctrlPlaqueRemorque = TextEditingController();
+  final ctrlTransporteur = TextEditingController();
+  final ctrlNote = TextEditingController();
 
-  double? _indexAvant;
-  double? _indexApres;
-  double _tempC = 15;
-  double _densA15 = 0.83;
-
-  bool _submitting = false;
-  DateTime _date = DateTime.now();
-
-  // --- helpers calculs (mêmes principes que réceptions)
-  double get _volAmbiant {
-    if (_indexAvant == null || _indexApres == null) return 0.0;
-    if (_indexApres! <= _indexAvant!) return 0.0;
-    return _indexApres! - _indexAvant!;
+  @override
+  void dispose() {
+    ctrlAvant.dispose();
+    ctrlApres.dispose();
+    ctrlTemp.dispose();
+    ctrlDens.dispose();
+    ctrlChauffeur.dispose();
+    ctrlPlaqueCamion.dispose();
+    ctrlPlaqueRemorque.dispose();
+    ctrlTransporteur.dispose();
+    ctrlNote.dispose();
+    super.dispose();
   }
 
-  // MVP : approximation simple similaire aux réceptions (fallback sur ambiant)
-  double get _vol15C {
-    final amb = _volAmbiant;
-    if (amb == 0) return 0;
-    // ajustement très simple (placeholder) : densité proche 0.83 et T ambiante.
-    final k = 1 - ( (_tempC - 15.0).clamp(-30.0, 30.0) * 0.00065 );
-    final v15 = amb * k;
-    return v15.isFinite && v15 > 0 ? v15 : amb;
+  @override
+  void initState() {
+    super.initState();
+    _owner = (proprietaireType == 'PARTENAIRE') ? OwnerType.partenaire : OwnerType.monaluxe;
   }
 
-  Future<void> _submit() async {
-    if (_produitId == null || _citerneId == null) {
-      _snack('Choisissez un produit et une citerne', err: true);
+  void _onOwnerChange(OwnerType val) {
+    setState(() {
+      _owner = val;
+      proprietaireType = (val == OwnerType.monaluxe) ? 'MONALUXE' : 'PARTENAIRE';
+      _selectedCiterneId = null;
+      if (_owner == OwnerType.partenaire) {
+        clientId = null;
+      } else {
+        partenaireId = null;
+      }
+    });
+  }
+
+  double? _num(String s) => double.tryParse(s.replaceAll(RegExp(r'[^\d\-,\.]'), '').replaceAll(',', '.'));
+  bool get isMonaluxe => proprietaireType == 'MONALUXE';
+  bool get isPartenaire => proprietaireType == 'PARTENAIRE';
+
+  Future<void> _submitSortie() async {
+    // Validation FormState
+    if (!_formKey.currentState!.validate()) {
       return;
     }
-    if (_owner == OwnerType.monaluxe && _clientId == null) {
-      _snack('Sélectionnez un client', err: true); return;
-    }
-    if (_owner == OwnerType.partenaire && _partenaireId == null) {
-      _snack('Sélectionnez un partenaire', err: true); return;
-    }
-    if (_indexAvant != null && _indexApres != null && _indexApres! <= _indexAvant!) {
-      _snack('Index incohérents (après ≤ avant)', err: true); return;
-    }
 
-    setState(() => _submitting = true);
-    try {
-      final id = await ref.read(sortieServiceProvider).createValidated(
-        citerneId: _citerneId!,
-        produitId: _produitId!,
-        indexAvant: _indexAvant,
-        indexApres: _indexApres,
-        temperatureCAmb: _tempC,
-        densiteA15: _densA15,
-        volumeCorrige15C: _vol15C, // DB fallback sinon
-        proprietaireType: _owner == OwnerType.monaluxe ? 'MONALUXE' : 'PARTENAIRE',
-        clientId: _owner == OwnerType.monaluxe ? _clientId : null,
-        partenaireId: _owner == OwnerType.partenaire ? _partenaireId : null,
-        dateSortie: _date,
+    // Validations minimales UI (champs non-TextFormField)
+    if (_selectedProduitId == null) {
+      showAppToast(context, 'Sélectionnez un produit.', type: ToastType.warning);
+      return;
+    }
+    if (_selectedCiterneId == null) {
+      showAppToast(context, 'Sélectionnez une citerne.', type: ToastType.warning);
+      return;
+    }
+    if (isMonaluxe && (clientId == null || clientId!.isEmpty)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Choisissez un client pour une sortie MONALUXE')),
       );
-
-      // invalidate listes si providers existent
-      try {
-        ref.invalidate(sortiesListProvider);
-        ref.invalidate(stocksListProvider);
-      } catch (_) {}
-
-      _snack('Sortie enregistrée (#${id.substring(0, 6)})');
-      if (mounted) context.pop();
-    } on PostgrestException catch (e) {
-      _snack(ErrorHumanizer.humanizePostgrest(e), err: true);
-    } catch (e) {
-      _snack(ErrorHumanizer.humanizeError(e), err: true);
-    } finally {
-      if (mounted) setState(() => _submitting = false);
+      return;
     }
-  }
+    if (isPartenaire && (partenaireId == null || partenaireId!.isEmpty)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Choisissez un partenaire pour une sortie PARTENAIRE')),
+      );
+      return;
+    }
 
-  void _snack(String m, {bool err=false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(m), backgroundColor: err ? Colors.red : Colors.green),
-    );
+    final avant = _num(ctrlAvant.text) ?? 0;
+    final apres = _num(ctrlApres.text) ?? 0;
+    if (apres <= avant) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Indices incohérents (après ≤ avant)')),
+      );
+      return;
+    }
+
+    // 🚨 PROD-LOCK: Validation UI température/densité OBLIGATOIRES - DO NOT MODIFY
+    // RÈGLE MÉTIER : Température et densité sont OBLIGATOIRES pour calculer volume 15°C.
+    // Cette validation UI doit correspondre à la validation service (sortie_service.dart).
+    // Si cette validation est modifiée, mettre à jour:
+    // - Tests E2E (si applicable)
+    // - Validation service (sortie_service.dart)
+    // - Documentation métier
+    
+    // Validation UI : température et densité obligatoires
+    final temp = _num(ctrlTemp.text);
+    final dens = _num(ctrlDens.text);
+    if (temp == null || temp <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('La température ambiante (°C) est obligatoire et doit être > 0')),
+      );
+      return;
+    }
+    if (dens == null || dens <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('La densité à 15°C est obligatoire et doit être > 0')),
+      );
+      return;
+    }
+    // Validation densité dans intervalle raisonnable
+    if (dens < 0.7 || dens > 1.1) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('La densité à 15°C doit être entre 0.7 et 1.1')),
+      );
+      return;
+    }
+
+    final volAmb = computeVolumeAmbiant(avant, apres);
+    // temp et dens sont garantis non-null et > 0 par validation ci-dessus
+    final vol15 = calcV15(volumeObserveL: volAmb, temperatureC: temp, densiteA15: dens);
+
+    setState(() => busy = true);
+    try {
+      await ref.read(sortieServiceProvider).createValidated(
+            citerneId: _selectedCiterneId!,
+            produitId: _selectedProduitId!,
+            indexAvant: avant,
+            indexApres: apres,
+            temperatureCAmb: temp, // Non-null garanti par validation UI
+            densiteA15: dens, // Non-null garanti par validation UI
+            volumeCorrige15C: vol15,
+            proprietaireType: _owner == OwnerType.monaluxe ? 'MONALUXE' : 'PARTENAIRE',
+            clientId: _owner == OwnerType.monaluxe ? clientId : null,
+            partenaireId: _owner == OwnerType.partenaire ? partenaireId : null,
+            chauffeurNom: ctrlChauffeur.text.isEmpty ? null : ctrlChauffeur.text.trim(),
+            plaqueCamion: ctrlPlaqueCamion.text.isEmpty ? null : ctrlPlaqueCamion.text.trim(),
+            plaqueRemorque: ctrlPlaqueRemorque.text.isEmpty ? null : ctrlPlaqueRemorque.text.trim(),
+            transporteur: ctrlTransporteur.text.isEmpty ? null : ctrlTransporteur.text.trim(),
+            note: ctrlNote.text.isEmpty ? null : ctrlNote.text.trim(),
+            dateSortie: _selectedDate,
+          );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Sortie enregistrée avec succès')),
+        );
+        // Invalidate impacted providers
+        try {
+          ref.invalidate(sortiesListProvider);
+          ref.invalidate(sortiesTableProvider);
+          ref.invalidate(sortiesKpiTodayProvider);
+        } catch (_) {}
+        try {
+          ref.invalidate(stocksListProvider);
+        } catch (_) {}
+        context.go('/sorties');
+      }
+    } on SortieValidationException catch (e) {
+      // Erreur métier : afficher un message clair avec le champ concerné
+      debugPrint('[SortieForm] SortieValidationException: ${e.message} (field: ${e.field})');
+      if (mounted) {
+        final message = e.field != null 
+            ? '${e.message}\n(Champ: ${e.field})'
+            : e.message;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+    } on SortieServiceException catch (e) {
+      // Erreur SQL/DB du trigger
+      debugPrint('[SortieForm] SortieServiceException: ${e.message}');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.message),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+    } on PostgrestException catch (e, st) {
+      debugPrint('[SortieForm] PostgrestException: ${e.message} (code=${e.code}, hint=${e.hint}, details=${e.details})');
+      debugPrint('[SortieForm] stack=\n$st');
+      if (mounted) {
+        showAppToast(context, humanizePostgrest(e), type: ToastType.error);
+      }
+    } catch (e, st) {
+      debugPrint('[SortieForm] UnknownError: $e');
+      debugPrint('[SortieForm] stack=\n$st');
+      if (mounted) {
+        showAppToast(context, 'Erreur technique lors de l\'enregistrement de la sortie. Veuillez réessayer.', type: ToastType.error);
+      }
+    } finally {
+      if (mounted) setState(() => busy = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final produitsAsync = ref.watch(produitsListProvider); // comme réceptions
-    final clientsAsync  = ref.watch(clientsListProvider);
-    final partsAsync    = ref.watch(partenairesListProvider);
-    final citernesAsync = _produitId == null
-        ? const AsyncValue<List<CiterneWithStockForSortie>>.data([])
-        : ref.watch(citernesByProduitWithStockProvider(_produitId!));
+    final avant = _num(ctrlAvant.text) ?? 0;
+    final apres = _num(ctrlApres.text) ?? 0;
+    final temp = _num(ctrlTemp.text);
+    final dens = _num(ctrlDens.text);
+    final volAmb = computeVolumeAmbiant(avant, apres);
+    
+    // Récupérer le code produit pour le calcul
+    String produitCode = 'ESS'; // fallback
+    if (_selectedProduitId != null) {
+      ref.watch(refs.produitsRefProvider).maybeWhen(
+        data: (prods) {
+          try {
+            final prod = prods.firstWhere((p) => p.id == _selectedProduitId);
+            produitCode = prod.code.isNotEmpty ? prod.code : 'ESS';
+          } catch (_) {
+            // Produit non trouvé, utiliser le premier disponible ou fallback
+            if (prods.isNotEmpty) {
+              produitCode = prods.first.code.isNotEmpty ? prods.first.code : 'ESS';
+            }
+          }
+        },
+        orElse: () {},
+      );
+    }
+    
+    // Calcul du volume 15°C : si température et densité sont présents, calculer, sinon afficher volume ambiant
+    final vol15 = (temp != null && temp > 0 && dens != null && dens > 0)
+        ? calcV15(volumeObserveL: volAmb, temperatureC: temp, densiteA15: dens)
+        : volAmb;
+    final isWide = MediaQuery.of(context).size.width >= 1024;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Nouvelle Sortie'),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: InputDatePickerFormField(
-              firstDate: DateTime.now().subtract(const Duration(days: 365)),
-              lastDate: DateTime.now().add(const Duration(days: 365)),
-              initialDate: _date,
-              onDateSubmitted: (d) => setState(() => _date = d),
-              onDateSaved: (d) => setState(() => _date = d),
-            ),
-          ),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // --- Propriété (chips) + Bénéficiaire
-          Card(
-            elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      appBar: AppBar(title: const Text('Nouvelle Sortie')),
+      body: busy
+          ? const Center(child: CircularProgressIndicator())
+          : Form(
+              key: _formKey,
+              child: ListView(
+                padding: const EdgeInsets.all(16),
                 children: [
-                  const Text('Propriété', style: TextStyle(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  Wrap(spacing: 8, children: [
-                    ChoiceChip(
-                      label: const Text('MONALUXE'),
-                      selected: _owner == OwnerType.monaluxe,
-                      onSelected: (_) => setState(() {
-                        _owner = OwnerType.monaluxe;
-                        _benefType = BenefType.client;
-                        _partenaireId = null;
-                      }),
-                    ),
-                    ChoiceChip(
-                      label: const Text('PARTENAIRE'),
-                      selected: _owner == OwnerType.partenaire,
-                      onSelected: (_) => setState(() {
-                        _owner = OwnerType.partenaire;
-                        _benefType = BenefType.partenaire;
-                        _clientId = null;
-                      }),
-                    ),
-                  ]),
-                  const SizedBox(height: 12),
-                  const Text('Bénéficiaire', style: TextStyle(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  if (_owner == OwnerType.monaluxe) ...[
-                    const Text('Client'),
-                    clientsAsync.when(
-                      data: (list) => DropdownButton<String>(
-                        isExpanded: true,
-                        value: _clientId,
-                        hint: const Text('Sélectionner un client'),
-                        items: list.map<DropdownMenuItem<String>>((c) =>
-                          DropdownMenuItem(value: c['id'] as String, child: Text(c['nom'] as String))
-                        ).toList(),
-                        onChanged: (v) => setState(() => _clientId = v),
-                      ),
-                      loading: () => const LinearProgressIndicator(),
-                      error: (e, _) => Text('Erreur clients: $e', style: const TextStyle(color: Colors.red)),
-                    ),
-                  ] else ...[
-                    const Text('Partenaire'),
-                    partsAsync.when(
-                      data: (list) => DropdownButton<String>(
-                        isExpanded: true,
-                        value: _partenaireId,
-                        hint: const Text('Sélectionner un partenaire'),
-                        items: list.map<DropdownMenuItem<String>>((p) =>
-                          DropdownMenuItem(value: p['id'] as String, child: Text(p['nom'] as String))
-                        ).toList(),
-                        onChanged: (v) => setState(() => _partenaireId = v),
-                      ),
-                      loading: () => const LinearProgressIndicator(),
-                      error: (e, _) => Text('Erreur partenaires: $e', style: const TextStyle(color: Colors.red)),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 12),
-
-          // --- Produit & Citerne (miroir réceptions)
-          Card(
-            elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Produit & Citerne', style: TextStyle(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 12),
-                  produitsAsync.when(
-                    data: (list) {
-                      return Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: list.map<Widget>((p) {
-                          final id = p['id'] as String;
-                          final label = '${p['code'] ?? ''} ${p['nom'] ?? ''}'.trim();
-                          final sel = _produitId == id;
-                          return ChoiceChip(
-                            label: Text(label),
-                            selected: sel,
-                            onSelected: (_) => setState(() {
-                              _produitId = id;
-                              _citerneId = null;
-                            }),
+                // Contexte
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      const Text('Contexte'),
+                      const SizedBox(height: 8),
+                      Wrap(spacing: 12, children: [
+                        ChoiceChip(
+                          label: const Text('MONALUXE'),
+                          selected: _owner == OwnerType.monaluxe,
+                          onSelected: (_) => _onOwnerChange(OwnerType.monaluxe),
+                        ),
+                        ChoiceChip(
+                          label: const Text('PARTENAIRE'),
+                          selected: _owner == OwnerType.partenaire,
+                          onSelected: (_) => _onOwnerChange(OwnerType.partenaire),
+                        ),
+                      ]),
+                      const SizedBox(height: 12),
+                      if (_owner == OwnerType.monaluxe) ...[
+                        const Text('Client *'),
+                        const SizedBox(height: 8),
+                        ref.watch(clientsListProvider).when(
+                          data: (list) => DropdownButton<String>(
+                            isExpanded: true,
+                            value: clientId,
+                            hint: const Text('Sélectionner un client'),
+                            items: list.map<DropdownMenuItem<String>>((c) =>
+                              DropdownMenuItem(
+                                value: c['id'] as String,
+                                child: Text(c['nom'] as String),
+                              ),
+                            ).toList(),
+                            onChanged: (v) => setState(() => clientId = v),
+                          ),
+                          loading: () => const LinearProgressIndicator(),
+                          error: (e, _) => Text('Erreur clients: $e', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                        ),
+                      ],
+                      if (_owner == OwnerType.partenaire) ...[
+                        const Text('Partenaire *'),
+                        const SizedBox(height: 8),
+                        ref.watch(partenairesListProvider).when(
+                          data: (list) => DropdownButton<String>(
+                            isExpanded: true,
+                            value: partenaireId,
+                            hint: const Text('Sélectionner un partenaire'),
+                            items: list.map<DropdownMenuItem<String>>((p) =>
+                              DropdownMenuItem(
+                                value: p['id'] as String,
+                                child: Text(p['nom'] as String),
+                              ),
+                            ).toList(),
+                            onChanged: (v) => setState(() => partenaireId = v),
+                          ),
+                          loading: () => const LinearProgressIndicator(),
+                          error: (e, _) => Text('Erreur partenaires: $e', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                        ),
+                      ],
+                      const SizedBox(height: 12),
+                      // Date de sortie
+                      const Text('Date de sortie *'),
+                      const SizedBox(height: 8),
+                      InkWell(
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: _selectedDate,
+                            firstDate: DateTime.now().subtract(const Duration(days: 30)),
+                            lastDate: DateTime.now().add(const Duration(days: 30)),
                           );
-                        }).toList(),
-                      );
-                    },
-                    loading: () => const LinearProgressIndicator(),
-                    error: (e, _) => Text('Erreur produits: $e', style: const TextStyle(color: Colors.red)),
+                          if (picked != null) {
+                            setState(() => _selectedDate = picked);
+                          }
+                        },
+                        child: InputDecorator(
+                          decoration: const InputDecoration(
+                            labelText: 'Date de sortie',
+                            suffixIcon: Icon(Icons.calendar_today),
+                            border: OutlineInputBorder(),
+                          ),
+                          child: Text(
+                            '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildProduitCiterneCard(ref, produitCode, volAmb),
+                    ]),
                   ),
+                ),
+                const SizedBox(height: 12),
+                // Mesures
+                if (isWide)
+                  Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Expanded(child: _buildMesuresCard(volAmb, vol15, temp, dens)),
+                    const SizedBox(width: 12),
+                    Expanded(child: _buildLogistiqueCard()),
+                  ])
+                else ...[
+                  _buildMesuresCard(volAmb, vol15, temp, dens),
                   const SizedBox(height: 12),
-                  const Text('Citerne *'),
-                  const SizedBox(height: 8),
-                  citernesAsync.when(
-                    loading: () => const Center(child: CircularProgressIndicator()),
-                    error: (e, st) => Text('Erreur chargement citernes: $e'),
-                    data: (citernes) {
-                      if (citernes.isEmpty) {
-                        return const Text('Aucune citerne pour ce produit');
-                      }
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          ...citernes.map((c) {
-                            final amb = fmtNum(c.stockAmbiant);
-                            final s15 = fmtNum(c.stock15c);
-                            final d   = fmtDate(c.date);
-                            return RadioListTile<String>(
-                              value: c.id,
-                              groupValue: _citerneId,
-                              onChanged: (v) => setState(() => _citerneId = v),
-                              title: Text(c.nom),
-                              subtitle: Text('Stock: $amb L • $s15 L (15°C)${d.isEmpty ? "" : " — au $d"}'),
-                              dense: true,
-                            );
-                          }),
-                        ],
-                      );
-                    },
-                  ),
+                  _buildLogistiqueCard(),
+                ],
+                const SizedBox(height: 76),
                 ],
               ),
             ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          child: FilledButton.icon(
+            icon: busy ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.check),
+            label: const Text('Enregistrer la sortie'),
+            onPressed: _canSubmit ? _submitSortie : null,
           ),
-
-          const SizedBox(height: 12),
-
-          // --- Mesures & Calculs (miroir réceptions)
-          Card(
-            elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Mesures & Calculs', style: TextStyle(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 12),
-
-                  Row(children: [
-                    Expanded(
-                      child: _numField(
-                        label: 'Index avant *',
-                        initial: _indexAvant?.toString(),
-                        onChanged: (v) => setState(() => _indexAvant = double.tryParse(v)),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _numField(
-                        label: 'Index après *',
-                        initial: _indexApres?.toString(),
-                        onChanged: (v) => setState(() => _indexApres = double.tryParse(v)),
-                      ),
-                    ),
-                  ]),
-                  const SizedBox(height: 8),
-
-                  Row(children: [
-                    Expanded(
-                      child: _numField(
-                        label: 'Température (°C)',
-                        initial: _tempC.toString(),
-                        onChanged: (v) => setState(() => _tempC = double.tryParse(v) ?? 15),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _numField(
-                        label: 'Densité @15°C',
-                        initial: _densA15.toString(),
-                        onChanged: (v) => setState(() => _densA15 = double.tryParse(v) ?? 0.83),
-                      ),
-                    ),
-                  ]),
-                  const SizedBox(height: 12),
-                  Text('• Volume ambiant = ${_volAmbiant.toStringAsFixed(2)} L'),
-                  Text('• Volume corrigé 15°C ≈ ${_vol15C.toStringAsFixed(2)} L'),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 12),
-
-          // --- CTA
-          SafeArea(
-            top: false,
-            child: ElevatedButton.icon(
-              onPressed: _canSubmit ? _submit : null,
-              icon: const Icon(Icons.save),
-              label: const Text('Enregistrer la sortie'),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 
+  // 🚨 PROD-LOCK: Logique validation soumission - DO NOT MODIFY
+  // Le bouton "Enregistrer la sortie" est actif si et seulement si:
+  // - Produit sélectionné (_selectedProduitId != null)
+  // - Citerne sélectionnée (_selectedCiterneId != null)
+  // - Propriétaire valide (MONALUXE avec clientId ou PARTENAIRE avec partenaireId)
+  // - Index avant >= 0
+  // - Index après > index avant
+  // - Température non-null et > 0 (OBLIGATOIRE)
+  // - Densité non-null et > 0 (OBLIGATOIRE)
+  // Si cette logique est modifiée, mettre à jour:
+  // - Tests E2E (si applicable)
+  // - Validation service (sortie_service.dart)
   bool get _canSubmit {
-    final hasBenef = _owner == OwnerType.monaluxe ? _clientId != null : _partenaireId != null;
-    final hasProdCit = _produitId != null && _citerneId != null;
-    final idxOk = _indexAvant == null || _indexApres == null || _indexApres! > _indexAvant!;
-    return !_submitting && hasBenef && hasProdCit && idxOk;
+    final avant = _num(ctrlAvant.text) ?? -1;
+    final apres = _num(ctrlApres.text) ?? -1;
+    final temp = _num(ctrlTemp.text);
+    final dens = _num(ctrlDens.text);
+    final okOwner = isMonaluxe 
+        ? (clientId != null && clientId!.isNotEmpty)
+        : (partenaireId != null && partenaireId!.isNotEmpty);
+    return _selectedProduitId != null &&
+        _selectedCiterneId != null &&
+        okOwner &&
+        avant >= 0 &&
+        apres > avant &&
+        temp != null && temp > 0 && // Température obligatoire et > 0
+        dens != null && dens > 0; // Densité obligatoire et > 0
   }
 
-  Widget _numField({required String label, String? initial, required ValueChanged<String> onChanged}) {
-    return TextFormField(
-      initialValue: initial,
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()),
-      onChanged: onChanged,
+  Widget _buildProduitCiterneCard(WidgetRef ref, String effProdCode, double volAmb) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Produit & Citerne'),
+        const SizedBox(height: 8),
+        _ProduitChips(
+          selectedId: _selectedProduitId,
+          enabled: true,
+          onSelected: (pid) {
+            setState(() {
+              _selectedProduitId = pid;
+              _selectedCiterneId = null; // reset citerne au changement de produit
+            });
+          },
+        ),
+        const SizedBox(height: 8),
+        ref.watch(refs.citernesActivesProvider).when(
+              loading: () => const LinearProgressIndicator(),
+              error: (e, _) => Text('Erreur citernes: $e'),
+              data: (list) {
+                // Filtrer par produit
+                final pid = _selectedProduitId;
+                final filtered = (pid == null)
+                    ? <refs.CiterneRef>[]
+                    : list.where((c) => c.produitId == pid).toList();
+                // Pré-sélection automatique si une seule citerne
+                if (filtered.length == 1 && _selectedCiterneId == null) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) setState(() => _selectedCiterneId = filtered.first.id);
+                  });
+                }
+                if (filtered.isEmpty) {
+                  return const Text('Aucune citerne active disponible pour ce produit');
+                }
+                return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  const Text('Citerne *'),
+                  const SizedBox(height: 4),
+                  for (final c in filtered)
+                    RadioListTile<String>(
+                      dense: true,
+                      value: c.id,
+                      groupValue: _selectedCiterneId,
+                      onChanged: (v) => setState(() => _selectedCiterneId = v),
+                      title: Text('${c.nom.isNotEmpty ? c.nom : c.id.substring(0, 8)}'),
+                      subtitle: Text('Capacité ${c.capaciteTotale.toStringAsFixed(0)} L | Sécurité ${c.capaciteSecurite.toStringAsFixed(0)} L'),
+                    ),
+                ]);
+              },
+            ),
+      ],
+    );
+  }
+
+  // 🚨 PROD-LOCK: Structure formulaire Mesures & Calculs - DO NOT MODIFY
+  // Le formulaire DOIT contenir exactement 4 TextField obligatoires:
+  // 1. Index avant (ctrlAvant)
+  // 2. Index après (ctrlApres)
+  // 3. Température (°C) (ctrlTemp)
+  // 4. Densité @15°C (ctrlDens)
+  // Si cette structure est modifiée, mettre à jour:
+  // - Tests E2E (si applicable)
+  // - Documentation UI
+  Widget _buildMesuresCard(double volAmb, double vol15, double? temp, double? dens) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Text('Mesures & Calculs'),
+          const SizedBox(height: 8),
+          Row(children: [
+            Expanded(child: TextFormField(
+              controller: ctrlAvant,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Index avant *'),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'L\'index avant est obligatoire';
+                }
+                final num = _num(value);
+                if (num == null || num < 0) {
+                  return 'L\'index avant doit être un nombre positif';
+                }
+                return null;
+              },
+              onChanged: (_) => setState(() {}),
+            )),
+            const SizedBox(width: 12),
+            Expanded(child: TextFormField(
+              controller: ctrlApres,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Index après *'),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'L\'index après est obligatoire';
+                }
+                final num = _num(value);
+                if (num == null || num < 0) {
+                  return 'L\'index après doit être un nombre positif';
+                }
+                final avant = _num(ctrlAvant.text) ?? 0;
+                if (num <= avant) {
+                  return 'L\'index après doit être supérieur à l\'index avant';
+                }
+                return null;
+              },
+              onChanged: (_) => setState(() {}),
+            )),
+          ]),
+          Row(children: [
+            Expanded(child: TextFormField(
+              controller: ctrlTemp,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Température (°C) *',
+                helperText: 'Obligatoire pour calcul volume 15°C',
+              ),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'La température est obligatoire';
+                }
+                final num = _num(value);
+                if (num == null || num <= 0) {
+                  return 'La température doit être un nombre positif';
+                }
+                return null;
+              },
+              onChanged: (_) => setState(() {}),
+            )),
+            const SizedBox(width: 12),
+            Expanded(child: TextFormField(
+              controller: ctrlDens,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Densité @15°C *',
+                helperText: 'Obligatoire pour calcul volume 15°C (0.7 - 1.1)',
+              ),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'La densité est obligatoire';
+                }
+                final num = _num(value);
+                if (num == null || num <= 0) {
+                  return 'La densité doit être un nombre positif';
+                }
+                if (num < 0.7 || num > 1.1) {
+                  return 'La densité doit être entre 0.7 et 1.1';
+                }
+                return null;
+              },
+              onChanged: (_) => setState(() {}),
+            )),
+          ]),
+          const SizedBox(height: 8),
+          Text('• Volume ambiant = ${volAmb.toStringAsFixed(2)} L'),
+          if (temp != null && temp > 0 && dens != null && dens > 0)
+            Text('• Volume corrigé 15°C ≈ ${vol15.toStringAsFixed(2)} L')
+          else
+            Text(
+              '• Volume corrigé 15°C : Saisissez température et densité',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+        ]),
+      ),
+    );
+  }
+
+  Widget _buildLogistiqueCard() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Text('Logistique'),
+          const SizedBox(height: 8),
+          TextField(
+            controller: ctrlChauffeur,
+            decoration: const InputDecoration(labelText: 'Chauffeur (optionnel)'),
+          ),
+          const SizedBox(height: 8),
+          Row(children: [
+            Expanded(child: TextField(
+              controller: ctrlPlaqueCamion,
+              decoration: const InputDecoration(labelText: 'Plaque camion (optionnel)'),
+            )),
+            const SizedBox(width: 12),
+            Expanded(child: TextField(
+              controller: ctrlPlaqueRemorque,
+              decoration: const InputDecoration(labelText: 'Plaque remorque (optionnel)'),
+            )),
+          ]),
+          const SizedBox(height: 8),
+          TextField(
+            controller: ctrlTransporteur,
+            decoration: const InputDecoration(labelText: 'Transporteur (optionnel)'),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: ctrlNote,
+            decoration: const InputDecoration(labelText: 'Note (optionnel)'),
+            maxLines: 2,
+          ),
+        ]),
+      ),
+    );
+  }
+}
+
+class _ProduitChips extends ConsumerWidget {
+  final String? selectedId;
+  final bool enabled;
+  final ValueChanged<String> onSelected;
+
+  const _ProduitChips({
+    required this.selectedId,
+    required this.enabled,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final produitsAsync = ref.watch(refs.produitsRefProvider);
+    return produitsAsync.when(
+      loading: () => const LinearProgressIndicator(minHeight: 2),
+      error: (e, _) => Text('Erreur chargement produits: $e'),
+      data: (prods) {
+        final actifs = prods.toList()
+          ..sort((a, b) {
+            final sa = (a.code.isNotEmpty ? a.code : a.nom);
+            final sb = (b.code.isNotEmpty ? b.code : b.nom);
+            return sa.compareTo(sb);
+          });
+        if (actifs.isEmpty) return const Text('Aucun produit disponible');
+        return Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final p in actifs)
+              ChoiceChip(
+                label: Text('${p.code.trim()} · ${p.nom}'),
+                selected: p.id == selectedId,
+                onSelected: !enabled ? null : (sel) {
+                  if (sel) onSelected(p.id);
+                },
+              ),
+          ],
+        );
+      },
     );
   }
 }

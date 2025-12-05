@@ -103,7 +103,14 @@ class ReceptionService {
       );
     }
     
-    // 3) Validation propriétaire
+    // 🚨 PROD-LOCK: Normalisation proprietaire_type UPPERCASE - DO NOT MODIFY
+    // RÈGLE MÉTIER : proprietaire_type doit toujours être 'MONALUXE' ou 'PARTENAIRE' en uppercase.
+    // PARTENAIRE → partenaire_id OBLIGATOIRE.
+    // Si cette logique est modifiée, mettre à jour:
+    // - Tests unitaires (reception_service_test.dart)
+    // - Tests E2E (reception_flow_e2e_test.dart)
+    // - Schéma DB (contraintes CHECK si applicable)
+    
     // Normaliser proprietaire_type en uppercase
     final proprietaireTypeNormalized = proprietaireType.toUpperCase().trim();
     final proprietaireTypeFinal = proprietaireTypeNormalized.isEmpty 
@@ -119,9 +126,13 @@ class ReceptionService {
       }
     }
     
-    // 4) Validation et calcul volume 15°C (OBLIGATOIRE)
+    // 🚨 PROD-LOCK: Validation température/densité OBLIGATOIRES - DO NOT MODIFY
     // RÈGLE MÉTIER : La conversion à 15°C est obligatoire pour toutes les réceptions.
     // Température et densité sont des champs OBLIGATOIRES.
+    // Si cette validation est modifiée, mettre à jour:
+    // - Tests unitaires (reception_service_test.dart)
+    // - Tests E2E (reception_flow_e2e_test.dart)
+    // - Documentation métier
     
     if (temperatureCAmb == null) {
       throw ReceptionValidationException(
@@ -138,7 +149,6 @@ class ReceptionService {
     }
     
     // Récupérer le code produit pour le calcul
-    await _refRepo.loadProduits();
     final produits = await _refRepo.loadProduits();
     
     // Trouver le produit correspondant
@@ -151,6 +161,14 @@ class ReceptionService {
         produit = produits.first;
       }
     }
+    
+    // 🚨 PROD-LOCK: Calcul volume 15°C OBLIGATOIRE - DO NOT MODIFY
+    // RÈGLE MÉTIER : volume_corrige_15c est TOUJOURS calculé (non-null).
+    // Température et densité sont garanties non-null par validation ci-dessus.
+    // Si cette logique est modifiée, mettre à jour:
+    // - Tests unitaires (reception_service_test.dart)
+    // - Tests E2E (reception_flow_e2e_test.dart)
+    // - Schéma DB (contrainte NOT NULL sur volume_corrige_15c)
     
     // Calculer le volume à 15°C (toujours calculé car température et densité sont non-null)
     double volumeCorrige15CFinal;

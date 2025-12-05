@@ -17,6 +17,7 @@ import 'package:ml_pp_mvp/features/receptions/screens/reception_form_screen.dart
 import 'package:ml_pp_mvp/features/receptions/screens/reception_list_screen.dart';
 import 'package:ml_pp_mvp/features/sorties/screens/sortie_form_screen.dart';
 import 'package:ml_pp_mvp/features/sorties/screens/sortie_list_screen.dart';
+import 'package:ml_pp_mvp/features/sorties/screens/sortie_detail_screen.dart';
 import 'package:ml_pp_mvp/features/dashboard/screens/dashboard_admin_screen.dart';
 import 'package:ml_pp_mvp/features/dashboard/screens/dashboard_directeur_screen.dart';
 import 'package:ml_pp_mvp/features/dashboard/screens/dashboard_gerant_screen.dart';
@@ -27,6 +28,7 @@ import 'package:ml_pp_mvp/features/dashboard/screens/dashboard_pca_screen.dart';
 import 'package:ml_pp_mvp/features/dashboard/widgets/dashboard_shell.dart';
 import 'package:ml_pp_mvp/features/logs/screens/logs_list_screen.dart';
 import 'package:ml_pp_mvp/features/stocks_journaliers/screens/stocks_list_screen.dart';
+import 'package:ml_pp_mvp/features/stocks_journaliers/screens/stocks_journaliers_screen.dart';
 import 'package:ml_pp_mvp/features/citernes/screens/citerne_list_screen.dart';
 
 // Default home page for authenticated users
@@ -103,8 +105,21 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
           GoRoute(path: '/sorties', builder: (ctx, st) => const SortieListScreen()),
           GoRoute(path: '/sorties/new', builder: (ctx, st) => const SortieFormScreen()),
+          GoRoute(
+            path: '/sorties/:id',
+            name: 'sortieDetail',
+            builder: (ctx, st) {
+              final id = st.pathParameters['id']!;
+              return SortieDetailScreen(sortieId: id);
+            },
+          ),
 
           GoRoute(path: '/stocks', builder: (ctx, st) => const StocksListScreen()),
+          GoRoute(
+            path: '/stocks-journaliers',
+            name: 'stocksJournaliers',
+            builder: (ctx, st) => const StocksJournaliersScreen(),
+          ),
           GoRoute(path: '/citernes', builder: (ctx, st) => const CiterneListScreen()),
           GoRoute(path: '/logs', builder: (ctx, st) => const LogsListScreen()),
         ],

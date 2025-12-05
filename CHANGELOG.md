@@ -4,6 +4,441 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 
 ## [Unreleased]
 
+### 🏗️ **ARCHITECTURE KPI SORTIES - REFACTORISATION PROD-READY (02/12/2025)**
+
+#### **🎯 Objectif atteint**
+Refactorisation complète de l'architecture KPI Sorties pour la rendre "prod ready" avec séparation claire entre accès DB et calcul métier, tests isolés et maintenabilité améliorée, en suivant le même pattern que KPI Réceptions.
+
+#### **📋 Nouvelle architecture KPI Sorties**
+
+**1. Modèle enrichi `KpiSorties`**
+- ✅ Nouveau modèle dans `lib/features/kpi/models/kpi_models.dart`
+- ✅ Structure identique à `KpiReceptions` avec `countMonaluxe` et `countPartenaire`
+- ✅ Méthode `toKpiNumberVolume()` pour compatibilité avec `KpiSnapshot`
+- ✅ Factory `fromKpiNumberVolume()` pour migration progressive
+- ✅ Constante `zero` pour cas d'erreur
+
+**2. Fonction pure `computeKpiSorties`**
+- ✅ Fonction 100% pure dans `lib/features/kpi/providers/kpi_provider.dart`
+- ✅ Aucune dépendance à Supabase, Riverpod ou RLS
+- ✅ Testable isolément avec des données mockées
+- ✅ Gère les formats numériques (virgules, points, espaces)
+- ✅ Compte séparément MONALUXE vs PARTENAIRE
+- ✅ Utilise `_toD()` pour parsing robuste des volumes
+
+**3. Provider brut `sortiesRawTodayProvider`**
+- ✅ Provider overridable dans `lib/features/kpi/providers/kpi_provider.dart`
+- ✅ Retourne les rows brutes depuis Supabase
+- ✅ Permet l'injection de données mockées dans les tests
+- ✅ Utilise `_fetchSortiesRawOfDay()` pour la récupération
+
+**4. Refactorisation `sortiesKpiTodayProvider`**
+- ✅ Modifié dans `lib/features/sorties/kpi/sorties_kpi_provider.dart`
+- ✅ Utilise maintenant `sortiesRawTodayProvider` + `computeKpiSorties`
+- ✅ Retourne `KpiSorties` au lieu de `KpiNumberVolume`
+- ✅ Architecture testable sans Supabase
+
+**5. Adaptation `kpiProviderProvider`**
+- ✅ Modifié dans `lib/features/kpi/providers/kpi_provider.dart`
+- ✅ Utilise `sortiesKpiTodayProvider` pour récupérer `KpiSorties`
+- ✅ Convertit `KpiSorties` en `KpiNumberVolume` pour `KpiSnapshot` (compatibilité)
+- ✅ Logs enrichis avec `countMonaluxe` et `countPartenaire`
+
+**6. Intégration Dashboard**
+- ✅ `KpiSnapshot` utilise maintenant `KpiSorties` au lieu de `KpiNumberVolume`
+- ✅ Carte KPI Sorties affichée dans le dashboard avec données complètes
+- ✅ Test widget ajouté : `test/features/dashboard/widgets/dashboard_kpi_sorties_test.dart`
+
+#### **🧪 Tests ajoutés**
+
+**1. Tests unitaires fonction pure**
+- ✅ `test/features/kpi/kpi_sorties_compute_test.dart` : 7 tests pour `computeKpiSorties`
+  - Calcul correct des volumes et count
+  - Gestion des 15°C manquants
+  - Cas vide
+  - Strings numériques avec virgules/points/espaces
+  - Propriétaires en minuscules
+  - Propriétaires null/inconnus
+  - Agrégation multiple
+
+**2. Tests provider**
+- ✅ `test/features/kpi/sorties_kpi_provider_test.dart` : 4 tests pour `sortiesKpiTodayProvider`
+  - Agrégation correcte depuis `sortiesRawTodayProvider`
+  - Valeurs zéro quand pas de sorties
+  - Gestion des valeurs null
+  - Conversion en `KpiNumberVolume`
+
+**3. Tests widget dashboard**
+- ✅ `test/features/dashboard/widgets/dashboard_kpi_sorties_test.dart` : 2 tests
+  - Affichage correct de la carte KPI Sorties avec données mockées
+  - Affichage zéro quand il n'y a pas de sorties
+
+**4. Tests d'intégration (SKIP par défaut)**
+- ✅ `test/features/sorties/integration/sortie_stocks_integration_test.dart` : 2 tests
+  - Test MONALUXE : Vérifie que le trigger met à jour `stocks_journaliers`
+  - Test PARTENAIRE : Vérifie la séparation des stocks par `proprietaire_type`
+  - Mode SKIP : "Supabase client non configuré pour les tests d'intégration"
+
+#### **🗑️ Nettoyage et dépréciation**
+
+**1. Test déprécié**
+- ⚠️ `test/features/sorties/kpi/sorties_kpi_provider_test.dart` : Déprécié avec message explicite
+- ✅ Remplacé par `test/features/kpi/sorties_kpi_provider_test.dart` (nouvelle architecture)
+- ✅ Test skip avec message de dépréciation pour référence historique
+
+#### **📊 Résultats**
+
+**Tests KPI**
+- ✅ 50 tests passent (nouveaux tests inclus)
+- ✅ 0 erreur
+
+**Tests Sorties**
+- ✅ 21 tests passent
+- ⚠️ 3 tests skip (1 déprécié + 2 intégration)
+- ⚠️ Tests d'intégration SKIP (Supabase non configuré - normal)
+
+**Tests Dashboard**
+- ✅ 26 tests passent
+- ✅ Carte KPI Sorties testée et validée
+
+#### **📁 Fichiers modifiés**
+
+**Nouveaux fichiers**
+- ✅ `lib/features/kpi/models/kpi_models.dart` - Ajout modèle `KpiSorties`
+- ✅ `test/features/kpi/kpi_sorties_compute_test.dart` - Tests fonction pure
+- ✅ `test/features/kpi/sorties_kpi_provider_test.dart` - Tests provider moderne
+- ✅ `test/features/dashboard/widgets/dashboard_kpi_sorties_test.dart` - Test widget dashboard
+- ✅ `test/features/sorties/integration/sortie_stocks_integration_test.dart` - Tests intégration (SKIP)
+
+**Fichiers modifiés**
+- ✅ `lib/features/kpi/providers/kpi_provider.dart` - Fonction pure + provider brut
+- ✅ `lib/features/sorties/kpi/sorties_kpi_provider.dart` - Refactorisation provider
+- ✅ `lib/features/kpi/models/kpi_models.dart` - `KpiSnapshot` utilise `KpiSorties`
+- ✅ `test/features/sorties/kpi/sorties_kpi_provider_test.dart` - Déprécié
+
+#### **🎯 Avantages de la nouvelle architecture**
+
+**Séparation des responsabilités**
+- ✅ Accès DB isolé dans `sortiesRawTodayProvider` (overridable)
+- ✅ Calcul métier isolé dans `computeKpiSorties` (fonction pure)
+- ✅ Provider KPI orchestre les deux sans dépendance directe à Supabase
+
+**Testabilité**
+- ✅ Tests unitaires sans Supabase, RLS ou HTTP
+- ✅ Tests provider avec données mockées injectables
+- ✅ Tests rapides et isolés
+
+**Maintenabilité**
+- ✅ Fonction pure facile à tester et déboguer
+- ✅ Provider brut facile à override pour différents scénarios
+- ✅ Architecture claire et documentée
+- ✅ Cohérence avec l'architecture KPI Réceptions
+
+### 🗄️ **BACKEND SQL - TRIGGER UNIFIÉ SORTIES (02/12/2025)**
+
+#### **🎯 Objectif atteint**
+Implémentation d'un trigger unifié AFTER INSERT pour le module Sorties avec gestion complète des stocks journaliers, validation métier, séparation par propriétaire et journalisation des actions.
+
+#### **📋 Migration SQL implémentée**
+
+**1. Migration `stocks_journaliers`**
+- ✅ Ajout colonnes : `proprietaire_type`, `depot_id`, `source`, `created_at`, `updated_at`
+- ✅ Backfill données existantes avec valeurs par défaut raisonnables
+- ✅ Nouvelle contrainte UNIQUE composite : `(citerne_id, produit_id, date_jour, proprietaire_type)`
+- ✅ Index composite pour performances : `idx_stocks_j_citerne_produit_date_proprietaire`
+- ✅ Migration idempotente avec `DO $$ BEGIN ... END $$`
+
+**2. Refonte `stock_upsert_journalier()`**
+- ✅ Nouvelle signature avec paramètres : `p_proprietaire_type`, `p_depot_id`, `p_source`
+- ✅ Normalisation automatique : `UPPER(TRIM(p_proprietaire_type))`
+- ✅ `ON CONFLICT` mis à jour pour utiliser la nouvelle clé composite
+- ✅ Gestion propre du `source` (RECEPTION, SORTIE, MANUAL)
+
+**3. Adaptation `receptions_apply_effects()`**
+- ✅ Adaptation des appels à `stock_upsert_journalier()` pour passer `proprietaire_type`, `depot_id`, `source = 'RECEPTION'`
+- ✅ Récupération de `depot_id` depuis `citernes.depot_id`
+- ✅ Compatibilité ascendante : comportement existant préservé
+
+**4. Fonction `fn_sorties_after_insert()`**
+- ✅ Fonction unifiée AFTER INSERT sur `sorties_produit`
+- ✅ Normalisation date + proprietaire_type
+- ✅ Validation citerne : existence, statut actif, compatibilité produit
+- ✅ Gestion volumes : volume principal + fallback via `index_avant`/`index_apres`
+- ✅ Règles propriétaire :
+  - `MONALUXE` → `client_id` obligatoire, `partenaire_id` NULL
+  - `PARTENAIRE` → `partenaire_id` obligatoire, `client_id` NULL
+- ✅ Contrôle stock : disponibilité suffisante, respect capacité sécurité
+- ✅ Appel `stock_upsert_journalier()` avec volumes négatifs (débit)
+- ✅ Journalisation dans `log_actions` avec `action = 'SORTIE_CREEE'`
+
+**5. Gestion des triggers**
+- ✅ Suppression triggers redondants : `trg_sorties_apply_effects`, `trg_sorties_log_created`
+- ✅ Conservation triggers existants : `trg_sorties_check_produit_citerne` (BEFORE INSERT), `trg_sortie_before_upd_trg` (BEFORE UPDATE)
+- ✅ Création trigger unique : `trg_sorties_after_insert` (AFTER INSERT) appelant `fn_sorties_after_insert()`
+
+#### **📚 Documentation des tests manuels**
+
+**1. Fichier de tests créé**
+- ✅ `docs/db/sorties_trigger_tests.md` : Documentation complète avec 12 cas de test
+  - 4 cas "OK" : MONALUXE, PARTENAIRE, proprietaire_type null, volume_15c null
+  - 8 cas "ERREUR" : citerne inactive, produit incompatible, dépassement capacité, stock insuffisant, incohérences propriétaire, valeurs manquantes
+- ✅ Chaque test inclut : bloc SQL prêt à exécuter, résultat attendu, vérifications `stocks_journaliers` + `log_actions`
+- ✅ Section "How to run" avec instructions d'exécution
+
+#### **📁 Fichiers créés**
+
+**Migration SQL**
+- ✅ `supabase/migrations/2025-12-02_sorties_trigger_unified.sql` : Migration complète et idempotente
+
+**Documentation**
+- ✅ `docs/db/sorties_trigger_tests.md` : 12 tests manuels documentés avec SQL et vérifications
+
+#### **🎯 Avantages de l'architecture**
+
+**Séparation des stocks**
+- ✅ Stocks séparés par `proprietaire_type` (MONALUXE vs PARTENAIRE)
+- ✅ Traçabilité complète avec `source` et `depot_id`
+- ✅ Contrainte UNIQUE garantit l'intégrité des données
+
+**Validation métier**
+- ✅ Validations centralisées dans le trigger (citerne, produit, volumes, propriétaire)
+- ✅ Contrôle capacité sécurité avant débit
+- ✅ Règles propriétaire strictes (client_id vs partenaire_id)
+
+**Traçabilité**
+- ✅ Journalisation automatique dans `log_actions`
+- ✅ Métadonnées complètes (sortie_id, citerne_id, produit_id, volumes, propriétaire)
+- ✅ Timestamps `created_at` et `updated_at` pour audit
+
+**Maintenabilité**
+- ✅ Migration idempotente (peut être rejouée sans erreur)
+- ✅ Code SQL commenté et structuré par étapes
+- ✅ Documentation exhaustive avec tests manuels
+
+### 🏗️ **ARCHITECTURE KPI RÉCEPTIONS - REFACTORISATION PROD-READY (01/12/2025)**
+
+#### **🎯 Objectif atteint**
+Refactorisation complète de l'architecture KPI Réceptions pour la rendre "prod ready" avec séparation claire entre accès DB et calcul métier, tests isolés et maintenabilité améliorée.
+
+#### **📋 Nouvelle architecture KPI Réceptions**
+
+**1. Modèle enrichi `KpiReceptions`**
+- ✅ Nouveau modèle dans `lib/features/kpi/models/kpi_models.dart`
+- ✅ Étend `KpiNumberVolume` avec `countMonaluxe` et `countPartenaire`
+- ✅ Méthode `toKpiNumberVolume()` pour compatibilité avec `KpiSnapshot`
+- ✅ Factory `fromKpiNumberVolume()` pour migration progressive
+
+**2. Fonction pure `computeKpiReceptions`**
+- ✅ Fonction 100% pure dans `lib/features/kpi/providers/kpi_provider.dart`
+- ✅ Aucune dépendance à Supabase, Riverpod ou RLS
+- ✅ Testable isolément avec des données mockées
+- ✅ Gère les formats numériques (virgules, points, strings)
+- ✅ Compte séparément MONALUXE vs PARTENAIRE
+- ✅ Pas de fallback automatique : si `volume_15c` est null, reste à 0
+
+**3. Provider brut `receptionsRawTodayProvider`**
+- ✅ Provider overridable dans `lib/features/kpi/providers/kpi_provider.dart`
+- ✅ Retourne les rows brutes depuis Supabase
+- ✅ Permet l'injection de données mockées dans les tests
+- ✅ Utilise `_fetchReceptionsRawOfDay()` pour la récupération
+
+**4. Refactorisation `receptionsKpiTodayProvider`**
+- ✅ Modifié dans `lib/features/receptions/kpi/receptions_kpi_provider.dart`
+- ✅ Utilise maintenant `receptionsRawTodayProvider` + `computeKpiReceptions`
+- ✅ Retourne `KpiReceptions` au lieu de `KpiNumberVolume`
+- ✅ Architecture testable sans Supabase
+
+**5. Adaptation `kpiProviderProvider`**
+- ✅ Modifié dans `lib/features/kpi/providers/kpi_provider.dart`
+- ✅ Convertit `KpiReceptions` en `KpiNumberVolume` pour `KpiSnapshot` (compatibilité)
+- ✅ Logs enrichis avec `countMonaluxe` et `countPartenaire`
+
+#### **🧪 Tests ajoutés**
+
+**1. Tests unitaires fonction pure**
+- ✅ `test/features/kpi/kpi_receptions_compute_test.dart` : 7 tests pour `computeKpiReceptions`
+  - Calcul correct des volumes et count
+  - Gestion des 15°C manquants
+  - Cas vide
+  - Strings numériques avec virgules/points
+  - Propriétaires en minuscules
+  - Propriétaires null/inconnus
+  - Fallback sur `volume_15c`
+
+**2. Tests provider**
+- ✅ `test/features/kpi/receptions_kpi_provider_test.dart` : 4 tests pour `receptionsKpiTodayProvider`
+  - Agrégation correcte depuis `receptionsRawTodayProvider`
+  - Valeurs zéro quand pas de réceptions
+  - Gestion des valeurs null
+  - Conversion en `KpiNumberVolume`
+
+#### **🗑️ Nettoyage et dépréciation**
+
+**1. Test déprécié**
+- ⚠️ `test/features/receptions/kpi/receptions_kpi_provider_test.dart` : Déprécié avec message explicite
+- ✅ Remplacé par `test/features/kpi/receptions_kpi_provider_test.dart` (nouvelle architecture)
+- ✅ Test skip avec message de dépréciation pour référence historique
+
+**2. Test E2E ajusté**
+- ✅ `test/features/receptions/e2e/reception_flow_e2e_test.dart` : Adapté pour nouvelle architecture
+- ✅ Utilise maintenant `receptionsRawTodayProvider` avec rows mockées
+- ✅ Assertions assouplies avec `textContaining` au lieu de `text` exact
+
+#### **📊 Résultats**
+
+**Tests KPI**
+- ✅ 39 tests passent (nouveaux tests inclus)
+- ✅ 0 erreur
+
+**Tests Réceptions**
+- ✅ 32 tests passent
+- ⚠️ 1 test skip (déprécié)
+- ⚠️ Tests d'intégration SKIP (Supabase non configuré - normal)
+
+#### **📁 Fichiers modifiés**
+
+**Nouveaux fichiers**
+- ✅ `lib/features/kpi/models/kpi_models.dart` - Ajout modèle `KpiReceptions`
+- ✅ `test/features/kpi/kpi_receptions_compute_test.dart` - Tests fonction pure
+- ✅ `test/features/kpi/receptions_kpi_provider_test.dart` - Tests provider moderne
+
+**Fichiers modifiés**
+- ✅ `lib/features/kpi/providers/kpi_provider.dart` - Fonction pure + provider brut
+- ✅ `lib/features/receptions/kpi/receptions_kpi_provider.dart` - Refactorisation provider
+- ✅ `test/features/receptions/kpi/receptions_kpi_provider_test.dart` - Déprécié
+- ✅ `test/features/receptions/e2e/reception_flow_e2e_test.dart` - Adapté nouvelle architecture
+
+**Fichiers supprimés**
+- 🗑️ `_ReceptionsData` class (remplacée par rows brutes)
+- 🗑️ `_fetchReceptionsOfDay()` function (remplacée par `_fetchReceptionsRawOfDay()`)
+
+#### **🎯 Avantages de la nouvelle architecture**
+
+**Séparation des responsabilités**
+- ✅ Accès DB isolé dans `receptionsRawTodayProvider` (overridable)
+- ✅ Calcul métier isolé dans `computeKpiReceptions` (fonction pure)
+- ✅ Provider KPI orchestre les deux sans dépendance directe à Supabase
+
+**Testabilité**
+- ✅ Tests unitaires sans Supabase, RLS ou HTTP
+- ✅ Tests provider avec données mockées injectables
+- ✅ Tests rapides et isolés
+
+**Maintenabilité**
+- ✅ Fonction pure facile à tester et déboguer
+- ✅ Provider brut facile à override pour différents scénarios
+- ✅ Architecture claire et documentée
+
+### 🔒 **MODULE RÉCEPTIONS - VERROUILLAGE PRODUCTION (30/11/2025)**
+
+#### **🎯 Objectif atteint**
+Verrouillage complet du module Réceptions pour la production avec audit exhaustif, protections PROD-LOCK et patches sécurisés.
+
+#### **📋 Audit complet effectué**
+
+**1. Audit DATA LAYER**
+- ✅ `reception_service.dart` : Validations métier strictes identifiées et protégées
+- ✅ `reception_validation_exception.dart` : Exception métier stable et maintenable
+
+**2. Audit UI LAYER**
+- ✅ `reception_form_screen.dart` : Structure formulaire (4 TextField obligatoires) protégée
+- ✅ `reception_list_screen.dart` : Écran lecture seule, aucune zone critique
+
+**3. Audit KPI LAYER**
+- ✅ `receptions_kpi_repository.dart` : Structure KPI (count + volume15c + volumeAmbient) protégée
+- ✅ `receptions_kpi_provider.dart` : Provider simple et stable
+
+**4. Audit TESTS**
+- ✅ Tests unitaires : 12 tests couvrant toutes les validations métier
+- ✅ Tests intégration : CDR → Réception → DECHARGE, Réception → Stocks
+- ✅ Tests KPI : Repository et providers testés
+- ✅ Tests E2E UI : Flux complet navigation + formulaire + soumission
+
+#### **🔒 Protections PROD-LOCK ajoutées**
+
+**8 commentaires `🚨 PROD-LOCK` ajoutés sur les zones critiques :**
+
+1. **`reception_service.dart`** (3 zones) :
+   - Normalisation `proprietaire_type` UPPERCASE (ligne 106)
+   - Validation température/densité obligatoires (ligne 129)
+   - Calcul volume 15°C obligatoire (ligne 165)
+
+2. **`reception_form_screen.dart`** (3 zones) :
+   - Validation UI température/densité (ligne 184)
+   - Structure formulaire Mesures & Calculs (ligne 477)
+   - Logique validation soumission (ligne 379)
+
+3. **`receptions_kpi_repository.dart`** (2 zones) :
+   - Structure KPI Réceptions du jour (ligne 13)
+   - Structure `KpiNumberVolume` (ligne 86)
+
+#### **🔧 Patches sécurisés appliqués**
+
+**1. Patch CRITIQUE : Suppression double appel `loadProduits()`**
+- **Fichier** : `lib/features/receptions/data/reception_service.dart`
+- **Ligne** : 141-142
+- **Changement** : Suppression du premier appel redondant
+- **Impact** : Performance améliorée (appel inutile éliminé)
+
+**2. Patch CRITIQUE : Ajout log d'erreur KPI**
+- **Fichier** : `lib/features/receptions/kpi/receptions_kpi_repository.dart`
+- **Ligne** : 78-81
+- **Changement** : Ajout `debugPrint` pour tracer les erreurs KPI
+- **Impact** : Erreurs KPI maintenant visibles au lieu d'être silencieuses
+
+**3. Patch MINEUR : Suppression fallback inutile**
+- **Fichier** : `lib/features/receptions/screens/reception_form_screen.dart`
+- **Ligne** : 200
+- **Changement** : Suppression `temp ?? 15.0` et `dens ?? 0.83` (déjà validés non-null)
+- **Impact** : Code plus propre et cohérent
+
+#### **📊 Règles métier protégées**
+
+**✅ Volume 15°C - OBLIGATOIRE**
+- Température ambiante (°C) : **OBLIGATOIRE** (validation service + UI)
+- Densité à 15°C : **OBLIGATOIRE** (validation service + UI)
+- Volume corrigé 15°C : **TOUJOURS CALCULÉ** (non-null garanti)
+
+**✅ Propriétaire Type - NORMALISATION**
+- Toujours en **UPPERCASE** (`MONALUXE` ou `PARTENAIRE`)
+- PARTENAIRE → `partenaire_id` **OBLIGATOIRE**
+
+**✅ Citerne - VALIDATIONS STRICTES**
+- Citerne **ACTIVE** uniquement
+- Produit citerne **DOIT MATCHER** produit réception
+
+**✅ CDR Integration**
+- CDR statut **ARRIVE** uniquement
+- Réception déclenche **DECHARGE** via trigger DB
+
+**✅ Champs Formulaire UI**
+- `index_avant`, `index_apres` : **OBLIGATOIRES**
+- `temperature`, `densite` : **OBLIGATOIRES** (UI + Service)
+
+**✅ KPI Réceptions du jour**
+- Structure: `count` + `volume15c` + `volumeAmbient`
+- Filtre: `statut == 'validee'` + `date_reception == jour`
+
+#### **📁 Fichiers modifiés**
+- **Modifié** : `lib/features/receptions/data/reception_service.dart` - Patches + commentaires PROD-LOCK
+- **Modifié** : `lib/features/receptions/kpi/receptions_kpi_repository.dart` - Patch log erreur + commentaires PROD-LOCK
+- **Modifié** : `lib/features/receptions/screens/reception_form_screen.dart` - Patch fallback + commentaires PROD-LOCK
+- **Créé** : `docs/AUDIT_RECEPTIONS_PROD_LOCK.md` - Rapport d'audit complet
+
+#### **🏆 Résultats**
+- ✅ **Module verrouillé** : 8 zones critiques protégées avec commentaires PROD-LOCK
+- ✅ **Patches appliqués** : 3 patches sécurisés (2 critiques, 1 mineur)
+- ✅ **Tests validés** : 34 tests passent (unit, integration, KPI, E2E)
+- ✅ **Documentation complète** : Rapport d'audit exhaustif généré
+- ✅ **Production-ready** : Module prêt pour déploiement avec protections anti-régression
+
+#### **📚 Documentation**
+- **Rapport d'audit** : `docs/AUDIT_RECEPTIONS_PROD_LOCK.md`
+- **Tag Git** : `receptions-prod-ready-2025-11-30`
+- **Date de verrouillage** : 2025-11-30
+
+---
+
 ### ✅ **MODULE RÉCEPTIONS - KPI "RÉCEPTIONS DU JOUR" (28/11/2025)**
 
 #### **🎯 Objectif atteint**

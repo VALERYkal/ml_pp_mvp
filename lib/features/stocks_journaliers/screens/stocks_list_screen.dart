@@ -458,101 +458,97 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
   }
 
   Widget _buildLoadingState(BuildContext context, ThemeData theme) {
-    return SliverToBoxAdapter(
-        child: Padding(
-        padding: const EdgeInsets.all(24),
-          child: Column(
-          children: [
-            const SizedBox(height: 40),
-            CircularProgressIndicator(
-              color: theme.colorScheme.primary,
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          const SizedBox(height: 40),
+          CircularProgressIndicator(
+            color: theme.colorScheme.primary,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Chargement des stocks...',
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
             ),
-            const SizedBox(height: 16),
-            Text(
-              'Chargement des stocks...',
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildErrorState(BuildContext context, Object error, ThemeData theme) {
-    return SliverToBoxAdapter(
-        child: Padding(
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Container(
         padding: const EdgeInsets.all(24),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.errorContainer.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: theme.colorScheme.error.withOpacity(0.3),
-            ),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.errorContainer.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: theme.colorScheme.error.withOpacity(0.3),
           ),
-          child: ErrorTile(
-            'Erreur de chargement des stocks',
-            onRetry: () => ref.invalidate(stocksListProvider),
-          ),
+        ),
+        child: ErrorTile(
+          'Erreur de chargement des stocks',
+          onRetry: () => ref.invalidate(stocksListProvider),
         ),
       ),
     );
   }
 
   Widget _buildEmptyState(BuildContext context, ThemeData theme) {
-    return SliverToBoxAdapter(
-              child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: ScaleTransition(
-            scale: _scaleAnimation,
-            child: Container(
-              padding: const EdgeInsets.all(48),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: theme.colorScheme.outline.withOpacity(0.2),
-                ),
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: ScaleTransition(
+          scale: _scaleAnimation,
+          child: Container(
+            padding: const EdgeInsets.all(48),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: theme.colorScheme.outline.withOpacity(0.2),
               ),
-                  child: Column(
-                    children: [
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primaryContainer,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                        Icons.inventory_2_outlined,
-                      size: 48,
-                      color: theme.colorScheme.onPrimaryContainer,
-                    ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primaryContainer,
+                    shape: BoxShape.circle,
                   ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Aucun stock trouvé',
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: theme.colorScheme.onSurface,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                      Text(
-                    'Aucun stock n\'a été trouvé pour cette date et ces filtres.',
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
+                  child: Icon(
+                    Icons.inventory_2_outlined,
+                    size: 48,
+                    color: theme.colorScheme.onPrimaryContainer,
                   ),
                 ),
-              ),
+                const SizedBox(height: 24),
+                Text(
+                  'Aucun stock trouvé',
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Aucun stock n\'a été trouvé pour cette date et ces filtres.',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

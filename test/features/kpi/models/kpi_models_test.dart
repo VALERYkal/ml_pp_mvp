@@ -96,11 +96,15 @@ void main() {
         const kpi = KpiBalanceToday(
           receptions15c: 2500.0,
           sorties15c: 1800.0,
+          receptionsAmbient: 2600.0,
+          sortiesAmbient: 1900.0,
         );
 
         // Assert
         expect(kpi.receptions15c, equals(2500.0));
         expect(kpi.sorties15c, equals(1800.0));
+        expect(kpi.receptionsAmbient, equals(2600.0));
+        expect(kpi.sortiesAmbient, equals(1900.0));
       });
 
       test('should calculate positive delta correctly', () {
@@ -108,10 +112,13 @@ void main() {
         const kpi = KpiBalanceToday(
           receptions15c: 2500.0,
           sorties15c: 1800.0,
+          receptionsAmbient: 2600.0,
+          sortiesAmbient: 1900.0,
         );
 
         // Assert
         expect(kpi.delta15c, equals(700.0)); // 2500 - 1800 = 700
+        expect(kpi.deltaAmbient, equals(700.0)); // 2600 - 1900 = 700
       });
 
       test('should calculate negative delta correctly', () {
@@ -119,10 +126,13 @@ void main() {
         const kpi = KpiBalanceToday(
           receptions15c: 1000.0,
           sorties15c: 1500.0,
+          receptionsAmbient: 1050.0,
+          sortiesAmbient: 1550.0,
         );
 
         // Assert
         expect(kpi.delta15c, equals(-500.0)); // 1000 - 1500 = -500
+        expect(kpi.deltaAmbient, equals(-500.0)); // 1050 - 1550 = -500
       });
 
       test('should handle zero delta', () {
@@ -130,10 +140,13 @@ void main() {
         const kpi = KpiBalanceToday(
           receptions15c: 1000.0,
           sorties15c: 1000.0,
+          receptionsAmbient: 1050.0,
+          sortiesAmbient: 1050.0,
         );
 
         // Assert
         expect(kpi.delta15c, equals(0.0)); // 1000 - 1000 = 0
+        expect(kpi.deltaAmbient, equals(0.0)); // 1050 - 1050 = 0
       });
     });
 
@@ -219,8 +232,10 @@ void main() {
           balanceToday: const KpiBalanceToday(
             receptions15c: 2500.0,
             sorties15c: 1800.0,
+            receptionsAmbient: 2600.0,
+            sortiesAmbient: 1900.0,
           ),
-          citernesSousSeuil: alerts,
+          trucksToFollow: KpiTrucksToFollow.zero,
           trend7d: trendPoints,
         );
 
@@ -229,7 +244,7 @@ void main() {
         expect(snapshot.sortiesToday.count, equals(3));
         expect(snapshot.stocks.total15c, equals(14500.0));
         expect(snapshot.balanceToday.delta15c, equals(700.0));
-        expect(snapshot.citernesSousSeuil.length, equals(1));
+        expect(snapshot.trucksToFollow.totalTrucks, equals(0));
         expect(snapshot.trend7d.length, equals(2));
       });
 
@@ -254,8 +269,10 @@ void main() {
           balanceToday: KpiBalanceToday(
             receptions15c: 0.0,
             sorties15c: 0.0,
+            receptionsAmbient: 0.0,
+            sortiesAmbient: 0.0,
           ),
-          citernesSousSeuil: [],
+          trucksToFollow: KpiTrucksToFollow.zero,
           trend7d: [],
         );
 
@@ -264,7 +281,7 @@ void main() {
         expect(snapshot.sortiesToday.count, equals(0));
         expect(snapshot.stocks.total15c, equals(0.0));
         expect(snapshot.balanceToday.delta15c, equals(0.0));
-        expect(snapshot.citernesSousSeuil.length, equals(0));
+        expect(snapshot.trucksToFollow.totalTrucks, equals(0));
         expect(snapshot.trend7d.length, equals(0));
       });
     });

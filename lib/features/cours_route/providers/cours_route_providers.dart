@@ -10,6 +10,7 @@ import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 import 'package:ml_pp_mvp/features/kpi/providers/cours_kpi_provider.dart';
 
 /// Provider: liste des CDR au statut ARRIVE (sélectionnables pour Réception)
+// 🚫 PROD-FROZEN: ONLY ARRIVE CDRs are selectable in Réception form. Used by reception_form_screen.dart and cours_arrive_selector.dart
 final coursDeRouteArrivesProvider =
     riverpod.FutureProvider.autoDispose<List<CoursDeRoute>>((ref) async {
   final service = ref.read(coursDeRouteServiceProvider);
@@ -57,6 +58,7 @@ final coursDeRouteListProvider = riverpod.FutureProvider<List<CoursDeRoute>>((re
 /// ```dart
 /// final coursActifsAsync = ref.watch(coursDeRouteActifsProvider);
 /// ```
+// 🚫 PROD-FROZEN: DECHARGE MUST be excluded. Used by KPI providers and active CDR screens.
 final coursDeRouteActifsProvider = riverpod.FutureProvider<List<CoursDeRoute>>((ref) async {
   final service = ref.read(coursDeRouteServiceProvider);
   return await service.getActifs();
