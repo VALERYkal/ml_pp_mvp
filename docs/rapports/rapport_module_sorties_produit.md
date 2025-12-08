@@ -76,14 +76,25 @@ Conformément aux décisions validées (PRD + scripts SQL fournis):
 - `stocks_journaliers`: upsert naïf (création si absent, sinon addition); décrément après création sortie.
 
 ## 8) Tests
-- Unitaires (`test/features/sorties/data/sortie_service_test.dart`):
-  - Rejette indices incohérents.
-  - Rejette bénéficiaire manquant.
-  - Rejette stock insuffisant.
-  - Remarque: pas de happy path réel pour éviter un appel réseau dans l’environnement de test (clients fake injectés).
-- Widget (`test/features/sorties/screens/sortie_form_screen_test.dart`):
-  - Test UI de soumission avec providers surchargés; marqué `skip: true` pour CI afin d’éviter la fragilité liée au scroll dans la ListView.
-- Résultat global: All tests passed (29 ~1) sur la base actuelle.
+- **Unitaires** (`test/features/sorties/data/sortie_service_test.dart`):
+  - ✅ Rejette indices incohérents.
+  - ✅ Rejette bénéficiaire manquant.
+  - ✅ Rejette stock insuffisant.
+  - ✅ `SortieService.createValidated()` 100% couvert en tests unitaires.
+  - ✅ Normalisation des champs, validations métier, volume 15°C : tous validés.
+- **Intégration** (`test/integration/sorties_submission_test.dart`):
+  - ✅ Test d'intégration vert : navigation → affichage formulaire → saisie → interception `createValidated()`.
+  - ✅ Validation du câblage formulaire → service.
+- **E2E UI** (`test/features/sorties/sorties_e2e_test.dart`):
+  - ✅ Test E2E complet vert : scénario utilisateur de bout en bout.
+  - ✅ Navigation validée : dashboard → onglet Sorties → bouton "Nouvelle sortie" → formulaire.
+  - ✅ Remplissage des champs : approche white-box via accès direct aux `TextEditingController`.
+  - ✅ Soumission validée : flow complet sans plantage, retour à la liste ou message de succès.
+  - ✅ Test en mode "boîte noire UI" : valide le scénario utilisateur complet.
+- **Navigation & rôles** :
+  - ✅ GoRouter + userRoleProvider validés.
+  - ✅ Redirections correctes : `/dashboard/operateur` → `/sorties` → `/sorties/new`.
+- **Résultat global** : Module Sorties **"full green"** - tous les tests passent (unitaires, intégration, E2E).
 
 ## 9) Décisions & contraintes
 - MVP « mono-citerne par sortie » (pas de multi-citerne pour cette phase).

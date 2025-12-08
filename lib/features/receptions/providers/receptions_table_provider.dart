@@ -10,7 +10,7 @@ final receptionsTableProvider = FutureProvider.autoDispose<List<ReceptionRowVM>>
   // 1) Réceptions (noyau)
   final recRows = await supa
       .from('receptions')
-      .select('id, date_reception, proprietaire_type, produit_id, citerne_id, volume_corrige_15c, volume_ambiant, cours_de_route_id, created_at')
+      .select('id, date_reception, proprietaire_type, produit_id, citerne_id, volume_corrige_15c, volume_ambiant, cours_de_route_id, partenaire_id, created_at')
       .order('date_reception', ascending: false);
 
   final recList = (recRows as List).cast<Map<String, dynamic>>();
@@ -28,6 +28,16 @@ final receptionsTableProvider = FutureProvider.autoDispose<List<ReceptionRowVM>>
   final fMap = { 
     for (final f in (fournisseursRows as List).cast<Map<String, dynamic>>()) 
       f['id'] as String : (f['nom'] as String?) ?? 'Fournisseur inconnu'
+  };
+
+  // Récupérer les partenaires depuis Supabase
+  final partenairesRows = await supa
+      .from('partenaires')
+      .select('id, nom');
+  
+  final pMap = { 
+    for (final p in (partenairesRows as List).cast<Map<String, dynamic>>()) 
+      p['id'] as String : (p['nom'] as String?) ?? 'Partenaire inconnu'
   };
 
   final pCode = { for (final p in prods) p.id : (p.code) };
@@ -75,6 +85,10 @@ final receptionsTableProvider = FutureProvider.autoDispose<List<ReceptionRowVM>>
       return fournisseur;
     }();
 
+    // Récupération du nom du partenaire
+    final partenaireId = r['partenaire_id'] as String?;
+    final partenaireNom = partenaireId != null ? pMap[partenaireId] : null;
+
     out.add(ReceptionRowVM(
       id: r['id'] as String,
       dateReception: DateTime.tryParse((r['date_reception'] as String? ?? '')) ?? DateTime.now(),
@@ -86,6 +100,7 @@ final receptionsTableProvider = FutureProvider.autoDispose<List<ReceptionRowVM>>
       cdrShort: cdrId != null ? '#${cdrId.substring(0, 8)}' : null,
       cdrPlaques: plaques.isEmpty ? null : plaques,
       fournisseurNom: fournisseurNom,
+      partenaireNom: partenaireNom,
     ));
   }
   return out;

@@ -13,6 +13,7 @@ import 'package:ml_pp_mvp/core/errors/sortie_service_exception.dart';
 import 'package:ml_pp_mvp/shared/referentiels/referentiels.dart' as refs;
 import 'package:ml_pp_mvp/shared/utils/volume_calc.dart';
 import 'package:ml_pp_mvp/features/sorties/providers/sortie_providers.dart' show sortieServiceProvider, sortiesListProvider, clientsListProvider, partenairesListProvider;
+import 'package:ml_pp_mvp/features/sorties/data/sortie_service.dart';
 import 'package:ml_pp_mvp/features/sorties/providers/sorties_table_provider.dart';
 import 'package:ml_pp_mvp/features/sorties/kpi/sorties_kpi_provider.dart';
 import 'package:ml_pp_mvp/features/stocks_journaliers/providers/stocks_providers.dart';
@@ -20,7 +21,14 @@ import 'package:ml_pp_mvp/features/stocks_journaliers/providers/stocks_providers
 enum OwnerType { monaluxe, partenaire }
 
 class SortieFormScreen extends ConsumerStatefulWidget {
-  const SortieFormScreen({super.key});
+  /// Optionnel : permet d'injecter un SortieService spécifique (tests).
+  final SortieService? debugSortieService;
+
+  const SortieFormScreen({
+    super.key,
+    this.debugSortieService,
+  });
+
   @override
   ConsumerState<SortieFormScreen> createState() => _SortieFormScreenState();
 }
@@ -85,6 +93,13 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
   double? _num(String s) => double.tryParse(s.replaceAll(RegExp(r'[^\d\-,\.]'), '').replaceAll(',', '.'));
   bool get isMonaluxe => proprietaireType == 'MONALUXE';
   bool get isPartenaire => proprietaireType == 'PARTENAIRE';
+
+  /// Méthode publique pour les tests d'intégration.
+  /// Permet d'appeler directement la soumission sans passer par le bouton UI.
+  @visibleForTesting
+  Future<void> submitSortieForTesting() async {
+    return _submitSortie();
+  }
 
   Future<void> _submitSortie() async {
     // Validation FormState
@@ -160,7 +175,12 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
 
     setState(() => busy = true);
     try {
-      await ref.read(sortieServiceProvider).createValidated(
+      // En PROD : on utilise le provider.
+      // En TEST : on peut injecter un SortieService custom (spy).
+      final SortieService sortieService =
+          widget.debugSortieService ?? ref.read(sortieServiceProvider);
+
+      await sortieService.createValidated(
             citerneId: _selectedCiterneId!,
             produitId: _selectedProduitId!,
             indexAvant: avant,

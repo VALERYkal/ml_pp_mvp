@@ -3,6 +3,8 @@ import '../models/kpi_models.dart';
 import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart';
 import 'package:ml_pp_mvp/features/receptions/kpi/receptions_kpi_provider.dart';
 import 'package:ml_pp_mvp/features/sorties/kpi/sorties_kpi_provider.dart';
+import 'package:ml_pp_mvp/features/stocks/data/stocks_kpi_providers.dart';
+import 'package:ml_pp_mvp/features/stocks/data/stocks_kpi_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Helper de parsing robuste pour convertir num | String → double
@@ -300,15 +302,18 @@ final kpiProviderProvider = FutureProvider.autoDispose<KpiSnapshot>((ref) async 
     final receptionsKpi = await ref.watch(receptionsKpiTodayProvider.future);
     final sortiesKpi = await ref.watch(sortiesKpiTodayProvider.future);
     
+    // Phase 3.4: Utiliser le nouveau provider agrégé pour les stocks
+    // Les capacités sont maintenant incluses dans CiterneGlobalStockSnapshot
+    final stocksKpis = await ref.watch(stocksDashboardKpisProvider(depotId).future);
+    final stocks = _computeStocksDataFromKpis(stocksKpis);
+    
     final futures = await Future.wait([
-      _fetchStocksActuels(supa, depotId),
       _fetchTrucksToFollow(supa, depotId),
       _fetchTrend7d(supa, depotId, from7d, today),
     ]);
 
-    final stocks = futures[0] as _StocksData;
-    final trucks = futures[1] as KpiTrucksToFollow;
-    final trend7d = futures[2] as List<KpiTrendPoint>;
+    final trucks = futures[0] as KpiTrucksToFollow;
+    final trend7d = futures[1] as List<KpiTrendPoint>;
   
   // 4) Construction du snapshot unifié avec null-safety
   
@@ -371,82 +376,29 @@ class _StocksData {
   });
 }
 
-/// Récupère les stocks actuels
-Future<_StocksData> _fetchStocksActuels(
-  SupabaseClient supa,
-  String? depotId,
-) async {
-  print('🔍 DEBUG KPI: Récupération des stocks actuels, depotId: $depotId');
+/// Calcule les totaux de stock depuis le nouveau provider agrégé (Phase 3.4)
+/// 
+/// Utilise stocksDashboardKpisProvider pour obtenir les données de stock
+/// et calcule les totaux depuis kpis.citerneGlobal.
+/// 
+/// Les capacités sont maintenant incluses directement dans CiterneGlobalStockSnapshot.capaciteTotale.
+_StocksData _computeStocksDataFromKpis(
+  StocksDashboardKpis kpis,
+) {
+  print('🔍 DEBUG KPI: Calcul des stocks depuis le provider agrégé');
   
-  // 1) Si on filtre par dépôt => récupérer les citerne_id correspondants
-  List<String>? citerneIds;
-  if (depotId != null && depotId.isNotEmpty) {
-    final citRows = await supa
-        .from('citernes')
-        .select('id')
-        .eq('depot_id', depotId);
-    citerneIds = (citRows as List).map((e) => e['id'] as String).toList();
-    print('🔍 DEBUG KPI: Citernes trouvées pour le dépôt: ${citerneIds.length}');
-    if (citerneIds.isEmpty) {
-      return _StocksData(
-        totalAmbient: 0.0,
-        total15c: 0.0,
-        capacityTotal: 0.0,
-      );
-    }
-  }
-
-  // 2) Charger la vue (une ligne par citerne = dernier stock)
-  var stocksQuery = supa
-      .from('v_citerne_stock_actuel')
-      .select('citerne_id, stock_ambiant, stock_15c');
-
-  if (citerneIds != null) {
-    stocksQuery = stocksQuery.in_('citerne_id', citerneIds);
-  }
-
-  final stocksResult = await stocksQuery;
-  print('🔍 DEBUG KPI: Stocks trouvés: ${stocksResult.length} citernes');
-  
-  // 3) Récupération des capacités des citernes
-  var citernesQuery = supa.from('citernes').select('id, capacite_totale');
-  
-  if (citerneIds != null) {
-    citernesQuery = citernesQuery.in_('id', citerneIds);
-  }
-  
-  final citernesResult = await citernesQuery;
-  
-  // Création d'une map des capacités
-  final capacities = <String, double>{};
-  for (final row in citernesResult) {
-    final id = row['id'] as String?;
-    final cap = (row['capacite_totale'] as num?)?.toDouble() ?? 0.0;
-    if (id != null) capacities[id] = cap;
-  }
-  
+  // Calculer les totaux depuis kpis.citerneGlobal
   double totalAmbient = 0.0;
   double total15c = 0.0;
   double capacityTotal = 0.0;
   
-  for (final row in stocksResult) {
-    final citerneId = row['citerne_id'] as String?;
-    
-    // Mapping strict des stocks - NE JAMAIS utiliser stock_ambiant comme fallback pour stock_15c
-    final stockAmbient = _toD(row['stock_ambiant']);
-    final stock15c = _toD(row['stock_15c']);
-    
-    print('🔍 DEBUG Stock Citerne $citerneId: stockAmbientRaw=${row['stock_ambiant']}, stock15cRaw=${row['stock_15c']}');
-    print('🔍 DEBUG Stock Citerne $citerneId: stock_ambiant=$stockAmbient, stock_15c=$stock15c');
-    
-    if (citerneId != null) {
-      totalAmbient += stockAmbient;
-      total15c += stock15c;
-      capacityTotal += capacities[citerneId] ?? 0.0;
-    }
+  for (final snapshot in kpis.citerneGlobal) {
+    totalAmbient += snapshot.stockAmbiantTotal;
+    total15c += snapshot.stock15cTotal;
+    capacityTotal += snapshot.capaciteTotale;
   }
   
-  print('🔍 DEBUG FINAL Stocks: totalAmbient=$totalAmbient, total15c=$total15c, capacityTotal=$capacityTotal');
+  print('🔍 DEBUG KPI: Totaux depuis citerneGlobal - totalAmbient=$totalAmbient, total15c=$total15c, capacityTotal=$capacityTotal');
   
   return _StocksData(
     totalAmbient: totalAmbient,

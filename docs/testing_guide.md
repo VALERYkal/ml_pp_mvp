@@ -27,10 +27,11 @@ test/features/
 │   ├── integration/
 │   ├── kpi/
 │   └── screens/
-├── sorties/                 # Tests Sorties
-│   ├── data/
-│   ├── kpi/
-│   └── screens/
+├── sorties/                 # Tests Sorties (✅ Full Green)
+│   ├── data/                # Tests unitaires SortieService
+│   ├── kpi/                  # Tests KPI Sorties
+│   ├── screens/             # Tests widget formulaire
+│   └── sorties_e2e_test.dart # Test E2E complet (✅ Vert)
 └── ...                      # Modules futurs
 ```
 
@@ -67,6 +68,11 @@ test/
 - **mockito** : Mocking pour les services
 - **riverpod** : Gestion d'état pour les tests
 - **build_runner** : Génération automatique des mocks
+
+### Tests d'Intégration Auth
+- **Documentation complète** : [`testing/auth_integration_tests.md`](testing/auth_integration_tests.md)
+- **Tests Auth** : `test/integration/auth/auth_integration_test.dart`
+- **Statut** : ✅ Phase 4 Complétée (14 tests passent)
 
 ## 🚀 Exécution des Tests
 
@@ -128,6 +134,56 @@ flutter test test/integration/reception_flow_test.dart
 chmod +x scripts/run_tests.sh
 ./scripts/run_tests.sh
 ```
+
+## 🧪 Tests du Module Sorties (✅ Full Green)
+
+### Vue d'ensemble
+
+Le module Sorties dispose d'une couverture de tests complète avec **100% de tests verts** :
+
+- ✅ **Tests unitaires** : `SortieService.createValidated()` 100% couvert
+- ✅ **Tests d'intégration** : `sorties_submission_test.dart` vert, validation du câblage formulaire → service
+- ✅ **Tests E2E UI** : `sorties_e2e_test.dart` vert, validation du scénario utilisateur complet
+
+### Tests Unitaires
+
+**Fichier** : `test/features/sorties/data/sortie_service_test.dart`
+
+- ✅ Rejette indices incohérents
+- ✅ Rejette bénéficiaire manquant
+- ✅ Rejette stock insuffisant
+- ✅ Normalisation des champs, validations métier, calcul volume 15°C : tous validés
+
+### Tests d'Intégration
+
+**Fichier** : `test/integration/sorties_submission_test.dart`
+
+- ✅ Navigation → affichage formulaire → saisie → interception `createValidated()`
+- ✅ Validation du câblage formulaire → service
+
+### Tests E2E
+
+**Fichier** : `test/features/sorties/sorties_e2e_test.dart`
+
+- ✅ Navigation complète : dashboard → onglet Sorties → bouton "Nouvelle sortie" → formulaire
+- ✅ Remplissage des champs : approche white-box via accès direct aux `TextEditingController`
+- ✅ Soumission validée : flow complet sans plantage, retour à la liste ou message de succès
+- ✅ Test en mode "boîte noire UI" : valide le scénario utilisateur complet
+
+### Exécution
+
+```bash
+# Tous les tests Sorties
+flutter test test/features/sorties -r expanded
+
+# Test E2E spécifique
+flutter test test/features/sorties/sorties_e2e_test.dart -r expanded
+
+# Test d'intégration
+flutter test test/integration/sorties_submission_test.dart -r expanded
+```
+
+---
 
 ## 🧪 Tests de l'Écran de Login
 

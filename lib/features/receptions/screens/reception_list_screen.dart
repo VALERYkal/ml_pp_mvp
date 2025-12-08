@@ -144,7 +144,7 @@ class _ReceptionListScreenState extends ConsumerState<ReceptionListScreen> {
                 ),
                 const DataColumn(label: Text('Vol ambiant'), numeric: true),
                 const DataColumn(label: Text('CDR')),
-                const DataColumn(label: Text('Fournisseur')),
+                const DataColumn(label: Text('Source')),
                 const DataColumn(label: Text('Actions')),
               ],
               source: source,
@@ -177,8 +177,8 @@ class _ReceptionDataSource extends DataTableSource {
         DataCell(Text(_fmtVol(r.volAmb))),
         DataCell(Text(_cdrCell(r))),
         DataCell(
-          r.fournisseurNom != null && r.fournisseurNom!.isNotEmpty 
-              ? _ModernChip(text: r.fournisseurNom!, color: Theme.of(context).colorScheme.tertiary, icon: Icons.business)
+          r.sourceLabel != '—'
+              ? _ModernChip(text: r.sourceLabel, color: Theme.of(context).colorScheme.tertiary, icon: Icons.business)
               : Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
@@ -199,7 +199,7 @@ class _ReceptionDataSource extends DataTableSource {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        'Fournisseur inconnu',
+                        '—',
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                           fontStyle: FontStyle.italic,

@@ -188,6 +188,12 @@ class FakeReceptionsRepository {
 // HELPER FUNCTIONS
 // ════════════════════════════════════════════════════════════════════════════
 
+/// Helper utilitaire pour capitaliser le nom d'un rôle
+String _capitalizeRole(String roleName) {
+  if (roleName.isEmpty) return roleName;
+  return '${roleName[0].toUpperCase()}${roleName.substring(1)}';
+}
+
 /// Crée un ProviderContainer avec les providers mockés pour les tests E2E UI-only
 ProviderContainer createE2EUITestContainer({
   required FakeReceptionService fakeService,
@@ -208,9 +214,12 @@ ProviderContainer createE2EUITestContainer({
         () => _FakeProfilNotifier(
           Profil(
             id: 'user-test',
+            userId: 'test-user-id',
             email: 'test@example.com',
+            nomComplet: '${_capitalizeRole(userRole.name)} User',
             role: userRole,
-            depotId: depotId,
+            depotId: depotId ?? 'depot-1',
+            createdAt: DateTime(2024, 1, 1),
           ),
         ),
       ),
@@ -243,10 +252,20 @@ ProviderContainer createE2EUITestContainer({
       userRoleProvider.overrideWith((ref) => userRole),
       // Override de goRouterRefreshProvider pour éviter l'appel à Supabase.instance
       goRouterRefreshProvider.overrideWith(
-        (ref) => _FakeGoRouterCompositeRefresh(ref),
+        (ref) => _DummyRefresh(ref),
       ),
       // Override de isAuthenticatedProvider pour éviter l'appel à Supabase.instance
-      isAuthenticatedProvider.overrideWith((ref) => true),
+      // Pattern moderne : lit depuis appAuthStateProvider comme dans auth_integration_test.dart
+      isAuthenticatedProvider.overrideWith(
+        (ref) {
+          final asyncState = ref.watch(appAuthStateProvider);
+          return asyncState.when(
+            data: (s) => s.isAuthenticated,
+            loading: () => false,
+            error: (_, __) => false,
+          );
+        },
+      ),
       // Override du provider des partenaires pour les tests
       partenairesProvider.overrideWith(
         (ref) => Future.value([
@@ -299,8 +318,9 @@ class _FakeSession extends Session {
 
 /// Fake GoRouterCompositeRefresh qui n'utilise pas Supabase
 /// Utilise le Ref passé et un Stream vide
-class _FakeGoRouterCompositeRefresh extends GoRouterCompositeRefresh {
-  _FakeGoRouterCompositeRefresh(Ref ref)
+/// Cohérent avec _DummyRefresh dans auth_integration_test.dart
+class _DummyRefresh extends GoRouterCompositeRefresh {
+  _DummyRefresh(Ref ref)
       : super(
           ref: ref,
           authStream: Stream.empty(),

@@ -147,6 +147,10 @@ class SortieService {
   /// en fonction de [proprietaireType].
   /// 
   /// Cette méthode adapte les noms de paramètres de l'UI vers les méthodes spécialisées.
+  /// 
+  /// Règles métier :
+  /// - [proprietaireType] est obligatoire (MONALUXE ou PARTENAIRE)
+  /// - [volumeCorrige15C] est optionnel (calculé dans le service si non fourni)
   Future<void> createValidated({
     required String citerneId,
     required String produitId,
@@ -155,7 +159,7 @@ class SortieService {
     required double temperatureCAmb,
     required double densiteA15,
     double? volumeCorrige15C,
-    String proprietaireType = 'MONALUXE',
+    required String proprietaireType,
     String? clientId,
     String? partenaireId,
     String? chauffeurNom,
