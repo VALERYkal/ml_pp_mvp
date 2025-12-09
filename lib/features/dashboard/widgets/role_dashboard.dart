@@ -4,13 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ml_pp_mvp/features/kpi/providers/kpi_provider.dart';
 import 'package:ml_pp_mvp/features/kpi/models/kpi_models.dart';
-import 'package:ml_pp_mvp/shared/ui/modern_components/modern_kpi_card.dart';
 import 'package:ml_pp_mvp/shared/ui/kpi_card.dart';
 import 'package:ml_pp_mvp/shared/formatters.dart';
 import 'package:ml_pp_mvp/shared/ui/modern_components/dashboard_grid.dart';
 import 'package:ml_pp_mvp/shared/ui/modern_components/dashboard_header.dart';
 import 'package:ml_pp_mvp/shared/dev/hot_reload_hooks.dart';
 import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart';
+import 'package:ml_pp_mvp/features/stocks/widgets/stocks_kpi_cards.dart';
 import 'trucks_to_follow_card.dart';
 
 class RoleDashboard extends ConsumerWidget {
@@ -66,7 +66,12 @@ class RoleDashboard extends ConsumerWidget {
                            ],
                          ),
                        ),
-                       data: (KpiSnapshot data) => DashboardGrid(
+                       data: (KpiSnapshot data) {
+                         // Obtenir le depotId depuis le profil pour le breakdown par propriétaire
+                         final profil = ref.watch(profilProvider).valueOrNull;
+                         final depotId = profil?.depotId;
+                         
+                         return DashboardGrid(
                            children: [
                              // 1. Camions à suivre (priorité logistique)
                              TrucksToFollowCard(
@@ -76,8 +81,6 @@ class RoleDashboard extends ConsumerWidget {
                              // 2. Réceptions du jour
                              Builder(
                                builder: (context) {
-                                 print('🔍 DEBUG Dashboard - Réceptions: count=${data.receptionsToday.count}, volume15c=${data.receptionsToday.volume15c}, volumeAmbient=${data.receptionsToday.volumeAmbient}');
-                                 print('🔍 DEBUG Dashboard - Formaté: volume15c=${fmtL(data.receptionsToday.volume15c)}, volumeAmbient=${fmtL(data.receptionsToday.volumeAmbient)}');
                                  return KpiCard(
                                    cardKey: const Key('kpi_receptions_today_card'),
                                    icon: Icons.move_to_inbox_outlined,
@@ -115,8 +118,6 @@ class RoleDashboard extends ConsumerWidget {
                              Builder(
                                builder: (context) {
                                  final usagePct = data.stocks.capacityTotal <= 0 ? 0 : (data.stocks.totalAmbient / data.stocks.capacityTotal * 100);
-                                 print('🔍 DEBUG Dashboard - Stock: total15c=${data.stocks.total15c}, totalAmbient=${data.stocks.totalAmbient}, capacity=${data.stocks.capacityTotal}');
-                                 print('🔍 DEBUG Dashboard - Stock formaté: total15c=${fmtL(data.stocks.total15c)}, totalAmbient=${fmtL(data.stocks.totalAmbient)}');
                                  return KpiCard(
                                    cardKey: const Key('kpi_stock_total_card'),
                                    icon: Icons.inventory_2_outlined,
@@ -132,11 +133,15 @@ class RoleDashboard extends ConsumerWidget {
                                  );
                                },
                              ),
+                             // 4.5. Stock par propriétaire (si depotId disponible)
+                             if (depotId != null && depotId.isNotEmpty)
+                               OwnerStockBreakdownCard(
+                                 depotId: depotId,
+                                 onTap: () => context.go('/stocks'),
+                               ),
                              // 5. Balance du jour
                              Builder(
                                builder: (context) {
-                                 print('🔍 DEBUG Dashboard - Balance: delta15c=${data.balanceToday.delta15c}, deltaAmbient=${data.balanceToday.deltaAmbient}');
-                                 print('🔍 DEBUG Dashboard - Balance formaté: delta15c=${fmtDelta(data.balanceToday.delta15c)}, deltaAmbient=${fmtDelta(data.balanceToday.deltaAmbient)}');
                                  return KpiCard(
                                    cardKey: const Key('kpi_balance_today_card'),
                                    icon: Icons.compare_arrows_outlined,
@@ -158,7 +163,6 @@ class RoleDashboard extends ConsumerWidget {
                                  final sumIn = data.trend7d.fold<double>(0, (s, p) => s + p.receptions15c);
                                  final sumOut = data.trend7d.fold<double>(0, (s, p) => s + p.sorties15c);
                                  final net = sumIn - sumOut;
-                                 print('🔍 DEBUG Dashboard - Tendance: sumIn=$sumIn, sumOut=$sumOut, net=$net');
                                  return KpiCard(
                                    cardKey: const Key('kpi_tendance_7d_card'),
                                    icon: Icons.trending_up_rounded,
@@ -175,7 +179,8 @@ class RoleDashboard extends ConsumerWidget {
                                },
                              ),
                            ],
-                         ),
+                         );
+                       },
                 ),
               ),
             ],

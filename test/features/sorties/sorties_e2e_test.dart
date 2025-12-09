@@ -22,6 +22,10 @@ import 'package:ml_pp_mvp/features/sorties/providers/sortie_providers.dart' as s
 import 'package:ml_pp_mvp/features/sorties/screens/sortie_form_screen.dart';
 import 'package:ml_pp_mvp/shared/referentiels/referentiels.dart' as refs;
 import 'package:ml_pp_mvp/features/dashboard/widgets/dashboard_shell.dart';
+import 'package:ml_pp_mvp/features/kpi/providers/kpi_provider.dart';
+import 'package:ml_pp_mvp/features/kpi/models/kpi_models.dart';
+import 'package:ml_pp_mvp/features/stocks/data/stocks_kpi_providers.dart';
+import 'package:ml_pp_mvp/features/stocks/data/stocks_kpi_service.dart';
 import '../../../test/integration/mocks.mocks.dart';
 import 'package:mockito/mockito.dart';
 
@@ -258,6 +262,27 @@ Future<void> pumpAppAsRole(
         currentProfilProvider.overrideWith(
           () => _FakeCurrentProfilNotifier(profil),
         ),
+        // 🔐 KPIs dashboard : on neutralise pour les tests E2E Sorties
+        // Override des providers bruts pour éviter les appels Supabase
+        receptionsRawTodayProvider.overrideWith(
+          (ref) async => <Map<String, dynamic>>[],
+        ),
+        sortiesRawTodayProvider.overrideWith(
+          (ref) async => <Map<String, dynamic>>[],
+        ),
+        // Override du provider agrégé des stocks
+        stocksDashboardKpisProvider.overrideWith(
+          (ref, depotId) async => const StocksDashboardKpis(
+            globalByDepotProduct: [],
+            byOwner: [],
+            citerneByOwner: [],
+            citerneGlobal: [],
+          ),
+        ),
+        // Override du provider principal KPI
+        kpiProviderProvider.overrideWith(
+          (ref) async => KpiSnapshot.empty,
+        ),
         appAuthStateProvider.overrideWith(
           (ref) async* {
             yield initialAuthState;
@@ -325,7 +350,13 @@ Future<void> pumpAppAsRole(
     ),
   );
 
-  await tester.pumpAndSettle();
+  // Utiliser pump avec délais au lieu de pumpAndSettle pour éviter les timeouts
+  // avec les providers qui peuvent prendre du temps
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 100));
+  await tester.pump(const Duration(milliseconds: 100));
+  await tester.pump(const Duration(milliseconds: 100));
+  await tester.pump(const Duration(milliseconds: 100));
 }
 
 /// Helper pour remplir les champs "Mesures & Calculs" en accédant
@@ -408,11 +439,16 @@ void main() {
           mockUser: mockUser,
           fakeSortieService: fakeSortieService,
         );
-        await tester.pumpAndSettle(const Duration(seconds: 2));
+        
+        // Utiliser pump avec délais au lieu de pumpAndSettle pour éviter les timeouts
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 200));
+        await tester.pump(const Duration(milliseconds: 200));
+        await tester.pump(const Duration(milliseconds: 200));
 
         // Vérifier qu'on est bien sur le dashboard opérateur
         // Attendre que le dashboard soit chargé
-        await tester.pumpAndSettle(const Duration(seconds: 1));
+        await tester.pump(const Duration(milliseconds: 200));
         expect(find.textContaining('Tableau de bord'), findsWidgets);
 
         // ACT – Naviguer vers l'écran Sorties

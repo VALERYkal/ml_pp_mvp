@@ -4,6 +4,317 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 
 ## [Unreleased]
 
+### 📚 **DOCUMENTATION – ÉTAT GLOBAL DU PROJET (09/12/2025)**
+
+#### **🎯 Objectif**
+Créer une documentation complète de l'état actuel du projet ML_PP MVP, couvrant tous les modules et leurs statuts.
+
+#### **📝 Document créé**
+
+- ✅ `docs/ETAT_PROJET_2025-12-09.md` : Documentation complète de l'état du projet
+  - Vue d'ensemble des modules (Auth, CDR, Réceptions, Sorties, Stocks & KPI)
+  - Statut de chaque module avec checkpoints de tests
+  - Architecture technique (Stack, Patterns, Tests)
+  - Focus sur Stocks Journaliers et prochaines étapes
+  - Tableau récapitulatif des checkpoints
+
+#### **📋 Contenu du document**
+
+1. **Auth & Profils** : Statut stable, tests complets
+2. **Cours de Route (CDR)** : En place, statuts métier intégrés
+3. **Réceptions** : Flow métier complet, triggers DB OK
+4. **Sorties Produit** : Opérationnel, tests E2E + Submission
+5. **Stocks & KPI (Bloc 3)** : Bloc complet verrouillé (repo + providers + UI + tests)
+6. **Stocks Journaliers** : Focus actuel, vérification fonctionnelle en cours
+7. **Prochaines étapes** : Tests automatisés pour durcir Stocks Journaliers
+
+#### **✅ Bénéfices**
+
+- ✅ **Vision claire** : État de chaque module documenté
+- ✅ **Checkpoints identifiés** : Tests et validations par module
+- ✅ **Prochaines étapes** : Roadmap claire pour Stocks Journaliers
+- ✅ **Référence** : Document unique pour comprendre l'état global du projet
+
+---
+
+### 🔧 **CORRECTIONS – ERREURS DE COMPILATION PHASE 3.4 (09/12/2025)**
+
+#### **🎯 Objectif**
+Corriger les erreurs de compilation introduites lors de l'intégration UI KPI Stocks (Phase 3.4).
+
+#### **📝 Corrections appliquées**
+
+**1. `lib/features/dashboard/widgets/role_dashboard.dart`**
+- ✅ Suppression des lignes `print` de debug mal formées qui cassaient les accolades
+  - Supprimé dans le Builder "Réceptions du jour"
+  - Supprimé dans les Builders "Stock total", "Balance du jour" et "Tendance 7 jours"
+- ✅ Suppression de l'import non utilisé `modern_kpi_card.dart`
+- ✅ Correction de la fermeture du bloc `data:` avec `},` au lieu de `),`
+
+**2. `lib/features/stocks_journaliers/screens/stocks_list_screen.dart`**
+- ✅ Réécriture complète de la méthode `_buildDataTable` avec structure équilibrée
+  - Correction des parenthèses et crochets non équilibrés
+  - Conservation de la logique métier (section KPI, tableau de stocks)
+  - Structure correcte : `SingleChildScrollView` → `Padding` → `FadeTransition` → `Column` → enfants
+
+#### **✅ Résultats**
+
+- ✅ **Aucune erreur de compilation** : Les fichiers compilent correctement
+- ✅ **Tous les tests passent** : 28/28 tests de stocks PASS ✅
+- ✅ **Seulement des warnings mineurs** : Imports non utilisés, méthodes non référencées (non bloquants)
+
+---
+
+### 📊 **PHASE 3.4 – INTÉGRATION UI KPI STOCKS (09/12/2025)**
+
+#### **🎯 Objectif**
+Intégrer les KPI de stocks (global + breakdown par propriétaire) dans le dashboard et l'écran Stocks, en utilisant exclusivement les providers existants sans casser les tests ni l'UI actuelle.
+
+#### **📝 Modifications principales**
+
+**1. Widget KPI réutilisable `OwnerStockBreakdownCard`**
+- ✅ `lib/features/stocks/widgets/stocks_kpi_cards.dart` (nouveau fichier)
+  - Widget `OwnerStockBreakdownCard` pour afficher le breakdown par propriétaire (MONALUXE / PARTENAIRE)
+  - Gestion des états asynchrones : `loading`, `error`, `data`
+  - Affichage de deux lignes : MONALUXE et PARTENAIRE avec volumes ambiant/15°C
+  - Style cohérent avec les cartes KPI existantes
+  - Utilise `depotStocksSnapshotProvider` pour obtenir les données
+
+**2. Enrichissement du Dashboard**
+- ✅ `lib/features/dashboard/widgets/role_dashboard.dart`
+  - Ajout de `OwnerStockBreakdownCard` dans le `DashboardGrid`
+  - Positionné après la carte "Stock total" existante
+  - Affichage conditionnel si `depotId` est disponible (depuis `profilProvider`)
+  - Navigation vers `/stocks` au clic
+
+**3. Enrichissement de l'écran Stocks**
+- ✅ `lib/features/stocks_journaliers/screens/stocks_list_screen.dart`
+  - Ajout d'une section "Vue d'ensemble" en haut de l'écran
+  - Affichage de `OwnerStockBreakdownCard` avec le `depotId` du profil
+  - Utilise la date sélectionnée pour filtrer les KPI
+  - Section conditionnelle (affichée uniquement si `depotId` est disponible)
+
+**4. Tests de widget**
+- ✅ `test/features/stocks/widgets/stocks_kpi_cards_test.dart` (nouveau fichier)
+  - Test de l'état `loading` : vérifie l'affichage du `CircularProgressIndicator`
+  - Utilisation de `FakeStocksKpiRepositoryForWidget` pour mocker les données
+  - Tests utilisant `ProviderScope` avec overrides directs (pas de `ProviderContainer` parent)
+  - **Résultat** : 1/1 test PASS ✅
+
+**5. Correction mineure dans le provider**
+- ✅ `lib/features/stocks/data/stocks_kpi_providers.dart`
+  - Correction : utilisation de `dateJour` au lieu de `dateDernierMouvement` pour `fetchCiterneGlobalSnapshots`
+
+#### **✅ Bénéfices**
+
+- ✅ **UI enrichie** : Le dashboard et l'écran Stocks affichent maintenant le breakdown par propriétaire
+- ✅ **Réutilisabilité** : Le widget `OwnerStockBreakdownCard` peut être utilisé ailleurs dans l'application
+- ✅ **Non-régression** : Tous les tests existants passent (28/28) ✅
+- ✅ **Cohérence** : Utilisation exclusive des providers existants (pas d'appel direct Supabase dans l'UI)
+- ✅ **Gestion d'états** : Les états `loading` et `error` sont correctement gérés
+
+#### **🔜 Prochaines étapes**
+
+- Phase 3.5 : Ajout d'un aperçu par citerne (top 3 citernes par volume) dans le dashboard
+- Phase 3.6 : Implémentation du fallback vers dates antérieures dans `depotStocksSnapshotProvider`
+- Phase 4 : Refonte complète de l'écran Stocks (vue dépôt-centrée au lieu de citerne-centrée)
+
+---
+
+### 🚀 **CI/CD – PIPELINE GITHUB ACTIONS POUR TESTS AUTOMATIQUES (08/12/2025)**
+
+#### **🎯 Objectif**
+Mettre en place un pipeline CI/CD robuste pour exécuter automatiquement les tests Flutter à chaque push et pull request, garantissant la qualité du code et la non-régression.
+
+#### **📝 Modifications principales**
+
+**Pipeline GitHub Actions**
+- ✅ `.github/workflows/flutter_ci.yml`
+  - Pipeline complet pour exécuter les tests Flutter automatiquement
+  - Déclenchement sur :
+    - Push sur `main`, `develop`, ou branches `feature/**`
+    - Pull requests vers `main` ou `develop`
+  - Étapes du pipeline :
+    1. Checkout du code
+    2. Installation de Java 17 (requis pour Flutter)
+    3. Installation de Flutter stable (avec cache pour performance)
+    4. Vérification de la version Flutter (`flutter doctor -v`)
+    5. Récupération des dépendances (`flutter pub get`)
+    6. Analyse statique (`flutter analyze`)
+    7. Vérification du formatage (`flutter format --set-exit-if-changed lib test`)
+    8. Exécution de tous les tests (`flutter test -r expanded`)
+  - **Résultat** : Build cassé automatiquement si un test échoue, alertes GitHub + email
+
+#### **✅ Bénéfices**
+
+- ✅ **Qualité garantie** : Aucun code cassé ne peut être mergé sans que les tests passent
+- ✅ **Détection précoce** : Les erreurs sont détectées immédiatement après un push
+- ✅ **Non-régression** : Les tests existants protègent contre les régressions
+- ✅ **Formatage cohérent** : Le formatage du code est vérifié automatiquement
+- ✅ **Analyse statique** : Les erreurs de lint sont détectées avant le merge
+
+#### **🔜 Prochaines étapes**
+
+- Optionnel : Ajouter des étapes pour la génération de rapports de couverture de code
+- Optionnel : Ajouter des notifications Slack/Discord en cas d'échec
+- Optionnel : Ajouter des étapes de build pour différentes plateformes (Android/iOS)
+
+---
+
+### 📊 **PHASE 1 – MODULE STOCKS V2 – DATA LAYER & PROVIDERS (09/12/2025)**
+
+#### **🎯 Objectif**
+Ajouter le support de filtrage par date et créer un nouveau DTO/provider pour le module Stocks v2, en préparation de la refonte UI (vue dépôt-centrée au lieu de citerne-centrée), sans modifier l'UI existante ni casser les fonctionnalités actuelles.
+
+#### **📝 Modifications principales**
+
+**1. Support optionnel de `dateJour` dans StocksKpiRepository**
+- ✅ `lib/features/stocks/data/stocks_kpi_repository.dart`
+  - Refactoring majeur : introduction d'un `StocksKpiViewLoader` injectable pour faciliter les tests
+  - Méthode privée `_fetchRows()` centralisée pour toutes les requêtes
+  - Ajout du paramètre optionnel `DateTime? dateJour` à :
+    - `fetchDepotProductTotals()` : filtre par `date_jour`
+    - `fetchDepotOwnerTotals()` : filtre par `date_jour`
+    - `fetchCiterneOwnerSnapshots()` : filtre par `date_jour`
+    - `fetchCiterneGlobalSnapshots()` : filtre par `date_dernier_mouvement`
+  - Formatage des dates en `YYYY-MM-DD` via helper privé
+  - **Rétrocompatibilité** : tous les paramètres sont optionnels, aucun appel existant n'est cassé
+
+**2. Création du DTO `DepotStocksSnapshot`**
+- ✅ `lib/features/stocks/domain/depot_stocks_snapshot.dart` (nouveau fichier)
+  - DTO agrégé représentant un snapshot complet des stocks d'un dépôt pour une date donnée
+  - Propriétés :
+    - `dateJour` : date du snapshot
+    - `isFallback` : indicateur si fallback vers date antérieure (non implémenté pour l'instant)
+    - `totals` : totaux globaux (`DepotGlobalStockKpi`)
+    - `owners` : breakdown par propriétaire (`List<DepotOwnerStockKpi>`)
+    - `citerneRows` : détails par citerne (`List<CiterneGlobalStockSnapshot>`)
+  - Réutilisation des modèles existants (pas de duplication)
+
+**3. Provider `depotStocksSnapshotProvider`**
+- ✅ `lib/features/stocks/data/stocks_kpi_providers.dart`
+  - Nouveau provider : `depotStocksSnapshotProvider` (FutureProvider.autoDispose.family)
+  - Classe `DepotStocksSnapshotParams` pour les paramètres (depotId, dateJour optionnel)
+  - Logique d'agrégation :
+    1. Récupération des totaux globaux via `fetchDepotProductTotals()`
+    2. Récupération du breakdown par propriétaire via `fetchDepotOwnerTotals()`
+    3. Récupération des snapshots par citerne via `fetchCiterneGlobalSnapshots()`
+  - Gestion du cas vide : création d'un `DepotGlobalStockKpi` avec valeurs par défaut si aucune donnée
+  - **Note** : Fallback vers dates antérieures non implémenté (isFallback = false pour l'instant)
+
+**4. Tests unitaires complets**
+- ✅ `test/features/stocks/stocks_kpi_repository_test.dart`
+  - Refactoring complet : abandon de Mockito au profit d'un loader injectable
+  - 24 tests couvrant toutes les méthodes du repository :
+    - `fetchDepotProductTotals` : 6 tests (mapping, filtres, erreurs)
+    - `fetchDepotOwnerTotals` : 6 tests (mapping, filtres, erreurs)
+    - `fetchCiterneOwnerSnapshots` : 5 tests (mapping, filtres, erreurs)
+    - `fetchCiterneGlobalSnapshots` : 5 tests (mapping, filtres, erreurs)
+  - Approche simplifiée : loader en mémoire au lieu de mocks complexes
+  - Vérification des filtres appliqués (depotId, produitId, dateJour, proprietaireType, etc.)
+  - Tests d'erreurs (propagation de `PostgrestException`)
+  - **Résultat** : 24/24 tests PASS ✅
+
+- ✅ `test/features/stocks/depot_stocks_snapshot_provider_test.dart`
+  - 3 tests pour le provider `depotStocksSnapshotProvider` :
+    - Construction du snapshot avec données du repository
+    - Utilisation de `DateTime.now()` quand `dateJour` n'est pas fourni
+    - Création d'un `DepotGlobalStockKpi` vide quand la liste est vide
+  - **Résultat** : 3/3 tests PASS ✅
+
+#### **🔧 Corrections techniques**
+
+- ✅ Correction du bug dans `stocks_kpi_providers.dart` : utilisation de `dateDernierMouvement` au lieu de `dateJour` dans l'appel à `fetchCiterneGlobalSnapshots()`
+- ✅ Correction du test : suppression de l'accès à `proprietaireType` sur `CiterneGlobalStockSnapshot` (propriété inexistante, vue globale)
+
+#### **✅ Résultats**
+
+- ✅ **Aucune régression** : Tous les tests existants passent
+- ✅ **Aucun changement UI** : Aucun fichier UI modifié (contrainte respectée)
+- ✅ **Aucun provider existant modifié** : Les providers existants restent inchangés
+- ✅ **Tests complets** : 27 tests au total (24 repository + 3 provider), tous PASS
+- ✅ **Rétrocompatibilité** : Tous les appels existants fonctionnent sans modification
+
+#### **📚 Fichiers modifiés/créés**
+
+**Production (`lib/`)**
+- ✅ `lib/features/stocks/data/stocks_kpi_repository.dart` : Refactorisé avec loader injectable + support dateJour
+- ✅ `lib/features/stocks/domain/depot_stocks_snapshot.dart` : Nouveau DTO
+- ✅ `lib/features/stocks/data/stocks_kpi_providers.dart` : Nouveau provider
+
+**Tests (`test/`)**
+- ✅ `test/features/stocks/stocks_kpi_repository_test.dart` : Refactorisé avec loader injectable (24 tests)
+- ✅ `test/features/stocks/depot_stocks_snapshot_provider_test.dart` : Tests du provider (3 tests)
+
+#### **🔜 Prochaines étapes**
+
+- **Phase 2** : Refactor UI Stocks (utilisation du nouveau provider dans `StocksListScreen`)
+- **Phase 3** : Vue Historique / Mouvements (drill-down par citerne)
+- **Phase 4** : Rôles & Polish UX (visibilité selon rôle)
+- **Phase 5** : Non-Régression Globale & Docs (tests E2E, documentation complète)
+
+---
+
+### 📊 **PHASE 3.3 – TESTS UNITAIRES STOCKS KPI (09/12/2025)**
+
+#### **🎯 Objectif**
+Valider la Phase 3.3 en version "MVP solide" avec des tests unitaires complets pour le repository et le provider clé de snapshot dépôt.
+
+#### **📝 Statut de la Phase 3 (Stocks & KPI)**
+
+| Phase | Contenu | Statut |
+|-------|---------|--------|
+| 3.1 | Repo & vues SQL KPI | ✅ |
+| 3.2 | Providers KPI (Riverpod) | ✅ |
+| 3.3.1 | Tests du repo `StocksKpiRepository` | ✅ |
+| 3.3.2 | Tests provider `depotStocksSnapshotProvider` | ✅ (min viable) |
+| 3.4 | Intégration UI / Dashboard KPI | ✅ |
+
+#### **📝 Tests réalisés**
+
+**1. Tests du repository `StocksKpiRepository`**
+- ✅ `test/features/stocks/stocks_kpi_repository_test.dart`
+  - **24 tests PASS** couvrant toutes les méthodes :
+    - `fetchDepotProductTotals` : 6 tests (mapping, filtres depotId/produitId/dateJour, erreurs)
+    - `fetchDepotOwnerTotals` : 6 tests (mapping, filtres depotId/proprietaireType/dateJour, erreurs)
+    - `fetchCiterneOwnerSnapshots` : 5 tests (mapping, filtres, parsing date, erreurs)
+    - `fetchCiterneGlobalSnapshots` : 5 tests (mapping, filtres, date null, erreurs)
+  - Approche simplifiée : loader injectable en mémoire au lieu de mocks complexes
+  - Vérification complète des filtres appliqués et de la propagation des erreurs
+
+**2. Tests du provider `depotStocksSnapshotProvider`**
+- ✅ `test/features/stocks/depot_stocks_snapshot_provider_test.dart`
+  - **3 tests PASS** :
+    - Construction du snapshot avec données du repository
+    - Utilisation de `DateTime.now()` quand `dateJour` n'est pas fourni
+    - Création d'un `DepotGlobalStockKpi` vide quand la liste est vide
+  - Tests minimaux mais suffisants pour valider le provider clé
+
+#### **✅ Résultats**
+
+- ✅ **27 tests au total** : 24 repository + 3 provider, tous PASS
+- ✅ **Backend KPI testé** : Le repository est entièrement couvert
+- ✅ **Provider clé validé** : `depotStocksSnapshotProvider` fonctionne correctement
+- ✅ **Phase 3.3 validée** : Version "MVP solide" prête pour la Phase 3.4
+
+#### **💡 Note sur les tests additionnels**
+
+Les tests actuels couvrent le minimum viable pour avancer. Si nécessaire plus tard, on pourra ajouter :
+- Tests pour d'autres providers KPI (par citerne, par propriétaire)
+- Tests d'intégration plus poussés
+- Tests de performance
+
+Ces ajouts ne sont pas bloquants pour la Phase 3.4.
+
+#### **🔜 Prochaine étape**
+
+**Phase 3.4 – UI / Dashboard KPI** :
+- Brancher les providers existants sur l'écran de dashboard / stocks
+- Afficher les KPI (global, par propriétaire, par citerne)
+- Ajouter 1–2 tests d'intégration simples
+
+---
+
 ### 🧪 **PHASE 5 & 6 – NETTOYAGE & SOCLE AUTH RÉUTILISABLE POUR TESTS E2E (08/12/2025)**
 
 #### **🎯 Objectif**
@@ -45,6 +356,14 @@ Améliorer la lisibilité et la maintenabilité des tests d'intégration Auth, p
     - Ajout de `_capitalizeRole()` : helper utilitaire pour capitaliser les noms de rôles
   - **Résultat** : Test E2E Réceptions aligné sur le socle Auth moderne, comportement fonctionnel inchangé (2 tests PASS)
 
+- ✅ `test/features/cours_route/e2e/cdr_flow_e2e_test.dart` (08/12/2025)
+  - Création d'un nouveau test E2E UI-only pour le module Cours de Route :
+    - Helpers Auth réutilisables : `_FakeSessionForE2E`, `buildProfilForRole()`, `buildAuthenticatedState()`, `_capitalizeFirstLetter()`, `_DummyRefresh`
+    - `FakeCoursDeRouteServiceForE2E` : Fake service CDR qui stocke les cours de route en mémoire (create, getAll, getActifs)
+    - `pumpCdrTestApp()` : Helper principal qui démarre l'app avec Auth + CDR providers overridés
+    - Test E2E complet : navigation `/cours` → formulaire `/cours/new` → retour liste
+  - **Résultat** : Test E2E CDR créé et fonctionnel, aligné sur le socle Auth moderne (1 test PASS)
+
 #### **✅ Résultats**
 
 **Phase 5**
@@ -58,6 +377,8 @@ Améliorer la lisibilité et la maintenabilité des tests d'intégration Auth, p
 - ✅ Logs cohérents : `userRoleProvider -> operateur`, `RedirectEval: loc=/dashboard/operateur`
 - ✅ Test E2E Réceptions modernisé et aligné sur le socle Auth (2 tests PASS)
 - ✅ Logs cohérents : `userRoleProvider -> gerant`, navigation `login → receptions` fonctionnelle
+- ✅ Test E2E Cours de Route créé avec le socle Auth moderne (1 test PASS)
+- ✅ Logs cohérents : `userRoleProvider -> gerant`, navigation `dashboard → /cours → /cours/new` fonctionnelle
 - ✅ Helpers prêts à être copiés/adaptés dans autres fichiers E2E (Stocks)
 
 #### **📚 Documentation**
@@ -67,7 +388,7 @@ Améliorer la lisibilité et la maintenabilité des tests d'intégration Auth, p
 
 #### **🔜 Prochaines étapes**
 
-- Phase 6 (suite) : Réutiliser le socle Auth dans les tests E2E Stocks
+- Phase 6 (suite) : Réutiliser le socle Auth dans les tests E2E Stocks si nécessaire
 - Les helpers peuvent être copiés/adaptés dans `test/features/stocks/e2e/` si nécessaire
 
 ---

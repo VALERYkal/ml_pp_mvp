@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
 import '../../../data/repositories/stocks_kpi_repository.dart';
 import '../../../data/repositories/repositories.dart';
 import 'stocks_kpi_service.dart';
+import '../domain/depot_stocks_snapshot.dart';
 
 /// Provider du repository KPI de stock
 final stocksKpiRepositoryProvider = riverpod.Provider<StocksKpiRepository>((ref) {
@@ -106,6 +107,81 @@ final stocksDashboardKpisProvider = riverpod.FutureProvider.family<
   return service.loadDashboardKpis(
     depotId: depotId,
     // produitId laissé à null pour l'instant (filtrage futur possible)
+  );
+});
+
+/// Paramètres pour le provider depotStocksSnapshotProvider.
+class DepotStocksSnapshotParams {
+  final String depotId;
+  final DateTime? dateJour;
+
+  const DepotStocksSnapshotParams({
+    required this.depotId,
+    this.dateJour,
+  });
+}
+
+/// Snapshot complet des stocks d'un dépôt pour une date donnée.
+///
+/// Ce provider agrège toutes les données de stock nécessaires pour afficher
+/// une vue complète du dépôt à un instant donné :
+/// - Totaux globaux (tous produits, tous propriétaires)
+/// - Breakdown par propriétaire (MONALUXE / PARTENAIRE)
+/// - Détail par citerne (tous propriétaires confondus)
+///
+/// Usage :
+///   final snapshotAsync = ref.watch(
+///     depotStocksSnapshotProvider(
+///       DepotStocksSnapshotParams(
+///         depotId: 'depot-1',
+///         dateJour: DateTime(2025, 12, 8), // optionnel, défaut = aujourd'hui
+///       ),
+///     ),
+///   );
+final depotStocksSnapshotProvider = riverpod.FutureProvider.autoDispose
+    .family<DepotStocksSnapshot, DepotStocksSnapshotParams>((ref, params) async {
+  final repo = ref.watch(stocksKpiRepositoryProvider);
+
+  final DateTime dateJour = params.dateJour ?? DateTime.now();
+
+  // 1) Global totals per depot (we expect at most one row for this depot at this date)
+  final globalList = await repo.fetchDepotProductTotals(
+    depotId: params.depotId,
+    dateJour: dateJour,
+  );
+  final totals = globalList.isNotEmpty
+      ? globalList.first
+      : DepotGlobalStockKpi(
+          depotId: params.depotId,
+          depotNom: '',
+          produitId: '',
+          produitNom: '',
+          stockAmbiantTotal: 0.0,
+          stock15cTotal: 0.0,
+        );
+
+  // 2) Breakdown by owner
+  final owners = await repo.fetchDepotOwnerTotals(
+    depotId: params.depotId,
+    dateJour: dateJour,
+  );
+
+  // 3) Citerne-level snapshots (all owners combined at this stage)
+  final citerneRows = await repo.fetchCiterneGlobalSnapshots(
+    depotId: params.depotId,
+    dateJour: dateJour,
+  );
+
+  // For now, we do not implement fallback logic to previous dates.
+  // That will be handled in a later Phase.
+  const bool isFallback = false;
+
+  return DepotStocksSnapshot(
+    dateJour: dateJour,
+    isFallback: isFallback,
+    totals: totals,
+    owners: owners,
+    citerneRows: citerneRows,
   );
 });
 

@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/stocks_providers.dart';
 import '../../dashboard/widgets/placeholders.dart';
 import '../../../shared/formatters.dart';
+import '../../profil/providers/profil_provider.dart';
+import '../../stocks/widgets/stocks_kpi_cards.dart';
 
 class StocksListScreen extends ConsumerStatefulWidget {
   const StocksListScreen({super.key});
@@ -616,74 +618,149 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
     );
   }
 
-  Widget _buildDataTable(BuildContext context, StocksDataWithMeta data, ThemeData theme) {
+  Widget _buildDataTable(
+    BuildContext context,
+    StocksDataWithMeta data,
+    ThemeData theme,
+  ) {
     final items = data.stocks;
+
+    // Obtenir le depotId depuis le profil pour afficher les KPI
+    final profil = ref.watch(profilProvider).valueOrNull;
+    final depotId = profil?.depotId;
+
     return SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
         child: FadeTransition(
           opacity: _fadeAnimation,
-          child: Container(
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: theme.colorScheme.outline.withOpacity(0.2),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: theme.colorScheme.shadow.withOpacity(0.1),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Section KPI "Vue d'ensemble" (si depotId disponible)
+              if (depotId != null && depotId.isNotEmpty) ...[
+                Text(
+                  'Vue d\'ensemble',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
+                const SizedBox(height: 12),
+                OwnerStockBreakdownCard(
+                  depotId: depotId,
+                  dateJour: ref.watch(stocksSelectedDateProvider),
+                ),
+                const SizedBox(height: 24),
               ],
-            ),
-            child: Column(
-              children: [
-                // Indicateur de fallback si nécessaire
-                if (data.isFallback) _buildFallbackWarning(context, data, theme),
 
-                // En-tête avec statistiques
-                _buildStatsHeader(context, items, theme),
-
-                // Tableau
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: DataTable(
-                      headingRowColor: WidgetStateProperty.all(
-                        theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
-                      ),
-                      columns: [
-                        _buildDataColumn('Date', Icons.calendar_today_outlined, theme),
-                        _buildDataColumn('Citerne', Icons.storage, theme),
-                        _buildDataColumn('Produit', Icons.local_gas_station, theme),
-                        _buildDataColumn('Ambiant (L)', Icons.water_drop_outlined, theme),
-                        _buildDataColumn('15°C (L)', Icons.thermostat, theme),
-                        _buildDataColumn('Capacité (L)', Icons.straighten, theme),
-                        _buildDataColumn('Sécurité (L)', Icons.warning_outlined, theme),
-                        _buildDataColumn('Ratio', Icons.percent, theme),
-                        _buildDataColumn('Alerte', Icons.notifications_active, theme),
-                    ],
-                    rows: [
-                        // Lignes de données avec animations
-                        ...items.asMap().entries.map((entry) {
-                          final index = entry.key;
-                          final s = entry.value;
-                          return _buildDataRow(s, index, theme);
-                        }),
-                      // Ligne de total
-                        _buildTotalRow(items, theme),
-                      ],
+              // Tableau de stocks
+              Container(
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: theme.colorScheme.outline.withOpacity(0.2),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: theme.colorScheme.shadow.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-                  ),
+                child: Column(
+                  children: [
+                    // Avertissement fallback si nécessaire
+                    if (data.isFallback)
+                      _buildFallbackWarning(context, data, theme),
+
+                    // Bandeau de stats
+                    _buildStatsHeader(context, items, theme),
+
+                    // Tableau scrollable horizontalement
+                    ClipRRect(
+                      borderRadius: const BorderRadius.vertical(
+                        bottom: Radius.circular(16),
+                      ),
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: DataTable(
+                          headingRowColor: WidgetStateProperty.all(
+                            theme.colorScheme.surfaceContainerHighest
+                                .withOpacity(0.5),
+                          ),
+                          headingTextStyle:
+                              theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          dataTextStyle:
+                              theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurface,
+                          ),
+                          columns: [
+                            _buildDataColumn(
+                              'Citerne',
+                              Icons.storage,
+                              theme,
+                            ),
+                            _buildDataColumn(
+                              'Produit',
+                              Icons.local_gas_station,
+                              theme,
+                            ),
+                            _buildDataColumn(
+                              'Ambiant (L)',
+                              Icons.water_drop_outlined,
+                              theme,
+                            ),
+                            _buildDataColumn(
+                              '15°C (L)',
+                              Icons.thermostat,
+                              theme,
+                            ),
+                            _buildDataColumn(
+                              'Capacité (L)',
+                              Icons.straighten,
+                              theme,
+                            ),
+                            _buildDataColumn(
+                              'Sécurité (L)',
+                              Icons.warning_outlined,
+                              theme,
+                            ),
+                            _buildDataColumn(
+                              'Ratio',
+                              Icons.percent,
+                              theme,
+                            ),
+                            _buildDataColumn(
+                              'Alerte',
+                              Icons.notifications_active,
+                              theme,
+                            ),
+                          ],
+                          rows: [
+                            // Lignes de données
+                            ...items.asMap().entries.map((entry) {
+                              final index = entry.key;
+                              final s = entry.value;
+                              return _buildDataRow(s, index, theme);
+                            }),
+                            // Ligne de total
+                            _buildTotalRow(items, theme),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

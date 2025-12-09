@@ -205,13 +205,23 @@ class StocksKpiRepository {
 
   StocksKpiRepository(this._client);
 
+  /// Helper pour formater une date en format ISO YYYY-MM-DD (UTC).
+  String _formatYmd(DateTime date) {
+    return DateTime.utc(date.year, date.month, date.day)
+        .toIso8601String()
+        .split('T')
+        .first;
+  }
+
   /// Retourne les totaux globaux par dépôt & produit.
   ///
   /// Si [depotId] est fourni, on filtre sur ce dépôt.
   /// Si [produitId] est fourni, on filtre sur ce produit.
+  /// Si [dateJour] est fourni, on filtre sur cette date.
   Future<List<DepotGlobalStockKpi>> fetchDepotProductTotals({
     String? depotId,
     String? produitId,
+    DateTime? dateJour,
   }) async {
     final query = _client.from('v_kpi_stock_global').select<Map<String, dynamic>>();
 
@@ -220,6 +230,9 @@ class StocksKpiRepository {
     }
     if (produitId != null) {
       query.eq('produit_id', produitId);
+    }
+    if (dateJour != null) {
+      query.eq('date_jour', _formatYmd(dateJour));
     }
 
     final rows = await query;
@@ -232,10 +245,12 @@ class StocksKpiRepository {
   /// Retourne les totaux par dépôt, propriétaire & produit.
   ///
   /// Utilisé pour le breakdown MONALUXE vs PARTENAIRE.
+  /// Si [dateJour] est fourni, on filtre sur cette date.
   Future<List<DepotOwnerStockKpi>> fetchDepotOwnerTotals({
     String? depotId,
     String? produitId,
     String? proprietaireType,
+    DateTime? dateJour,
   }) async {
     final query = _client.from('v_kpi_stock_owner').select<Map<String, dynamic>>();
 
@@ -248,6 +263,9 @@ class StocksKpiRepository {
     if (proprietaireType != null) {
       query.eq('proprietaire_type', proprietaireType);
     }
+    if (dateJour != null) {
+      query.eq('date_jour', _formatYmd(dateJour));
+    }
 
     final rows = await query;
     return (rows as List)
@@ -259,11 +277,13 @@ class StocksKpiRepository {
   /// Retourne le snapshot par citerne, propriétaire & produit.
   ///
   /// Permet d'alimenter les cartes "TANK1 Monaluxe / Partenaire", etc.
+  /// Si [dateJour] est fourni, on filtre sur cette date.
   Future<List<CiterneOwnerStockSnapshot>> fetchCiterneOwnerSnapshots({
     String? depotId,
     String? citerneId,
     String? produitId,
     String? proprietaireType,
+    DateTime? dateJour,
   }) async {
     final query =
         _client.from('v_stocks_citerne_owner').select<Map<String, dynamic>>();
@@ -280,6 +300,9 @@ class StocksKpiRepository {
     if (proprietaireType != null) {
       query.eq('proprietaire_type', proprietaireType);
     }
+    if (dateJour != null) {
+      query.eq('date_jour', _formatYmd(dateJour));
+    }
 
     final rows = await query;
     return (rows as List)
@@ -289,10 +312,12 @@ class StocksKpiRepository {
   }
 
   /// Retourne le snapshot global par citerne & produit (tous propriétaires confondus).
+  /// Si [dateJour] est fourni, on filtre sur cette date.
   Future<List<CiterneGlobalStockSnapshot>> fetchCiterneGlobalSnapshots({
     String? depotId,
     String? citerneId,
     String? produitId,
+    DateTime? dateJour,
   }) async {
     final query =
         _client.from('v_stocks_citerne_global').select<Map<String, dynamic>>();
@@ -305,6 +330,9 @@ class StocksKpiRepository {
     }
     if (produitId != null) {
       query.eq('produit_id', produitId);
+    }
+    if (dateJour != null) {
+      query.eq('date_jour', _formatYmd(dateJour));
     }
 
     final rows = await query;

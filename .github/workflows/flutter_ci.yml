@@ -1,0 +1,60 @@
+name: Flutter CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - feature/**
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  test:
+    name: Run Flutter tests
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1) Récupérer le code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2) Installer Java (nécessaire pour Flutter sur CI)
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      # 3) Installer Flutter (canal stable)
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "stable"
+          channel: "stable"
+          cache: true
+
+      # 4) Vérifier la version de Flutter (debug)
+      - name: Flutter doctor
+        run: flutter doctor -v
+
+      # 5) Récupérer les dépendances
+      - name: Flutter pub get
+        run: flutter pub get
+
+      # (Optionnel) 6) Analyse statique
+      - name: Flutter analyze
+        run: flutter analyze
+
+      # (Optionnel) 7) Vérifier le formatage
+      #   Tu peux commenter cette étape si tu ne veux pas que le build casse sur le format.
+      - name: Flutter format check
+        run: |
+          flutter format --set-exit-if-changed lib test
+
+      # 8) Lancer TOUTES les suites de tests
+      - name: Flutter tests
+        run: flutter test -r expanded
+

@@ -1,8 +1,9 @@
 # 📊 Phase 3 — Stocks & KPIs — Rapport Complet
 
-**Date de complétion** : 06/12/2025  
-**Statut** : ✅ **TERMINÉ** – Architecture stabilisée & Dashboard opérationnel  
-**Modules impactés** : Stocks, KPIs, Dashboard, Repository, vues SQL
+**Date de complétion initiale** : 06/12/2025  
+**Dernière mise à jour** : 09/12/2025 (Phase 3.4 - Intégration UI)  
+**Statut** : ✅ **TERMINÉ** – Architecture stabilisée & Dashboard opérationnel avec UI enrichie  
+**Modules impactés** : Stocks, KPIs, Dashboard, Repository, vues SQL, UI
 
 ---
 
@@ -112,7 +113,7 @@ Permet de charger tous les KPIs en un seul appel.
 
 ---
 
-## 📗 Phase 3.4 – Capacités intégrées au modèle KPI
+## 📗 Phase 3.4 (ancienne) – Capacités intégrées au modèle KPI
 
 **Statut** : ✅ **DONE**
 
@@ -141,6 +142,70 @@ Le modèle Dart `CiterneGlobalStockSnapshot` a été enrichi :
 
 ---
 
+## 📗 Phase 3.4 (nouvelle) – Intégration UI KPI Stocks
+
+**Statut** : ✅ **DONE** (09/12/2025)
+
+### Objectif
+
+Intégrer les KPI de stocks (global + breakdown par propriétaire) dans le dashboard et l'écran Stocks, en utilisant exclusivement les providers existants sans casser les tests ni l'UI actuelle.
+
+### Ce qui a été livré
+
+#### 🎨 Widget KPI réutilisable
+
+- ✅ `lib/features/stocks/widgets/stocks_kpi_cards.dart` (nouveau fichier)
+  - Widget `OwnerStockBreakdownCard` pour afficher le breakdown par propriétaire (MONALUXE / PARTENAIRE)
+  - Gestion complète des états asynchrones : `loading`, `error`, `data`
+  - Affichage de deux lignes : MONALUXE et PARTENAIRE avec volumes ambiant/15°C
+  - Style cohérent avec les cartes KPI existantes (`KpiCard`)
+  - Utilise `depotStocksSnapshotProvider` pour obtenir les données
+
+#### 📊 Enrichissement du Dashboard
+
+- ✅ `lib/features/dashboard/widgets/role_dashboard.dart`
+  - Ajout de `OwnerStockBreakdownCard` dans le `DashboardGrid`
+  - Positionné après la carte "Stock total" existante
+  - Affichage conditionnel si `depotId` est disponible (depuis `profilProvider`)
+  - Navigation vers `/stocks` au clic
+
+#### 📋 Enrichissement de l'écran Stocks
+
+- ✅ `lib/features/stocks_journaliers/screens/stocks_list_screen.dart`
+  - Ajout d'une section "Vue d'ensemble" en haut de l'écran
+  - Affichage de `OwnerStockBreakdownCard` avec le `depotId` du profil
+  - Utilise la date sélectionnée pour filtrer les KPI
+  - Section conditionnelle (affichée uniquement si `depotId` est disponible)
+
+#### 🧪 Tests de widget
+
+- ✅ `test/features/stocks/widgets/stocks_kpi_cards_test.dart` (nouveau fichier)
+  - Test de l'état `loading` : vérifie l'affichage du `CircularProgressIndicator`
+  - Utilisation de `FakeStocksKpiRepositoryForWidget` pour mocker les données
+  - Tests utilisant `ProviderScope` avec overrides directs (pas de `ProviderContainer` parent)
+  - **Résultat** : 1/1 test PASS ✅
+
+### Résultat
+
+- ✅ **UI enrichie** : Le dashboard et l'écran Stocks affichent maintenant le breakdown par propriétaire
+- ✅ **Réutilisabilité** : Le widget `OwnerStockBreakdownCard` peut être utilisé ailleurs dans l'application
+- ✅ **Non-régression** : Tous les tests existants passent (28/28) ✅
+- ✅ **Cohérence** : Utilisation exclusive des providers existants (pas d'appel direct Supabase dans l'UI)
+- ✅ **Gestion d'états** : Les états `loading` et `error` sont correctement gérés
+
+### Fichiers créés/modifiés
+
+**Nouveaux fichiers**
+- `lib/features/stocks/widgets/stocks_kpi_cards.dart`
+- `test/features/stocks/widgets/stocks_kpi_cards_test.dart`
+
+**Fichiers modifiés**
+- `lib/features/dashboard/widgets/role_dashboard.dart`
+- `lib/features/stocks_journaliers/screens/stocks_list_screen.dart`
+- `lib/features/stocks/data/stocks_kpi_providers.dart` (correction mineure)
+
+---
+
 ## 🎉 Résultat final de la Phase 3
 
 ### ✅ Architecture stabilisée
@@ -164,7 +229,8 @@ Le modèle Dart `CiterneGlobalStockSnapshot` a été enrichi :
 ### ✅ Moins de requêtes réseau
 
 - **Phase 3.3** : Consolidation des appels via provider agrégé
-- **Phase 3.4** : Suppression de la requête supplémentaire pour les capacités
+- **Phase 3.4 (ancienne)** : Suppression de la requête supplémentaire pour les capacités
+- **Phase 3.4 (nouvelle)** : Intégration UI avec breakdown par propriétaire
 - Performance améliorée pour le chargement du Dashboard
 
 ### ✅ Code plus testable
@@ -225,23 +291,29 @@ Le modèle Dart `CiterneGlobalStockSnapshot` a été enrichi :
 1. `lib/data/repositories/stocks_kpi_repository.dart` (Phase 3.1)
 2. `lib/features/stocks/data/stocks_kpi_providers.dart` (Phase 3.2)
 3. `lib/features/stocks/data/stocks_kpi_service.dart` (Phase 3.3)
+4. `lib/features/stocks/widgets/stocks_kpi_cards.dart` (Phase 3.4 - nouvelle)
+5. `test/features/stocks/widgets/stocks_kpi_cards_test.dart` (Phase 3.4 - nouvelle)
 
 ### Fichiers modifiés
 
-1. `lib/features/kpi/providers/kpi_provider.dart` (Phase 3.3 & 3.4)
-2. `lib/data/repositories/stocks_kpi_repository.dart` (Phase 3.4 - enrichissement modèle)
-3. `CHANGELOG.md` (documentation de toutes les phases)
+1. `lib/features/kpi/providers/kpi_provider.dart` (Phase 3.3 & 3.4 ancienne)
+2. `lib/data/repositories/stocks_kpi_repository.dart` (Phase 3.4 ancienne - enrichissement modèle)
+3. `lib/features/dashboard/widgets/role_dashboard.dart` (Phase 3.4 nouvelle - intégration UI)
+4. `lib/features/stocks_journaliers/screens/stocks_list_screen.dart` (Phase 3.4 nouvelle - intégration UI)
+5. `lib/features/stocks/data/stocks_kpi_providers.dart` (Phase 3.4 nouvelle - correction mineure)
+6. `CHANGELOG.md` (documentation de toutes les phases)
 
 ---
 
 ## ✅ Conclusion
 
-Le module **Stocks & KPIs** est désormais **"Production-Ready"**.
+Le module **Stocks & KPIs** est désormais **"Production-Ready"** avec UI enrichie.
 
 - ✅ Architecture solide et extensible
 - ✅ Performance optimisée
 - ✅ Code testable et maintenable
+- ✅ UI enrichie avec breakdown par propriétaire dans le dashboard et l'écran Stocks
 - ✅ Prêt pour l'intégration avec d'autres modules
 
-**La Phase 3 est un succès complet.** 🎉
+**La Phase 3 est un succès complet, avec la Phase 3.4 (Intégration UI) terminée le 09/12/2025.** 🎉
 
