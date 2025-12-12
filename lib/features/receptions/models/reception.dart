@@ -12,7 +12,7 @@ class Reception with _$Reception {
   const factory Reception({
     required String id,
 
-    @JsonKey(name: 'cours_de_route_id') required String coursDeRouteId,
+    @JsonKey(name: 'cours_de_route_id') String? coursDeRouteId,
     @JsonKey(name: 'citerne_id') required String citerneId,
     @JsonKey(name: 'produit_id') required String produitId,
     @JsonKey(name: 'partenaire_id') String? partenaireId,
