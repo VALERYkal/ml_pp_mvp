@@ -17,13 +17,13 @@ import 'package:ml_pp_mvp/shared/ui/toast.dart';
 import 'package:ml_pp_mvp/shared/ui/dialogs.dart';
 
 /// Écran de formulaire pour créer ou modifier un cours de route
-/// 
+///
 /// Affiche un formulaire complet avec :
 /// - Gestion des états asynchrones (loading, error, data)
 /// - Validation des champs requis
 /// - Protection dirty state
 /// - Navigation vers la liste après création
-/// 
+///
 /// Architecture :
 /// - Utilise AsyncValue.when() pour gérer les états
 /// - Validation immédiate avec autovalidateMode
@@ -34,7 +34,8 @@ class CoursRouteFormScreen extends ConsumerStatefulWidget {
   final String? coursId;
 
   @override
-  ConsumerState<CoursRouteFormScreen> createState() => _CoursRouteFormScreenState();
+  ConsumerState<CoursRouteFormScreen> createState() =>
+      _CoursRouteFormScreenState();
 }
 
 class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
@@ -55,6 +56,7 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
   DateTime? dateChargement;
   bool isSaving = false;
   bool _dirty = false; // Protection contre perte de données
+  CoursDeRoute? _initialCours; // Cours chargé en mode édition
 
   @override
   void initState() {
@@ -76,7 +78,7 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
   @override
   Widget build(BuildContext context) {
     final refDataAsync = ref.watch(refDataProvider);
-    
+
     return PopScope(
       canPop: !_dirty,
       onPopInvoked: (didPop) async {
@@ -93,7 +95,9 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(widget.coursId == null ? 'Nouveau cours' : 'Modifier le cours'),
+          title: Text(
+            widget.coursId == null ? 'Nouveau cours' : 'Modifier le cours',
+          ),
         ),
         body: refDataAsync.when(
           data: (refData) => _buildForm(refData),
@@ -129,12 +133,12 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
 
   /// Initialise le formulaire avec les valeurs par défaut
   void _initializeForm() {
-    // Définir le produit par défaut (ESS)
-    selectedProduitId = CoursRouteConstants.produitEssId;
-    
+    // Définir le produit par défaut (AGO)
+    selectedProduitId = CoursRouteConstants.produitAgoId;
+
     // Date de chargement par défaut (aujourd'hui)
     dateChargement = DateTime.now();
-    
+
     // Charger les données existantes si en mode édition
     if (widget.coursId != null) {
       _loadExistingCours();
@@ -147,7 +151,7 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
     if (depotDestinationId == null && refData.depots.isNotEmpty) {
       depotDestinationId = refData.depots.keys.first;
     }
-    
+
     return Form(
       key: _formKey,
       autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -156,30 +160,30 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
         children: [
           // Section Informations de base
           _buildSectionHeader('Informations de base'),
-          
+
           // Fournisseur - Dropdown
           _buildFournisseurDropdown(refData),
           const SizedBox(height: 16),
-          
+
           // Produit - Toggle ESS/AGO
           _buildProduitToggle(),
           const SizedBox(height: 16),
-          
+
           // Dépôt destination - Lecture seule
           _buildDepotField(refData),
           const SizedBox(height: 16),
-          
+
           // Pays de départ - Autocomplete
           _buildPaysAutocomplete(),
           const SizedBox(height: 16),
-          
+
           // Date de chargement - DatePicker
           _buildDatePicker(),
           const SizedBox(height: 16),
-          
+
           // Section Transport
           _buildSectionHeader('Transport'),
-          
+
           // Plaque camion
           TextFormField(
             controller: _plaqueController,
@@ -189,10 +193,11 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
             ),
             textInputAction: TextInputAction.next,
             onChanged: (_) => _dirty = true,
-            validator: (value) => value?.trim().isEmpty == true ? 'Plaque camion requise' : null,
+            validator: (value) =>
+                value?.trim().isEmpty == true ? 'Plaque camion requise' : null,
           ),
           const SizedBox(height: 16),
-          
+
           // Plaque remorque (optionnel)
           TextFormField(
             controller: _plaqueRemorqueController,
@@ -204,7 +209,7 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
             onChanged: (_) => _dirty = true,
           ),
           const SizedBox(height: 16),
-          
+
           // Chauffeur
           TextFormField(
             controller: _chauffeurController,
@@ -214,10 +219,11 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
             ),
             textInputAction: TextInputAction.next,
             onChanged: (_) => _dirty = true,
-            validator: (value) => value?.trim().isEmpty == true ? 'Chauffeur requis' : null,
+            validator: (value) =>
+                value?.trim().isEmpty == true ? 'Chauffeur requis' : null,
           ),
           const SizedBox(height: 16),
-          
+
           // Transporteur (optionnel)
           TextFormField(
             controller: _transporteurController,
@@ -229,7 +235,7 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
             onChanged: (_) => _dirty = true,
           ),
           const SizedBox(height: 16),
-          
+
           // Volume
           TextFormField(
             controller: _volumeController,
@@ -248,7 +254,7 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
             },
           ),
           const SizedBox(height: 16),
-          
+
           // Note (optionnel)
           TextFormField(
             controller: _noteController,
@@ -261,11 +267,11 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
             onChanged: (_) => _dirty = true,
           ),
           const SizedBox(height: 16),
-          
+
           // Statut (lecture seule)
           _buildStatutField(),
           const SizedBox(height: 32),
-          
+
           // Bouton de soumission
           _buildSubmitButton(),
         ],
@@ -276,14 +282,15 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
   /// Charge les données du cours existant si en mode édition
   Future<void> _loadExistingCours() async {
     if (widget.coursId == null) return;
-    
+
     try {
       // Utiliser le service directement pour récupérer le cours
       final service = ref.read(coursDeRouteServiceProvider);
       final cours = await service.getById(widget.coursId!);
-      
+
       if (cours != null) {
         setState(() {
+          _initialCours = cours; // Stocker le cours initial
           selectedFournisseurId = cours.fournisseurId;
           selectedProduitId = cours.produitId;
           depotDestinationId = cours.depotDestinationId;
@@ -347,7 +354,7 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final isWide = constraints.maxWidth >= 600;
-          
+
           if (isWide) {
             // Desktop/Tablet : côte à côte
             return Row(
@@ -437,7 +444,11 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
           return CoursRouteConstants.paysSuggestions;
         }
         return CoursRouteConstants.paysSuggestions
-            .where((pays) => pays.toLowerCase().contains(textEditingValue.text.toLowerCase()))
+            .where(
+              (pays) => pays.toLowerCase().contains(
+                textEditingValue.text.toLowerCase(),
+              ),
+            )
             .toList();
       },
       fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
@@ -455,7 +466,8 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
               _dirty = true;
             });
           },
-          validator: (value) => value?.trim().isEmpty == true ? 'Pays requis' : null,
+          validator: (value) =>
+              value?.trim().isEmpty == true ? 'Pays requis' : null,
         );
       },
       onSelected: (String selection) {
@@ -472,7 +484,7 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
     final dateText = dateChargement != null
         ? '${dateChargement!.year}-${dateChargement!.month.toString().padLeft(2, '0')}-${dateChargement!.day.toString().padLeft(2, '0')}'
         : '';
-    
+
     return TextFormField(
       readOnly: true,
       controller: TextEditingController(text: dateText),
@@ -513,13 +525,14 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
   /// Construit le bouton de soumission
   Widget _buildSubmitButton() {
     final refDataAsync = ref.watch(refDataProvider);
-    
+
     return ElevatedButton.icon(
-      icon: isSaving 
+      icon: isSaving
           ? const SizedBox(
-              width: 16, height: 16, 
-              child: CircularProgressIndicator(strokeWidth: 2)
-            ) 
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
           : const Icon(Icons.save),
       label: Text(isSaving ? 'Enregistrement...' : 'Enregistrer'),
       onPressed: (isSaving || refDataAsync.isLoading) ? null : _submitForm,
@@ -531,17 +544,31 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
 
   /// Soumet le formulaire
   Future<void> _submitForm() async {
-    if (!(_formKey.currentState?.validate() ?? false)) return;
-    
+    final isValid = _formKey.currentState?.validate() ?? false;
+
+    if (!isValid) {
+      if (mounted) {
+        showAppToast(
+          context,
+          'Veuillez corriger les champs en rouge avant de continuer.',
+          type: ToastType.error,
+        );
+      }
+      return;
+    }
+
     setState(() => isSaving = true);
-    
+
     try {
+      final isEditing = widget.coursId != null;
       // Helpers
       double parseVolume(String s) => double.parse(s.replaceAll(',', '.'));
       String? emptyToNull(String? s) => (s?.trim().isEmpty ?? true) ? null : s;
-      
+
       final cours = CoursDeRoute(
-        id: '', // Sera généré par Supabase
+        id: isEditing
+            ? widget.coursId!
+            : '', // ID existant en édition, vide en création
         fournisseurId: selectedFournisseurId!,
         depotDestinationId: depotDestinationId!,
         produitId: selectedProduitId!,
@@ -552,26 +579,48 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
         pays: departPays.trim(),
         dateChargement: dateChargement!,
         volume: parseVolume(_volumeController.text),
-        statut: StatutCours.chargement,
+        statut: isEditing
+            ? (_initialCours?.statut ?? StatutCours.chargement)
+            : StatutCours.chargement, // Préserver le statut en édition
         note: emptyToNull(_noteController.text),
       );
 
-      await ref.read(coursDeRouteServiceProvider).create(cours);
-      
+      final service = ref.read(coursDeRouteServiceProvider);
+
+      if (isEditing) {
+        await service.update(cours);
+        if (!mounted) return;
+        showAppToast(
+          context,
+          'Cours mis à jour avec succès',
+          type: ToastType.success,
+        );
+      } else {
+        await service.create(cours);
+        if (!mounted) return;
+        showAppToast(
+          context,
+          'Cours créé avec succès',
+          type: ToastType.success,
+        );
+      }
+
       // ► Invalider les providers de liste & filtres pour rafraîchir immédiatement
       ref.invalidate(coursDeRouteListProvider);
       ref.invalidate(coursDeRouteActifsProvider);
       ref.invalidate(filteredCoursProvider);
-      
+
       // ► Invalider les providers KPI du dashboard pour mise à jour immédiate
       ref.invalidate(coursKpiProvider);
-      
-      if (!mounted) return;
-      showAppToast(context, 'Cours créé avec succès', type: ToastType.success);
+
       context.go('/cours');
     } on PostgrestException catch (e) {
       if (!mounted) return;
-      showAppToast(context, 'Erreur Supabase: ${e.message}', type: ToastType.error);
+      showAppToast(
+        context,
+        'Erreur Supabase: ${e.message}',
+        type: ToastType.error,
+      );
     } catch (e) {
       if (!mounted) return;
       showAppToast(context, 'Erreur: $e', type: ToastType.error);

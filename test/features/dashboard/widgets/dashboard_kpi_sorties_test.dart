@@ -11,6 +11,7 @@ import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart' show c
 import 'package:ml_pp_mvp/core/models/profil.dart';
 import 'package:ml_pp_mvp/core/models/user_role.dart';
 import 'package:ml_pp_mvp/shared/providers/session_provider.dart';
+import 'package:ml_pp_mvp/features/dashboard/providers/citernes_sous_seuil_provider.dart';
 
 /// Fake notifier pour currentProfilProvider dans les tests
 class _FakeProfilNotifier extends CurrentProfilNotifier {
@@ -62,6 +63,8 @@ void main() {
           currentProfilProvider.overrideWith(() => _FakeProfilNotifier(fakeProfil)),
           // Override KPI provider
           kpiProviderProvider.overrideWith((ref) async => fakeSnapshot),
+          // Override citernes sous seuil provider
+          citernesSousSeuilProvider.overrideWith((ref) async => []),
         ],
       );
 
@@ -169,6 +172,8 @@ void main() {
           currentProfilProvider.overrideWith(() => _FakeProfilNotifier(fakeProfil)),
           // Override KPI provider
           kpiProviderProvider.overrideWith((ref) async => fakeSnapshot),
+          // Override citernes sous seuil provider
+          citernesSousSeuilProvider.overrideWith((ref) async => []),
         ],
       );
 

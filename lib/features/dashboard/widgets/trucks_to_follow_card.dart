@@ -109,7 +109,7 @@ class _TrucksToFollowCardState extends State<TrucksToFollowCard>
                   ],
                 ),
                 child: InkWell(
-                  onTap: widget.onTap ?? () => context.go('/camions'),
+                  onTap: widget.onTap ?? () => context.go('/cours'),
                   borderRadius: BorderRadius.circular(24),
                   child: Padding(
                     padding: const EdgeInsets.all(16), // Réduit de 18 à 16

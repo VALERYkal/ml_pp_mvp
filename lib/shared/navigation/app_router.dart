@@ -15,6 +15,7 @@ import 'package:ml_pp_mvp/features/cours_route/screens/cours_route_form_screen.d
 import 'package:ml_pp_mvp/features/cours_route/screens/cours_route_detail_screen.dart';
 import 'package:ml_pp_mvp/features/receptions/screens/reception_form_screen.dart';
 import 'package:ml_pp_mvp/features/receptions/screens/reception_list_screen.dart';
+import 'package:ml_pp_mvp/features/receptions/screens/reception_detail_screen.dart';
 import 'package:ml_pp_mvp/features/sorties/screens/sortie_form_screen.dart';
 import 'package:ml_pp_mvp/features/sorties/screens/sortie_list_screen.dart';
 import 'package:ml_pp_mvp/features/sorties/screens/sortie_detail_screen.dart';
@@ -100,6 +101,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (ctx, st) {
               final coursId = st.uri.queryParameters['coursId'];
               return ReceptionFormScreen(coursDeRouteId: coursId);
+            },
+          ),
+          GoRoute(
+            path: '/receptions/:id',
+            name: 'receptionDetail',
+            builder: (ctx, st) {
+              final id = st.pathParameters['id']!;
+              return ReceptionDetailScreen(receptionId: id);
             },
           ),
 

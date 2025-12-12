@@ -16,7 +16,7 @@ class CoursRouteConstants {
 
   // Liste des pays pour l'autocomplete
   static const List<String> paysSuggestions = [
-    'RD Congo', 'Rwanda', 'Zambie', 'Tanzanie', 'Angola', 
+    'Tanzanie', 'Zibambwe', 'Zambie', 'Mozambique', 'Angola', 
     'Namibie', 'Afrique du Sud', 'Kenya', 'Ouganda', 'Burundi',
   ];
 

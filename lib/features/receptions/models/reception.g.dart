@@ -9,7 +9,7 @@ part of 'reception.dart';
 _$ReceptionImpl _$$ReceptionImplFromJson(Map<String, dynamic> json) =>
     _$ReceptionImpl(
       id: json['id'] as String,
-      coursDeRouteId: json['cours_de_route_id'] as String,
+      coursDeRouteId: json['cours_de_route_id'] as String?,
       citerneId: json['citerne_id'] as String,
       produitId: json['produit_id'] as String,
       partenaireId: json['partenaire_id'] as String?,
@@ -36,7 +36,7 @@ Map<String, dynamic> _$$ReceptionImplToJson(
   _$ReceptionImpl instance,
 ) => <String, dynamic>{
   'id': instance.id,
-  'cours_de_route_id': instance.coursDeRouteId,
+  if (instance.coursDeRouteId case final value?) 'cours_de_route_id': value,
   'citerne_id': instance.citerneId,
   'produit_id': instance.produitId,
   if (instance.partenaireId case final value?) 'partenaire_id': value,

@@ -57,6 +57,14 @@ class FakeStocksKpiRepository implements StocksKpiRepository {
   }) async {
     return _citerneSnapshots;
   }
+
+  @override
+  Future<double> fetchDepotTotalCapacity({
+    required String depotId,
+    String? produitId,
+  }) async {
+    return 0.0;
+  }
 }
 
 void main() {
@@ -106,6 +114,7 @@ void main() {
           stockAmbiantTotal: 5000.0,
           stock15cTotal: 4750.0,
           capaciteTotale: 10000.0,
+          capaciteSecurite: 0.0,
         ),
         CiterneGlobalStockSnapshot(
           citerneId: 'citerne-2',
@@ -116,6 +125,7 @@ void main() {
           stockAmbiantTotal: 5000.0,
           stock15cTotal: 4750.0,
           capaciteTotale: 10000.0,
+          capaciteSecurite: 0.0,
         ),
       ];
 
@@ -183,12 +193,26 @@ void main() {
       );
 
       // Assert
-      // The date should be close to now (within 1 second)
+      // The date should be normalized to midnight and match today's date
+      // (year, month, day only, ignoring time)
       final now = DateTime.now();
+      final expectedDate = DateTime(now.year, now.month, now.day);
       expect(
-        snapshot.dateJour.difference(now).inSeconds.abs(),
-        lessThan(1),
+        snapshot.dateJour.year,
+        equals(expectedDate.year),
       );
+      expect(
+        snapshot.dateJour.month,
+        equals(expectedDate.month),
+      );
+      expect(
+        snapshot.dateJour.day,
+        equals(expectedDate.day),
+      );
+      // The time should be normalized to midnight
+      expect(snapshot.dateJour.hour, equals(0));
+      expect(snapshot.dateJour.minute, equals(0));
+      expect(snapshot.dateJour.second, equals(0));
       expect(snapshot.isFallback, isFalse);
     });
 

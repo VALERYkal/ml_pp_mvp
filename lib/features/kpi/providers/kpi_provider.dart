@@ -284,13 +284,13 @@ final sortiesRawTodayProvider = FutureProvider.autoDispose<List<SortieRow>>((ref
 /// et applique automatiquement le filtrage par dépôt selon le profil utilisateur.
 final kpiProviderProvider = FutureProvider.autoDispose<KpiSnapshot>((ref) async {
   try {
-    print('🔍 DEBUG KPI Provider: Début de la récupération des données');
+    print('🔍 KPI DEBUG: Début du chargement KPI...');
+    
     // 1) Contexte utilisateur (RLS) : dépôt, propriétaire, etc.
     final profil = await ref.watch(profilProvider.future);
+    print('🔍 KPI DEBUG: Profil chargé: ${profil?.id}, depot=${profil?.depotId}');
     final depotId = profil?.depotId; // null => global si rôle le permet
     final supa = Supabase.instance.client;
-    
-    print('🔍 DEBUG KPI Provider: depotId=$depotId');
     
     // 2) Calcul des dates pour les requêtes
     final now = DateTime.now().toUtc();
@@ -300,11 +300,15 @@ final kpiProviderProvider = FutureProvider.autoDispose<KpiSnapshot>((ref) async 
     // 3) Requêtes parallèles pour optimiser les performances
     // Utiliser les nouveaux providers pour les réceptions et sorties (retournent KpiReceptions et KpiSorties)
     final receptionsKpi = await ref.watch(receptionsKpiTodayProvider.future);
+    print('🔍 KPI DEBUG: receptionsKpiToday OK: ${receptionsKpi.toString()}');
+    
     final sortiesKpi = await ref.watch(sortiesKpiTodayProvider.future);
+    print('🔍 KPI DEBUG: sortiesKpiToday OK: ${sortiesKpi.toString()}');
     
     // Phase 3.4: Utiliser le nouveau provider agrégé pour les stocks
     // Les capacités sont maintenant incluses dans CiterneGlobalStockSnapshot
-    final stocksKpis = await ref.watch(stocksDashboardKpisProvider(depotId).future);
+    final stocksKpis = await _safeLoadStocks(ref: ref, depotId: depotId);
+    print('🔍 KPI DEBUG: stocksDashboardKpis OK: ${stocksKpis.toString()}');
     final stocks = _computeStocksDataFromKpis(stocksKpis);
     
     final futures = await Future.wait([
@@ -313,7 +317,12 @@ final kpiProviderProvider = FutureProvider.autoDispose<KpiSnapshot>((ref) async 
     ]);
 
     final trucks = futures[0] as KpiTrucksToFollow;
+    print('🔍 KPI DEBUG: trucksToFollow OK: ${trucks.toString()}');
+    
     final trend7d = futures[1] as List<KpiTrendPoint>;
+    print('🔍 KPI DEBUG: trend7Days OK: ${trend7d.toString()}');
+    
+    print('🔍 KPI DEBUG: Tous les KPI sont chargés correctement.');
   
   // 4) Construction du snapshot unifié avec null-safety
   
@@ -353,8 +362,9 @@ final kpiProviderProvider = FutureProvider.autoDispose<KpiSnapshot>((ref) async 
       trucksToFollow: trucks,
       trend7d: trend7d,
     );
-  } catch (e) {
-    // En cas d'erreur, retourner un snapshot vide pour éviter les crashes
+  } catch (e, stack) {
+    print('❌ KPI ERROR: $e');
+    print(stack);
     return KpiSnapshot.empty;
   }
 });
@@ -509,4 +519,23 @@ Future<List<KpiTrendPoint>> _fetchTrend7d(
     ));
   }
   return points;
+}
+
+/// Helper safe pour charger les KPI stocks en mode dégradé
+/// 
+/// En cas d'erreur (ex: colonne SQL manquante), retourne un snapshot vide
+/// au lieu de faire planter tout le dashboard.
+Future<StocksDashboardKpis> _safeLoadStocks({
+  required Ref ref,
+  required String? depotId,
+}) async {
+  try {
+    return await ref.watch(stocksDashboardKpisProvider(depotId).future);
+  } catch (e, stack) {
+    // Log non bloquant : les stocks sont en mode dégradé, mais on ne casse pas tout le dashboard
+    print('⚠️ KPI STOCKS ERROR (dégradé): $e');
+    print(stack);
+    // Retourner un snapshot vide pour les stocks
+    return StocksDashboardKpis.empty();
+  }
 }

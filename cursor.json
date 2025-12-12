@@ -28,4 +28,38 @@
     "freezed",
     "json_serializable"
   ]
+  {
+    "name": "update-changelog",
+    "description": "Met automatiquement à jour la section [Unreleased] du fichier CHANGELOG.md avec les modifications détectées dans la base de code.",
+    "trigger": {
+      "type": "manual"
+    },
+    "globalVars": [
+      {
+        "name": "changelogPath",
+        "description": "Chemin du fichier CHANGELOG",
+        "value": "CHANGELOG.md"
+      }
+    ],
+    "instructions": [
+      {
+        "role": "system",
+        "content": "Tu es Cursor AI et ton rôle est de générer ou compléter la section `[Unreleased]` du fichier CHANGELOG.md. Tu dois suivre strictement le format Keep a Changelog : Added, Changed, Fixed, Removed, Security, Compatibility, Impact métier."
+      },
+      {
+        "role": "user",
+        "content": "Analyse tous les fichiers modifiés dans ce commit ou cette branche et génère les entrées pour la section `[Unreleased]` en respectant le style ML_PP MVP. N'écris rien dans les autres sections. Formatte proprement en Markdown."
+      }
+    ],
+    "actions": [
+      {
+        "type": "file",
+        "path": "{{changelogPath}}",
+        "pattern": "## \\[Unreleased\\]",
+        "position": "after",
+        "content": "\n\n### 🔄 Mise à jour automatique\n{{generatedChangelog}}\n"
+      }
+    ]
+  }
+  
 }

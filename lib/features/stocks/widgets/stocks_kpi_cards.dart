@@ -1,10 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ml_pp_mvp/data/repositories/stocks_kpi_repository.dart';
 import 'package:ml_pp_mvp/features/stocks/data/stocks_kpi_providers.dart';
 import 'package:ml_pp_mvp/features/stocks/domain/depot_stocks_snapshot.dart';
+import 'package:ml_pp_mvp/features/stocks_journaliers/providers/stocks_providers.dart';
 import 'package:ml_pp_mvp/shared/formatters.dart';
-import 'package:ml_pp_mvp/shared/ui/kpi_card.dart';
 
 /// Carte affichant le breakdown des stocks par propriétaire (MONALUXE / PARTENAIRE).
 ///
@@ -24,19 +25,36 @@ class OwnerStockBreakdownCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // 1) Récupérer la date sélectionnée ou la date fournie
+    final rawDate = dateJour ?? ref.watch(stocksSelectedDateProvider) ?? DateTime.now();
+
+    // 2) Normaliser la date à minuit pour stabiliser la clé du provider
+    final dateJourValue = DateTime(rawDate.year, rawDate.month, rawDate.day);
+
     final snapshotAsync = ref.watch(
       depotStocksSnapshotProvider(
-        DepotStocksSnapshotParams(
-          depotId: depotId,
-          dateJour: dateJour,
-        ),
+        DepotStocksSnapshotParams(depotId: depotId, dateJour: dateJourValue),
       ),
     );
 
     return snapshotAsync.when(
-      loading: () => _buildLoadingCard(context),
-      error: (error, stack) => _buildErrorCard(context, error),
-      data: (snapshot) => _buildDataCard(context, snapshot),
+      loading: () {
+        debugPrint(
+          '📊 OwnerStockBreakdownCard: state=loading (depotId=$depotId, dateJour=$dateJourValue)',
+        );
+        return _buildLoadingCard(context);
+      },
+      error: (error, stack) {
+        debugPrint('📊 OwnerStockBreakdownCard: state=error $error');
+        debugPrint('Stack: $stack');
+        return _buildErrorCard(context, error);
+      },
+      data: (snapshot) {
+        debugPrint(
+          '📊 OwnerStockBreakdownCard: state=data isFallback=${snapshot.isFallback}',
+        );
+        return _buildDataCard(context, snapshot);
+      },
     );
   }
 
@@ -55,9 +73,7 @@ class OwnerStockBreakdownCard extends ConsumerWidget {
       ),
       child: const Padding(
         padding: EdgeInsets.all(16),
-        child: Center(
-          child: CircularProgressIndicator(),
-        ),
+        child: Center(child: CircularProgressIndicator()),
       ),
     );
   }
@@ -81,11 +97,7 @@ class OwnerStockBreakdownCard extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.error_outline,
-              color: t.colorScheme.error,
-              size: 32,
-            ),
+            Icon(Icons.error_outline, color: t.colorScheme.error, size: 32),
             const SizedBox(height: 8),
             Text(
               'Erreur de chargement',
@@ -102,16 +114,41 @@ class OwnerStockBreakdownCard extends ConsumerWidget {
   Widget _buildDataCard(BuildContext context, DepotStocksSnapshot snapshot) {
     final t = Theme.of(context);
     final owners = snapshot.owners;
+    final totals = snapshot.totals;
 
-    // Trouver MONALUXE et PARTENAIRE
-    final monaluxe = owners.firstWhere(
-      (o) => o.proprietaireType.toUpperCase() == 'MONALUXE',
-      orElse: () => _emptyOwner('MONALUXE'),
-    );
-    final partenaire = owners.firstWhere(
-      (o) => o.proprietaireType.toUpperCase() == 'PARTENAIRE',
-      orElse: () => _emptyOwner('PARTENAIRE'),
-    );
+    DepotOwnerStockKpi monaluxe;
+    DepotOwnerStockKpi partenaire;
+
+    if (owners.isEmpty) {
+      // 🔁 Fallback : les vues KPI ne renvoient rien, mais on a un stock global
+      // Si le total est nul, on garde le comportement historique (0/0 pour tous)
+      if (totals.stockAmbiantTotal == 0.0 && totals.stock15cTotal == 0.0) {
+        monaluxe = _emptyOwner('MONALUXE');
+        partenaire = _emptyOwner('PARTENAIRE');
+      } else {
+        // Cas actuel de la base : tout le stock est MONALUXE, PARTENAIRE = 0
+        monaluxe = DepotOwnerStockKpi(
+          depotId: totals.depotId,
+          depotNom: totals.depotNom,
+          proprietaireType: 'MONALUXE',
+          produitId: totals.produitId,
+          produitNom: totals.produitNom,
+          stockAmbiantTotal: totals.stockAmbiantTotal,
+          stock15cTotal: totals.stock15cTotal,
+        );
+        partenaire = _emptyOwner('PARTENAIRE');
+      }
+    } else {
+      // 🔍 Cas nominal : on s'appuie sur v_kpi_stock_owner
+      monaluxe = owners.firstWhere(
+        (o) => o.proprietaireType.toUpperCase() == 'MONALUXE',
+        orElse: () => _emptyOwner('MONALUXE'),
+      );
+      partenaire = owners.firstWhere(
+        (o) => o.proprietaireType.toUpperCase() == 'PARTENAIRE',
+        orElse: () => _emptyOwner('PARTENAIRE'),
+      );
+    }
 
     return InkWell(
       onTap: onTap,
@@ -177,6 +214,18 @@ class OwnerStockBreakdownCard extends ConsumerWidget {
                 stock15c: partenaire.stock15cTotal,
                 color: const Color(0xFF2196F3),
               ),
+              if (snapshot.isFallback) ...[
+                const SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                  child: Text(
+                    "⚠︎ Données de stock indisponibles. Affichage d'une vue de secours (0 L).",
+                    style: t.textTheme.bodySmall?.copyWith(
+                      color: Colors.orange[800],
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -270,4 +319,3 @@ class OwnerStockBreakdownCard extends ConsumerWidget {
     );
   }
 }
-

@@ -60,6 +60,14 @@ class FakeStocksKpiRepositoryForWidget implements StocksKpiRepository {
     }
     return [];
   }
+
+  @override
+  Future<double> fetchDepotTotalCapacity({
+    required String depotId,
+    String? produitId,
+  }) async {
+    return 0.0;
+  }
 }
 
 void main() {

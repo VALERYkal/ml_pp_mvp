@@ -6,6 +6,9 @@ import '../../dashboard/widgets/placeholders.dart';
 import '../../../shared/formatters.dart';
 import '../../profil/providers/profil_provider.dart';
 import '../../stocks/widgets/stocks_kpi_cards.dart';
+import '../../stocks/data/stocks_kpi_providers.dart';
+import '../../stocks/domain/depot_stocks_snapshot.dart';
+import '../../../data/repositories/stocks_kpi_repository.dart';
 
 class StocksListScreen extends ConsumerStatefulWidget {
   const StocksListScreen({super.key});
@@ -14,7 +17,7 @@ class StocksListScreen extends ConsumerStatefulWidget {
   ConsumerState<StocksListScreen> createState() => _StocksListScreenState();
 }
 
-class _StocksListScreenState extends ConsumerState<StocksListScreen> 
+class _StocksListScreenState extends ConsumerState<StocksListScreen>
     with TickerProviderStateMixin {
   late AnimationController _fadeController;
   late AnimationController _scaleController;
@@ -32,7 +35,7 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
       duration: const Duration(milliseconds: 600),
       vsync: this,
     );
-    
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
     );
@@ -67,15 +70,15 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
           children: [
             // HEADER — fixe (filters)
             Padding(
-              padding: const EdgeInsets.only(bottom: 1), // élimine toute ligne résiduelle
+              padding: const EdgeInsets.only(
+                bottom: 1,
+              ), // élimine toute ligne résiduelle
               child: _buildStickyFiltersFixed(context),
             ),
             const SizedBox(height: 8),
 
             // BODY — scrollable (content)
-            Expanded(
-              child: _buildContent(context, stocks, theme),
-            ),
+            Expanded(child: _buildContent(context, stocks, theme)),
           ],
         ),
       ),
@@ -173,14 +176,14 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
                       child: _buildDateSelector(context, date, theme),
                     ),
                     const SizedBox(width: 16),
-                    
+
                     // Filtre produit
                     Expanded(
                       flex: 2,
                       child: _buildProduitFilter(context, produitsRef, theme),
                     ),
                     const SizedBox(width: 16),
-                    
+
                     // Filtre citerne
                     Expanded(
                       flex: 2,
@@ -238,14 +241,14 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
                       child: _buildDateSelector(context, date, theme),
                     ),
                     const SizedBox(width: 16),
-                    
+
                     // Filtre produit
                     Expanded(
                       flex: 2,
                       child: _buildProduitFilter(context, produitsRef, theme),
                     ),
                     const SizedBox(width: 16),
-                    
+
                     // Filtre citerne
                     Expanded(
                       flex: 2,
@@ -261,25 +264,27 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
     );
   }
 
-  Widget _buildDateSelector(BuildContext context, DateTime date, ThemeData theme) {
+  Widget _buildDateSelector(
+    BuildContext context,
+    DateTime date,
+    ThemeData theme,
+  ) {
     return Container(
       decoration: BoxDecoration(
         color: theme.colorScheme.primaryContainer.withOpacity(0.3),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: theme.colorScheme.outline.withOpacity(0.3),
-        ),
+        border: Border.all(color: theme.colorScheme.outline.withOpacity(0.3)),
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
           onTap: () async {
-                    final picked = await showDatePicker(
-                      context: context,
-                      initialDate: date,
-                      firstDate: DateTime(2020),
-                      lastDate: DateTime(2100),
+            final picked = await showDatePicker(
+              context: context,
+              initialDate: date,
+              firstDate: DateTime(2020),
+              lastDate: DateTime(2100),
               builder: (context, child) {
                 return Theme(
                   data: theme.copyWith(
@@ -290,11 +295,11 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
                   child: child!,
                 );
               },
-                    );
-                    if (picked != null) {
-                      ref.read(stocksSelectedDateProvider.notifier).state = picked;
-                    }
-                  },
+            );
+            if (picked != null) {
+              ref.read(stocksSelectedDateProvider.notifier).state = picked;
+            }
+          },
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
@@ -324,7 +329,11 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
     );
   }
 
-  Widget _buildProduitFilter(BuildContext context, AsyncValue produitsRef, ThemeData theme) {
+  Widget _buildProduitFilter(
+    BuildContext context,
+    AsyncValue produitsRef,
+    ThemeData theme,
+  ) {
     return produitsRef.when(
       data: (items) => Container(
         decoration: BoxDecoration(
@@ -333,36 +342,53 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
         ),
         child: DropdownButtonFormField<String>(
           decoration: InputDecoration(
-                        labelText: 'Produit',
+            labelText: 'Produit',
             border: InputBorder.none,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 8,
+            ),
             labelStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant),
-                      ),
-                      value: ref.watch(stocksSelectedProduitIdProvider),
-                      items: [
+          ),
+          value: ref.watch(stocksSelectedProduitIdProvider),
+          items: [
             DropdownMenuItem<String>(
               value: null,
               child: Row(
                 children: [
-                  Icon(Icons.all_inclusive, size: 16, color: theme.colorScheme.onSurfaceVariant),
+                  Icon(
+                    Icons.all_inclusive,
+                    size: 16,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                   const SizedBox(width: 8),
-                  Text('Tous les produits', style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
+                  Text(
+                    'Tous les produits',
+                    style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                  ),
                 ],
               ),
             ),
-            ...items.map((e) => DropdownMenuItem<String>(
-                          value: e['id'],
-              child: Row(
-                children: [
-                  Icon(Icons.local_gas_station, size: 16, color: theme.colorScheme.primary),
-                  const SizedBox(width: 8),
-                  Text(e['nom'] ?? ''),
-                ],
-              ),
-                        )),
-                      ],
-                      onChanged: (v) => ref.read(stocksSelectedProduitIdProvider.notifier).state = v,
+            ...items.map(
+              (e) => DropdownMenuItem<String>(
+                value: e['id'],
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.local_gas_station,
+                      size: 16,
+                      color: theme.colorScheme.primary,
                     ),
+                    const SizedBox(width: 8),
+                    Text(e['nom'] ?? ''),
+                  ],
+                ),
+              ),
+            ),
+          ],
+          onChanged: (v) =>
+              ref.read(stocksSelectedProduitIdProvider.notifier).state = v,
+        ),
       ),
       loading: () => Container(
         height: 56,
@@ -379,54 +405,86 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
           borderRadius: BorderRadius.circular(12),
         ),
         child: Center(
-          child: Text('Erreur produits', style: TextStyle(color: theme.colorScheme.error)),
+          child: Text(
+            'Erreur produits',
+            style: TextStyle(color: theme.colorScheme.error),
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildCiterneFilter(BuildContext context, AsyncValue citernesRef, ThemeData theme) {
+  Widget _buildCiterneFilter(
+    BuildContext context,
+    AsyncValue citernesRef,
+    ThemeData theme,
+  ) {
     return citernesRef.when(
-                    data: (items) {
-                      final selectedProduitId = ref.watch(stocksSelectedProduitIdProvider);
+      data: (items) {
+        final selectedProduitId = ref.watch(stocksSelectedProduitIdProvider);
         return Container(
           decoration: BoxDecoration(
-            border: Border.all(color: theme.colorScheme.outline.withOpacity(0.3)),
+            border: Border.all(
+              color: theme.colorScheme.outline.withOpacity(0.3),
+            ),
             borderRadius: BorderRadius.circular(12),
           ),
           child: DropdownButtonFormField<String>(
             decoration: InputDecoration(
-                          labelText: 'Citerne',
+              labelText: 'Citerne',
               border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
+              ),
               labelStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant),
-                        ),
-                        value: ref.watch(stocksSelectedCiterneIdProvider),
-                        items: [
+            ),
+            value: ref.watch(stocksSelectedCiterneIdProvider),
+            items: [
               DropdownMenuItem<String>(
                 value: null,
                 child: Row(
                   children: [
-                    Icon(Icons.storage, size: 16, color: theme.colorScheme.onSurfaceVariant),
+                    Icon(
+                      Icons.storage,
+                      size: 16,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                     const SizedBox(width: 8),
-                    Text('Toutes les citernes', style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
+                    Text(
+                      'Toutes les citernes',
+                      style: TextStyle(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                   ],
                 ),
               ),
-                          ...items
-                              .where((e) => selectedProduitId == null || (e['produit_id'] ?? '') == selectedProduitId)
-                  .map((e) => DropdownMenuItem<String>(
-                                value: e['id'],
-                    child: Row(
-                      children: [
-                        Icon(Icons.storage, size: 16, color: theme.colorScheme.primary),
-                        const SizedBox(width: 8),
-                        Text(e['nom'] ?? ''),
-                      ],
-                    ),
-                              )),
+              ...items
+                  .where(
+                    (e) =>
+                        selectedProduitId == null ||
+                        (e['produit_id'] ?? '') == selectedProduitId,
+                  )
+                  .map(
+                    (e) => DropdownMenuItem<String>(
+                      value: e['id'],
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.storage,
+                            size: 16,
+                            color: theme.colorScheme.primary,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(e['nom'] ?? ''),
                         ],
-                        onChanged: (v) => ref.read(stocksSelectedCiterneIdProvider.notifier).state = v,
+                      ),
+                    ),
+                  ),
+            ],
+            onChanged: (v) =>
+                ref.read(stocksSelectedCiterneIdProvider.notifier).state = v,
           ),
         );
       },
@@ -445,18 +503,24 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
           borderRadius: BorderRadius.circular(12),
         ),
         child: Center(
-          child: Text('Erreur citernes', style: TextStyle(color: theme.colorScheme.error)),
+          child: Text(
+            'Erreur citernes',
+            style: TextStyle(color: theme.colorScheme.error),
+          ),
         ),
       ),
     );
   }
 
-
-  Widget _buildContent(BuildContext context, AsyncValue<StocksDataWithMeta> stocks, ThemeData theme) {
+  Widget _buildContent(
+    BuildContext context,
+    AsyncValue<StocksDataWithMeta> stocks,
+    ThemeData theme,
+  ) {
     return stocks.when(
       loading: () => _buildLoadingState(context, theme),
       error: (e, _) => _buildErrorState(context, e, theme),
-      data: (data) => data.stocks.isEmpty 
+      data: (data) => data.stocks.isEmpty
           ? _buildEmptyState(context, theme)
           : _buildDataTable(context, data, theme),
     );
@@ -469,9 +533,7 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           const SizedBox(height: 40),
-          CircularProgressIndicator(
-            color: theme.colorScheme.primary,
-          ),
+          CircularProgressIndicator(color: theme.colorScheme.primary),
           const SizedBox(height: 16),
           Text(
             'Chargement des stocks...',
@@ -492,9 +554,7 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
         decoration: BoxDecoration(
           color: theme.colorScheme.errorContainer.withOpacity(0.1),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: theme.colorScheme.error.withOpacity(0.3),
-          ),
+          border: Border.all(color: theme.colorScheme.error.withOpacity(0.3)),
         ),
         child: ErrorTile(
           'Erreur de chargement des stocks',
@@ -559,7 +619,11 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
     );
   }
 
-  Widget _buildFallbackWarning(BuildContext context, StocksDataWithMeta data, ThemeData theme) {
+  Widget _buildFallbackWarning(
+    BuildContext context,
+    StocksDataWithMeta data,
+    ThemeData theme,
+  ) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -567,17 +631,11 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
       decoration: BoxDecoration(
         color: theme.colorScheme.tertiaryContainer.withOpacity(0.3),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: theme.colorScheme.tertiary.withOpacity(0.3),
-        ),
+        border: Border.all(color: theme.colorScheme.tertiary.withOpacity(0.3)),
       ),
       child: Row(
         children: [
-          Icon(
-            Icons.info_outline,
-            color: theme.colorScheme.tertiary,
-            size: 20,
-          ),
+          Icon(Icons.info_outline, color: theme.colorScheme.tertiary, size: 20),
           const SizedBox(width: 12),
           Expanded(
             child: RichText(
@@ -586,9 +644,7 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
                   color: theme.colorScheme.onSurface,
                 ),
                 children: [
-                  const TextSpan(
-                    text: 'Aucun mouvement le ',
-                  ),
+                  const TextSpan(text: 'Aucun mouvement le '),
                   TextSpan(
                     text: _fmtDate(DateTime.parse(data.requestedDate)),
                     style: TextStyle(
@@ -596,9 +652,7 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
                       color: theme.colorScheme.tertiary,
                     ),
                   ),
-                  const TextSpan(
-                    text: '. Affichage des stocks du ',
-                  ),
+                  const TextSpan(text: '. Affichage des stocks du '),
                   TextSpan(
                     text: _fmtDate(DateTime.parse(data.actualDataDate)),
                     style: TextStyle(
@@ -606,9 +660,7 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
                       color: theme.colorScheme.tertiary,
                     ),
                   ),
-                  const TextSpan(
-                    text: ' (dernière date disponible).',
-                  ),
+                  const TextSpan(text: ' (dernière date disponible).'),
                 ],
               ),
             ),
@@ -623,11 +675,23 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
     StocksDataWithMeta data,
     ThemeData theme,
   ) {
-    final items = data.stocks;
-
     // Obtenir le depotId depuis le profil pour afficher les KPI
     final profil = ref.watch(profilProvider).valueOrNull;
     final depotId = profil?.depotId;
+    final selectedDate = ref.watch(stocksSelectedDateProvider);
+
+    // Utiliser depotStocksSnapshotProvider pour les données agrégées (comme le dashboard)
+    // data est conservé uniquement pour isFallback et actualDataDate (affichage du message)
+    final snapshotAsync = depotId != null && depotId.isNotEmpty
+        ? ref.watch(
+            depotStocksSnapshotProvider(
+              DepotStocksSnapshotParams(
+                depotId: depotId,
+                dateJour: selectedDate,
+              ),
+            ),
+          )
+        : null;
 
     return SingleChildScrollView(
       child: Padding(
@@ -648,7 +712,7 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
                 const SizedBox(height: 12),
                 OwnerStockBreakdownCard(
                   depotId: depotId,
-                  dateJour: ref.watch(stocksSelectedDateProvider),
+                  dateJour: selectedDate,
                 ),
                 const SizedBox(height: 24),
               ],
@@ -669,93 +733,212 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
                     ),
                   ],
                 ),
-                child: Column(
-                  children: [
-                    // Avertissement fallback si nécessaire
-                    if (data.isFallback)
-                      _buildFallbackWarning(context, data, theme),
+                child: snapshotAsync != null
+                    ? snapshotAsync.when(
+                        loading: () => const Padding(
+                          padding: EdgeInsets.all(32),
+                          child: Center(child: CircularProgressIndicator()),
+                        ),
+                        error: (error, stack) => Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Text(
+                            'Erreur de chargement: $error',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.error,
+                            ),
+                          ),
+                        ),
+                        data: (snapshot) => Column(
+                          children: [
+                            // Avertissement fallback si nécessaire (basé sur data, pas snapshot)
+                            if (data.isFallback)
+                              _buildFallbackWarning(context, data, theme),
 
-                    // Bandeau de stats
-                    _buildStatsHeader(context, items, theme),
+                            // Bandeau de stats (basé sur snapshot KPI)
+                            _buildStatsHeaderFromSnapshot(
+                              context,
+                              snapshot,
+                              theme,
+                            ),
 
-                    // Tableau scrollable horizontalement
-                    ClipRRect(
-                      borderRadius: const BorderRadius.vertical(
-                        bottom: Radius.circular(16),
-                      ),
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: DataTable(
-                          headingRowColor: WidgetStateProperty.all(
-                            theme.colorScheme.surfaceContainerHighest
-                                .withOpacity(0.5),
-                          ),
-                          headingTextStyle:
-                              theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                          dataTextStyle:
-                              theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurface,
-                          ),
-                          columns: [
-                            _buildDataColumn(
-                              'Citerne',
-                              Icons.storage,
-                              theme,
+                            // Tableau scrollable horizontalement (basé sur snapshot KPI)
+                            ClipRRect(
+                              borderRadius: const BorderRadius.vertical(
+                                bottom: Radius.circular(16),
+                              ),
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: DataTable(
+                                  headingRowColor: WidgetStateProperty.all(
+                                    theme.colorScheme.surfaceContainerHighest
+                                        .withOpacity(0.5),
+                                  ),
+                                  headingTextStyle: theme.textTheme.bodyMedium
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                        color: theme
+                                            .colorScheme.onSurfaceVariant,
+                                      ),
+                                  dataTextStyle:
+                                      theme.textTheme.bodyMedium?.copyWith(
+                                    color: theme.colorScheme.onSurface,
+                                  ),
+                                  columns: [
+                                    _buildDataColumn(
+                                      'Citerne',
+                                      Icons.storage,
+                                      theme,
+                                    ),
+                                    _buildDataColumn(
+                                      'Produit',
+                                      Icons.local_gas_station,
+                                      theme,
+                                    ),
+                                    _buildDataColumn(
+                                      'Ambiant (L)',
+                                      Icons.water_drop_outlined,
+                                      theme,
+                                    ),
+                                    _buildDataColumn(
+                                      '15°C (L)',
+                                      Icons.thermostat,
+                                      theme,
+                                    ),
+                                    _buildDataColumn(
+                                      'Capacité (L)',
+                                      Icons.straighten,
+                                      theme,
+                                    ),
+                                    _buildDataColumn(
+                                      'Sécurité (L)',
+                                      Icons.warning_outlined,
+                                      theme,
+                                    ),
+                                    _buildDataColumn(
+                                      'Ratio',
+                                      Icons.percent,
+                                      theme,
+                                    ),
+                                    _buildDataColumn(
+                                      'Alerte',
+                                      Icons.notifications_active,
+                                      theme,
+                                    ),
+                                  ],
+                                  rows: [
+                                    // Lignes de données (basées sur snapshot.citerneRows)
+                                    ...snapshot.citerneRows
+                                        .asMap()
+                                        .entries
+                                        .map((entry) {
+                                      final index = entry.key;
+                                      final citerne = entry.value;
+                                      return _buildDataRowFromSnapshot(
+                                        citerne,
+                                        index,
+                                        theme,
+                                      );
+                                    }),
+                                    // Ligne de total (basée sur snapshot.citerneRows)
+                                    _buildTotalRowFromSnapshot(
+                                      snapshot.citerneRows,
+                                      theme,
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
-                            _buildDataColumn(
-                              'Produit',
-                              Icons.local_gas_station,
-                              theme,
-                            ),
-                            _buildDataColumn(
-                              'Ambiant (L)',
-                              Icons.water_drop_outlined,
-                              theme,
-                            ),
-                            _buildDataColumn(
-                              '15°C (L)',
-                              Icons.thermostat,
-                              theme,
-                            ),
-                            _buildDataColumn(
-                              'Capacité (L)',
-                              Icons.straighten,
-                              theme,
-                            ),
-                            _buildDataColumn(
-                              'Sécurité (L)',
-                              Icons.warning_outlined,
-                              theme,
-                            ),
-                            _buildDataColumn(
-                              'Ratio',
-                              Icons.percent,
-                              theme,
-                            ),
-                            _buildDataColumn(
-                              'Alerte',
-                              Icons.notifications_active,
-                              theme,
-                            ),
-                          ],
-                          rows: [
-                            // Lignes de données
-                            ...items.asMap().entries.map((entry) {
-                              final index = entry.key;
-                              final s = entry.value;
-                              return _buildDataRow(s, index, theme);
-                            }),
-                            // Ligne de total
-                            _buildTotalRow(items, theme),
                           ],
                         ),
+                      )
+                    : Column(
+                        children: [
+                          // Avertissement fallback si nécessaire
+                          if (data.isFallback)
+                            _buildFallbackWarning(context, data, theme),
+
+                          // Bandeau de stats (fallback sur data.stocks si pas de depotId)
+                          _buildStatsHeader(context, data.stocks, theme),
+
+                          // Tableau scrollable horizontalement (fallback sur data.stocks)
+                          ClipRRect(
+                            borderRadius: const BorderRadius.vertical(
+                              bottom: Radius.circular(16),
+                            ),
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: DataTable(
+                                headingRowColor: WidgetStateProperty.all(
+                                  theme.colorScheme.surfaceContainerHighest
+                                      .withOpacity(0.5),
+                                ),
+                                headingTextStyle: theme.textTheme.bodyMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      color:
+                                          theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                dataTextStyle:
+                                    theme.textTheme.bodyMedium?.copyWith(
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                                columns: [
+                                  _buildDataColumn(
+                                    'Citerne',
+                                    Icons.storage,
+                                    theme,
+                                  ),
+                                  _buildDataColumn(
+                                    'Produit',
+                                    Icons.local_gas_station,
+                                    theme,
+                                  ),
+                                  _buildDataColumn(
+                                    'Ambiant (L)',
+                                    Icons.water_drop_outlined,
+                                    theme,
+                                  ),
+                                  _buildDataColumn(
+                                    '15°C (L)',
+                                    Icons.thermostat,
+                                    theme,
+                                  ),
+                                  _buildDataColumn(
+                                    'Capacité (L)',
+                                    Icons.straighten,
+                                    theme,
+                                  ),
+                                  _buildDataColumn(
+                                    'Sécurité (L)',
+                                    Icons.warning_outlined,
+                                    theme,
+                                  ),
+                                  _buildDataColumn(
+                                    'Ratio',
+                                    Icons.percent,
+                                    theme,
+                                  ),
+                                  _buildDataColumn(
+                                    'Alerte',
+                                    Icons.notifications_active,
+                                    theme,
+                                  ),
+                                ],
+                                rows: [
+                                  // Lignes de données
+                                  ...data.stocks.asMap().entries.map((entry) {
+                                    final index = entry.key;
+                                    final s = entry.value;
+                                    return _buildDataRow(s, index, theme);
+                                  }),
+                                  // Ligne de total
+                                  _buildTotalRow(data.stocks, theme),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
               ),
             ],
           ),
@@ -784,25 +967,21 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
   }
 
   DataRow _buildDataRow(StockRowView s, int index, ThemeData theme) {
-    final ratio = s.capaciteTotale > 0 ? s.stockAmbiant / s.capaciteTotale : 0.0;
+    final ratio = s.capaciteTotale > 0
+        ? s.stockAmbiant / s.capaciteTotale
+        : 0.0;
     final isLowStock = s.stockAmbiant <= s.capaciteSecurite;
-    
+
     return DataRow(
       color: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.hovered)) {
           return theme.colorScheme.surfaceContainerHighest.withOpacity(0.3);
         }
-        return index.isEven 
+        return index.isEven
             ? theme.colorScheme.surfaceContainerHighest.withOpacity(0.1)
             : null;
       }),
       cells: [
-        DataCell(Text(
-          s.dateJour,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.w500,
-          ),
-        )),
         DataCell(_buildCiterneCell(s.citerneNom, theme)),
         DataCell(_buildProduitCell(s.produitNom, theme)),
         DataCell(_buildVolumeCell(s.stockAmbiant, theme)),
@@ -821,9 +1000,7 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
       decoration: BoxDecoration(
         color: theme.colorScheme.primaryContainer.withOpacity(0.3),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: theme.colorScheme.primary.withOpacity(0.3),
-        ),
+        border: Border.all(color: theme.colorScheme.primary.withOpacity(0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -848,14 +1025,16 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
       decoration: BoxDecoration(
         color: theme.colorScheme.secondaryContainer.withOpacity(0.3),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: theme.colorScheme.secondary.withOpacity(0.3),
-        ),
+        border: Border.all(color: theme.colorScheme.secondary.withOpacity(0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.local_gas_station, size: 14, color: theme.colorScheme.secondary),
+          Icon(
+            Icons.local_gas_station,
+            size: 14,
+            color: theme.colorScheme.secondary,
+          ),
           const SizedBox(width: 4),
           Text(
             nom,
@@ -881,12 +1060,12 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
 
   Widget _buildRatioCell(double ratio, ThemeData theme) {
     final percentage = (ratio * 100).clamp(0.0, 100.0);
-    final color = percentage > 80 
-        ? theme.colorScheme.error 
-        : percentage > 60 
-            ? theme.colorScheme.tertiary 
-            : theme.colorScheme.primary;
-            
+    final color = percentage > 80
+        ? theme.colorScheme.error
+        : percentage > 60
+        ? theme.colorScheme.tertiary
+        : theme.colorScheme.primary;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -906,7 +1085,7 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
 
   Widget _buildAlertCell(bool isLowStock, ThemeData theme) {
     if (!isLowStock) return const SizedBox.shrink();
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -917,7 +1096,11 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.warning, size: 14, color: theme.colorScheme.onErrorContainer),
+          Icon(
+            Icons.warning,
+            size: 14,
+            color: theme.colorScheme.onErrorContainer,
+          ),
           const SizedBox(width: 4),
           Text(
             'Stock bas',
@@ -931,41 +1114,90 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
     );
   }
 
-  DataRow _buildTotalRow(List<StockRowView> items, ThemeData theme) {
-    final totalAmbiant = _calculateTotal(items, (s) => s.stockAmbiant);
-    final total15c = _calculateTotal(items, (s) => s.stock15c);
-    
+  /// Construit une ligne de données à partir d'un snapshot de citerne
+  DataRow _buildDataRowFromSnapshot(
+    CiterneGlobalStockSnapshot citerne,
+    int index,
+    ThemeData theme,
+  ) {
+    final ratio = citerne.capaciteTotale > 0
+        ? citerne.stockAmbiantTotal / citerne.capaciteTotale
+        : 0.0;
+    final isLowStock =
+        citerne.stockAmbiantTotal <= citerne.capaciteSecurite;
+
+    return DataRow(
+      color: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.hovered)) {
+          return theme.colorScheme.surfaceContainerHighest.withOpacity(0.3);
+        }
+        return index.isEven
+            ? theme.colorScheme.surfaceContainerHighest.withOpacity(0.1)
+            : null;
+      }),
+      cells: [
+        DataCell(_buildCiterneCell(citerne.citerneNom, theme)),
+        DataCell(_buildProduitCell(citerne.produitNom, theme)),
+        DataCell(_buildVolumeCell(citerne.stockAmbiantTotal, theme)),
+        DataCell(_buildVolumeCell(citerne.stock15cTotal, theme)),
+        DataCell(_buildVolumeCell(citerne.capaciteTotale, theme)),
+        DataCell(_buildVolumeCell(citerne.capaciteSecurite, theme)),
+        DataCell(_buildRatioCell(ratio, theme)),
+        DataCell(_buildAlertCell(isLowStock, theme)),
+      ],
+    );
+  }
+
+  /// Construit la ligne de total à partir des snapshots de citernes
+  DataRow _buildTotalRowFromSnapshot(
+    List<CiterneGlobalStockSnapshot> citernes,
+    ThemeData theme,
+  ) {
+    final totalAmbiant = citernes.fold<double>(
+      0.0,
+      (sum, c) => sum + c.stockAmbiantTotal,
+    );
+    final total15c = citernes.fold<double>(
+      0.0,
+      (sum, c) => sum + c.stock15cTotal,
+    );
+
     return DataRow(
       color: WidgetStateProperty.all(
         theme.colorScheme.primaryContainer.withOpacity(0.2),
       ),
       cells: [
-        DataCell(Text(
-          'TOTAL',
-          style: theme.textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: theme.colorScheme.primary,
+        DataCell(
+          Text(
+            'TOTAL',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.primary,
+            ),
           ),
-        )),
+        ),
         const DataCell(SizedBox.shrink()),
         const DataCell(SizedBox.shrink()),
-        DataCell(Text(
-          _formatVolume(totalAmbiant),
-          style: theme.textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: theme.colorScheme.primary,
-            fontFeatures: [const FontFeature.tabularFigures()],
+        DataCell(
+          Text(
+            _formatVolume(totalAmbiant),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.primary,
+              fontFeatures: [const FontFeature.tabularFigures()],
+            ),
           ),
-        )),
-        DataCell(Text(
-          _formatVolume(total15c),
-          style: theme.textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: theme.colorScheme.primary,
-            fontFeatures: [const FontFeature.tabularFigures()],
+        ),
+        DataCell(
+          Text(
+            _formatVolume(total15c),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.primary,
+              fontFeatures: [const FontFeature.tabularFigures()],
+            ),
           ),
-        )),
-        const DataCell(SizedBox.shrink()),
+        ),
         const DataCell(SizedBox.shrink()),
         const DataCell(SizedBox.shrink()),
         const DataCell(SizedBox.shrink()),
@@ -973,11 +1205,73 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
     );
   }
 
-  Widget _buildStatsHeader(BuildContext context, List<StockRowView> items, ThemeData theme) {
+  DataRow _buildTotalRow(List<StockRowView> items, ThemeData theme) {
     final totalAmbiant = _calculateTotal(items, (s) => s.stockAmbiant);
     final total15c = _calculateTotal(items, (s) => s.stock15c);
-    final lowStockCount = items.where((s) => s.stockAmbiant <= s.capaciteSecurite).length;
-    
+
+    return DataRow(
+      color: WidgetStateProperty.all(
+        theme.colorScheme.primaryContainer.withOpacity(0.2),
+      ),
+      cells: [
+        DataCell(
+          Text(
+            'TOTAL',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.primary,
+            ),
+          ),
+        ),
+        const DataCell(SizedBox.shrink()),
+        const DataCell(SizedBox.shrink()),
+        DataCell(
+          Text(
+            _formatVolume(totalAmbiant),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.primary,
+              fontFeatures: [const FontFeature.tabularFigures()],
+            ),
+          ),
+        ),
+        DataCell(
+          Text(
+            _formatVolume(total15c),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.primary,
+              fontFeatures: [const FontFeature.tabularFigures()],
+            ),
+          ),
+        ),
+        const DataCell(SizedBox.shrink()),
+        const DataCell(SizedBox.shrink()),
+        const DataCell(SizedBox.shrink()),
+      ],
+    );
+  }
+
+  /// Construit le header de stats à partir du snapshot KPI (données agrégées)
+  Widget _buildStatsHeaderFromSnapshot(
+    BuildContext context,
+    DepotStocksSnapshot snapshot,
+    ThemeData theme,
+  ) {
+    // Calculer les totaux depuis snapshot.citerneRows
+    final totalAmbiant = snapshot.citerneRows.fold<double>(
+      0.0,
+      (sum, c) => sum + c.stockAmbiantTotal,
+    );
+    final total15c = snapshot.citerneRows.fold<double>(
+      0.0,
+      (sum, c) => sum + c.stock15cTotal,
+    );
+    // Calculer le nombre de citernes sous seuil de sécurité
+    final lowStockCount = snapshot.citerneRows
+        .where((c) => c.stockAmbiantTotal <= c.capaciteSecurite)
+        .length;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -997,7 +1291,7 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
             ),
           ),
           const SizedBox(width: 16),
-          
+
           // Statistique 2: Stock 15°C
           Expanded(
             child: _buildStatCard(
@@ -1009,14 +1303,16 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
             ),
           ),
           const SizedBox(width: 16),
-          
+
           // Statistique 3: Alertes
           Expanded(
             child: _buildStatCard(
               'Alertes',
               '$lowStockCount',
               Icons.warning,
-              lowStockCount > 0 ? theme.colorScheme.error : theme.colorScheme.tertiary,
+              lowStockCount > 0
+                  ? theme.colorScheme.error
+                  : theme.colorScheme.tertiary,
               theme,
             ),
           ),
@@ -1025,7 +1321,73 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
     );
   }
 
-  Widget _buildStatCard(String label, String value, IconData icon, Color color, ThemeData theme) {
+  Widget _buildStatsHeader(
+    BuildContext context,
+    List<StockRowView> items,
+    ThemeData theme,
+  ) {
+    final totalAmbiant = _calculateTotal(items, (s) => s.stockAmbiant);
+    final total15c = _calculateTotal(items, (s) => s.stock15c);
+    final lowStockCount = items
+        .where((s) => s.stockAmbiant <= s.capaciteSecurite)
+        .length;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      child: Row(
+        children: [
+          // Statistique 1: Total des stocks
+          Expanded(
+            child: _buildStatCard(
+              'Stock Total',
+              _formatVolume(totalAmbiant),
+              Icons.inventory_2,
+              theme.colorScheme.primary,
+              theme,
+            ),
+          ),
+          const SizedBox(width: 16),
+
+          // Statistique 2: Stock 15°C
+          Expanded(
+            child: _buildStatCard(
+              'Stock 15°C',
+              _formatVolume(total15c),
+              Icons.thermostat,
+              theme.colorScheme.secondary,
+              theme,
+            ),
+          ),
+          const SizedBox(width: 16),
+
+          // Statistique 3: Alertes
+          Expanded(
+            child: _buildStatCard(
+              'Alertes',
+              '$lowStockCount',
+              Icons.warning,
+              lowStockCount > 0
+                  ? theme.colorScheme.error
+                  : theme.colorScheme.tertiary,
+              theme,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatCard(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+    ThemeData theme,
+  ) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -1062,35 +1424,40 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
     );
   }
 
-  String _fmtDate(DateTime d) => '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+  String _fmtDate(DateTime d) =>
+      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
   String _csvEsc(String s) => '"${s.replaceAll('"', '""')}"';
 
   String _toCsv(List<StockRowView> data) {
-    final b = StringBuffer('date,citerne,produit,stock_ambiant,stock_15c,cap_totale,cap_securite\n');
+    final b = StringBuffer(
+      'date,citerne,produit,stock_ambiant,stock_15c,cap_totale,cap_securite\n',
+    );
     for (final r in data) {
-      b.writeln([
-        r.dateJour,
-        _csvEsc(r.citerneNom),
-        _csvEsc(r.produitNom),
-        r.stockAmbiant.toString(),
-        r.stock15c.toString(),
-        r.capaciteTotale.toString(),
-        r.capaciteSecurite.toString(),
-      ].join(','));
+      b.writeln(
+        [
+          r.dateJour,
+          _csvEsc(r.citerneNom),
+          _csvEsc(r.produitNom),
+          r.stockAmbiant.toString(),
+          r.stock15c.toString(),
+          r.capaciteTotale.toString(),
+          r.capaciteSecurite.toString(),
+        ].join(','),
+      );
     }
     return b.toString();
   }
 
   String _formatVolume(double volume) {
     if (volume.isNaN || volume.isInfinite) return '0 L';
-    
+
     // Format français avec espaces pour les milliers
     final formatted = volume.toStringAsFixed(2);
     final parts = formatted.split('.');
     final integerPart = parts[0];
     final decimalPart = parts.length > 1 ? '.${parts[1]}' : '';
-    
+
     // Ajouter des espaces pour les milliers (format français)
     String spacedInteger = '';
     for (int i = 0; i < integerPart.length; i++) {
@@ -1099,11 +1466,14 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
       }
       spacedInteger += integerPart[i];
     }
-    
+
     return '${spacedInteger}${decimalPart} L';
   }
 
-  double _calculateTotal(List<StockRowView> items, double Function(StockRowView) selector) {
+  double _calculateTotal(
+    List<StockRowView> items,
+    double Function(StockRowView) selector,
+  ) {
     return items.fold<double>(0.0, (sum, item) => sum + selector(item));
   }
 }
@@ -1111,18 +1481,23 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
 /// Delegate moderne pour la barre de filtres collante
 class _ModernStickyFilters extends SliverPersistentHeaderDelegate {
   final Widget child;
-  
+
   _ModernStickyFilters({required this.child});
-  
+
   @override
   double get minExtent => 80;
-  
+
   @override
   double get maxExtent => 80;
-  
+
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) => child;
-  
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) => child;
+
   @override
-  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) => false;
+  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) =>
+      false;
 }

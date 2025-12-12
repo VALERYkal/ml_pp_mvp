@@ -4,6 +4,607 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 
 ## [Unreleased]
 
+### ✨ **NOUVEAU – Module Réceptions – Écran de Détail (12/12/2025)**
+
+#### **🎯 Objectif**
+Créer un écran de détail pour les réceptions, similaire à celui existant pour les sorties, permettant d'afficher toutes les informations d'une réception spécifique.
+
+#### **📝 Modifications principales**
+
+**1. Création de `ReceptionDetailScreen`**
+- ✅ Nouvel écran `lib/features/receptions/screens/reception_detail_screen.dart`
+- ✅ Structure similaire à `SortieDetailScreen` pour cohérence UX
+- ✅ Affichage des informations principales :
+  - Badge propriétaire (MONALUXE / PARTENAIRE) avec couleurs distinctes
+  - Date de réception
+  - Produit, Citerne, Source
+  - Cours de route (si présent) avec numéro et plaques
+  - Volumes @15°C et ambiant
+- ✅ Gestion des états : loading, error, not found
+
+**2. Ajout de la route de navigation**
+- ✅ Route `/receptions/:id` ajoutée dans `app_router.dart`
+- ✅ Nom de route : `receptionDetail`
+- ✅ Permet la navigation depuis la liste des réceptions vers la fiche de détail
+
+#### **✅ Résultats**
+
+- ✅ **Navigation fonctionnelle** : Le clic sur une réception dans la liste (`onTap: (id) => context.go('/receptions/$id')`) ouvre maintenant la fiche de détail
+- ✅ **Cohérence UX** : Même structure et design que l'écran de détail des sorties
+- ✅ **Informations complètes** : Toutes les données de la réception sont affichées de manière claire et organisée
+- ✅ **Aucune régression** : Le bouton du dashboard continue de rediriger vers la liste des réceptions (comportement inchangé)
+
+#### **🔍 Fichiers modifiés**
+
+- `lib/features/receptions/screens/reception_detail_screen.dart` : Nouveau fichier créé
+- `lib/shared/navigation/app_router.dart` :
+  - Ajout de l'import pour `ReceptionDetailScreen`
+  - Ajout de la route `/receptions/:id` avec builder
+
+---
+
+### ✅ **CONSOLIDATION – Harmonisation UX Listes Réceptions & Sorties (12/12/2025)**
+
+#### **🎯 Objectif**
+Finaliser l'intégration des écrans de détail et assurer une expérience utilisateur cohérente entre les modules Réceptions et Sorties, avec identification visuelle immédiate du type de propriétaire.
+
+#### **📝 Modifications principales**
+
+**1. Navigation vers les écrans de détail**
+- ✅ **Réceptions** : Clic sur le bouton "Voir" → navigation vers `/receptions/:id` → `ReceptionDetailScreen`
+- ✅ **Sorties** : Clic sur le bouton "Voir" → navigation vers `/sorties/:id` → `SortieDetailScreen`
+- ✅ Actions uniformisées entre les deux modules (`onTap` callback + `IconButton`)
+
+**2. Badges MONALUXE / PARTENAIRE colorés dans les listes**
+- ✅ **Réceptions** : Badge coloré `_MiniChip` dans la colonne "Propriété" avec :
+  - MONALUXE : icône `person` + couleur primaire + fond teinté
+  - PARTENAIRE : icône `business` + couleur secondaire + fond teinté
+- ✅ **Sorties** : Même design de badge coloré avec icônes différenciées (déjà en place)
+- ✅ Style unifié : Container avec bordure arrondie, fond semi-transparent, icône + texte
+
+**3. Cohérence UX entre modules**
+- ✅ Même structure de `DataTable` / `PaginatedDataTable` pour Réceptions et Sorties
+- ✅ Même pattern `_DataSource` avec `onTap` callback
+- ✅ Même `IconButton` "Voir" dans la colonne Actions
+- ✅ Même gestion des états (loading, error, empty, data)
+
+#### **✅ Résultats**
+
+- ✅ **Parcours utilisateur complet** : Liste → Détail fonctionnel pour les deux modules
+- ✅ **Identification visuelle immédiate** : MONALUXE (bleu + icône personne) vs PARTENAIRE (violet + icône entreprise)
+- ✅ **Cohérence inter-modules** : Mêmes patterns UX entre Réceptions et Sorties
+- ✅ **Aucune régression** : Tous les tests existants passent
+
+#### **🔍 Fichiers modifiés**
+
+- `lib/features/receptions/screens/reception_list_screen.dart` :
+  - Refonte du widget `_MiniChip` avec couleurs et icônes différenciées MONALUXE/PARTENAIRE
+
+---
+
+### 🔧 **CORRECTION – Module Citernes – Alignement avec Dashboard & Affichage Citernes Vides (12/12/2025)**
+
+#### **🎯 Objectif**
+Corriger l'affichage des totaux de stock dans le module Citernes pour qu'ils correspondent exactement au dashboard et au module Stocks, et inclure toutes les citernes actives (y compris celles sans stock) dans l'affichage.
+
+#### **📝 Modifications principales**
+
+**1. Migration vers `v_stocks_citerne_global` pour les totaux**
+- ✅ Remplacement de `stock_actuel` (vue non agrégée) par `v_stocks_citerne_global` (vue agrégée par propriétaire)
+- ✅ Création du provider `citerneStocksSnapshotProvider` qui utilise `depotStocksSnapshotProvider`
+- ✅ Utilisation de `CiterneGlobalStockSnapshot` au lieu de `CiterneRow` pour les données
+- ✅ Résultat : les totaux affichés correspondent maintenant au dashboard (38 318.3 L @15°C au lieu de 23 386.6 L)
+
+**2. Inclusion des citernes vides dans l'affichage**
+- ✅ Récupération de toutes les citernes actives du dépôt depuis la table `citernes`
+- ✅ Combinaison avec les données de stock depuis `v_stocks_citerne_global`
+- ✅ Création de `CiterneGlobalStockSnapshot` avec valeurs à zéro pour les citernes sans stock
+- ✅ Récupération des noms de produits pour les citernes vides
+- ✅ Résultat : toutes les citernes actives s'affichent, même celles à zéro
+
+**3. Refactorisation de l'écran Citernes**
+- ✅ Modification de `citerne_list_screen.dart` pour utiliser `citerneStocksSnapshotProvider`
+- ✅ Création de `_buildCiterneGridFromSnapshot()` qui utilise `DepotStocksSnapshot.citerneRows`
+- ✅ Création de `_buildCiterneCardFromSnapshot()` qui utilise `CiterneGlobalStockSnapshot`
+- ✅ Mise à jour de toutes les références de refresh pour utiliser le nouveau provider
+
+#### **✅ Résultats**
+
+- ✅ **Totaux corrects** : Stock Total = 38 318.3 L @15°C (identique au dashboard et Stocks Vue d'ensemble)
+- ✅ **Affichage complet** : Toutes les citernes actives sont visibles, y compris celles à zéro
+- ✅ **Cohérence des données** : Même source de données (`v_stocks_citerne_global`) que le dashboard et le module Stocks
+- ✅ **Aucune régression** : Tous les tests existants restent verts
+- ✅ **Compatibilité préservée** : Le provider legacy `citernesWithStockProvider` est conservé pour compatibilité
+
+#### **🔍 Fichiers modifiés**
+
+- `lib/features/citernes/providers/citerne_providers.dart` :
+  - Création de `citerneStocksSnapshotProvider` qui combine toutes les citernes actives avec les stocks depuis `v_stocks_citerne_global`
+  - Récupération des noms de produits pour les citernes vides
+  - Logique de combinaison LEFT JOIN entre citernes et stocks
+- `lib/features/citernes/screens/citerne_list_screen.dart` :
+  - Ajout des imports pour `DepotStocksSnapshot` et `CiterneGlobalStockSnapshot`
+  - Modification de `build()` pour utiliser `citerneStocksSnapshotProvider`
+  - Création de `_buildCiterneGridFromSnapshot()` et `_buildCiterneCardFromSnapshot()`
+  - Mise à jour de toutes les références de refresh
+
+---
+
+### 🎨 **AMÉLIORATION UI – Module Citernes – Design Moderne (19/12/2025)**
+
+#### **🎯 Objectif**
+Moderniser l'interface du module Citernes avec un design plus élégant et une meilleure visualisation de l'état des réservoirs, sans modifier la logique métier ni les providers existants.
+
+#### **📝 Modifications principales**
+
+**1. Système de couleurs dynamique par niveau de remplissage**
+- ✅ Nouvelle classe `_TankColors` avec palette moderne :
+  - **0%** : Gris slate (vide)
+  - **1-24%** : Vert emerald (bas)
+  - **25-69%** : Bleu (moyen)
+  - **70-89%** : Orange amber (élevé)
+  - **90%+** : Rouge (critique)
+- ✅ Couleurs appliquées automatiquement aux bordures, ombres et badges
+
+**2. Cartes de citernes modernisées (`TankCard`)**
+- ✅ **Barre de progression** : Jauge horizontale colorée selon le niveau
+- ✅ **Indicateur LED** : Point lumineux avec halo indiquant l'état actif/vide
+- ✅ **Badge pourcentage** : Le % est dans un badge arrondi avec fond coloré
+- ✅ **Fond dégradé subtil** : Teinte légère selon le niveau de remplissage
+- ✅ **Bordures colorées** : Couleur de bordure selon l'état de la citerne
+- ✅ **Ombres améliorées** : Ombres colorées pour effet de profondeur
+- ✅ **Icônes repensées** : Thermostat pour 15°C, goutte pour ambiant, règle pour capacité
+
+**3. Cartes de statistiques en-tête améliorées**
+- ✅ Icônes dans des conteneurs avec dégradé
+- ✅ Bordures et ombres colorées selon le type de statistique
+- ✅ Meilleure hiérarchie typographique (valeur en gras, label en léger)
+
+**4. Améliorations générales de l'interface**
+- ✅ **Fond de page** : Couleur légèrement bleutée (#F8FAFC) au lieu de blanc pur
+- ✅ **AppBar modernisée** : Icône dans un conteneur avec dégradé et ombre
+- ✅ **Section titre** : "Réservoirs" avec barre verticale colorée et badge compteur
+- ✅ **FAB refresh** : Bouton flottant pour rafraîchir les données
+- ✅ **États améliorés** : Loading, error et empty avec design moderne
+
+#### **✅ Résultats**
+
+- ✅ **Visualisation instantanée** : Le niveau de chaque citerne est visible d'un coup d'œil grâce aux couleurs et barres de progression
+- ✅ **Hiérarchie claire** : Distinction nette entre citernes vides (grises) et actives (colorées)
+- ✅ **Design moderne** : Interface alignée avec les standards Material Design 3
+- ✅ **Aucune régression** : Logique métier, providers et calculs inchangés
+- ✅ **Aucun test impacté** : Pas de tests existants pour ce module
+
+#### **🔍 Fichiers modifiés**
+
+- `lib/features/citernes/screens/citerne_list_screen.dart` :
+  - Ajout de la classe `_TankColors` pour la gestion des couleurs par niveau
+  - Refonte complète du widget `TankCard` avec barre de progression et indicateurs
+  - Modernisation des méthodes `_buildStatCard` et `_buildCiterneGrid`
+  - Amélioration de `_buildModernAppBar` avec icône stylisée
+  - Ajout du FAB de rafraîchissement
+  - Nouvelle méthode `_buildMetricRow` pour les lignes de métriques
+
+---
+
+### 🔧 **CORRECTION – Module Stocks – Vue d'ensemble & Stock par propriétaire (11/12/2025)**
+
+#### **🎯 Objectif**
+Corriger deux problèmes critiques dans le module Stocks :
+1. **Chargement infini** de la vue d'ensemble causé par des reconstructions en boucle du provider
+2. **Affichage 0.0 L** dans la carte "Stock par propriétaire" alors que le stock réel est non nul
+
+#### **📝 Modifications principales**
+
+**1. Stabilisation du provider `depotStocksSnapshotProvider`**
+- ✅ Normalisation de la date à minuit dans `OwnerStockBreakdownCard` pour éviter les changements constants dus aux millisecondes
+- ✅ Ajout de `==` et `hashCode` à `DepotStocksSnapshotParams` pour que Riverpod reconnaisse les instances égales
+- ✅ Normalisation de la date dans le provider pour cohérence avec la base de données
+- ✅ Résultat : plus de reconstructions infinies, le provider se stabilise correctement
+
+**2. Correction de l'affichage 0.0 L dans "Stock par propriétaire"**
+- ✅ Ajout d'un fallback dans `_buildDataCard` qui utilise `snapshot.totals` quand `owners` est vide mais que le stock total est non nul
+- ✅ Alignement avec la logique du dashboard : retrait du filtre `dateJour` sur `fetchDepotOwnerTotals` pour utiliser les dernières données disponibles
+- ✅ Résultat : la carte affiche maintenant les valeurs réelles (MONALUXE et PARTENAIRE) même quand la date sélectionnée n'a pas de mouvement
+
+#### **✅ Résultats**
+
+- ✅ **Chargement stabilisé** : plus de spinner infini, la vue d'ensemble se charge correctement
+- ✅ **Données correctes** : la carte "Stock par propriétaire" affiche les valeurs réelles (ex: MONALUXE 24 000 L, PARTENAIRE 14 500 L)
+- ✅ **Cohérence dashboard** : même logique que le dashboard pour le calcul par propriétaire
+- ✅ **Fallback préservé** : les totaux globaux et les lignes citerne continuent d'utiliser le filtre date avec fallback
+- ✅ **Aucune régression** : tous les tests existants restent verts
+
+#### **🔍 Fichiers modifiés**
+
+- `lib/features/stocks/widgets/stocks_kpi_cards.dart` :
+  - Normalisation de la date dans `OwnerStockBreakdownCard.build()`
+  - Ajout d'un fallback sur `snapshot.totals` dans `_buildDataCard` quand `owners` est vide
+- `lib/features/stocks/data/stocks_kpi_providers.dart` :
+  - Ajout de `==` et `hashCode` à `DepotStocksSnapshotParams`
+  - Normalisation de la date dans `depotStocksSnapshotProvider`
+  - Retrait du filtre `dateJour` sur `fetchDepotOwnerTotals` pour aligner avec le dashboard
+- `test/features/stocks/depot_stocks_snapshot_provider_test.dart` :
+  - Ajustement du test pour la normalisation de la date
+  - Ajout de l'implémentation manquante `fetchDepotTotalCapacity` dans le fake repository
+
+### 🔧 **AMÉLIORATIONS – Module Réceptions – UX & Messages (19/12/2025)**
+
+#### **🎯 Objectif**
+Améliorer l'expérience utilisateur du module Réceptions avec 3 améliorations chirurgicales : feedback clair en cas de formulaire invalide, protection anti double-clic, et gestion propre des erreurs fréquentes.
+
+#### **📝 Modifications principales**
+
+**1. R-UX1 : Feedback clair en cas de formulaire invalide**
+- ✅ Toast d'erreur global affiché si des champs requis manquent
+- ✅ Message clair : "Veuillez corriger les champs en rouge avant de continuer."
+- ✅ Les validations individuelles restent en place pour guider l'utilisateur champ par champ
+- ✅ Le formulaire ne reste plus silencieux en cas d'erreur de validation
+
+**2. R-UX2 : Empêcher les doubles clics sur "Valider"**
+- ✅ Protection anti double-clic au début de `_submitReception()` : `if (busy) return;`
+- ✅ Bouton désactivé pendant la soumission : `onPressed: (_canSubmit && !busy) ? _submitReception : null`
+- ✅ Loader visible dans le bouton pendant le traitement
+- ✅ Impossible d'envoyer 2 fois la même réception en double-cliquant
+
+**3. R-UX3 : Gestion propre des erreurs fréquentes**
+- ✅ Détection intelligente des erreurs fréquentes via mots-clés :
+  - **Produit / citerne incompatible** : "Produit incompatible avec la citerne sélectionnée.\nVérifiez que la citerne contient bien ce produit."
+  - **CDR non ARRIVE** : "Ce cours de route n'est pas encore en statut ARRIVE.\nVous ne pouvez pas le décharger pour l'instant."
+- ✅ Message générique pour les autres erreurs : "Une erreur est survenue. Veuillez réessayer."
+- ✅ Logs console détaillés conservés pour diagnostic
+- ✅ Toast de succès amélioré : "Réception enregistrée avec succès."
+
+#### **✅ Résultats**
+
+- ✅ **Feedback clair** : Message global si formulaire invalide, plus de "rien ne se passe"
+- ✅ **Protection renforcée** : Impossible de double-cliquer, formulaire protégé
+- ✅ **Messages lisibles** : Erreurs métier traduites en messages compréhensibles pour l'opérateur
+- ✅ **Cohérence** : Comportement aligné avec le module Sorties
+- ✅ **Aucune régression** : Tous les tests existants restent valides
+- ✅ **Aucun changement métier** : Service, triggers SQL et logique métier inchangés
+
+#### **🔍 Fichiers modifiés**
+
+- `lib/features/receptions/screens/reception_form_screen.dart` :
+  - Ajout de feedback global en cas de formulaire invalide
+  - Protection anti double-clic avec vérification `!busy`
+  - Amélioration de la gestion des erreurs fréquentes
+  - Toast de succès amélioré
+
+---
+
+### 🔧 **AMÉLIORATIONS – Module Sorties – Messages & Garde-fous UX (19/12/2025)**
+
+#### **🎯 Objectif**
+Améliorer l'expérience utilisateur du module Sorties avec des messages clairs et professionnels, et des garde-fous UX pour sécuriser la saisie opérateur.
+
+#### **📝 Modifications principales**
+
+**1. Messages de succès/erreur améliorés**
+- ✅ Toast de succès simple et clair : "Sortie enregistrée avec succès."
+- ✅ Log console détaillé pour diagnostic : `[SORTIE] Succès • Volume: XXX L • Citerne: YYY`
+- ✅ Message métier lisible pour erreur STOCK_INSUFFISANT :
+  - "Stock insuffisant dans la citerne.\nVeuillez ajuster le volume ou choisir une autre citerne."
+- ✅ Message SQL détaillé conservé dans les logs console pour diagnostic
+- ✅ Détection intelligente des erreurs de stock via mots-clés (stock insuffisant, capacité de sécurité, etc.)
+- ✅ Message générique pour les autres erreurs : "Une erreur est survenue. Veuillez réessayer."
+
+**2. Garde-fous UX pour sécuriser la saisie**
+- ✅ Désactivation intelligente du bouton "Enregistrer la sortie" :
+  - Désactivé si le formulaire est invalide (`validate()`)
+  - Désactivé pendant le traitement (`!busy`)
+  - Désactivé si les conditions métier ne sont pas remplies (`_canSubmit`)
+- ✅ Protection absolue contre les doubles soumissions via `busy`
+- ✅ Loader circulaire visible dans le bouton pendant le traitement
+- ✅ Validations complètes sur tous les champs obligatoires :
+  - Index avant/après (avec vérification de cohérence)
+  - Température (obligatoire, > 0)
+  - Densité (obligatoire, > 0, entre 0.7 et 1.1)
+  - Produit, citerne, client/partenaire
+
+#### **✅ Résultats**
+
+- ✅ **Meilleure lisibilité** : Messages clairs pour l'opérateur, détails SQL pour le diagnostic
+- ✅ **Sécurité renforcée** : Impossible de double-cliquer, formulaire protégé
+- ✅ **Feedback visuel** : Loader immédiat, bouton désactivé intelligemment
+- ✅ **Aucune régression** : Tous les tests existants restent valides
+- ✅ **Aucun changement métier** : Service, triggers SQL et logique métier inchangés
+
+#### **🔍 Fichiers modifiés**
+
+- `lib/features/sorties/screens/sortie_form_screen.dart` :
+  - Amélioration des messages de succès/erreur
+  - Ajout de garde-fous UX sur le bouton de soumission
+  - Logs console détaillés pour diagnostic
+
+---
+
+### 🎉 **CLÔTURE OFFICIELLE – Module Réceptions MVP (19/12/2025)**
+
+#### **🎯 Résumé**
+Le module **Réceptions** est officiellement **clôturé** et considéré comme **finalisé pour le MVP**. Il constitue un socle fiable, testé et validé pour l'intégration avec les modules CDR, Stocks, Citernes et le Dashboard.
+
+#### **✅ État Fonctionnel Validé**
+
+**Backend SQL (AXE A) — ✅ OK**
+- ✅ Table `receptions` complète avec toutes les colonnes nécessaires
+- ✅ Triggers actifs : validation produit/citerne, calcul volume ambiant, crédit stocks journaliers, passage CDR en DECHARGE, logs d'audit
+- ✅ Table `stocks_journaliers` avec contrainte UNIQUE et agrégation par propriétaire
+- ✅ Test pratique validé : 2 réceptions MONALUXE + 1 PARTENAIRE → 3 lignes cohérentes dans stocks_journaliers
+
+**Frontend Réceptions (AXE B) — ✅ OK**
+- ✅ Liste des réceptions avec affichage complet (date, propriétaire, produit, citerne, volumes, CDR, source)
+- ✅ Formulaire de création/édition avec validations strictes (température, densité, indices, citerne, produit)
+- ✅ Intégration CDR : lien automatique, passage ARRIVE → DECHARGE via trigger
+- ✅ Test validé : les 3 réceptions créées se retrouvent correctement en liste
+
+**KPIs & Dashboard (AXE C) — ✅ OK**
+- ✅ Carte "Réceptions du jour" : volume @15°C, nombre de camions, volume ambiant
+- ✅ Carte "Stock total" : volumes corrects (44 786.8 L @15°C, 45 000 L ambiant), capacité totale dépôt (2 600 000 L), % d'utilisation (~2%)
+- ✅ Détail par propriétaire : MONALUXE (29 855.0 L @15°C) et PARTENAIRE (14 931.8 L @15°C)
+- ✅ Carte "Balance du jour" : Δ volume 15°C = Réceptions - Sorties
+
+#### **🔒 Flux Métier MVP Complet**
+1. CDR créé → passe en ARRIVE
+2. Opérateur saisit une Réception (Monaluxe ou Partenaire), éventuellement liée au CDR
+3. À la validation :
+   - `receptions` est créée
+   - `stocks_journaliers` est crédité
+   - `cours_de_route` est passé en DECHARGE
+   - `log_actions` reçoit RECEPTION_CREEE + RECEPTION_VALIDE
+4. Le Tableau de bord se met à jour automatiquement
+
+#### **📊 Qualité & Robustesse**
+- ✅ **26+ tests automatisés** : 100% passing (service, KPI, intégration, E2E)
+- ✅ **Validations métier strictes** : indices, citerne, produit, propriétaire, température, densité
+- ✅ **Normalisation automatique** : proprietaire_type en UPPERCASE
+- ✅ **Volume 15°C obligatoire** : température et densité requises, calcul systématique
+- ✅ **Gestion d'erreurs** : ReceptionValidationException pour erreurs métier
+- ✅ **UI moderne** : Formulaire structuré avec validation en temps réel
+- ✅ **Intégration complète** : CDR, Stocks, Dashboard, Logs
+
+#### **📋 Backlog Post-MVP (pour mémoire)**
+- Mode brouillon / statut = 'en_attente' (actuellement : validation immédiate)
+- Réceptions multi-citernes pour un même camion
+- Écran de détail Réception avec timeline (comme CDR)
+- Scénarios avancés de correction (annulation / régularisation)
+
+#### **🔍 Fichiers Clés**
+- `lib/features/receptions/data/reception_service.dart`
+- `lib/features/receptions/data/receptions_kpi_repository.dart`
+- `lib/features/receptions/screens/reception_list_screen.dart`
+- `lib/features/receptions/screens/reception_form_screen.dart`
+- `test/features/receptions/` (26+ tests)
+
+#### **📚 Documentation**
+- `docs/releases/RECEPTIONS_MODULE_CLOSURE_2025-12-19.md` : Document de clôture complet
+- `docs/releases/RECEPTIONS_FINAL_RELEASE_NOTES_2025-11-30.md` : Release notes initiales
+- `docs/AUDIT_RECEPTIONS_PROD_LOCK.md` : Audit de verrouillage production
+
+**👉 Le module Réceptions est prêt pour la production MVP.**
+
+---
+
+### 🔧 **AMÉLIORATIONS – Module Cours de Route (19/12/2025)**
+
+#### **🎯 Objectif**
+Améliorer l'expérience utilisateur du module Cours de Route avec 3 corrections ciblées : feedback de validation, correction du mode édition, et optimisation du layout desktop.
+
+#### **📝 Modifications principales**
+
+**1. Formulaire CDR – Feedback de validation global**
+- ✅ Ajout d'un toast d'erreur explicite lorsque la validation du formulaire échoue
+- ✅ Message clair : "Veuillez corriger les champs en rouge avant de continuer."
+- ✅ Le formulaire ne reste plus silencieux en cas d'erreur de validation
+- ✅ Conservation de la validation au niveau des champs individuels
+
+**2. Édition CDR – Correction create vs update**
+- ✅ Ajout du champ `_initialCours` pour stocker le cours chargé en mode édition
+- ✅ Détection automatique du mode édition via `widget.coursId != null`
+- ✅ Appel de `update()` en mode édition au lieu de `create()`
+- ✅ Préservation du statut existant lors de la modification d'un cours
+- ✅ Messages de succès différenciés : "Cours créé avec succès" vs "Cours mis à jour avec succès"
+- ✅ **Résolution du bug** : Plus d'erreur `uniq_open_cdr_per_truck` lors de la modification d'un cours existant
+
+**3. Détail CDR – Layout responsive 2 colonnes**
+- ✅ Implémentation d'un layout responsive avec `LayoutBuilder`
+- ✅ Layout 2 colonnes sur desktop (largeur > 900px) :
+  - Première rangée : Informations logistiques | Informations transport
+  - Deuxième rangée : Actions | Note (si présente)
+- ✅ Layout 1 colonne sur mobile/tablette (largeur ≤ 900px) : comportement inchangé
+- ✅ Réduction significative du scroll sur les écrans larges
+- ✅ Message informatif pour cours déchargés reste en pleine largeur pour la lisibilité
+
+#### **✅ Résultats**
+
+- ✅ **Meilleure UX** : Feedback clair en cas d'erreur de validation
+- ✅ **Bug corrigé** : L'édition de cours ne génère plus d'erreur de contrainte unique
+- ✅ **Interface optimisée** : Layout adaptatif réduisant le scroll sur desktop
+- ✅ **Tests validés** : 163/164 tests CDR passent (1 timeout E2E préexistant, non lié)
+- ✅ **Aucune régression** : Toutes les fonctionnalités existantes préservées
+
+#### **🔍 Fichiers modifiés**
+
+- `lib/features/cours_route/screens/cours_route_form_screen.dart`
+- `lib/features/cours_route/screens/cours_route_detail_screen.dart`
+
+---
+
+### 🔧 **CORRECTION – Carte "Stock total" Dashboard Admin (19/12/2025)**
+
+#### **🎯 Objectif**
+Corriger le calcul de la capacité totale et du pourcentage d'utilisation dans la carte "Stock total" du dashboard admin. La capacité doit refléter la somme de toutes les citernes actives du dépôt, et non uniquement celles ayant actuellement du stock.
+
+#### **📝 Modifications principales**
+
+**1. Repository – Nouvelle méthode `fetchDepotTotalCapacity`**
+- ✅ Ajout de la méthode `fetchDepotTotalCapacity` dans `StocksKpiRepository`
+- ✅ Interroge la table `citernes` pour sommer les capacités de toutes les citernes actives
+- ✅ Filtre par `depot_id` et `statut = 'active'`
+- ✅ Support optionnel du filtre `produit_id` pour des calculs futurs
+
+**2. Provider – `depotTotalCapacityProvider`**
+- ✅ Création d'un `FutureProvider.family` exposant la capacité totale du dépôt
+- ✅ Utilisé par le widget du dashboard pour le calcul du % d'utilisation
+
+**3. Widget Dashboard – Utilisation de la capacité réelle**
+- ✅ Le Builder "Stock total" utilise désormais `depotTotalCapacityProvider` si `depotId` est disponible
+- ✅ Fallback sur `data.stocks.capacityTotal` si `depotId` est null (compatibilité)
+- ✅ Le % d'utilisation est recalculé avec la nouvelle capacité totale du dépôt
+- ✅ **Les volumes (15°C et ambiant) restent inchangés** — seule la capacité et le % changent
+
+#### **🛠️ Correctifs**
+
+- ✅ **Bug corrigé** : La capacité totale affichait uniquement la somme des citernes avec stock, au lieu de toutes les citernes actives
+- ✅ **Bug corrigé** : Le % d'utilisation était surestimé car basé sur une capacité partielle
+- ✅ **Résultat** : Le % d'utilisation reflète désormais correctement l'utilisation réelle du dépôt
+
+#### **✅ Résultats**
+
+- ✅ **Capacité exacte** : La carte affiche la capacité totale réelle du dépôt (toutes citernes actives)
+- ✅ **% d'utilisation correct** : Le pourcentage est calculé sur la base de la capacité totale du dépôt
+- ✅ **Volumes préservés** : Les volumes 15°C et ambiant restent identiques (pas de régression)
+- ✅ **Tests validés** : Tous les tests du repository passent (3/3)
+- ✅ **Aucune régression** : La section détail par propriétaire reste inchangée
+
+#### **🔍 Fichiers modifiés**
+
+- `lib/data/repositories/stocks_kpi_repository.dart` : Ajout de `fetchDepotTotalCapacity`
+- `lib/features/stocks/data/stocks_kpi_providers.dart` : Ajout de `depotTotalCapacityProvider`
+- `lib/features/dashboard/widgets/role_dashboard.dart` : Utilisation de la nouvelle capacité
+- `test/data/repositories/stocks_kpi_repository_test.dart` : Tests pour `fetchDepotTotalCapacity`
+
+#### **📊 Exemple**
+
+Pour un dépôt avec 6 citernes actives (total 2 600 000 L) et 45 000 L de stock :
+- **Avant** : Capacité ~1 000 000 L → % utilisation ~5%
+- **Après** : Capacité 2 600 000 L → % utilisation ~2% ✅
+
+---
+
+### 🗄️ **REFONTE DB – Module Stocks & KPI – Cohérence Données (19/12/2025)**
+
+#### **🎯 Contexte**
+Refonte majeure du module **Stocks & KPI** pour corriger les écarts entre les données réelles (stocks journaliers générés par les triggers) et les indicateurs affichés sur le Dashboard ML_PP MVP.  
+Objectif : assurer une cohérence parfaite entre les mouvements (réceptions/sorties), les agrégations SQL et la visualisation Flutter.
+
+#### **📝 Modifications principales**
+
+**1. 🆕 Nouvelles colonnes & structures SQL**
+- ✅ Ajout de `depot_id` et `depot_nom` dans les vues KPI :
+  - `v_stocks_citerne_owner`
+  - `v_stocks_citerne_global`
+- ✅ Ajout de la capacité totale cumulée (`capacite_totale`) dans la vue globale pour calculer l'utilisation
+- ✅ Uniformisation du schéma des vues pour un usage direct par le `StocksKpiRepository`
+
+**2. 🔄 Refonte complète des vues SQL**
+- ✅ Suppression des anciennes vues obsolètes avec gestion propre des dépendances
+- ✅ Reconstruction des vues KPI afin qu'elles reflètent *exactement* la structure logique du module Stocks :
+  - Stock réel = **Somme des mouvements journaliers**
+  - Agrégation par citerne → produit → propriétaire → dépôt
+
+**3. 🔄 Mise à jour du `StocksKpiRepository`**
+- ✅ Réécriture des méthodes de lecture des vues :
+  - `fetchDepotProductTotals`
+  - `fetchCiterneOwnerSnapshots`
+  - `fetchCiterneGlobalSnapshots`
+- ✅ Simplification : toutes les fonctions consomment désormais un schéma homogène
+- ✅ Alignement strict entre le dépôt utilisateur (profil) et les données retournées
+
+**4. 🔄 Mise à jour du Dashboard**
+- ✅ Correction du calcul **Stock total (15°C)** et **Stock ambiant total**
+- ✅ Correction de la capacité totale (`capacityTotal`) — désormais exacte
+- ✅ Correction du calcul de balance journalière : `Δ = Réceptions_15°C – Sorties_15°C`
+- ✅ Amélioration des messages et logs de debug pour traçabilité
+
+**5. 🆕 Nouveaux providers KPI (côté Flutter)**
+- ✅ Providers indépendants pour :
+  - KPI global stock (15°C & ambiant)
+  - KPI par propriétaire (Monaluxe / Partenaire)
+  - KPI par citerne
+  - KPI par dépôt
+- ✅ Ajout d'un provider spécialisé pour l'affichage Dashboard : `stocksDashboardKpisProvider`
+
+#### **🛠️ Correctifs critiques**
+
+**1. Bugs résolus**
+- ✅ Résolution d'un bug où les stocks PARTENAIRE n'apparaissaient pas dans `stocks_journaliers` pour certaines dates — dû à une mauvaise agrégation dans les vues
+- ✅ Résolution d'un écart entre `v_stocks_citerne_owner` et `v_stocks_citerne_global`
+- ✅ Correction d'un bug où la capacité totale apparaissait à `0` dans le Dashboard
+- ✅ Correction de la colonne `stock_15c_total` qui ne reflétait pas correctement les volumes arrondis
+- ✅ Corrigé : agrégations incorrectes pour les volumes MONALUXE / PARTENAIRE dans les KPI
+- ✅ Corrigé : incohérence d'affichage dans le Dashboard due à l'utilisation d'un ancien schéma
+
+**2. Correctifs SQL**
+- ✅ Harmonisation des noms de colonne dans toutes les vues
+- ✅ Normalisation de l'utilisation de `date_jour`, `proprietaire_type`, `stock_ambiant`, `stock_15c`
+
+#### **❌ Code ou vues supprimées**
+- ✅ Suppression de plusieurs anciennes vues SQL non conformes :
+  - `v_stocks_citerne_owner` (ancienne version)
+  - `v_stocks_citerne_global` (ancienne version)
+  - Autres vues dérivées dépendantes
+- ✅ Suppression des anciens calculs côté Flutter non alignés avec la nouvelle structure KPI
+
+#### **🔐 Intégrité des données renforcée**
+- ✅ Les calculs des KPI reposent désormais **exclusivement** sur `stocks_journaliers`, garantissant :
+  - aucune dérivation client-side
+  - aucune manipulation manuelle
+  - cohérence avec les triggers de mouvement (`receptions` / `sorties_produit`)
+
+#### **🔄 Rétrocompatibilité assurée**
+- ✅ Les nouvelles vues sont **backward-compatible** avec les anciens providers Flutter, grâce à la conservation des mêmes colonnes principales
+- ✅ Aucun impact sur les modules :
+  - Réceptions
+  - Sorties
+  - Cours de Route
+- ✅ Aucun changement requis côté mobile ou web pour l'utilisateur final
+
+#### **✅ Impact métier**
+- ✅ Le Dashboard affiche désormais **des valeurs exactes**, cohérentes avec les mouvements réels
+- ✅ Les écarts KPIs/DB sont éliminés
+- ✅ Le module Stocks devient **fiable pour audit**, reporting interne et conformité réglementaire
+- ✅ Préparation solide pour les futurs modules :
+  - **Sorties**
+  - **Stocks journaliers avancés**
+  - **Reporting multi-dépôts**
+
+---
+
+### 🔧 **CORRECTIONS – TypeError KPI Stocks Repository (19/12/2025)**
+
+#### **🎯 Objectif**
+Corriger le `TypeError: Instance of 'JSArray<dynamic>': type 'List<dynamic>' is not a subtype of type 'Map<dynamic, dynamic>'` qui empêchait le chargement des KPI stocks sur le dashboard.
+
+#### **📝 Corrections appliquées**
+
+**1. `lib/data/repositories/stocks_kpi_repository.dart`**
+- ✅ Correction du typage des requêtes Supabase pour les vues retournant plusieurs lignes
+  - Remplacement de `.select<Map<String, dynamic>>()` par `.select<List<Map<String, dynamic>>>()` dans 4 méthodes :
+    - `fetchDepotProductTotals()` (vue `v_kpi_stock_global`)
+    - `fetchDepotOwnerTotals()` (vue `v_kpi_stock_owner`)
+    - `fetchCiterneOwnerSnapshots()` (vue `v_stocks_citerne_owner`)
+    - `fetchCiterneGlobalSnapshots()` (vue `v_stocks_citerne_global`)
+  - Correction du cast des résultats : `final list = rows as List<Map<String, dynamic>>;` au lieu de `(rows as List).cast<Map<String, dynamic>>()`
+  - Conservation de la logique de mapping vers les domain models (inchangée)
+
+#### **✅ Résultats**
+
+- ✅ **TypeError résolu** : Les requêtes Supabase retournent correctement `List<Map<String, dynamic>>`
+- ✅ **Signatures publiques inchangées** : Toutes les méthodes gardent leurs signatures originales
+- ✅ **Aucune erreur de linting** : Code conforme aux standards Dart/Flutter
+- ✅ **Dashboard fonctionnel** : Les KPI stocks se chargent correctement sans erreur
+- ✅ **Dégradation gracieuse maintenue** : Le helper `_safeLoadStocks` dans `kpi_provider.dart` continue de protéger le dashboard en cas d'erreur
+
+#### **🔍 Impact**
+
+- Le log `⚠️ KPI STOCKS ERROR (dégradé)` ne devrait plus apparaître en cas normal
+- La carte "Stock total" du dashboard affiche maintenant les valeurs correctes depuis `v_kpi_stock_global`
+- Les tests existants (`stocks_kpi_repository_test.dart`) restent compatibles
+
+---
+
 ### 📚 **DOCUMENTATION – ÉTAT GLOBAL DU PROJET (09/12/2025)**
 
 #### **🎯 Objectif**

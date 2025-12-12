@@ -12,6 +12,7 @@ import 'package:ml_pp_mvp/features/kpi/providers/kpi_provider.dart';
 import 'package:ml_pp_mvp/features/kpi/models/kpi_models.dart';
 import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart';
 import 'package:ml_pp_mvp/core/models/profil.dart';
+import 'package:ml_pp_mvp/features/dashboard/providers/citernes_sous_seuil_provider.dart';
 
 void main() {
   group('RoleDashboard Golden Tests', () {
@@ -129,6 +130,7 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           kpiProviderProvider.overrideWith((ref) async => testData),
+          citernesSousSeuilProvider.overrideWith((ref) async => []), // Pas d'alertes pour ce test
         ],
       );
 
@@ -150,7 +152,7 @@ void main() {
       expect(find.byKey(const Key('kpi_sorties_today_card')), findsOneWidget);
       expect(find.byKey(const Key('kpi_stock_total_card')), findsOneWidget);
       expect(find.byKey(const Key('kpi_balance_today_card')), findsOneWidget);
-      expect(find.byKey(const Key('kpi_tendance_7d_card')), findsOneWidget);
+      expect(find.byKey(const Key('kpi_alertes_citernes_card')), findsOneWidget);
 
       // Vérifier que les valeurs formatées sont présentes (formatage stable)
       // Réceptions: 2500.0 L = "2,500.0 L" ou "2.5 kL" selon le formatage
@@ -191,6 +193,7 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           kpiProviderProvider.overrideWith((ref) async => testData),
+          citernesSousSeuilProvider.overrideWith((ref) async => []), // Pas d'alertes pour ce test
         ],
       );
 
@@ -213,6 +216,7 @@ void main() {
       expect(find.byKey(const Key('kpi_sorties_today_card')), findsOneWidget);
       expect(find.byKey(const Key('kpi_stock_total_card')), findsOneWidget);
       expect(find.byKey(const Key('kpi_balance_today_card')), findsOneWidget);
+      expect(find.byKey(const Key('kpi_alertes_citernes_card')), findsOneWidget);
       
       // Vérifier qu'il n'y a pas d'erreur
       expect(find.byKey(const Key('role_dashboard_error_state')), findsNothing);
@@ -251,6 +255,7 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           kpiProviderProvider.overrideWith((ref) async => testData),
+          citernesSousSeuilProvider.overrideWith((ref) async => []), // Pas d'alertes pour ce test
         ],
       );
 

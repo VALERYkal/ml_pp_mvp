@@ -23,7 +23,7 @@ Reception _$ReceptionFromJson(Map<String, dynamic> json) {
 mixin _$Reception {
   String get id => throw _privateConstructorUsedError;
   @JsonKey(name: 'cours_de_route_id')
-  String get coursDeRouteId => throw _privateConstructorUsedError;
+  String? get coursDeRouteId => throw _privateConstructorUsedError;
   @JsonKey(name: 'citerne_id')
   String get citerneId => throw _privateConstructorUsedError;
   @JsonKey(name: 'produit_id')
@@ -72,7 +72,7 @@ abstract class $ReceptionCopyWith<$Res> {
   @useResult
   $Res call({
     String id,
-    @JsonKey(name: 'cours_de_route_id') String coursDeRouteId,
+    @JsonKey(name: 'cours_de_route_id') String? coursDeRouteId,
     @JsonKey(name: 'citerne_id') String citerneId,
     @JsonKey(name: 'produit_id') String produitId,
     @JsonKey(name: 'partenaire_id') String? partenaireId,
@@ -109,7 +109,7 @@ class _$ReceptionCopyWithImpl<$Res, $Val extends Reception>
   @override
   $Res call({
     Object? id = null,
-    Object? coursDeRouteId = null,
+    Object? coursDeRouteId = freezed,
     Object? citerneId = null,
     Object? produitId = null,
     Object? partenaireId = freezed,
@@ -132,10 +132,10 @@ class _$ReceptionCopyWithImpl<$Res, $Val extends Reception>
                 ? _value.id
                 : id // ignore: cast_nullable_to_non_nullable
                       as String,
-            coursDeRouteId: null == coursDeRouteId
+            coursDeRouteId: freezed == coursDeRouteId
                 ? _value.coursDeRouteId
                 : coursDeRouteId // ignore: cast_nullable_to_non_nullable
-                      as String,
+                      as String?,
             citerneId: null == citerneId
                 ? _value.citerneId
                 : citerneId // ignore: cast_nullable_to_non_nullable
@@ -213,7 +213,7 @@ abstract class _$$ReceptionImplCopyWith<$Res>
   @useResult
   $Res call({
     String id,
-    @JsonKey(name: 'cours_de_route_id') String coursDeRouteId,
+    @JsonKey(name: 'cours_de_route_id') String? coursDeRouteId,
     @JsonKey(name: 'citerne_id') String citerneId,
     @JsonKey(name: 'produit_id') String produitId,
     @JsonKey(name: 'partenaire_id') String? partenaireId,
@@ -249,7 +249,7 @@ class __$$ReceptionImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? id = null,
-    Object? coursDeRouteId = null,
+    Object? coursDeRouteId = freezed,
     Object? citerneId = null,
     Object? produitId = null,
     Object? partenaireId = freezed,
@@ -272,10 +272,10 @@ class __$$ReceptionImplCopyWithImpl<$Res>
             ? _value.id
             : id // ignore: cast_nullable_to_non_nullable
                   as String,
-        coursDeRouteId: null == coursDeRouteId
+        coursDeRouteId: freezed == coursDeRouteId
             ? _value.coursDeRouteId
             : coursDeRouteId // ignore: cast_nullable_to_non_nullable
-                  as String,
+                  as String?,
         citerneId: null == citerneId
             ? _value.citerneId
             : citerneId // ignore: cast_nullable_to_non_nullable
@@ -346,7 +346,7 @@ class __$$ReceptionImplCopyWithImpl<$Res>
 class _$ReceptionImpl implements _Reception {
   const _$ReceptionImpl({
     required this.id,
-    @JsonKey(name: 'cours_de_route_id') required this.coursDeRouteId,
+    @JsonKey(name: 'cours_de_route_id') this.coursDeRouteId,
     @JsonKey(name: 'citerne_id') required this.citerneId,
     @JsonKey(name: 'produit_id') required this.produitId,
     @JsonKey(name: 'partenaire_id') this.partenaireId,
@@ -373,7 +373,7 @@ class _$ReceptionImpl implements _Reception {
   final String id;
   @override
   @JsonKey(name: 'cours_de_route_id')
-  final String coursDeRouteId;
+  final String? coursDeRouteId;
   @override
   @JsonKey(name: 'citerne_id')
   final String citerneId;
@@ -503,7 +503,7 @@ class _$ReceptionImpl implements _Reception {
 abstract class _Reception implements Reception {
   const factory _Reception({
     required final String id,
-    @JsonKey(name: 'cours_de_route_id') required final String coursDeRouteId,
+    @JsonKey(name: 'cours_de_route_id') final String? coursDeRouteId,
     @JsonKey(name: 'citerne_id') required final String citerneId,
     @JsonKey(name: 'produit_id') required final String produitId,
     @JsonKey(name: 'partenaire_id') final String? partenaireId,
@@ -530,7 +530,7 @@ abstract class _Reception implements Reception {
   String get id;
   @override
   @JsonKey(name: 'cours_de_route_id')
-  String get coursDeRouteId;
+  String? get coursDeRouteId;
   @override
   @JsonKey(name: 'citerne_id')
   String get citerneId;

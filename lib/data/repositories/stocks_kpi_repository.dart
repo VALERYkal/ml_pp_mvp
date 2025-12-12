@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Helper pour convertir proprement toute valeur numérique en double.
@@ -161,6 +162,7 @@ class CiterneGlobalStockSnapshot {
   final double stockAmbiantTotal;
   final double stock15cTotal;
   final double capaciteTotale;
+  final double capaciteSecurite;
 
   const CiterneGlobalStockSnapshot({
     required this.citerneId,
@@ -171,16 +173,15 @@ class CiterneGlobalStockSnapshot {
     required this.stockAmbiantTotal,
     required this.stock15cTotal,
     required this.capaciteTotale,
+    required this.capaciteSecurite,
   });
 
   factory CiterneGlobalStockSnapshot.fromMap(Map<String, dynamic> map) {
     // La vue SQL expose 'date_dernier_mouvement' (ou peut être null si pas de mouvement)
     // On utilise DateTime.now() comme fallback si la date est absente
     final dateStr = map['date_dernier_mouvement'] as String?;
-    final dateJour = dateStr != null 
-        ? DateTime.parse(dateStr) 
-        : DateTime.now();
-    
+    final dateJour = dateStr != null ? DateTime.parse(dateStr) : DateTime.now();
+
     return CiterneGlobalStockSnapshot(
       citerneId: map['citerne_id'] as String,
       citerneNom: map['citerne_nom'] as String,
@@ -190,12 +191,13 @@ class CiterneGlobalStockSnapshot {
       stockAmbiantTotal: _toDouble(map['stock_ambiant_total']),
       stock15cTotal: _toDouble(map['stock_15c_total']),
       capaciteTotale: _toDouble(map['capacite_totale']),
+      capaciteSecurite: _toDouble(map['capacite_securite']),
     );
   }
 }
 
 /// Repository dédié aux KPI de stock basés sur les vues SQL.
-/// 
+///
 /// IMPORTANT :
 /// - Ce repository est additif : il ne remplace pas StocksRepository existant.
 /// - Injecter SupabaseClient depuis Supabase.instance.client dans un provider
@@ -207,10 +209,11 @@ class StocksKpiRepository {
 
   /// Helper pour formater une date en format ISO YYYY-MM-DD (UTC).
   String _formatYmd(DateTime date) {
-    return DateTime.utc(date.year, date.month, date.day)
-        .toIso8601String()
-        .split('T')
-        .first;
+    return DateTime.utc(
+      date.year,
+      date.month,
+      date.day,
+    ).toIso8601String().split('T').first;
   }
 
   /// Retourne les totaux globaux par dépôt & produit.
@@ -223,7 +226,9 @@ class StocksKpiRepository {
     String? produitId,
     DateTime? dateJour,
   }) async {
-    final query = _client.from('v_kpi_stock_global').select<Map<String, dynamic>>();
+    final query = _client
+        .from('v_kpi_stock_global')
+        .select<List<Map<String, dynamic>>>();
 
     if (depotId != null) {
       query.eq('depot_id', depotId);
@@ -236,10 +241,8 @@ class StocksKpiRepository {
     }
 
     final rows = await query;
-    return (rows as List)
-        .cast<Map<String, dynamic>>()
-        .map(DepotGlobalStockKpi.fromMap)
-        .toList();
+    final list = rows as List<Map<String, dynamic>>;
+    return list.map(DepotGlobalStockKpi.fromMap).toList();
   }
 
   /// Retourne les totaux par dépôt, propriétaire & produit.
@@ -252,7 +255,9 @@ class StocksKpiRepository {
     String? proprietaireType,
     DateTime? dateJour,
   }) async {
-    final query = _client.from('v_kpi_stock_owner').select<Map<String, dynamic>>();
+    final query = _client
+        .from('v_kpi_stock_owner')
+        .select<List<Map<String, dynamic>>>();
 
     if (depotId != null) {
       query.eq('depot_id', depotId);
@@ -268,10 +273,8 @@ class StocksKpiRepository {
     }
 
     final rows = await query;
-    return (rows as List)
-        .cast<Map<String, dynamic>>()
-        .map(DepotOwnerStockKpi.fromMap)
-        .toList();
+    final list = rows as List<Map<String, dynamic>>;
+    return list.map(DepotOwnerStockKpi.fromMap).toList();
   }
 
   /// Retourne le snapshot par citerne, propriétaire & produit.
@@ -285,8 +288,9 @@ class StocksKpiRepository {
     String? proprietaireType,
     DateTime? dateJour,
   }) async {
-    final query =
-        _client.from('v_stocks_citerne_owner').select<Map<String, dynamic>>();
+    final query = _client
+        .from('v_stocks_citerne_owner')
+        .select<List<Map<String, dynamic>>>();
 
     if (depotId != null) {
       query.eq('depot_id', depotId);
@@ -305,10 +309,8 @@ class StocksKpiRepository {
     }
 
     final rows = await query;
-    return (rows as List)
-        .cast<Map<String, dynamic>>()
-        .map(CiterneOwnerStockSnapshot.fromMap)
-        .toList();
+    final list = rows as List<Map<String, dynamic>>;
+    return list.map(CiterneOwnerStockSnapshot.fromMap).toList();
   }
 
   /// Retourne le snapshot global par citerne & produit (tous propriétaires confondus).
@@ -319,8 +321,9 @@ class StocksKpiRepository {
     String? produitId,
     DateTime? dateJour,
   }) async {
-    final query =
-        _client.from('v_stocks_citerne_global').select<Map<String, dynamic>>();
+    final query = _client
+        .from('v_stocks_citerne_global')
+        .select<List<Map<String, dynamic>>>();
 
     if (depotId != null) {
       query.eq('depot_id', depotId);
@@ -331,15 +334,61 @@ class StocksKpiRepository {
     if (produitId != null) {
       query.eq('produit_id', produitId);
     }
-    if (dateJour != null) {
-      query.eq('date_jour', _formatYmd(dateJour));
+    // IMPORTANT : Pas de filtre dateJour car la vue v_stocks_citerne_global
+    // expose date_dernier_mouvement (MAX des dates), pas date_jour.
+    // Le filtre date ne fonctionne pas et retourne des données partielles.
+    // On récupère toujours le dernier snapshot disponible par citerne, comme le dashboard.
+    // Le paramètre dateJour est conservé pour compatibilité API mais n'est plus utilisé.
+
+    final rows = await query;
+    final list = rows as List<Map<String, dynamic>>;
+    
+    // Log de diagnostic pour comprendre ce que retourne la vue
+    debugPrint('🔍 fetchCiterneGlobalSnapshots: ${list.length} lignes retournées');
+    for (final row in list.take(5)) {
+      debugPrint(
+        '  📊 Raw SQL: citerne_id=${row['citerne_id']}, '
+        'stock_ambiant_total=${row['stock_ambiant_total']}, '
+        'stock_15c_total=${row['stock_15c_total']}, '
+        'date_dernier_mouvement=${row['date_dernier_mouvement']}',
+      );
+    }
+    
+    return list.map(CiterneGlobalStockSnapshot.fromMap).toList();
+  }
+
+  /// Récupère la capacité totale d'un dépôt (somme de toutes les citernes actives)
+  ///
+  /// [depotId] : Identifiant du dépôt (requis)
+  /// [produitId] : Optionnel, filtre par produit si fourni
+  ///
+  /// Retourne la somme des capacités totales de toutes les citernes actives du dépôt.
+  /// Si aucune citerne active n'est trouvée, retourne 0.0.
+  Future<double> fetchDepotTotalCapacity({
+    required String depotId,
+    String? produitId,
+  }) async {
+    var query = _client
+        .from('citernes')
+        .select<List<Map<String, dynamic>>>('capacite_totale')
+        .eq('depot_id', depotId)
+        .eq('statut', 'active');
+
+    if (produitId != null) {
+      query = query.eq('produit_id', produitId);
     }
 
     final rows = await query;
-    return (rows as List)
-        .cast<Map<String, dynamic>>()
-        .map(CiterneGlobalStockSnapshot.fromMap)
-        .toList();
+    final list = rows as List<Map<String, dynamic>>;
+
+    double total = 0.0;
+    for (final row in list) {
+      final capacite = row['capacite_totale'];
+      if (capacite != null) {
+        total += (capacite is num ? capacite.toDouble() : 0.0);
+      }
+    }
+
+    return total;
   }
 }
-
