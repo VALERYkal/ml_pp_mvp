@@ -265,7 +265,7 @@ class OwnerStockBreakdownCard extends ConsumerWidget {
             ),
           ),
           const Spacer(),
-          // Volume ambiant
+          // Volume ambiant (source de vérité opérationnelle)
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -284,18 +284,19 @@ class OwnerStockBreakdownCard extends ConsumerWidget {
             ],
           ),
           const SizedBox(width: 16),
-          // Volume 15°C
+          // Volume 15°C (valeur dérivée, analytique)
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
                 fmtL(stock15c),
-                style: t.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
+                style: t.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w500,
+                  color: t.colorScheme.onSurfaceVariant,
                 ),
               ),
               Text(
-                '15°C',
+                '≈ 15°C',
                 style: t.textTheme.bodySmall?.copyWith(
                   color: t.colorScheme.onSurfaceVariant,
                 ),

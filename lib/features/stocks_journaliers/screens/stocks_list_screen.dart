@@ -1177,7 +1177,6 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
           ),
         ),
         const DataCell(SizedBox.shrink()),
-        const DataCell(SizedBox.shrink()),
         DataCell(
           Text(
             _formatVolume(totalAmbiant),
@@ -1198,6 +1197,7 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
             ),
           ),
         ),
+        const DataCell(SizedBox.shrink()),
         const DataCell(SizedBox.shrink()),
         const DataCell(SizedBox.shrink()),
         const DataCell(SizedBox.shrink()),
@@ -1224,7 +1224,6 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
           ),
         ),
         const DataCell(SizedBox.shrink()),
-        const DataCell(SizedBox.shrink()),
         DataCell(
           Text(
             _formatVolume(totalAmbiant),
@@ -1245,6 +1244,7 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
             ),
           ),
         ),
+        const DataCell(SizedBox.shrink()),
         const DataCell(SizedBox.shrink()),
         const DataCell(SizedBox.shrink()),
         const DataCell(SizedBox.shrink()),
@@ -1295,7 +1295,7 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
           // Statistique 2: Stock 15°C
           Expanded(
             child: _buildStatCard(
-              'Stock 15°C',
+              '≈ Stock @15°C',
               _formatVolume(total15c),
               Icons.thermostat,
               theme.colorScheme.secondary,
@@ -1355,7 +1355,7 @@ class _StocksListScreenState extends ConsumerState<StocksListScreen>
           // Statistique 2: Stock 15°C
           Expanded(
             child: _buildStatCard(
-              'Stock 15°C',
+              '≈ Stock @15°C',
               _formatVolume(total15c),
               Icons.thermostat,
               theme.colorScheme.secondary,

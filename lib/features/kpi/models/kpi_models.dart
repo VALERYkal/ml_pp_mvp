@@ -278,32 +278,6 @@ class KpiCiterneAlerte {
   }
 }
 
-/// Modèle unifié pour les points de tendance
-@immutable
-class KpiTrendPoint {
-  final DateTime day;
-  final double receptions15c;
-  final double sorties15c;
-  
-  const KpiTrendPoint({
-    required this.day, 
-    required this.receptions15c, 
-    required this.sorties15c
-  });
-
-  /// Constructeur factory pour valeurs nullable depuis Supabase
-  factory KpiTrendPoint.fromNullable({
-    DateTime? day,
-    num? receptions15c,
-    num? sorties15c,
-  }) {
-    return KpiTrendPoint(
-      day: day ?? DateTime.now(),
-      receptions15c: _nz(receptions15c),
-      sorties15c: _nz(sorties15c),
-    );
-  }
-}
 
 /// Modèle unifié pour les camions à suivre
 /// 
@@ -386,7 +360,6 @@ class KpiSnapshot {
   final KpiStocks stocks;
   final KpiBalanceToday balanceToday;
   final KpiTrucksToFollow trucksToFollow;
-  final List<KpiTrendPoint> trend7d;
   
   const KpiSnapshot({
     required this.receptionsToday,
@@ -394,7 +367,6 @@ class KpiSnapshot {
     required this.stocks,
     required this.balanceToday,
     required this.trucksToFollow,
-    required this.trend7d,
   });
 
   /// Instance vide pour les cas d'erreur ou de chargement
@@ -404,7 +376,6 @@ class KpiSnapshot {
     stocks: KpiStocks.zero,
     balanceToday: KpiBalanceToday.zero,
     trucksToFollow: KpiTrucksToFollow.zero,
-    trend7d: [],
   );
 }
 

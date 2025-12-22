@@ -168,40 +168,9 @@ void main() {
       });
     });
 
-    group('KpiTrendPoint', () {
-      test('should create KpiTrendPoint with correct values', () {
-        // Arrange
-        final date = DateTime(2025, 9, 17);
-
-        // Act
-        final kpi = KpiTrendPoint(
-          day: date,
-          receptions15c: 2000.0,
-          sorties15c: 1500.0,
-        );
-
-        // Assert
-        expect(kpi.day, equals(date));
-        expect(kpi.receptions15c, equals(2000.0));
-        expect(kpi.sorties15c, equals(1500.0));
-      });
-    });
-
     group('KpiSnapshot', () {
       test('should create complete KpiSnapshot', () {
         // Arrange
-        final trendPoints = [
-          KpiTrendPoint(
-            day: DateTime(2025, 9, 10),
-            receptions15c: 2000.0,
-            sorties15c: 1500.0,
-          ),
-          KpiTrendPoint(
-            day: DateTime(2025, 9, 11),
-            receptions15c: 2200.0,
-            sorties15c: 1600.0,
-          ),
-        ];
 
         final alerts = [
           const KpiCiterneAlerte(
@@ -236,7 +205,6 @@ void main() {
             sortiesAmbient: 1900.0,
           ),
           trucksToFollow: KpiTrucksToFollow.zero,
-          trend7d: trendPoints,
         );
 
         // Assert
@@ -245,7 +213,6 @@ void main() {
         expect(snapshot.stocks.total15c, equals(14500.0));
         expect(snapshot.balanceToday.delta15c, equals(700.0));
         expect(snapshot.trucksToFollow.totalTrucks, equals(0));
-        expect(snapshot.trend7d.length, equals(2));
       });
 
       test('should handle empty collections', () {
@@ -273,7 +240,6 @@ void main() {
             sortiesAmbient: 0.0,
           ),
           trucksToFollow: KpiTrucksToFollow.zero,
-          trend7d: [],
         );
 
         // Assert
@@ -282,7 +248,6 @@ void main() {
         expect(snapshot.stocks.total15c, equals(0.0));
         expect(snapshot.balanceToday.delta15c, equals(0.0));
         expect(snapshot.trucksToFollow.totalTrucks, equals(0));
-        expect(snapshot.trend7d.length, equals(0));
       });
     });
   });

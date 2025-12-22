@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ml_pp_mvp/features/kpi/providers/kpi_provider.dart';
+import 'package:ml_pp_mvp/features/kpi/providers/kpi_refresh_signal_provider.dart';
 import 'package:ml_pp_mvp/features/kpi/models/kpi_models.dart';
 import 'package:ml_pp_mvp/shared/ui/kpi_card.dart';
 import 'package:ml_pp_mvp/shared/formatters.dart';
@@ -15,12 +16,48 @@ import 'package:ml_pp_mvp/features/stocks/data/stocks_kpi_providers.dart';
 import 'package:ml_pp_mvp/features/dashboard/providers/citernes_sous_seuil_provider.dart';
 import 'trucks_to_follow_card.dart';
 
-class RoleDashboard extends ConsumerWidget {
+class RoleDashboard extends ConsumerStatefulWidget {
   const RoleDashboard({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<RoleDashboard> createState() => _RoleDashboardState();
+}
+
+class _RoleDashboardState extends ConsumerState<RoleDashboard> {
+  String? _previousLocation;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    final isCurrent = route?.isCurrent ?? false;
+    final currentLocation = GoRouterState.of(context).uri.toString();
+    
+    // Détecter si on vient de revenir sur le dashboard
+    final isDashboardRoute = currentLocation.startsWith('/dashboard/');
+    
+    if (isCurrent && isDashboardRoute) {
+      // Si on était sur une autre route et qu'on revient sur dashboard
+      if (_previousLocation != null && 
+          !_previousLocation!.startsWith('/dashboard/') &&
+          _previousLocation != currentLocation) {
+        ref.invalidate(kpiProviderProvider);
+        debugPrint('🔄 Dashboard: route became active -> invalidate kpiProviderProvider');
+      }
+      _previousLocation = currentLocation;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final kpis = ref.watch(kpiProviderProvider);
+
+    // Écouter le signal de refresh KPI et invalider le provider quand il change
+    ref.listen<int>(kpiRefreshSignalProvider, (prev, next) {
+      if (prev == next) return;
+      debugPrint('🔄 KPI Refresh Signal received ($prev -> $next) -> invalidate(kpiProviderProvider)');
+      ref.invalidate(kpiProviderProvider);
+    });
 
     final dashboardContent = Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -32,7 +69,7 @@ class RoleDashboard extends ConsumerWidget {
             children: [
               // Header avec salutation
               const DashboardHeader(),
-
+              
               // Section principale - KPIs unifiés
               DashboardSection(
                 title: 'Vue d\'ensemble',
@@ -43,93 +80,97 @@ class RoleDashboard extends ConsumerWidget {
                     key: Key('role_dashboard_loading_state'),
                     child: CircularProgressIndicator(),
                   ),
-                  error: (e, st) => Center(
+                       error: (e, st) => Center(
                     key: const Key('role_dashboard_error_state'),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.error_outline,
-                          size: 48,
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Erreur de chargement des KPIs',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Veuillez réessayer plus tard',
+                         child: Column(
+                           mainAxisAlignment: MainAxisAlignment.center,
+                           children: [
+                             Icon(
+                               Icons.error_outline,
+                               size: 48,
+                               color: Theme.of(context).colorScheme.error,
+                             ),
+                             const SizedBox(height: 16),
+                             Text(
+                               'Erreur de chargement des KPIs',
+                               style: Theme.of(context).textTheme.titleMedium,
+                             ),
+                             const SizedBox(height: 8),
+                             Text(
+                               'Veuillez réessayer plus tard',
                           style: Theme.of(context).textTheme.bodyMedium
                               ?.copyWith(
                                 color: Theme.of(
                                   context,
                                 ).colorScheme.onSurfaceVariant,
-                              ),
-                        ),
-                      ],
-                    ),
-                  ),
+                               ),
+                             ),
+                           ],
+                         ),
+                       ),
                   data: (KpiSnapshot data) {
                     // Obtenir le depotId depuis le profil pour le breakdown par propriétaire
                     final profil = ref.watch(profilProvider).valueOrNull;
                     final depotId = profil?.depotId;
 
                     return DashboardGrid(
-                      children: [
-                        // 1. Camions à suivre (priorité logistique)
-                        TrucksToFollowCard(
-                          data: data.trucksToFollow,
+                           children: [
+                             // 1. Camions à suivre (priorité logistique)
+                             TrucksToFollowCard(
+                               data: data.trucksToFollow,
                           onTap: () => context.go('/cours'),
-                        ),
-                        // 2. Réceptions du jour
-                        Builder(
-                          builder: (context) {
-                            return KpiCard(
+                             ),
+                             // 2. Réceptions du jour
+                        // RÈGLE MÉTIER : Stock ambiant = source de vérité opérationnelle
+                             Builder(
+                               builder: (context) {
+                                 return KpiCard(
                               cardKey: const Key('kpi_receptions_today_card'),
-                              icon: Icons.move_to_inbox_outlined,
-                              title: 'Réceptions du jour',
-                              tintColor: const Color(0xFF4CAF50),
+                                   icon: Icons.move_to_inbox_outlined,
+                                   title: 'Réceptions du jour',
+                                   tintColor: const Color(0xFF4CAF50),
                               primaryValue: fmtL(
-                                data.receptionsToday.volume15c,
-                              ),
-                              primaryLabel: 'Volume 15°C',
-                              subLeftLabel: 'Nombre de camions',
+                                data.receptionsToday.volumeAmbient,
+                              ), // Volume ambiant = source de vérité opérationnelle
+                              primaryLabel: 'Volume ambiant',
+                                   subLeftLabel: 'Nombre de camions',
                               subLeftValue: fmtCount(
                                 data.receptionsToday.count,
                               ),
-                              subRightLabel: 'Volume ambiant',
+                              subRightLabel: '≈ Volume 15°C',
                               subRightValue: fmtL(
-                                data.receptionsToday.volumeAmbient,
-                              ),
-                              onTap: () => context.go('/receptions'),
-                            );
-                          },
-                        ),
-                        // 3. Sorties du jour
-                        Builder(
-                          builder: (context) {
-                            return KpiCard(
+                                data.receptionsToday.volume15c,
+                              ), // Valeur dérivée, analytique
+                                   onTap: () => context.go('/receptions'),
+                                 );
+                               },
+                             ),
+                             // 3. Sorties du jour
+                        // RÈGLE MÉTIER : Stock ambiant = source de vérité opérationnelle
+                             Builder(
+                               builder: (context) {
+                                 return KpiCard(
                               cardKey: const Key('kpi_sorties_today_card'),
-                              icon: Icons.outbox_outlined,
-                              title: 'Sorties du jour',
-                              tintColor: const Color(0xFFF44336),
-                              primaryValue: fmtL(data.sortiesToday.volume15c),
-                              primaryLabel: 'Volume 15°C',
-                              subLeftLabel: 'Nombre de camions',
-                              subLeftValue: fmtCount(data.sortiesToday.count),
-                              subRightLabel: 'Volume ambiant',
-                              subRightValue: fmtL(
+                                   icon: Icons.outbox_outlined,
+                                   title: 'Sorties du jour',
+                                   tintColor: const Color(0xFFF44336),
+                              primaryValue: fmtL(
                                 data.sortiesToday.volumeAmbient,
-                              ),
-                              onTap: () => context.go('/sorties'),
-                            );
-                          },
-                        ),
-                        // 4. Stock total
-                        Builder(
-                          builder: (context) {
+                              ), // Volume ambiant = source de vérité opérationnelle
+                              primaryLabel: 'Volume ambiant',
+                                   subLeftLabel: 'Nombre de camions',
+                                   subLeftValue: fmtCount(data.sortiesToday.count),
+                              subRightLabel: '≈ Volume 15°C',
+                              subRightValue: fmtL(
+                                data.sortiesToday.volume15c,
+                              ), // Valeur dérivée, analytique
+                                   onTap: () => context.go('/sorties'),
+                                 );
+                               },
+                             ),
+                             // 4. Stock total
+                             Builder(
+                               builder: (context) {
                             final depotId = ref
                                 .watch(profilProvider)
                                 .valueOrNull
@@ -151,65 +192,71 @@ class RoleDashboard extends ConsumerWidget {
                                       capacityTotal *
                                       100);
 
-                            final stocksByOwnerAsync = ref.watch(
-                              kpiStockByOwnerProvider,
-                            );
+                            // Source unifiée = snapshot.owners pour éviter divergence UI
+                            // Utilise le même provider que OwnerStockBreakdownCard
+                            final snapshotAsync = depotId != null
+                                ? ref.watch(
+                                    depotStocksSnapshotProvider(
+                                      DepotStocksSnapshotParams(
+                                        depotId: depotId,
+                                        dateJour: null, // Pas de filtre date pour aligner avec dashboard
+                                      ),
+                                    ),
+                                  )
+                                : null;
 
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                // Carte existante (inchangée sauf capacité)
+                                // RÈGLE MÉTIER : Stock ambiant = source de vérité opérationnelle
+                                // Le stock à 15°C est une valeur dérivée, analytique, non décisionnelle
+                                // Référentiel : docs/db/REGLE_METIER_STOCKS_AMBIANT_15C.md
                                 KpiCard(
                                   cardKey: const Key('kpi_stock_total_card'),
-                                  icon: Icons.inventory_2_outlined,
-                                  title: 'Stock total',
-                                  tintColor: const Color(0xFFFF9800),
+                                   icon: Icons.inventory_2_outlined,
+                                   title: 'Stock total',
+                                   tintColor: const Color(0xFFFF9800),
                                   primaryValue: fmtL(
-                                    data.stocks.total15c,
-                                  ), // Inchangé
-                                  primaryLabel: 'Volume 15°C',
-                                  subLeftLabel: 'Volume ambiant',
-                                  subLeftValue: fmtL(
                                     data.stocks.totalAmbient,
-                                    fixed: 1,
-                                  ), // Inchangé
+                                  ), // Stock ambiant = source de vérité opérationnelle
+                                  primaryLabel: 'Volume ambiant',
+                                  subLeftLabel: '≈ Volume 15°C',
+                                  subLeftValue: fmtL(
+                                    data.stocks.total15c,
+                                  ), // Valeur dérivée, analytique
                                   subRightLabel:
                                       '${usagePct.toStringAsFixed(0)}% utilisation',
                                   subRightValue:
                                       'Capacité ${fmtL(capacityTotal, fixed: 0)}', // Utilise la nouvelle capacité
-                                  onTap: () => context.go('/stocks'),
+                                   onTap: () => context.go('/stocks'),
                                 ),
                                 // Nouvelle section : Détail par propriétaire
-                                stocksByOwnerAsync.when(
-                                  data: (ownerList) {
-                                    // Filtrer par depotId si disponible
-                                    final filteredList = depotId != null
-                                        ? ownerList
-                                              .where(
-                                                (item) =>
-                                                    item.depotId == depotId,
-                                              )
-                                              .toList()
-                                        : ownerList;
+                                // Source unifiée = snapshot.owners pour éviter divergence UI
+                                snapshotAsync == null
+                                    ? const SizedBox.shrink()
+                                    : snapshotAsync.when(
+                                    data: (snapshot) {
+                                      // Utiliser snapshot.owners directement (déjà filtré par depotId par le provider)
+                                      final owners = snapshot.owners;
 
-                                    // Agréger les valeurs par propriétaire
-                                    double mon15c = 0.0;
-                                    double monAmb = 0.0;
-                                    double part15c = 0.0;
-                                    double partAmb = 0.0;
+                                      // Agréger les valeurs par propriétaire
+                                      double mon15c = 0.0;
+                                      double monAmb = 0.0;
+                                      double part15c = 0.0;
+                                      double partAmb = 0.0;
 
-                                    for (final item in filteredList) {
-                                      if (item.proprietaireType.toUpperCase() ==
-                                          'MONALUXE') {
-                                        mon15c += item.stock15cTotal;
-                                        monAmb += item.stockAmbiantTotal;
-                                      } else if (item.proprietaireType
-                                              .toUpperCase() ==
-                                          'PARTENAIRE') {
-                                        part15c += item.stock15cTotal;
-                                        partAmb += item.stockAmbiantTotal;
+                                      for (final item in owners) {
+                                        if (item.proprietaireType.toUpperCase() ==
+                                            'MONALUXE') {
+                                          mon15c += item.stock15cTotal;
+                                          monAmb += item.stockAmbiantTotal;
+                                        } else if (item.proprietaireType
+                                                .toUpperCase() ==
+                                            'PARTENAIRE') {
+                                          part15c += item.stock15cTotal;
+                                          partAmb += item.stockAmbiantTotal;
+                                        }
                                       }
-                                    }
 
                                     return Column(
                                       crossAxisAlignment:
@@ -242,8 +289,8 @@ class RoleDashboard extends ConsumerWidget {
                                                         _buildOwnerDetailColumn(
                                                           context,
                                                           'MONALUXE',
-                                                          mon15c,
                                                           monAmb,
+                                                          mon15c,
                                                         ),
                                                   ),
                                                   const SizedBox(width: 16),
@@ -252,8 +299,8 @@ class RoleDashboard extends ConsumerWidget {
                                                         _buildOwnerDetailColumn(
                                                           context,
                                                           'PARTENAIRE',
-                                                          part15c,
                                                           partAmb,
+                                                          part15c,
                                                         ),
                                                   ),
                                                 ],
@@ -267,15 +314,15 @@ class RoleDashboard extends ConsumerWidget {
                                                   _buildOwnerDetailColumn(
                                                     context,
                                                     'MONALUXE',
-                                                    mon15c,
                                                     monAmb,
+                                                    mon15c,
                                                   ),
                                                   const SizedBox(height: 12),
                                                   _buildOwnerDetailColumn(
                                                     context,
                                                     'PARTENAIRE',
-                                                    part15c,
                                                     partAmb,
+                                                    part15c,
                                                   ),
                                                 ],
                                               );
@@ -297,34 +344,41 @@ class RoleDashboard extends ConsumerWidget {
                           OwnerStockBreakdownCard(
                             depotId: depotId,
                             onTap: () => context.go('/stocks'),
-                          ),
-                        // 5. Balance du jour
-                        Builder(
-                          builder: (context) {
-                            return KpiCard(
+                             ),
+                             // 5. Balance du jour
+                        // RÈGLE MÉTIER : Stock ambiant = source de vérité opérationnelle
+                             Builder(
+                               builder: (context) {
+                            // Calcul du delta ambiant (réceptions - sorties)
+                            final deltaAmbient = data.balanceToday.deltaAmbient;
+                            final delta15c = data.balanceToday.delta15c;
+                                 return KpiCard(
                               cardKey: const Key('kpi_balance_today_card'),
-                              icon: Icons.compare_arrows_outlined,
-                              title: 'Balance du jour',
-                              tintColor: data.balanceToday.delta15c >= 0
+                                   icon: Icons.compare_arrows_outlined,
+                                   title: 'Balance du jour',
+                              tintColor: deltaAmbient >= 0
                                   ? const Color(0xFF009688)
                                   : const Color(0xFFF44336),
                               primaryValue: fmtDelta(
-                                data.balanceToday.delta15c,
+                                deltaAmbient,
+                              ), // Δ ambiant = source de vérité opérationnelle
+                              primaryLabel: 'Δ Volume ambiant',
+                              subLeftLabel: '≈ Δ Volume 15°C',
+                              subLeftValue: fmtDelta(
+                                delta15c,
+                              ), // Valeur dérivée, analytique
+                              subRightLabel: 'Capacité',
+                              subRightValue: fmtL(
+                                data.stocks.capacityTotal,
+                                fixed: 0,
                               ),
-                              primaryLabel: 'Δ Volume 15°C',
-                              subLeftLabel: 'Réceptions 15°C',
-                              subLeftValue: fmtL(
-                                data.balanceToday.receptions15c,
-                              ),
-                              subRightLabel: 'Sorties 15°C',
-                              subRightValue: fmtL(data.balanceToday.sorties15c),
-                              onTap: () => context.go('/stocks'),
-                            );
-                          },
-                        ),
+                                   onTap: () => context.go('/stocks'),
+                                 );
+                               },
+                             ),
                         // 6. Alertes Citernes
-                        Builder(
-                          builder: (context) {
+                             Builder(
+                               builder: (context) {
                             final alertesAsync = ref.watch(citernesSousSeuilProvider);
                             return alertesAsync.when(
                               loading: () => KpiCard(
@@ -366,7 +420,7 @@ class RoleDashboard extends ConsumerWidget {
                                     ? 'Aucune'
                                     : topAlertes.map((a) => a.nom).join(', ');
                                 
-                                return KpiCard(
+                                 return KpiCard(
                                   cardKey: const Key('kpi_alertes_citernes_card'),
                                   icon: Icons.warning_amber_rounded,
                                   title: 'Alertes Citernes',
@@ -390,10 +444,10 @@ class RoleDashboard extends ConsumerWidget {
                                   onTap: () => context.go('/citernes'),
                                 );
                               },
-                            );
-                          },
-                        ),
-                      ],
+                                 );
+                               },
+                             ),
+                           ],
                     );
                   },
                 ),
@@ -415,11 +469,12 @@ class RoleDashboard extends ConsumerWidget {
   }
 
   /// Construit une colonne d'affichage pour un propriétaire (MONALUXE ou PARTENAIRE)
+  /// RÈGLE MÉTIER : Stock ambiant = source de vérité opérationnelle (affiché en premier)
   Widget _buildOwnerDetailColumn(
     BuildContext context,
     String ownerName,
-    double volume15c,
     double volumeAmbient,
+    double volume15c,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -433,12 +488,12 @@ class RoleDashboard extends ConsumerWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          'Vol @15°C : ${fmtL(volume15c)}',
+          'Vol ambiant : ${fmtL(volumeAmbient)}',
           style: Theme.of(context).textTheme.bodySmall,
         ),
         const SizedBox(height: 2),
         Text(
-          'Vol ambiant : ${fmtL(volumeAmbient)}',
+          '≈ Vol @15°C : ${fmtL(volume15c)}',
           style: Theme.of(context).textTheme.bodySmall,
         ),
       ],

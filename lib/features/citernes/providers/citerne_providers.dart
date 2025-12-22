@@ -108,23 +108,21 @@ final citerneStocksSnapshotProvider = Riverpod.FutureProvider.autoDispose<DepotS
     );
   }
   
-  // 4) Récupérer les stocks depuis depotStocksSnapshotProvider (v_stocks_citerne_global)
-  final snapshotAsync = ref.watch(
+  // 4) Récupérer les stocks (await) depuis depotStocksSnapshotProvider
+  final snapshot = await ref.watch(
     depotStocksSnapshotProvider(
       DepotStocksSnapshotParams(
         depotId: depotId,
         dateJour: dateJour,
       ),
-    ),
+    ).future,
   );
   
   // 5) Créer un index des stocks par (citerneId, produitId)
   final stockByKey = <String, CiterneGlobalStockSnapshot>{};
-  if (snapshotAsync.hasValue) {
-    for (final stockRow in snapshotAsync.requireValue.citerneRows) {
-      final key = '${stockRow.citerneId}::${stockRow.produitId}';
-      stockByKey[key] = stockRow;
-    }
+  for (final stockRow in snapshot.citerneRows) {
+    final key = '${stockRow.citerneId}::${stockRow.produitId}';
+    stockByKey[key] = stockRow;
   }
   
   // 6) Récupérer les noms des produits pour les citernes vides
@@ -186,24 +184,13 @@ final citerneStocksSnapshotProvider = Riverpod.FutureProvider.autoDispose<DepotS
   }
   
   // 8) Récupérer les totaux et owners depuis le snapshot (pour cohérence avec dashboard)
-  final totals = snapshotAsync.hasValue
-      ? snapshotAsync.requireValue.totals
-      : DepotGlobalStockKpi(
-          depotId: depotId,
-          depotNom: '',
-          produitId: '',
-          produitNom: '',
-          stockAmbiantTotal: 0.0,
-          stock15cTotal: 0.0,
-        );
+  final totals = snapshot.totals;
   
-  final owners = snapshotAsync.hasValue
-      ? snapshotAsync.requireValue.owners
-      : const <DepotOwnerStockKpi>[];
+  final owners = snapshot.owners;
   
   return DepotStocksSnapshot(
     dateJour: dateJour,
-    isFallback: snapshotAsync.hasValue ? snapshotAsync.requireValue.isFallback : false,
+    isFallback: snapshot.isFallback,
     totals: totals,
     owners: owners,
     citerneRows: citerneRows,

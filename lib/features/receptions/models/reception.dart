@@ -24,7 +24,9 @@ class Reception with _$Reception {
     @JsonKey(name: 'volume_corrige_15c') double? volumeCorrige15c,
     @JsonKey(name: 'volume_ambiant') double? volumeAmbiant,
 
-    @JsonKey(name: 'proprietaire_type') @OwnerTypeConverter() required OwnerType proprietaireType,
+    @JsonKey(name: 'proprietaire_type')
+    @OwnerTypeConverter()
+    required OwnerType proprietaireType,
     String? note,
     @JsonKey(name: 'created_at') DateTime? createdAt,
     @JsonKey(name: 'statut') String? statut,

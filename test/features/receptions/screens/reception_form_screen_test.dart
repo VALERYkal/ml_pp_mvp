@@ -200,7 +200,7 @@ void main() {
     expect(chip, findsOneWidget);
     await tester.tap(chip.first);
     await tester.pumpAndSettle();
-    
+
     // Act 5 : Sélectionner la citerne
     await tester.pumpAndSettle(const Duration(seconds: 1));
     
@@ -366,7 +366,7 @@ void main() {
     // Attendre que la soumission soit traitée (createValidated est async)
     // On utilise pumpAndSettle pour attendre que toutes les animations et futures se terminent
     await tester.pumpAndSettle();
-    
+
     // Vérifier immédiatement s'il y a un SnackBar d'erreur affiché
     // (les validations dans _submitReception affichent un SnackBar avant de return)
     final errorMessages = [

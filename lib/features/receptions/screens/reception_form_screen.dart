@@ -10,6 +10,7 @@ import 'package:ml_pp_mvp/shared/ui/toast.dart';
 import 'package:ml_pp_mvp/shared/ui/errors.dart';
 import 'package:postgrest/postgrest.dart';
 import 'package:ml_pp_mvp/core/errors/reception_validation_exception.dart';
+import 'package:ml_pp_mvp/core/errors/reception_insert_exception.dart';
 
 import 'package:ml_pp_mvp/shared/referentiels/referentiels.dart' as refs;
 import 'package:ml_pp_mvp/shared/providers/ref_data_provider.dart' as rfd;
@@ -26,6 +27,7 @@ import 'package:ml_pp_mvp/features/receptions/providers/receptions_list_provider
         receptionsPageProvider,
         receptionsPageSizeProvider;
 import 'package:ml_pp_mvp/features/receptions/providers/receptions_table_provider.dart';
+import 'package:ml_pp_mvp/shared/refresh/refresh_helpers.dart';
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_route_providers.dart'
     show
         coursDeRouteListProvider,
@@ -298,6 +300,11 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
           'Réception enregistrée avec succès.',
           type: ToastType.success,
         );
+        // Invalidation KPI dashboard après réception validée
+        invalidateDashboardKpisAfterStockMovement(ref);
+        debugPrint(
+          '🔄 KPI Refresh: invalidate dashboard KPI/Stocks after reception validated',
+        );
         // Invalidate impacted providers (best-effort)
         try {
           ref.invalidate(receptionsListProvider);
@@ -333,7 +340,19 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
           ),
         );
       }
+    } on ReceptionInsertException catch (e) {
+      // Erreur d'insertion Postgres mappée en message utilisateur
+      debugPrint('[ReceptionForm] ReceptionInsertException: ${e.toLogString()}');
+      if (mounted) {
+        showAppToast(
+          context,
+          e.userMessage,
+          type: ToastType.error,
+          duration: const Duration(seconds: 5),
+        );
+      }
     } on PostgrestException catch (e, st) {
+      // Fallback pour les PostgrestException non mappées
       debugPrint(
         '[ReceptionForm] PostgrestException: ${e.message} (code=${e.code}, hint=${e.hint}, details=${e.details})',
       );

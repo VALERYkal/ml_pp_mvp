@@ -160,6 +160,8 @@ class DashboardShell extends ConsumerWidget {
                 tooltip: 'Rafraîchir',
                 onPressed: () {
                   ref.invalidate(refDataProvider);
+                  ref.invalidate(kpiProviderProvider);
+                  debugPrint('🔄 Dashboard: manual refresh -> invalidate kpiProviderProvider');
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Données rafraîchies')),
                   );

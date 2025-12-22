@@ -220,7 +220,7 @@ class StocksKpiRepository {
   ///
   /// Si [depotId] est fourni, on filtre sur ce dépôt.
   /// Si [produitId] est fourni, on filtre sur ce produit.
-  /// Si [dateJour] est fourni, on filtre sur cette date.
+  /// Si [dateJour] est fourni, on filtre sur cette date (<= dateJour pour prendre la dernière disponible).
   Future<List<DepotGlobalStockKpi>> fetchDepotProductTotals({
     String? depotId,
     String? produitId,
@@ -236,9 +236,13 @@ class StocksKpiRepository {
     if (produitId != null) {
       query.eq('produit_id', produitId);
     }
+    // If a date is provided, pick the latest row <= that date.
     if (dateJour != null) {
-      query.eq('date_jour', _formatYmd(dateJour));
+      query.lte('date_jour', _formatYmd(dateJour));
     }
+
+    // Deterministic: latest date first (dashboard consumes newest snapshot)
+    query.order('date_jour', ascending: false);
 
     final rows = await query;
     final list = rows as List<Map<String, dynamic>>;

@@ -4,6 +4,831 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 
 ## [Unreleased]
 
+### 🔒 **DB-STRICT Hardening Sorties (19/12/2025)**
+
+#### **🎯 Objectif**
+Verrouillage non contournable pour `public.sorties_produit` : validations BEFORE INSERT, stock suffisant garanti, XOR strict, immutabilité absolue.
+
+#### **✅ Changements majeurs**
+
+**Validations BEFORE INSERT** (Patch 1)
+- ✅ **Fonction `sorties_check_before_insert()`** : valide toutes les règles métier avant insertion
+  - Vérification citerne active (`CITERNE_INACTIVE`)
+  - Vérification produit/citerne cohérence (`PRODUIT_INCOMPATIBLE`)
+  - Vérification XOR bénéficiaire (`BENEFICIAIRE_XOR`)
+  - **Vérification stock suffisant** (`STOCK_INSUFFISANT`, `STOCK_INSUFFISANT_15C`)
+  - Vérification capacité sécurité (`CAPACITE_SECURITE`)
+- ✅ **Trigger `trg_sorties_check_before_insert`** : bloque toute insertion invalide avant écriture
+
+**Contrainte CHECK XOR stricte** (Patch 2)
+- ✅ **Contrainte `sorties_produit_beneficiaire_xor`** : garantit exactement un des deux (client_id XOR partenaire_id)
+- ✅ Remplace l'ancienne contrainte moins stricte
+
+**Immutabilité absolue** (Patch 3)
+- ✅ **Fonction `prevent_sortie_update()`** : bloque tous les UPDATE (remplace l'ancien trigger partiel)
+- ✅ **Fonction `prevent_sortie_delete()`** : bloque tous les DELETE (nouveau)
+- ✅ Code erreur : `IMMUTABLE_TRANSACTION`
+
+**Nettoyage** (Patch 4)
+- ✅ Identification fonctions obsolètes (commentées pour suppression future après vérification dépendances)
+
+#### **📋 Codes d'erreur stables**
+
+Pour mapping UI/Flutter :
+- `CITERNE_NOT_FOUND` : Citerne introuvable
+- `CITERNE_INACTIVE` : Citerne inactive ou en maintenance
+- `PRODUIT_INCOMPATIBLE` : Produit incompatible avec citerne
+- `BENEFICIAIRE_XOR` : Violation XOR bénéficiaire (client_id/partenaire_id)
+- `STOCK_INSUFFISANT` : Stock insuffisant (ambiant)
+- `STOCK_INSUFFISANT_15C` : Stock insuffisant (15°C)
+- `CAPACITE_SECURITE` : Dépassement capacité sécurité
+- `IMMUTABLE_TRANSACTION` : Tentative UPDATE/DELETE
+
+#### **❌ Breaking Changes**
+- ❌ **UPDATE/DELETE bloqués** : Toutes les modifications/suppressions sont maintenant interdites (même pour admin)
+- ❌ **Contrainte CHECK XOR** : L'ancienne contrainte `sorties_produit_beneficiaire_check` est remplacée par `sorties_produit_beneficiaire_xor` (stricte)
+
+#### **✅ Rétrocompatibilité**
+- ✅ Aucune modification du schéma de table (colonnes inchangées)
+- ✅ Le trigger AFTER INSERT existant (`fn_sorties_after_insert`) est **conservé**
+- ✅ Les validations sont **additionnelles** (BEFORE), pas remplaçantes
+- ✅ Migration **idempotente** (rejouable sans erreur)
+
+#### **📝 Migration**
+- Fichier : `supabase/migrations/2025-12-19_sorties_db_strict_hardening.sql`
+- Les corrections se font via mécanisme de compensation (`stock_adjustments`)
+
+#### **📖 Documentation**
+- [Hardening Sorties DB-STRICT](docs/architecture/sorties_db_strict_hardening.md)
+- [Audit Sorties DB-STRICT](docs/architecture/sorties_db_audit.md)
+- [Tests SQL manuels](docs/db/sorties_trigger_tests.md) (section DB-STRICT Hardening Tests)
+- [Transaction Contract](docs/TRANSACTION_CONTRACT.md)
+
+---
+
+### 🚀 **DB-STRICT Migration – Réceptions & Sorties (21/12/2025)**
+
+#### **🎯 Objectif**
+Rendre les modules Réceptions et Sorties "DB-STRICT industriel" : immutabilité absolue, corrections uniquement par compensation, traçabilité totale.
+
+#### **✅ Changements majeurs**
+
+**Réceptions & Sorties**
+- ✅ **Immutabilité absolue** : UPDATE/DELETE bloqués par trigger (aucun bypass)
+- ✅ **Compensation administrative** : table `stock_adjustments` pour corrections
+- ✅ **Sécurité renforcée** : RLS + SECURITY DEFINER maîtrisé (pas de fallback silencieux)
+- ✅ **Traçabilité totale** : logs CRITICAL pour toutes compensations
+- ✅ **Robustesse** : utilisation de `current_setting('request.jwt.claim.sub')` au lieu de `auth.uid()`
+
+#### **❌ Breaking Changes**
+- ❌ Suppression de `createDraft()` et `validate()` (réceptions)
+- ❌ Suppression de `SortieDraftService`
+- ❌ Suppression des RPC `validate_reception` et `validate_sortie`
+- ❌ Suppression des fichiers `reception_service_v2.dart`, `reception_service_v3.dart`
+
+#### **📝 Migration**
+- Les réceptions et sorties sont maintenant **immuables** une fois créées
+- Les corrections se font via `admin_compensate_reception()` et `admin_compensate_sortie()`
+- Voir [Transaction Contract](docs/TRANSACTION_CONTRACT.md) pour les détails
+
+#### **📖 Documentation**
+- [Transaction Contract](docs/TRANSACTION_CONTRACT.md)
+- [Roadmap Migration](docs/DB_STRICT_MIGRATION_ROADMAP.md)
+- [Guide Migration SQL](docs/db/DB_STRICT_MIGRATION_SQL.md)
+- [Guide Nettoyage Code](docs/DB_STRICT_CLEANUP_CODE.md)
+- [Guide Migration Tests](docs/DB_STRICT_MIGRATION_TESTS.md)
+- [Guide Hardening](docs/DB_STRICT_HARDENING.md)
+
+#### **🔧 Améliorations techniques**
+- ✅ **Exclusion code legacy de l'analyse** : `test_legacy/**` et `**/_attic/**` exclus de `flutter analyze`
+  - Évite de "réparer le musée" au lieu du produit
+  - Focus sur le code actif
+  - Aucun impact sur l'exécution de l'app ou les tests
+
+#### **🧪 Correction tests d'intégration Réceptions (21/12/2025)**
+- ✅ **Correction `test/integration/reception_flow_test.dart`** : suppression des références aux services legacy supprimés
+  - Suppression de l'import `reception_service_v3.dart` (fichier inexistant)
+  - Suppression de toutes les références à `ReceptionServiceV2` et `FakeDbPort`
+  - Transformation en smoke tests compatibles DB-STRICT : tests unitaires simples pour `ReceptionInput`
+  - Les tests legacy (createDraft/validate) ont été retirés car le flow DB-STRICT utilise `createValidated()` directement (INSERT = validation)
+  - `flutter analyze` passe sans erreurs liées à ce fichier
+
+#### **🧹 Nettoyage Réceptions DB-STRICT – Code actif (22/12/2025)**
+
+**Objectif** : Nettoyer le module Réceptions sous DB-STRICT avec zéro régression, en supprimant tout code legacy des chemins actifs.
+
+**Modifications** :
+
+- ✅ **Suppression méthodes legacy** :
+  - Supprimé `ReceptionService.createDraft()` (remplacé par `createValidated()`)
+  - Supprimé `ReceptionService.validate()` (DB applique automatiquement les effets via triggers)
+  - Supprimé `ReceptionService._validateInput()` (méthode privée utilisée uniquement par `createDraft`)
+  - Supprimé `createReceptionProvider` (non utilisé, utilisait `createDraft`)
+
+- ✅ **Exception centralisée pour erreurs Postgres** :
+  - Créé `ReceptionInsertException` (`lib/core/errors/reception_insert_exception.dart`)
+  - Mapping automatique des codes Postgres vers messages utilisateur-friendly
+  - Conservation des détails techniques pour les logs
+  - Gestion des codes : `23505` (unique_violation), `23503` (foreign_key_violation), `23514` (check_violation), etc.
+
+- ✅ **Mise à jour `ReceptionService.createValidated()`** :
+  - Utilise maintenant `ReceptionInsertException` au lieu de relancer directement `PostgrestException`
+  - Messages d'erreur plus clairs pour l'utilisateur
+  - Logs détaillés conservés pour le diagnostic
+
+- ✅ **Mise à jour UI** :
+  - `reception_form_screen.dart` gère maintenant `ReceptionInsertException` avec affichage de messages utilisateur
+  - Confirmation : UI en lecture seule (pas d'UPDATE/DELETE sur réceptions)
+
+- ✅ **Marquage code legacy** :
+  - `db_port.dart.rpcValidateReception()` marqué `@Deprecated` (uniquement pour tests legacy)
+  - Commentaires DB-STRICT ajoutés dans les fichiers modifiés
+
+**Résultats de l'audit** :
+- ✅ Aucun UPDATE/DELETE sur `receptions` dans le code actif (confirmé par grep)
+- ✅ Un seul chemin de création : `ReceptionService.createValidated()`
+- ✅ Tests : 22 passés, 1 skip (erreurs Supabase non initialisé dans tests d'intégration, normal)
+
+**Fichiers modifiés** :
+- `lib/core/errors/reception_insert_exception.dart` (NOUVEAU)
+- `lib/features/receptions/data/reception_service.dart`
+- `lib/features/receptions/providers/reception_providers.dart`
+- `lib/features/receptions/screens/reception_form_screen.dart`
+- `lib/shared/db/db_port.dart`
+
+---
+
+#### **📚 Documentation Architecture Réceptions DB-STRICT (22/12/2025)**
+
+**Objectif** : Créer une documentation technique complète, structurée et traçable du module Réceptions après migration DB-STRICT.
+
+**Contenu** :
+
+- ✅ **Documentation complète** : `docs/architecture/receptions_db_strict.md`
+  - 10 sections structurées couvrant tous les aspects du module
+  - Contexte métier et objectifs de la migration DB-STRICT
+  - Audit complet des triggers SQL et fonctions actives
+  - Documentation du nettoyage Flutter (services, providers, UI)
+  - Verrous métier critiques et invariants garantis
+  - Décisions architecturales (stocks journaliers, journalisation)
+  - État des tests et justification des décisions
+
+**Sections documentées** :
+1. Contexte & Objectifs (rôle métier, risques historiques)
+2. Principe DB-STRICT adopté (source de vérité, interdictions)
+3. Nettoyage côté Flutter (services, providers, UI)
+4. Audit complet côté base de données (triggers, fonctions)
+5. Verrous métier critiques (CDR ARRIVE, cohérence produit)
+6. Stocks journaliers — décision architecturale (3 overloads, signature retenue)
+7. Journalisation (RECEPTION_CREEE, structure JSON)
+8. Tests — état final (unitaires PASS, E2E FAIL connu)
+9. Invariants garantis (6 invariants documentés)
+10. Statut final (FREEZE, pré-requis pour Sorties)
+
+**Caractéristiques** :
+- Références précises aux fichiers et lignes de code
+- Noms réels de fonctions, triggers, providers (pas de pseudocode)
+- Documentation de ce qui a été supprimé, conservé, et verrouillé
+- Ton professionnel, technique, auditable
+- Prêt pour audit ou refactoring futur
+
+**Fichier créé** :
+- `docs/architecture/receptions_db_strict.md` (NOUVEAU)
+
+---
+
+### 📚 **DOCS – Ajout documentation incident BUG-2025-12 stocks multi-propriétaire incohérence (13/12/2025)**
+
+- ✅ Création de `docs/incidents/BUG-2025-12-stocks-multi-proprietaire-incoherence.md` : rapport complet du bug critique
+- ✅ Documentation complète : contexte métier, symptômes, cause racine (logique SQL incorrecte), correctif (dernière date par propriétaire), validation et leçons clés
+- ✅ Règles de prévention : toujours inclure `proprietaire_type` dans les GROUP BY, tester avec des dates différentes, documenter les hypothèses métier
+
+---
+
+### 🔴 **CORRECTION CRITIQUE – Stocks multi-propriétaires – Incohérence des stocks globaux (13/12/2025)**
+
+#### **🎯 Objectif**
+Corriger un bug critique où les stocks multi-propriétaires (MONALUXE / PARTENAIRE) étaient sous-estimés car la vue SQL `v_stocks_citerne_global` utilisait une logique incorrecte (dernière date globale au lieu de dernière date par propriétaire).
+
+#### **📝 Problème identifié**
+
+**Cause racine** : La vue `v_stocks_citerne_global` sélectionnait la dernière date globale par citerne/produit, puis agrégeait uniquement les lignes de cette date. Si un seul propriétaire avait un mouvement à la date la plus récente, l'autre propriétaire était totalement exclu.
+
+**Symptômes** :
+- Module Citernes : certaines citernes affichaient uniquement le stock du dernier propriétaire ayant bougé
+- Dashboard : stock total affiché (ex: 7 500 L) inférieur à la somme MONALUXE + PARTENAIRE (ex: 13 000 L)
+- Exemple : TANK1 avec MONALUXE 5 500 L + PARTENAIRE 1 277 L affichait seulement 1 277 L au lieu de 6 777 L
+
+#### **📝 Correctif appliqué**
+
+**Modification de la vue SQL `v_stocks_citerne_global`** :
+- ✅ Ajout de `proprietaire_type` dans le GROUP BY pour déterminer la dernière date **par propriétaire**
+- ✅ Ajout du filtre `proprietaire_type` dans le JOIN
+- ✅ Chaque propriétaire récupère son stock de sa propre dernière date
+- ✅ Agrégation finale au niveau citerne/produit (somme de tous les propriétaires)
+
+**Principe clé** :
+> Chaque propriétaire a sa propre "date courante de stock". Le stock physique réel = somme de tous les stocks, indépendamment des dates.
+
+#### **✅ Résultats**
+
+- ✅ **Module Citernes** : Chaque citerne affiche désormais le stock ambiant total réel incluant tous les propriétaires
+- ✅ **Module Stocks** : Totaux ambiant et 15°C cohérents, ligne TOTAL = somme exacte des citernes
+- ✅ **Dashboard** : Stock total = 13 000 L ambiant (cohérent avec MONALUXE 9 000 L + PARTENAIRE 4 000 L)
+- ✅ **Invariant métier respecté** : Le stock physique affiché ne dépend plus de la date du dernier mouvement global, mais de l'existence réelle du produit dans la citerne
+
+#### **📖 Documentation complète**
+Voir `docs/incidents/BUG-2025-12-stocks-multi-proprietaire-incoherence.md`
+
+#### **🔑 Leçon clé**
+
+⚠️ **En gestion de stock multi-propriétaire** :
+- ❌ "Dernière date globale" est une anti-pattern
+- ✅ "Dernière date par propriétaire" est la seule logique valide
+
+---
+
+### 🔧 **CONFORMITÉ – Module Citernes – Règle métier Stock ambiant = vérité opérationnelle (13/12/2025)**
+
+#### **🎯 Objectif**
+Mettre l'écran Citernes en conformité avec la règle métier officielle : "Stock ambiant = source de vérité opérationnelle, 15°C = valeur dérivée secondaire (≈)".
+
+#### **📝 Modifications principales**
+
+**1. KPI "Stock Total" (en-tête)**
+- ✅ Création de `_buildStockTotalCard()` : carte spécialisée pour afficher deux valeurs
+- ✅ Valeur principale : `stockAmbiant` (gros, `titleMedium`, `fontWeight.w800`)
+- ✅ Valeur secondaire : `≈ stock15c` (petit, `bodySmall`, couleur secondaire)
+- ✅ Remplacement des deux occurrences dans `_buildCiterneGrid` et `_buildCiterneGridFromSnapshot`
+
+**2. Cartes de citernes (`TankCard`)**
+- ✅ Ordre d'affichage inversé : "Amb" en premier, "≈ 15°C" en secondaire
+- ✅ "Amb" : couleur principale (`0xFF3B82F6`)
+- ✅ "≈ 15°C" : couleur secondaire (`0xFF94A3B8`) pour indiquer visuellement que c'est secondaire
+- ✅ Commentaires garde-fou ajoutés
+
+**3. Calculs de capacité/disponibilité**
+- ✅ Vérification : `utilPct` utilise déjà `stockAmbiant` (conforme)
+- ✅ Aucun calcul de capacité n'utilise le 15°C
+
+#### **✅ Résultats**
+
+- ✅ **Conformité totale** : L'écran Citernes respecte la hiérarchie ambiant/15°C
+- ✅ **Hiérarchie visuelle** : Stock ambiant toujours affiché en premier (valeur principale)
+- ✅ **Préfixe "≈"** : Toutes les valeurs 15°C sont préfixées pour indiquer qu'elles sont dérivées
+- ✅ **Commentaires garde-fou** : Rappels de la règle métier ajoutés dans le code
+- ✅ **Aucune régression** : Aucun changement de providers, services, SQL ou navigation
+
+#### **🔍 Fichiers modifiés**
+
+- `lib/features/citernes/screens/citerne_list_screen.dart` :
+  - Création de `_buildStockTotalCard()` pour le KPI "Stock Total"
+  - Modification de `TankCard._buildMetricRow()` : ordre inversé (Amb avant ≈ 15°C)
+  - Calculs séparés de `stockTotalAmbiant` et `stockTotal15c`
+  - Commentaires garde-fou ajoutés
+
+#### **📖 Références**
+
+- **Règle métier officielle** : `docs/db/REGLE_METIER_STOCKS_AMBIANT_15C.md`
+- **Audit DB** : `docs/db/AUDIT_STOCKS_AMBIANT_15C_VERROUILLAGE.md`
+
+---
+
+### 🐛 **FIX – Refresh KPI Dashboard après création de sortie (14/12/2025)**
+
+#### **🎯 Objectif**
+Corriger le bug où le KPI "Stock total" du dashboard ne se mettait pas à jour après création d'une sortie sans redémarrage de l'application.
+
+#### **📝 Modifications principales**
+
+**1. Création du signal global de refresh**
+- ✅ Nouveau fichier : `lib/features/kpi/providers/kpi_refresh_signal_provider.dart`
+- ✅ `StateProvider<int>` nommé `kpiRefreshSignalProvider` (compteur de signal)
+- ✅ Fonction helper `triggerKpiRefresh(WidgetRef ref)` pour incrémenter le signal
+
+**2. Dashboard : écoute du signal**
+- ✅ Ajout de `ref.listen` sur `kpiRefreshSignalProvider` dans `role_dashboard.dart`
+- ✅ Invalidation automatique de `kpiProviderProvider` quand le signal change
+- ✅ Protection contre les boucles avec vérification `prev != next`
+
+**3. Sortie : déclenchement du signal**
+- ✅ Remplacement de `ref.invalidate(kpiProviderProvider)` par `triggerKpiRefresh(ref)` dans `sortie_form_screen.dart`
+- ✅ Suppression de l'import inutilisé de `kpi_provider.dart`
+
+#### **✅ Résultats**
+
+- ✅ **Refresh fiable** : Le dashboard se met à jour automatiquement même si le widget est gardé en mémoire par ShellRoute
+- ✅ **Solution indépendante de la navigation** : Ne dépend pas de GoRouter ni de la visibilité du widget
+- ✅ **Aucune régression** : Compilation web OK, tests existants non affectés
+- ✅ **Changements minimaux** : 1 fichier créé, 2 fichiers modifiés
+
+#### **🔍 Fichiers modifiés**
+
+- `lib/features/kpi/providers/kpi_refresh_signal_provider.dart` : Nouveau fichier avec provider signal
+- `lib/features/dashboard/widgets/role_dashboard.dart` : Ajout de l'écoute du signal
+- `lib/features/sorties/screens/sortie_form_screen.dart` : Remplacement de l'invalidation directe par le signal
+
+---
+
+### 🔧 **FIX – Affichage ligne TOTAL tableau Stocks (14/12/2025)**
+
+#### **🎯 Objectif**
+Corriger l'affichage de la ligne TOTAL dans le tableau des stocks pour que les valeurs apparaissent sous les bonnes colonnes.
+
+#### **📝 Modifications principales**
+
+**1. Correction de l'alignement des colonnes TOTAL**
+- ✅ `totalAmbiant` maintenant sous la colonne "Ambiant (L)" (index 2)
+- ✅ `total15c` maintenant sous la colonne "15°C (L)" (index 3)
+- ✅ Suppression d'un `SizedBox.shrink()` superflu qui décalait les valeurs
+
+**2. Renommage des labels de stats (cohérence métier)**
+- ✅ "Stock 15°C" renommé en "≈ Stock @15°C" dans les cartes statistiques
+- ✅ Cohérence avec la règle métier : ambiant-first, 15°C comme valeur secondaire analytique
+
+#### **✅ Résultats**
+
+- ✅ **Alignement correct** : Les totaux apparaissent sous les bonnes colonnes dans les deux tableaux (desktop + compact)
+- ✅ **Cohérence visuelle** : Labels alignés avec la règle métier ambiant-first
+- ✅ **Aucune régression** : Aucun changement des providers/queries, seulement la construction de la ligne TOTAL
+
+#### **🔍 Fichiers modifiés**
+
+- `lib/features/stocks_journaliers/screens/stocks_list_screen.dart` :
+  - Correction de `_buildTotalRowFromSnapshot()` (ligne ~1152)
+  - Correction de `_buildTotalRow()` (ligne ~1208)
+  - Renommage dans `_buildStatsHeaderFromSnapshot()` et `_buildStatsHeader()`
+
+---
+
+### 🔧 **CONFORMITÉ – Dashboard – Règle métier Stock ambiant = vérité opérationnelle (13/12/2025)**
+
+#### **🎯 Objectif**
+Mettre tout le dashboard en conformité avec la règle métier officielle : "Stock ambiant = source de vérité opérationnelle, 15°C = valeur dérivée secondaire".
+
+#### **📝 Modifications principales**
+
+**1. Carte "Réceptions du jour"**
+- ✅ `primaryValue` : `volumeAmbient` (au lieu de `volume15c`)
+- ✅ `primaryLabel` : 'Volume ambiant' (au lieu de 'Volume 15°C')
+- ✅ `subRightLabel` : '≈ Volume 15°C' (au lieu de 'Volume ambiant')
+- ✅ `subRightValue` : `volume15c` (valeur dérivée, analytique)
+- ✅ Commentaire garde-fou ajouté
+
+**2. Carte "Sorties du jour"**
+- ✅ `primaryValue` : `volumeAmbient` (au lieu de `volume15c`)
+- ✅ `primaryLabel` : 'Volume ambiant' (au lieu de 'Volume 15°C')
+- ✅ `subRightLabel` : '≈ Volume 15°C' (au lieu de 'Volume ambiant')
+- ✅ `subRightValue` : `volume15c` (valeur dérivée, analytique)
+- ✅ Commentaire garde-fou ajouté
+
+**3. Carte "Balance du jour"**
+- ✅ `primaryValue` : `deltaAmbient` (au lieu de `delta15c`)
+- ✅ `primaryLabel` : 'Δ Volume ambiant' (au lieu de 'Δ Volume 15°C')
+- ✅ `subLeftLabel` : '≈ Δ Volume 15°C' (valeur dérivée, analytique)
+- ✅ `subLeftValue` : `delta15c`
+- ✅ Calcul du delta ambiant : `receptionsAmbient - sortiesAmbient`
+- ✅ Commentaire garde-fou ajouté
+
+**4. Carte "Stock total"**
+- ✅ `primaryValue` : `totalAmbient` (au lieu de `total15c`)
+- ✅ `primaryLabel` : 'Volume ambiant' (au lieu de 'Volume 15°C')
+- ✅ `subLeftLabel` : '≈ Volume 15°C' (valeur dérivée, analytique)
+- ✅ `subLeftValue` : `total15c`
+- ✅ Commentaire garde-fou ajouté (référence au référentiel)
+
+**5. Section "Détail par propriétaire"**
+- ✅ Ordre d'affichage : "Vol ambiant" avant "≈ Vol @15°C"
+- ✅ Paramètres de `_buildOwnerDetailColumn` inversés : `volumeAmbient` avant `volume15c`
+- ✅ Commentaire garde-fou ajouté dans la méthode
+
+**6. Carte "Stock par propriétaire" (`OwnerStockBreakdownCard`)**
+- ✅ Volume 15°C rendu visuellement secondaire : `bodyMedium` avec `fontWeight.w500` et couleur secondaire
+- ✅ Label 15°C : '≈ 15°C' (au lieu de '15°C')
+- ✅ Volume ambiant reste prioritaire : `titleMedium` avec `fontWeight.w700`
+
+#### **✅ Résultats**
+
+- ✅ **Conformité totale** : Toutes les cartes du dashboard respectent la hiérarchie ambiant/15°C
+- ✅ **Hiérarchie visuelle** : Stock ambiant toujours affiché en premier (valeur primaire)
+- ✅ **Préfixe "≈"** : Toutes les valeurs 15°C sont préfixées pour indiquer qu'elles sont dérivées
+- ✅ **Commentaires garde-fou** : Rappels de la règle métier ajoutés dans le code
+- ✅ **Aucune régression** : Aucun changement de providers, navigation ou clés de test
+
+#### **🔍 Fichiers modifiés**
+
+- `lib/features/dashboard/widgets/role_dashboard.dart` :
+  - Cartes Réceptions, Sorties, Balance, Stock total (inversion hiérarchie)
+  - Section "Détail par propriétaire" (ordre d'affichage)
+  - Commentaires garde-fou ajoutés
+
+- `lib/features/stocks/widgets/stocks_kpi_cards.dart` :
+  - `OwnerStockBreakdownCard._buildOwnerRow()` (rendre 15°C visuellement secondaire)
+
+#### **📖 Références**
+
+- **Règle métier officielle** : `docs/db/REGLE_METIER_STOCKS_AMBIANT_15C.md`
+- **Audit DB** : `docs/db/AUDIT_STOCKS_AMBIANT_15C_VERROUILLAGE.md`
+
+---
+
+### 🔒 **AUDIT & VERROUILLAGE DB – Stocks Ambiant vs 15°C – Conformité 100% (13/12/2025)**
+
+#### **🎯 Objectif**
+Audit complet de la base de données de production pour vérifier la conformité avec la règle métier officielle : le stock ambiant est la seule source de vérité opérationnelle.
+
+#### **📝 Vérifications réalisées**
+
+**1. Réceptions (`receptions`)**
+- ✅ Aucune réception validée sans `volume_ambiant`
+- ✅ Garde-fou ajouté : `receptions_ambiant_required_if_valid` (CHECK constraint)
+
+**2. Sorties (`sorties_produit`)**
+- ✅ Aucune sortie validée sans `volume_ambiant`
+- ✅ Garde-fou ajouté : `sorties_ambiant_required_if_valid` (CHECK constraint)
+
+**3. Stocks journaliers (`stocks_journaliers`)**
+- ✅ Aucun doublon structurel détecté
+- ✅ Contrainte UNIQUE confirmée : `(citerne_id, produit_id, date_jour, proprietaire_type)`
+
+**4. Fonction `validate_sortie()`**
+- ✅ Décision opérationnelle basée exclusivement sur `stock_ambiant`
+- ✅ Correction appliquée : suppression de l'assimilation implicite 15°C = ambiant
+- ✅ Stock 15°C géré explicitement (pas d'implicite)
+
+#### **✅ Résultats**
+
+- ✅ Base de données conforme à 100% à la règle métier officielle
+- ✅ Garde-fous DB non contournables en place
+- ✅ Intégrité structurelle confirmée
+- ✅ Aucune décision terrain basée sur le stock à 15°C
+
+#### **📖 Documentation complète**
+Voir `docs/db/AUDIT_STOCKS_AMBIANT_15C_VERROUILLAGE.md`
+
+---
+
+### 📚 **DOCS – Référentiel officiel – Règle métier Stocks Ambiant vs 15°C (13/12/2025)**
+
+- ✅ Création de `docs/db/REGLE_METIER_STOCKS_AMBIANT_15C.md` : référentiel officiel pour la gestion des stocks
+- ✅ Documentation complète des règles métier formelles :
+  - Principe fondamental : stock ambiant = source de vérité opérationnelle
+  - Règles de calcul et d'agrégation
+  - Règles d'affichage (UX contractuelle)
+  - Interdictions explicites
+  - Checklist de conformité pour développeurs et tests
+- ✅ Référentiel à utiliser pour toutes les décisions de développement et d'affichage des stocks
+
+---
+
+### 📚 **DOCS – Ajout documentation incident BUG-2025-12 stocks KPI propriétaire unification (13/12/2025)**
+
+- ✅ Création de `docs/incidents/BUG-2025-12-stocks-kpi-proprietaire-unification.md` : rapport complet du correctif
+- ✅ Documentation complète : contexte, diagnostic global (dualité de sources), correctifs DB et App, validation fonctionnelle
+- ✅ Règles de prévention : un KPI = une source unique, pas de logique métier dans l'UI, utiliser des providers family
+
+---
+
+### 🔧 **CORRECTION – Dashboard "Détail par propriétaire" – Unification source de données (13/12/2025)**
+
+#### **🎯 Objectif**
+Unifier la source de données pour la section "Détail par propriétaire" (sous "Stock total") avec celle utilisée par la carte "Stock par propriétaire" (`OwnerStockBreakdownCard`), afin d'éliminer l'incohérence où PARTENAIRE affichait 0.0 L à tort.
+
+**📖 Documentation complète** : Voir `docs/incidents/BUG-2025-12-stocks-kpi-proprietaire-unification.md`
+
+#### **📝 Problème identifié**
+
+**Cause racine** : La section "Détail par propriétaire" utilisait `kpiStockByOwnerProvider` tandis que la carte "Stock par propriétaire" utilisait `depotStocksSnapshotProvider` → `snapshot.owners`. Cette divergence de sources créait une incohérence dans l'affichage, notamment pour PARTENAIRE qui affichait 0.0 L alors que la carte affichait correctement les valeurs.
+
+**Symptômes** :
+- Après création d'une réception PARTENAIRE, la section "Détail par propriétaire" affichait PARTENAIRE = 0.0 L
+- La carte "Stock par propriétaire" affichait correctement les valeurs PARTENAIRE
+- Incohérence visuelle entre les deux sections du dashboard
+
+#### **📝 Modifications principales**
+
+**1. Remplacement du provider dans `role_dashboard.dart`**
+- ✅ Remplacement de `kpiStockByOwnerProvider` par `depotStocksSnapshotProvider`
+- ✅ Utilisation de `DepotStocksSnapshotParams` avec `depotId` et `dateJour: null` pour obtenir les données les plus récentes
+- ✅ Ajout d'un commentaire explicatif : "Source unifiée = snapshot.owners pour éviter divergence UI"
+
+**2. Adaptation du bloc `.when()`**
+- ✅ Utilisation directe de `snapshot.owners` (déjà filtré par `depotId` par le provider)
+- ✅ Suppression du filtrage manuel par `depotId` (plus nécessaire)
+- ✅ Gestion du cas `snapshotAsync == null` avec `SizedBox.shrink()`
+
+**3. Comportement préservé**
+- ✅ La carte "Stock total" reste inchangée (valeurs globales non modifiées)
+- ✅ Aucun impact sur la DB / repository / service
+- ✅ Aucune régression sur les tests existants
+
+#### **✅ Résultats**
+
+- ✅ **Cohérence** : La section "Détail par propriétaire" affiche maintenant les mêmes valeurs que la carte "Stock par propriétaire"
+- ✅ **PARTENAIRE correct** : Après création d'une réception PARTENAIRE, les volumes s'affichent correctement dans les deux sections
+- ✅ **Source unifiée** : Les deux sections utilisent maintenant `depotStocksSnapshotProvider` → `snapshot.owners`
+- ✅ **Aucune régression** : Tous les tests existants passent
+
+#### **🔍 Fichiers modifiés**
+
+- `lib/features/dashboard/widgets/role_dashboard.dart` :
+  - Lignes 191-202 : Remplacement de `kpiStockByOwnerProvider` par `depotStocksSnapshotProvider`
+  - Lignes 228-332 : Adaptation du bloc `.when()` pour utiliser `snapshot.owners` directement
+
+---
+
+### 📚 **DOCS – Ajout documentation incident BUG-2025-12 dashboard camions volume formatting (13/12/2025)**
+
+- ✅ Création de `docs/incidents/BUG-2025-12-dashboard-camions-volume-formatting.md` : rapport complet du bug
+- ✅ Documentation complète : contexte, chaîne technique, cause racine (arrondi incorrect par division), correctif (formatage avec séparateurs de milliers) et validation
+- ✅ Règles de prévention : ne jamais diviser pour formater, cohérence du formatage entre widgets, tester les cas limites
+
+---
+
+### 🔧 **CORRECTION – Dashboard KPI "Camions à suivre" – Formatage volume incorrect (13/12/2025)**
+
+#### **🎯 Objectif**
+Corriger le bug où le KPI "Camions à suivre" affichait des volumes arrondis incorrectement (ex: 2 500 L affiché comme 3 000 L) à cause d'une fonction de formatage qui divisait par 1000 puis arrondissait.
+
+#### **📝 Problème identifié**
+
+**Cause racine** : La fonction `_formatVolume()` utilisait `(volume / 1000).toStringAsFixed(0)` pour formater les volumes avec séparateurs de milliers. Cette approche causait un arrondi incorrect :
+- `2500 / 1000 = 2.5` → `toStringAsFixed(0)` = `3` → Affiché : `3 000 L` ❌
+- `1500 / 1000 = 1.5` → `toStringAsFixed(0)` = `2` → Affiché : `2 000 L` ❌
+
+**Symptômes** :
+- Après création d'un cours de route de 2 500 L, le KPI affiche **3 000 L** au lieu de **2 500 L**
+- Tous les volumes entre 1 000 L et 1 999 L sont arrondis à 2 000 L
+- Tous les volumes entre 2 000 L et 2 999 L sont arrondis à 3 000 L
+- Les données en base sont correctes (le problème est purement UI)
+
+#### **📝 Modifications principales**
+
+**1. Correction de `trucks_to_follow_card.dart`**
+- ✅ Remplacement de la logique de division/arrondi par un formatage avec séparateurs de milliers
+- ✅ Utilisation de `replaceAllMapped` avec regex pour insérer des espaces tous les 3 chiffres
+- ✅ Gestion défensive des cas `NaN` et `Infinite`
+
+**2. Correction de `area_chart.dart`**
+- ✅ Application de la même logique de formatage pour cohérence entre carte et graphique
+- ✅ Même fonction `_formatVolume()` corrigée
+
+**3. Comportement préservé**
+- ✅ Le dashboard continue de fonctionner normalement
+- ✅ Aucun impact sur les données ou la logique métier
+- ✅ Aucune régression sur les tests existants
+
+#### **✅ Résultats**
+
+- ✅ **Formatage correct** : Les volumes affichent maintenant les valeurs exactes sans arrondi
+  - 2 500 L → **2 500 L** ✅ (au lieu de 3 000 L)
+  - 1 500 L → **1 500 L** ✅ (au lieu de 2 000 L)
+  - 10 000 L → **10 000 L** ✅
+- ✅ **Cohérence** : La carte et le graphique utilisent la même logique de formatage
+- ✅ **Aucune régression** : Tous les tests existants passent
+- ✅ **Scénario validé** : Créer cours de route 2 500 L → Dashboard affiche **2 500 L** correctement
+
+#### **🔍 Fichiers modifiés**
+
+- `lib/features/dashboard/widgets/trucks_to_follow_card.dart` :
+  - Fonction `_formatVolume()` (lignes 344-355) : Remplacement de la division/arrondi par formatage avec séparateurs de milliers
+
+- `lib/features/dashboard/admin/widgets/area_chart.dart` :
+  - Fonction `_formatVolume()` (lignes 9-20) : Même correction pour cohérence
+
+---
+
+### 📚 **DOCS – Ajout documentation incident BUG-2025-12 dashboard stock refresh après sortie (12/12/2025)**
+
+- ✅ Création de `docs/incidents/BUG-2025-12-dashboard-stock-refresh-after-sortie.md` : rapport complet du bug
+- ✅ Documentation complète : contexte, chaîne technique, cause racine (invalidation incomplète de providers family), correctif (helper centralisé) et validation
+- ✅ Règles de prévention : invalider toute la chaîne de providers dépendants, centraliser la logique d'invalidation, toujours invalider les providers family
+
+---
+
+### 🔧 **CORRECTION – Dashboard Stock total – Refresh après création sortie (12/12/2025)**
+
+#### **🎯 Objectif**
+Corriger le problème où le "Stock total" du dashboard ne se rafraîchissait pas après création d'une sortie, nécessitant un redémarrage complet de l'application pour voir les données à jour.
+
+#### **📝 Problème identifié**
+
+**Cause racine** : Après création d'une sortie, seul `kpiProviderProvider` était invalidé, mais **pas** `stocksDashboardKpisProvider(depotId)`. Ce provider étant un `FutureProvider.family` avec cache, il conservait les anciennes données. Quand `kpiProviderProvider` se reconstruisait, il récupérait les données en cache de `stocksDashboardKpisProvider(depotId)`, affichant ainsi un stock incorrect.
+
+**Symptômes** :
+- Après création d'une sortie (ex: 1 000 L), retour sur dashboard → "Stock total" reste à l'ancienne valeur (ex: 9 915.5 L au lieu de 8 915.5 L)
+- Seul un redémarrage complet de l'app forçait le rechargement des données
+- Les données en base étaient correctes (la sortie était bien enregistrée, les stocks journaliers étaient à jour)
+
+#### **📝 Modifications principales**
+
+**1. Création d'un helper centralisé (`lib/shared/refresh/refresh_helpers.dart`)**
+- ✅ Fonction `invalidateDashboardKpisAfterStockMovement()` qui invalide toute la chaîne :
+  - `kpiProviderProvider` (snapshot global)
+  - `stocksDashboardKpisProvider(depotId)` si `depotId` est fourni, sinon toute la family
+- ✅ Helper réutilisable pour tous les mouvements de stock (sorties, réceptions)
+- ✅ Utilisation de `WidgetRef` pour compatibilité avec les widgets Flutter
+
+**2. Utilisation du helper dans `sortie_form_screen.dart`**
+- ✅ Remplacement de `triggerKpiRefresh(ref)` par `invalidateDashboardKpisAfterStockMovement(ref, depotId: depotId)`
+- ✅ Récupération du `depotId` depuis `profilProvider` avant l'invalidation
+- ✅ Suppression des imports inutilisés (`stocks_kpi_providers.dart`, `kpi_provider.dart`) déplacés dans le helper
+
+**3. Comportement préservé**
+- ✅ Le dashboard continue de fonctionner normalement
+- ✅ Aucun impact sur les autres modules
+- ✅ Aucune régression sur les tests existants
+
+#### **✅ Résultats**
+
+- ✅ **Refresh automatique fonctionnel** : Après création d'une sortie, retour sur dashboard → "Stock total" se met à jour immédiatement **sans redémarrage**
+- ✅ **Helper centralisé** : Logique d'invalidation réutilisable pour les réceptions également
+- ✅ **Aucune régression** : Tous les tests existants passent
+- ✅ **Scénario validé** : Dashboard (9 915.5 L) → Sorties (créer 1 000 L) → Dashboard (8 915.5 L) sans redémarrage
+
+#### **🔍 Fichiers modifiés**
+
+- `lib/shared/refresh/refresh_helpers.dart` (nouveau) :
+  - Fonction `invalidateDashboardKpisAfterStockMovement()` pour invalider toute la chaîne KPI/Stocks
+
+- `lib/features/sorties/screens/sortie_form_screen.dart` :
+  - Import du helper `refresh_helpers.dart`
+  - Remplacement de `triggerKpiRefresh(ref)` par `invalidateDashboardKpisAfterStockMovement(ref, depotId: depotId)`
+  - Suppression des imports inutilisés
+
+---
+
+### 📚 **DOCS – Ajout documentation incident BUG-2025-12 dashboard KPI refresh (12/12/2025)**
+
+- ✅ Création de `docs/incidents/BUG-2025-12-dashboard-kpi-refresh.md` : rapport complet du bug
+- ✅ Documentation complète : contexte, chaîne technique, cause racine (provider autoDispose avec cache), correctif et validation
+- ✅ Règles de prévention : invalider tous les providers dépendants, auto-refresh sur retour navigation
+
+---
+
+### 🔧 **CORRECTION – Dashboard KPI – Refresh manuel et auto-refresh (12/12/2025)**
+
+#### **🎯 Objectif**
+Corriger le problème où les KPIs du dashboard restaient stale après création de sortie/réception, en ajoutant l'invalidation de `kpiProviderProvider` au bouton refresh et un auto-refresh lors du retour sur la route dashboard.
+
+#### **📝 Problème identifié**
+
+**Cause racine** : `kpiProviderProvider` est un `FutureProvider.autoDispose` qui peut réutiliser des données en cache au retour sur la route. Le bouton refresh n'invalidait que `refDataProvider` (référentiels) mais pas `kpiProviderProvider`, et aucun mécanisme d'auto-refresh n'existait lors du retour sur la route dashboard.
+
+**Symptômes** :
+- Après création d'une sortie (ex: 1 000 L), retour sur dashboard → "Stock total" reste à l'ancienne valeur (ex: 9 915.5 L au lieu de 8 915.5 L)
+- Le bouton refresh ne mettait pas à jour les KPIs
+- Seul un redémarrage complet de l'app forçait le rechargement des données
+
+#### **📝 Modifications principales**
+
+**1. Correction du bouton refresh (`dashboard_shell.dart`)**
+- ✅ Ajout de `ref.invalidate(kpiProviderProvider)` au handler du bouton refresh (ligne ~167)
+- ✅ Invalidation simultanée de `refDataProvider` (référentiels) et `kpiProviderProvider` (KPIs)
+- ✅ Ajout d'un log de debug pour tracer les refreshs manuels
+
+**2. Auto-refresh sur retour navigation (`role_dashboard.dart`)**
+- ✅ Conversion de `RoleDashboard` de `ConsumerWidget` en `ConsumerStatefulWidget`
+- ✅ Implémentation de `didChangeDependencies()` pour détecter le retour sur la route dashboard
+- ✅ Utilisation de `ModalRoute.of(context)?.isCurrent` et `GoRouterState.of(context).uri` pour détecter la navigation
+- ✅ Guard avec variable locale `_previousLocation` pour éviter les invalidations répétées
+- ✅ Invalidation uniquement si on revient sur dashboard depuis une autre route (pas de boucle infinie)
+
+**3. Comportement préservé**
+- ✅ Le dashboard continue de fonctionner normalement
+- ✅ Aucun impact sur les autres modules
+- ✅ Performance préservée (pas de polling, pas de timers)
+
+#### **✅ Résultats**
+
+- ✅ **Refresh manuel fonctionnel** : Le bouton refresh met maintenant à jour tous les KPIs
+- ✅ **Auto-refresh opérationnel** : Retour sur dashboard après navigation → KPIs automatiquement rafraîchis
+- ✅ **Pas de boucle infinie** : Guard avec `_previousLocation` empêche les invalidations répétées
+- ✅ **Aucune régression** : Tous les tests existants passent
+- ✅ **Scénario validé** : Dashboard (9 915.5 L) → Sorties (créer 1 000 L) → Dashboard (8 915.5 L) sans redémarrage
+
+#### **🔍 Fichiers modifiés**
+
+- `lib/features/dashboard/widgets/dashboard_shell.dart` :
+  - Ajout de `ref.invalidate(kpiProviderProvider)` au bouton refresh
+  - Ajout d'un log de debug
+
+- `lib/features/dashboard/widgets/role_dashboard.dart` :
+  - Conversion en `ConsumerStatefulWidget`
+  - Implémentation de `didChangeDependencies()` avec détection de retour sur route
+  - Guard avec `_previousLocation` pour éviter les boucles
+
+---
+
+### 📚 **DOCS – Ajout documentation incident BUG-2025-12 citernes provider loop (12/12/2025)**
+
+- ✅ Création de `docs/incidents/BUG-2025-12-citernes-provider-loop.md` : rapport complet du bug
+- ✅ Documentation complète : contexte, chaîne technique, cause racine (antipattern Riverpod), correctif et validation
+- ✅ Règles de prévention : utilisation de `.future` dans les providers async, éviter `ref.watch()` sur AsyncValue
+
+---
+
+### 🔧 **CORRECTION – Module Citernes – Boucle infinie provider (12/12/2025)**
+
+#### **🎯 Objectif**
+Corriger la boucle infinie dans `citerneStocksSnapshotProvider` causée par l'utilisation de `ref.watch()` sur un `FutureProvider` retournant un `AsyncValue` dans une fonction async.
+
+#### **📝 Problème identifié**
+
+**Cause racine** : `citerneStocksSnapshotProvider` (fonction async) utilisait `ref.watch(depotStocksSnapshotProvider(...))` qui retourne un `AsyncValue`. Chaque changement d'état (loading → data) invalidait le provider parent, créant une boucle infinie de rebuilds.
+
+**Symptômes** :
+- Logs répétés en boucle "🔄 depotStocksSnapshotProvider: Début ..." dans la console web
+- Interface ralentie voire bloquée sur le module Citernes
+- Problème principalement visible sur web (Chrome)
+
+#### **📝 Modifications principales**
+
+**1. Remplacement de `ref.watch()` par `await ref.watch(...).future`**
+- ✅ Ligne 112-119 : `ref.watch(...)` → `await ref.watch(...).future`
+- ✅ Retourne directement un `DepotStocksSnapshot` au lieu d'un `AsyncValue`
+- ✅ Évite les invalidations en cascade lors des changements d'état
+
+**2. Simplification du code**
+- ✅ Suppression de toutes les vérifications `hasValue` et `requireValue` (lignes 123-128, 187-189, 193)
+- ✅ Accès direct aux propriétés de `snapshot` (totals, owners, isFallback, citerneRows)
+- ✅ Code plus lisible et maintenable
+
+**3. Comportement préservé**
+- ✅ Les citernes continuent d'afficher correctement le stock depuis `depotStocksSnapshotProvider`
+- ✅ Aucun changement fonctionnel, seule la gestion des providers est corrigée
+
+#### **✅ Résultats**
+
+- ✅ **Boucle infinie supprimée** : Plus de logs répétés en boucle dans la console web
+- ✅ **Performance restaurée** : Le module Citernes s'affiche normalement sans ralentissement
+- ✅ **Aucune régression** : Tous les tests existants passent
+- ✅ **Aucun impact sur les autres modules** : Seul le provider Citernes est affecté
+
+#### **🔍 Fichiers modifiés**
+
+- `lib/features/citernes/providers/citerne_providers.dart` :
+  - Modification de `citerneStocksSnapshotProvider` : `ref.watch()` → `await ref.watch(...).future`
+  - Suppression des vérifications `hasValue/requireValue`
+  - Accès direct aux propriétés du snapshot
+
+---
+
+### 📚 **DOCS – Ajout documentation incident BUG-2025-12 dashboard stock total (12/12/2025)**
+
+- ✅ Création de `docs/incidents/_TEMPLATE.md` : template standard pour documenter les incidents
+- ✅ Création de `docs/incidents/BUG-2025-12-dashboard-stock-total.md` : rapport complet du bug
+- ✅ Documentation complète : contexte, chaîne technique, cause racine, correctif et validation
+- ✅ Règles de prévention pour éviter les problèmes similaires (ORDER BY, filtres date)
+
+---
+
+### 🔧 **CORRECTION – Dashboard KPI "Stock total" – Affichage 0.0 L (12/12/2025)**
+
+#### **🎯 Objectif**
+Corriger le bug où la carte "Stock total" sur le dashboard affichait 0.0 L alors que la vue SQL `v_kpi_stock_global` contenait des valeurs correctes (ex: 9 915.5 L @15°C).
+
+#### **📝 Problème identifié**
+
+**Cause racine** : `StocksKpiRepository.fetchDepotProductTotals()` ne forçait pas un ordre déterminé ni la sélection de la date la plus récente lorsque `dateJour` était `null` (cas d'usage du dashboard). L'UI consommait donc une ligne arbitraire au lieu de la plus récente.
+
+**Symptômes** :
+- Dashboard "Stock total" : affichait 0.0 L même après une réception validée
+- Vue SQL `v_kpi_stock_global` : contenait bien les valeurs correctes (9 915.5 L @15°C pour 2025-12-12)
+- Autres modules (Réceptions, Stocks journaliers, Citernes) : affichaient correctement les données
+
+#### **📝 Modifications principales**
+
+**1. Correction du filtre date dans `fetchDepotProductTotals()`**
+- ✅ Remplacement de `eq('date_jour', ...)` par `lte('date_jour', ...)` lorsque `dateJour` est fourni
+- ✅ Permet de récupérer la dernière ligne disponible ≤ à la date demandée (au lieu d'une égalité stricte)
+
+**2. Ajout d'un ordre déterminé**
+- ✅ Ajout de `query.order('date_jour', ascending: false)` avant l'exécution de la requête
+- ✅ Garantit que la première ligne retournée est toujours la plus récente (date décroissante)
+- ✅ Comportement déterministe : le dashboard consomme toujours le snapshot le plus récent
+
+**3. Comportement préservé**
+- ✅ Filtres `depotId` et `produitId` inchangés
+- ✅ Mapping `DepotGlobalStockKpi.fromMap()` inchangé
+- ✅ Compatibilité maintenue pour les callers qui passent `dateJour` (comportement amélioré mais non-cassant)
+
+#### **✅ Résultats**
+
+- ✅ **Dashboard "Stock total"** : Affiche maintenant correctement 9 915.5 L @15°C au lieu de 0.0 L
+- ✅ **Comportement déterministe** : La requête retourne toujours la ligne la plus récente en premier
+- ✅ **Aucune régression** : Tous les tests existants passent (25/25 tests)
+- ✅ **Aucun impact sur les autres modules** : Seul le dashboard KPI est affecté par cette correction
+
+#### **🔍 Fichiers modifiés**
+
+- `lib/data/repositories/stocks_kpi_repository.dart` :
+  - Modification de `fetchDepotProductTotals()` : filtre `eq` → `lte` pour `dateJour`
+  - Ajout de `query.order('date_jour', ascending: false)` pour ordre déterminé
+  - Mise à jour du commentaire de documentation
+
+---
+
 ### ✨ **NOUVEAU – Module Réceptions – Écran de Détail (12/12/2025)**
 
 #### **🎯 Objectif**

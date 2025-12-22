@@ -192,8 +192,8 @@ class SortieService {
 
       // Construire le payload avec les champs optionnels
       final payload = {
-        'citerne_id': citerneId,
-        'produit_id': produitId,
+      'citerne_id': citerneId,
+      'produit_id': produitId,
         'client_id': clientId.trim(),
         'partenaire_id': null,
         'index_avant': indexAvant,
@@ -205,26 +205,26 @@ class SortieService {
         'proprietaire_type': 'MONALUXE',
         'statut': 'validee',
         if (dateSortie != null) 'date_sortie': dateSortie.toUtc().toIso8601String(),
-        if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
-        if (chauffeurNom != null && chauffeurNom.trim().isNotEmpty) 'chauffeur_nom': chauffeurNom.trim(),
-        if (plaqueCamion != null && plaqueCamion.trim().isNotEmpty) 'plaque_camion': plaqueCamion.trim(),
-        if (plaqueRemorque != null && plaqueRemorque.trim().isNotEmpty) 'plaque_remorque': plaqueRemorque.trim(),
-        if (transporteur != null && transporteur.trim().isNotEmpty) 'transporteur': transporteur.trim(),
+      if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
+      if (chauffeurNom != null && chauffeurNom.trim().isNotEmpty) 'chauffeur_nom': chauffeurNom.trim(),
+      if (plaqueCamion != null && plaqueCamion.trim().isNotEmpty) 'plaque_camion': plaqueCamion.trim(),
+      if (plaqueRemorque != null && plaqueRemorque.trim().isNotEmpty) 'plaque_remorque': plaqueRemorque.trim(),
+      if (transporteur != null && transporteur.trim().isNotEmpty) 'transporteur': transporteur.trim(),
       };
 
       log('[SortieService] INSERT sortie MONALUXE (via createValidated)');
-      log('[SortieService] payload=$payload');
+    log('[SortieService] payload=$payload');
 
-      try {
+    try {
         await client
-            .from('sorties_produit')
-            .insert(payload)
-            .select('id')
-            .single();
-        
+          .from('sorties_produit')
+          .insert(payload)
+          .select('id')
+          .single();
+
         log('[SortieService] OK - Sortie MONALUXE créée');
-      } on PostgrestException catch (e, st) {
-        log('[SortieService][PostgrestException] message=${e.message}', stackTrace: st);
+    } on PostgrestException catch (e, st) {
+      log('[SortieService][PostgrestException] message=${e.message}', stackTrace: st);
         log('[SortieService] code=${e.code} hint=${e.hint}');
         
         final userMessage = _mapErrorToUserMessage(e.message);
@@ -280,9 +280,9 @@ class SortieService {
         
         final userMessage = _mapErrorToUserMessage(e.message);
         throw SortieServiceException(userMessage, code: e.code, hint: e.hint);
-      } catch (e, st) {
-        log('[SortieService][Unknown] $e', stackTrace: st);
-        rethrow;
+    } catch (e, st) {
+      log('[SortieService][Unknown] $e', stackTrace: st);
+      rethrow;
       }
     } else {
       throw SortieServiceException(

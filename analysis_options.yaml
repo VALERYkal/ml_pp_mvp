@@ -2,10 +2,14 @@ include: package:flutter_lints/flutter.yaml
 
 analyzer:
   exclude:
-    - _attic/**
-    - test/features/receptions/**
-    - test/features/sorties/**
-    - test/integration/receptions_*.dart
-    - test/integration/sorties_*.dart
-    - test/depots_repository_test.dart
-    - test/integration/auth/auth_integration_test.dart
+    - "_attic/**"
+    - "test_legacy/**"
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+  errors:
+    # Faux positif connu : @JsonKey sur paramètres de factory Freezed est valide
+    # Freezed transforme ces paramètres en getters dans le code généré
+    invalid_annotation_target: ignore
+
+linter:
+  rules: {}

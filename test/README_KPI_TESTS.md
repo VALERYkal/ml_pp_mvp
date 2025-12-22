@@ -11,7 +11,6 @@ Cette suite de tests couvre le nouveau système KPI unifié implémenté dans la
 - ✅ `KpiStocks` - Stocks avec capacité et ratio d'utilisation
 - ✅ `KpiBalanceToday` - Balance du jour (réceptions - sorties)
 - ✅ `KpiCiterneAlerte` - Alertes de citernes sous seuil
-- ✅ `KpiTrendPoint` - Points de tendance sur 7 jours
 - ✅ `KpiSnapshot` - Snapshot complet de tous les KPIs
 
 ### 2. **Tests du provider unifié** (`test/features/kpi/providers/kpi_provider_test.dart`)

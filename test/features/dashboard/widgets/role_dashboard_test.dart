@@ -113,18 +113,6 @@ void main() {
           sortiesAmbient: 1900.0,
         ),
         trucksToFollow: KpiTrucksToFollow.zero,
-        trend7d: [
-          KpiTrendPoint(
-            day: DateTime(2025, 9, 10),
-            receptions15c: 2000.0,
-            sorties15c: 1500.0,
-          ),
-          KpiTrendPoint(
-            day: DateTime(2025, 9, 11),
-            receptions15c: 2200.0,
-            sorties15c: 1600.0,
-          ),
-        ],
       );
 
       final container = ProviderContainer(
@@ -187,7 +175,6 @@ void main() {
           sortiesAmbient: 850.0,
         ),
         trucksToFollow: KpiTrucksToFollow.zero,
-        trend7d: [],
       );
 
       final container = ProviderContainer(
@@ -249,7 +236,6 @@ void main() {
           sortiesAmbient: 1250.0,
         ),
         trucksToFollow: KpiTrucksToFollow.zero,
-        trend7d: [],
       );
 
       final container = ProviderContainer(

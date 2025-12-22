@@ -6,6 +6,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 abstract class DbPort {
   Future<Map<String, dynamic>> insertReception(Map<String, dynamic> payload);
+  // DB-STRICT: rpcValidateReception est uniquement pour les tests legacy.
+  // Dans le code actif, les réceptions sont créées directement validées via INSERT.
+  // Cette méthode ne doit pas être utilisée dans le code de production.
+  @Deprecated('DB-STRICT: Utiliser uniquement pour tests legacy. Les réceptions sont créées directement validées.')
   Future<void> rpcValidateReception(String receptionId);
   // Référentiels pour tests (produits, citernes) — renvoyés en brut:
   Future<List<Map<String, dynamic>>> selectProduitsActifs();
@@ -24,6 +28,7 @@ class SupabaseDbPort implements DbPort {
   }
 
   @override
+  @Deprecated('DB-STRICT: Utiliser uniquement pour tests legacy. Les réceptions sont créées directement validées.')
   Future<void> rpcValidateReception(String receptionId) async {
     await client.rpc('validate_reception', params: {'p_reception_id': receptionId});
   }

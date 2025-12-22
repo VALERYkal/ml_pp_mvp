@@ -14,11 +14,9 @@ final receptionServiceProvider = Riverpod.Provider<ReceptionService>((ref) {
   );
 });
 
-final createReceptionProvider = Riverpod.FutureProvider.family<String, ReceptionInput>((ref, input) async {
-  final service = ref.read(receptionServiceProvider);
-  final id = await service.createDraft(input);
-  return id;
-});
+// DB-STRICT: createReceptionProvider supprimé.
+// Utiliser directement receptionServiceProvider.createValidated() dans les écrans.
+// Exemple: ref.read(receptionServiceProvider).createValidated(...)
 
 /// Référentiels en ligne (MVP)
 final produitsListProvider = Riverpod.FutureProvider<List<Map<String, String>>>((ref) async {

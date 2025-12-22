@@ -37,7 +37,6 @@ void main() {
         stocks: KpiStocks.zero,
         balanceToday: KpiBalanceToday.zero,
         trucksToFollow: KpiTrucksToFollow.zero,
-        trend7d: const [],
       );
 
       // 2. Créer un profil fake pour éviter les erreurs de profilProvider
@@ -146,7 +145,6 @@ void main() {
         stocks: KpiStocks.zero,
         balanceToday: KpiBalanceToday.zero,
         trucksToFollow: KpiTrucksToFollow.zero,
-        trend7d: const [],
       );
 
       // 2. Créer un profil fake

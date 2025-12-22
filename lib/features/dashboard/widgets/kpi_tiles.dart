@@ -460,18 +460,3 @@ class StockTotalTile extends ConsumerWidget {
   }
 }
 
-// Tendance 7 jours — net (réceptions - sorties) en primary
-class Trend7dTile extends ConsumerWidget {
-  const Trend7dTile({super.key});
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final sumIn = ref.watch(kpiTrend7dProvider.select((t) => t.sumReceptions15c7d ?? 0.0));
-    final sumOut = ref.watch(kpiTrend7dProvider.select((t) => t.sumSorties15c7d ?? 0.0));
-    final net = sumIn - sumOut;
-    return KpiCard(
-      title: 'Tendance 7 jours',
-      value: net,
-      icon: Icons.trending_up_rounded,
-    );
-  }
-}

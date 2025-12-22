@@ -74,7 +74,6 @@ void main() {
               sortiesAmbient: 1300.0,
             ),
             trucksToFollow: KpiTrucksToFollow.zero,
-            trend7d: [],
           );
 
       return ProviderContainer(

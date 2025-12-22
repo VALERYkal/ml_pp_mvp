@@ -292,12 +292,7 @@ final kpiProviderProvider = FutureProvider.autoDispose<KpiSnapshot>((ref) async 
     final depotId = profil?.depotId; // null => global si rôle le permet
     final supa = Supabase.instance.client;
     
-    // 2) Calcul des dates pour les requêtes
-    final now = DateTime.now().toUtc();
-    final today = DateTime.utc(now.year, now.month, now.day);
-    final from7d = today.subtract(const Duration(days: 6));
-    
-    // 3) Requêtes parallèles pour optimiser les performances
+    // 2) Requêtes parallèles pour optimiser les performances
     // Utiliser les nouveaux providers pour les réceptions et sorties (retournent KpiReceptions et KpiSorties)
     final receptionsKpi = await ref.watch(receptionsKpiTodayProvider.future);
     print('🔍 KPI DEBUG: receptionsKpiToday OK: ${receptionsKpi.toString()}');
@@ -311,16 +306,8 @@ final kpiProviderProvider = FutureProvider.autoDispose<KpiSnapshot>((ref) async 
     print('🔍 KPI DEBUG: stocksDashboardKpis OK: ${stocksKpis.toString()}');
     final stocks = _computeStocksDataFromKpis(stocksKpis);
     
-    final futures = await Future.wait([
-      _fetchTrucksToFollow(supa, depotId),
-      _fetchTrend7d(supa, depotId, from7d, today),
-    ]);
-
-    final trucks = futures[0] as KpiTrucksToFollow;
+    final trucks = await _fetchTrucksToFollow(supa, depotId);
     print('🔍 KPI DEBUG: trucksToFollow OK: ${trucks.toString()}');
-    
-    final trend7d = futures[1] as List<KpiTrendPoint>;
-    print('🔍 KPI DEBUG: trend7Days OK: ${trend7d.toString()}');
     
     print('🔍 KPI DEBUG: Tous les KPI sont chargés correctement.');
   
@@ -360,7 +347,6 @@ final kpiProviderProvider = FutureProvider.autoDispose<KpiSnapshot>((ref) async 
       stocks: stocksKpi,
       balanceToday: balance,
       trucksToFollow: trucks,
-      trend7d: trend7d,
     );
   } catch (e, stack) {
     print('❌ KPI ERROR: $e');
@@ -500,26 +486,6 @@ Future<KpiTrucksToFollow> _fetchTrucksToFollow(
   );
 }
 
-/// Récupère les tendances sur 7 jours
-Future<List<KpiTrendPoint>> _fetchTrend7d(
-  SupabaseClient supa,
-  String? depotId,
-  DateTime from7d,
-  DateTime today,
-) async {
-  // TODO: Implémenter la logique réelle des tendances 7 jours
-  // Pour l'instant, retourner des données de test pour éviter les erreurs
-  final points = <KpiTrendPoint>[];
-  for (int i = 0; i < 7; i++) {
-    final day = from7d.add(Duration(days: i));
-    points.add(KpiTrendPoint(
-      day: day,
-      receptions15c: 1000.0 + (i * 100), // Données de test
-      sorties15c: 800.0 + (i * 50),     // Données de test
-    ));
-  }
-  return points;
-}
 
 /// Helper safe pour charger les KPI stocks en mode dégradé
 /// 

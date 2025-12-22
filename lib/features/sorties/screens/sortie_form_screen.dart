@@ -22,6 +22,8 @@ import 'package:ml_pp_mvp/features/sorties/data/sortie_service.dart';
 import 'package:ml_pp_mvp/features/sorties/providers/sorties_table_provider.dart';
 import 'package:ml_pp_mvp/features/sorties/kpi/sorties_kpi_provider.dart';
 import 'package:ml_pp_mvp/features/stocks_journaliers/providers/stocks_providers.dart';
+import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart';
+import 'package:ml_pp_mvp/shared/refresh/refresh_helpers.dart';
 
 enum OwnerType { monaluxe, partenaire }
 
@@ -248,6 +250,13 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
         note: ctrlNote.text.isEmpty ? null : ctrlNote.text.trim(),
         dateSortie: _selectedDate,
       );
+      // Invalidation KPI après enregistrement réussi
+      final profil = ref.read(profilProvider).valueOrNull;
+      final depotId = profil?.depotId;
+      invalidateDashboardKpisAfterStockMovement(ref, depotId: depotId);
+      debugPrint(
+        '🔄 KPI Refresh: invalidate dashboard KPI/Stocks after sortie validated',
+      );
 
       if (mounted) {
         // Toast utilisateur simple
@@ -264,14 +273,14 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
         );
 
         // Invalidate impacted providers
-        try {
-          ref.invalidate(sortiesListProvider);
+      try {
+        ref.invalidate(sortiesListProvider);
           ref.invalidate(sortiesTableProvider);
           ref.invalidate(sortiesKpiTodayProvider);
         } catch (_) {}
         try {
-          ref.invalidate(stocksListProvider);
-        } catch (_) {}
+        ref.invalidate(stocksListProvider);
+      } catch (_) {}
         context.go('/sorties');
       }
     } on SortieValidationException catch (e) {
@@ -393,45 +402,45 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
           : Form(
               key: _formKey,
               child: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
+        padding: const EdgeInsets.all(16),
+        children: [
                   // Contexte
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                           const Text('Contexte'),
-                          const SizedBox(height: 8),
+                  const SizedBox(height: 8),
                           Wrap(
                             spacing: 12,
                             children: [
-                              ChoiceChip(
-                                label: const Text('MONALUXE'),
-                                selected: _owner == OwnerType.monaluxe,
+                    ChoiceChip(
+                      label: const Text('MONALUXE'),
+                      selected: _owner == OwnerType.monaluxe,
                                 onSelected: (_) =>
                                     _onOwnerChange(OwnerType.monaluxe),
-                              ),
-                              ChoiceChip(
-                                label: const Text('PARTENAIRE'),
-                                selected: _owner == OwnerType.partenaire,
+                    ),
+                    ChoiceChip(
+                      label: const Text('PARTENAIRE'),
+                      selected: _owner == OwnerType.partenaire,
                                 onSelected: (_) =>
                                     _onOwnerChange(OwnerType.partenaire),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 12),
+                  const SizedBox(height: 12),
                           if (_owner == OwnerType.monaluxe) ...[
                             const Text('Client *'),
-                            const SizedBox(height: 8),
+                  const SizedBox(height: 8),
                             ref
                                 .watch(clientsListProvider)
                                 .when(
-                                  data: (list) => DropdownButton<String>(
-                                    isExpanded: true,
+                      data: (list) => DropdownButton<String>(
+                        isExpanded: true,
                                     value: clientId,
-                                    hint: const Text('Sélectionner un client'),
+                        hint: const Text('Sélectionner un client'),
                                     items: list
                                         .map<DropdownMenuItem<String>>(
                                           (c) => DropdownMenuItem(
@@ -461,8 +470,8 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
                             ref
                                 .watch(partenairesListProvider)
                                 .when(
-                                  data: (list) => DropdownButton<String>(
-                                    isExpanded: true,
+                      data: (list) => DropdownButton<String>(
+                        isExpanded: true,
                                     value: partenaireId,
                                     hint: const Text(
                                       'Sélectionner un partenaire',
@@ -696,11 +705,11 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
     double? dens,
   ) {
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
             const Text('Mesures & Calculs'),
             const SizedBox(height: 8),
             Row(
@@ -753,7 +762,7 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
               ],
             ),
             Row(
-              children: [
+                        children: [
                 Expanded(
                   child: TextFormField(
                     controller: ctrlTemp,
@@ -823,11 +832,11 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
 
   Widget _buildLogistiqueCard() {
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
             const Text('Logistique'),
             const SizedBox(height: 8),
             TextField(
@@ -839,7 +848,7 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
             const SizedBox(height: 8),
             Row(
               children: [
-                Expanded(
+                    Expanded(
                   child: TextField(
                     controller: ctrlPlaqueCamion,
                     decoration: const InputDecoration(
@@ -848,7 +857,7 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                Expanded(
+                    Expanded(
                   child: TextField(
                     controller: ctrlPlaqueRemorque,
                     decoration: const InputDecoration(
