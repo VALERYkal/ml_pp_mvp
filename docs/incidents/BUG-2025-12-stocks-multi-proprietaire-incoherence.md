@@ -65,7 +65,9 @@ Le stock total affiché (ex : 7 500 L) était inférieur à la somme :
 
 ## Observations DB
 
-### Vue SQL problématique : `v_stocks_citerne_global`
+### Vue SQL problématique : `v_stocks_citerne_global` (legacy)
+
+> **Note** : Cette vue est legacy conservée en DB, l'app n'y touche plus. La vue canonique Flutter est maintenant `v_stocks_citerne_global_daily`.
 
 **Logique incorrecte (avant correction)** :
 
@@ -192,14 +194,17 @@ ORDER BY proprietaire_type, date_jour DESC;
 - dashboard
 
 **Ce correctif a été appliqué sur** :
-- `v_stocks_citerne_global`
+- `v_stocks_citerne_global` (legacy, conservée en DB)
+- `v_stocks_citerne_global_daily` (canonique Flutter, corrigée également)
 - Vues dérivées KPI et dashboard
 
 ---
 
 ## Correctif appliqué
 
-### Vue SQL corrigée : `v_stocks_citerne_global`
+### Vue SQL corrigée : `v_stocks_citerne_global` (legacy) et `v_stocks_citerne_global_daily` (canonique)
+
+> **Note** : L'app Flutter utilise désormais `v_stocks_citerne_global_daily` comme vue canonique. `v_stocks_citerne_global` est legacy conservée en DB, l'app n'y touche plus.
 
 **Code APRÈS correction** (logique conceptuelle) :
 
@@ -448,7 +453,7 @@ WITH last_date_per_owner AS (
 ## Références
 
 - **Règle métier officielle** : `docs/db/REGLE_METIER_STOCKS_AMBIANT_15C.md`
-- **Vue SQL** : `v_stocks_citerne_global` (migration Supabase)
+- **Vue SQL** : `v_stocks_citerne_global_daily` (canonique Flutter), `v_stocks_citerne_global` (legacy conservée en DB, l'app n'y touche plus)
 - **Module Citernes** : `lib/features/citernes/screens/citerne_list_screen.dart`
 - **Module Stocks** : `lib/features/stocks_journaliers/screens/stocks_list_screen.dart`
 - **Dashboard** : `lib/features/dashboard/widgets/role_dashboard.dart`

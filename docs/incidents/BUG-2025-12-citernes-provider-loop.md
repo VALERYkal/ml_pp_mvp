@@ -90,7 +90,7 @@ UI → Providers → Service → Repository → SQL
 | **Provider dépendant** | `lib/features/stocks/data/stocks_kpi_providers.dart` | `depotStocksSnapshotProvider` (ligne 185) |
 | **Service** | `lib/features/stocks/data/stocks_kpi_service.dart` | `StocksKpiService.loadDashboardKpis()` |
 | **Repository** | `lib/data/repositories/stocks_kpi_repository.dart` | `StocksKpiRepository.fetchDepotProductTotals()` |
-| **Source SQL** | Vue SQL | `v_stocks_citerne_global` |
+| **Source SQL** | Vue SQL | `v_stocks_citerne_global_daily` (canonique Flutter) |
 
 **Chaîne d'invalidation** :
 ```
@@ -139,7 +139,7 @@ Le provider `citerneStocksSnapshotProvider` est un `FutureProvider.autoDispose` 
 
 **Avant** :
 ```dart
-// 4) Récupérer les stocks depuis depotStocksSnapshotProvider (v_stocks_citerne_global)
+// 4) Récupérer les stocks depuis depotStocksSnapshotProvider (v_stocks_citerne_global_daily, vue canonique)
 final snapshotAsync = ref.watch(
   depotStocksSnapshotProvider(
     DepotStocksSnapshotParams(
