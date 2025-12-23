@@ -760,7 +760,7 @@ class CiterneListScreen extends ConsumerWidget {
   }
 
   /// Construit une carte de citerne à partir d'un snapshot KPI
-  /// Utilise CiterneGlobalStockSnapshot (données agrégées de v_stocks_citerne_global)
+  /// Utilise CiterneGlobalStockSnapshot (données agrégées de v_stocks_citerne_global_daily)
   Widget _buildCiterneCardFromSnapshot(
     BuildContext context,
     CiterneGlobalStockSnapshot citerne,

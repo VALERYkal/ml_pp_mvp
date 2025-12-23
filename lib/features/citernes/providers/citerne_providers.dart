@@ -53,7 +53,7 @@ final stockActuelProvider = Riverpod.FutureProvider.family<Map<String, double>, 
 });
 
 /// Provider pour récupérer les snapshots de stock agrégés pour les citernes
-/// Utilise la même source de données que le dashboard et le module Stocks (v_stocks_citerne_global)
+/// Utilise la même source de données que le dashboard et le module Stocks (v_stocks_citerne_global_daily)
 /// MAIS inclut aussi les citernes vides (sans stock) pour un affichage complet
 final citerneStocksSnapshotProvider = Riverpod.FutureProvider.autoDispose<DepotStocksSnapshot>((ref) async {
   // 1) Récupérer le depotId depuis le profil
@@ -162,7 +162,7 @@ final citerneStocksSnapshotProvider = Riverpod.FutureProvider.autoDispose<DepotS
       final stockRow = stockByKey[key];
       
       if (stockRow != null) {
-        // Citerne avec stock : utiliser les données de v_stocks_citerne_global
+        // Citerne avec stock : utiliser les données de v_stocks_citerne_global_daily
         citerneRows.add(stockRow);
       } else {
         // Citerne sans stock : créer un snapshot avec des valeurs à zéro

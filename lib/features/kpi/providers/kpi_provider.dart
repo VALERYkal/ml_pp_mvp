@@ -372,29 +372,33 @@ class _StocksData {
   });
 }
 
-/// Calcule les totaux de stock depuis le nouveau provider agrégé (Phase 3.4)
+/// Calcule les totaux de stock depuis le nouveau provider agrégé
 /// 
-/// Utilise stocksDashboardKpisProvider pour obtenir les données de stock
-/// et calcule les totaux depuis kpis.citerneGlobal.
+/// Utilise stocksDashboardKpisProvider pour obtenir les données de stock.
+/// Source de vérité : kpis.globalByDepotProduct (agrégé par la DB via v_kpi_stock_global).
 /// 
-/// Les capacités sont maintenant incluses directement dans CiterneGlobalStockSnapshot.capaciteTotale.
+/// Pour la capacité totale, on somme depuis citerneGlobal (détail technique, pas un calcul métier).
 _StocksData _computeStocksDataFromKpis(
   StocksDashboardKpis kpis,
 ) {
-  print('🔍 DEBUG KPI: Calcul des stocks depuis le provider agrégé');
+  print('🔍 DEBUG KPI: Calcul des stocks depuis globalByDepotProduct (source DB)');
   
-  // Calculer les totaux depuis kpis.citerneGlobal
+  // Utiliser globalByDepotProduct directement (agrégé par la DB, source de vérité)
   double totalAmbient = 0.0;
   double total15c = 0.0;
-  double capacityTotal = 0.0;
   
+  for (final global in kpis.globalByDepotProduct) {
+    totalAmbient += global.stockAmbiantTotal;
+    total15c += global.stock15cTotal;
+  }
+  
+  // Capacité totale : somme des citernes (détail technique, pas un calcul métier de stock)
+  double capacityTotal = 0.0;
   for (final snapshot in kpis.citerneGlobal) {
-    totalAmbient += snapshot.stockAmbiantTotal;
-    total15c += snapshot.stock15cTotal;
     capacityTotal += snapshot.capaciteTotale;
   }
   
-  print('🔍 DEBUG KPI: Totaux depuis citerneGlobal - totalAmbient=$totalAmbient, total15c=$total15c, capacityTotal=$capacityTotal');
+  print('🔍 DEBUG KPI: Totaux depuis globalByDepotProduct - totalAmbient=$totalAmbient, total15c=$total15c, capacityTotal=$capacityTotal');
   
   return _StocksData(
     totalAmbient: totalAmbient,

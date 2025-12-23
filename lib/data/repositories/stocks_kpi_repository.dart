@@ -143,7 +143,7 @@ class CiterneOwnerStockSnapshot {
 /// Snapshot global par citerne & produit (tous propriétaires confondus).
 ///
 /// Source SQL attendue :
-///   v_stocks_citerne_global
+///   v_stocks_citerne_global_daily
 /// Colonnes utilisées :
 ///   - citerne_id
 ///   - citerne_nom
@@ -152,7 +152,8 @@ class CiterneOwnerStockSnapshot {
 ///   - date_jour
 ///   - stock_ambiant_total
 ///   - stock_15c_total
-///   - capacite_totale (Phase 3.4)
+///   - capacite_totale
+///   - capacite_securite
 class CiterneGlobalStockSnapshot {
   final String citerneId;
   final String citerneNom;
@@ -177,17 +178,12 @@ class CiterneGlobalStockSnapshot {
   });
 
   factory CiterneGlobalStockSnapshot.fromMap(Map<String, dynamic> map) {
-    // La vue SQL expose 'date_dernier_mouvement' (ou peut être null si pas de mouvement)
-    // On utilise DateTime.now() comme fallback si la date est absente
-    final dateStr = map['date_dernier_mouvement'] as String?;
-    final dateJour = dateStr != null ? DateTime.parse(dateStr) : DateTime.now();
-
     return CiterneGlobalStockSnapshot(
       citerneId: map['citerne_id'] as String,
       citerneNom: map['citerne_nom'] as String,
       produitId: map['produit_id'] as String,
       produitNom: map['produit_nom'] as String,
-      dateJour: dateJour,
+      dateJour: DateTime.parse(map['date_jour'] as String),
       stockAmbiantTotal: _toDouble(map['stock_ambiant_total']),
       stock15cTotal: _toDouble(map['stock_15c_total']),
       capaciteTotale: _toDouble(map['capacite_totale']),
@@ -214,6 +210,85 @@ class StocksKpiRepository {
       date.month,
       date.day,
     ).toIso8601String().split('T').first;
+  }
+
+  /// Filtre les rows pour ne garder que celles avec le date_jour le plus récent.
+  /// 
+  /// Précondition : rows doit être trié par date_jour DESC.
+  /// Si rows est vide, retourne une liste vide.
+  /// 
+  /// Garde-fous :
+  /// - Vérifie en debug que le tri DESC est respecté (anti-régression)
+  /// - Gère explicitement le cas où date_jour est null avec warnings appropriés
+  /// - En debug, log un warning si plusieurs dates distinctes étaient présentes
+  List<Map<String, dynamic>> _filterToLatestDate(
+    List<Map<String, dynamic>> rows, {
+    DateTime? dateJour,
+  }) {
+    if (rows.isEmpty) return [];
+    
+    // Garde-fou 1 : Vérifier en debug que le tri DESC est respecté
+    if (kDebugMode && rows.length > 1) {
+      final sampleSize = rows.length > 20 ? 20 : rows.length;
+      final dates = rows
+          .take(sampleSize)
+          .map((r) => r['date_jour'] as String?)
+          .whereType<String>()
+          .toList();
+      
+      if (dates.length > 1) {
+        final sortedDesc = List<String>.from(dates)..sort((a, b) => b.compareTo(a));
+        if (dates.join(',') != sortedDesc.join(',')) {
+          debugPrint(
+            '⚠️ StocksKpiRepository._filterToLatestDate: Tri DESC non respecté sur les $sampleSize premières lignes. '
+            'Dates: ${dates.take(5).join(", ")}'
+          );
+        }
+      }
+    }
+    
+    final firstDate = rows.first['date_jour'] as String?;
+    
+    // Garde-fou 2 : Gestion explicite du cas date_jour null
+    if (firstDate == null) {
+      if (dateJour == null) {
+        // Cas normal : pas de date_jour demandé, pas de date_jour dans les données
+        if (kDebugMode) {
+          debugPrint(
+            '⚠️ StocksKpiRepository._filterToLatestDate: date_jour absent des données (dateJour non fourni, comportement normal)'
+          );
+        }
+        return rows;
+      } else {
+        // Cas anormal : date_jour demandé mais absent des données
+        debugPrint(
+          '⚠️ StocksKpiRepository._filterToLatestDate: date_jour missing, cannot enforce snapshot day. '
+          'dateJour demandé: ${_formatYmd(dateJour)}, mais aucune ligne n\'a date_jour. '
+          'Retour de toutes les lignes sans filtrage (risque de sur-compte).'
+        );
+        return rows;
+      }
+    }
+    
+    // En debug : vérifier s'il y avait plusieurs dates distinctes
+    if (kDebugMode) {
+      final distinctDates = rows
+          .map((r) => r['date_jour'] as String?)
+          .whereType<String>()
+          .toSet()
+          .toList()
+        ..sort((a, b) => b.compareTo(a)); // Trier DESC pour log cohérent
+      
+      if (distinctDates.length > 1) {
+        debugPrint(
+          '⚠️ StocksKpiRepository._filterToLatestDate: Plusieurs dates distinctes détectées avant filtrage '
+          '(dates: ${distinctDates.join(", ")}) - filtrage à la date la plus récente: $firstDate'
+        );
+      }
+    }
+    
+    // Filtrer pour ne garder que la date la plus récente
+    return rows.where((r) => r['date_jour'] == firstDate).toList();
   }
 
   /// Retourne les totaux globaux par dépôt & produit.
@@ -252,7 +327,7 @@ class StocksKpiRepository {
   /// Retourne les totaux par dépôt, propriétaire & produit.
   ///
   /// Utilisé pour le breakdown MONALUXE vs PARTENAIRE.
-  /// Si [dateJour] est fourni, on filtre sur cette date.
+  /// Si [dateJour] est fourni, on filtre sur cette date (<= dateJour pour prendre la dernière disponible).
   Future<List<DepotOwnerStockKpi>> fetchDepotOwnerTotals({
     String? depotId,
     String? produitId,
@@ -272,19 +347,30 @@ class StocksKpiRepository {
     if (proprietaireType != null) {
       query.eq('proprietaire_type', proprietaireType);
     }
+    // If a date is provided, pick the latest row <= that date.
     if (dateJour != null) {
-      query.eq('date_jour', _formatYmd(dateJour));
+      query.lte('date_jour', _formatYmd(dateJour));
     }
 
+    // Deterministic: latest date first (dashboard consumes newest snapshot)
+    query.order('date_jour', ascending: false);
+
     final rows = await query;
-    final list = rows as List<Map<String, dynamic>>;
-    return list.map(DepotOwnerStockKpi.fromMap).toList();
+    // Cast sûr : rows peut être List<dynamic> avec items Map<String, dynamic>
+    final list = (rows as List).cast<Map<String, dynamic>>();
+    
+    // Si dateJour est fourni, filtrer pour ne garder que la date la plus récente
+    final filteredList = (dateJour != null && list.isNotEmpty)
+        ? _filterToLatestDate(list, dateJour: dateJour)
+        : list;
+    
+    return filteredList.map(DepotOwnerStockKpi.fromMap).toList();
   }
 
   /// Retourne le snapshot par citerne, propriétaire & produit.
   ///
   /// Permet d'alimenter les cartes "TANK1 Monaluxe / Partenaire", etc.
-  /// Si [dateJour] est fourni, on filtre sur cette date.
+  /// Si [dateJour] est fourni, on filtre sur cette date (<= dateJour pour prendre la dernière disponible).
   Future<List<CiterneOwnerStockSnapshot>> fetchCiterneOwnerSnapshots({
     String? depotId,
     String? citerneId,
@@ -308,17 +394,29 @@ class StocksKpiRepository {
     if (proprietaireType != null) {
       query.eq('proprietaire_type', proprietaireType);
     }
+    // If a date is provided, pick the latest row <= that date.
     if (dateJour != null) {
-      query.eq('date_jour', _formatYmd(dateJour));
+      query.lte('date_jour', _formatYmd(dateJour));
     }
 
+    // Deterministic: latest date first (dashboard consumes newest snapshot)
+    query.order('date_jour', ascending: false);
+
     final rows = await query;
-    final list = rows as List<Map<String, dynamic>>;
-    return list.map(CiterneOwnerStockSnapshot.fromMap).toList();
+    // Cast sûr : rows peut être List<dynamic> avec items Map<String, dynamic>
+    final list = (rows as List).cast<Map<String, dynamic>>();
+    
+    // Si dateJour est fourni, filtrer pour ne garder que la date la plus récente
+    final filteredList = (dateJour != null && list.isNotEmpty)
+        ? _filterToLatestDate(list, dateJour: dateJour)
+        : list;
+    
+    return filteredList.map(CiterneOwnerStockSnapshot.fromMap).toList();
   }
 
   /// Retourne le snapshot global par citerne & produit (tous propriétaires confondus).
-  /// Si [dateJour] est fourni, on filtre sur cette date.
+  /// Si [dateJour] est fourni, on prend le dernier snapshot dont date_jour <= dateJour
+  /// (et on garantit une seule date_jour via _filterToLatestDate).
   Future<List<CiterneGlobalStockSnapshot>> fetchCiterneGlobalSnapshots({
     String? depotId,
     String? citerneId,
@@ -326,7 +424,7 @@ class StocksKpiRepository {
     DateTime? dateJour,
   }) async {
     final query = _client
-        .from('v_stocks_citerne_global')
+        .from('v_stocks_citerne_global_daily') // ✅ nouvelle vue "daily"
         .select<List<Map<String, dynamic>>>();
 
     if (depotId != null) {
@@ -338,27 +436,25 @@ class StocksKpiRepository {
     if (produitId != null) {
       query.eq('produit_id', produitId);
     }
-    // IMPORTANT : Pas de filtre dateJour car la vue v_stocks_citerne_global
-    // expose date_dernier_mouvement (MAX des dates), pas date_jour.
-    // Le filtre date ne fonctionne pas et retourne des données partielles.
-    // On récupère toujours le dernier snapshot disponible par citerne, comme le dashboard.
-    // Le paramètre dateJour est conservé pour compatibilité API mais n'est plus utilisé.
+
+    if (dateJour != null) {
+      query.lte('date_jour', _formatYmd(dateJour));
+    }
+
+    // Deterministic: latest date first
+    query.order('date_jour', ascending: false);
 
     final rows = await query;
-    final list = rows as List<Map<String, dynamic>>;
-    
-    // Log de diagnostic pour comprendre ce que retourne la vue
-    debugPrint('🔍 fetchCiterneGlobalSnapshots: ${list.length} lignes retournées');
-    for (final row in list.take(5)) {
-      debugPrint(
-        '  📊 Raw SQL: citerne_id=${row['citerne_id']}, '
-        'stock_ambiant_total=${row['stock_ambiant_total']}, '
-        'stock_15c_total=${row['stock_15c_total']}, '
-        'date_dernier_mouvement=${row['date_dernier_mouvement']}',
-      );
-    }
-    
-    return list.map(CiterneGlobalStockSnapshot.fromMap).toList();
+
+    // Cast sûr
+    final list = (rows as List).cast<Map<String, dynamic>>();
+
+    // Si dateJour est fourni, filtrer pour ne garder que la date la plus récente
+    final filteredList = (dateJour != null && list.isNotEmpty)
+        ? _filterToLatestDate(list, dateJour: dateJour)
+        : list;
+
+    return filteredList.map(CiterneGlobalStockSnapshot.fromMap).toList();
   }
 
   /// Récupère la capacité totale d'un dépôt (somme de toutes les citernes actives)
