@@ -48,7 +48,8 @@ Phase 2 doit garantir que :
 1. **Valider officiellement que la base de travail pour l'app est** :
    - `v_mouvements_stock` = historique des mouvements (pour audits / analyse)
    - `stocks_journaliers` = base persistée jour par jour
-   - `v_stocks_citerne_global` = vue principale de stock instantané par citerne / produit / propriétaire + total
+   - `v_stocks_citerne_global_daily` = vue principale de stock quotidien par citerne / produit / propriétaire + total (canonique pour Flutter)
+   - `v_stocks_citerne_global` = legacy conservée en DB, l'app n'y touche plus
 
 2. **Si besoin, créer une vue supplémentaire dédiée KPIs**, par exemple :
    - `v_kpi_stock_depot` (agrégation par dépôt / produit / propriétaire)
@@ -288,7 +289,7 @@ Phase 2 doit garantir que :
 
 ## ✅ Résumé Phase 2 en une phrase
 
-**Phase 2 = tout brancher (UI + KPI) sur la même "vérité stock" basée sur `stocks_journaliers` et `v_stocks_citerne_global`, via un service unique dans Flutter.**
+**Phase 2 = tout brancher (UI + KPI) sur la même "vérité stock" basée sur `stocks_journaliers` et `v_stocks_citerne_global_daily` (vue canonique), via un service unique dans Flutter. Note : `v_stocks_citerne_global` est legacy conservée en DB, l'app n'y touche plus.**
 
 ---
 

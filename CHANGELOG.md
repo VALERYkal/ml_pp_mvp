@@ -4,6 +4,56 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 
 ## [Unreleased]
 
+### 🔧 **FIX – KPI Stocks – Garantir un seul date_jour par requête (23/12/2025)**
+
+#### **🎯 Objectif**
+Garantir que `fetchDepotOwnerTotals` et `fetchCiterneOwnerSnapshots` retournent uniquement les données pour un seul `date_jour` (le plus récent ≤ dateJour fourni), évitant ainsi l'addition silencieuse de données de plusieurs jours.
+
+#### **✅ Changements majeurs**
+
+**Helper privé `_filterToLatestDate`**
+- ✅ Nouvelle méthode privée pour filtrer les lignes à la date la plus récente
+- ✅ Garde-fou anti-régression : vérification en debug que le tri DESC est respecté
+- ✅ Gestion explicite du cas `date_jour == null` avec warnings appropriés selon contexte
+- ✅ Logging debug avec dates triées pour détecter les cas multi-dates
+
+**Modifications `fetchDepotOwnerTotals`**
+- ✅ Cast sûr de `rows` : `(rows as List).cast<Map<String, dynamic>>()` pour éviter crashes runtime
+- ✅ Filtrage post-requête pour ne garder que le `date_jour` le plus récent quand `dateJour` est fourni
+- ✅ Appel à `_filterToLatestDate` avec paramètre `dateJour` pour gestion appropriée des warnings
+
+**Modifications `fetchCiterneOwnerSnapshots`**
+- ✅ Cast sûr de `rows` : `(rows as List).cast<Map<String, dynamic>>()` pour éviter crashes runtime
+- ✅ Filtrage post-requête pour ne garder que le `date_jour` le plus récent quand `dateJour` est fourni
+- ✅ Appel à `_filterToLatestDate` avec paramètre `dateJour` pour gestion appropriée des warnings
+
+#### **📋 Comportement**
+
+**Quand `dateJour` est fourni :**
+- La requête SQL filtre avec `lte('date_jour', dateJour)` et trie par `date_jour DESC`
+- Le helper `_filterToLatestDate` filtre post-requête pour ne garder que les lignes avec le `date_jour` de la première ligne (la plus récente)
+- Résultat garanti : toutes les lignes ont le même `date_jour` (le plus récent ≤ dateJour)
+
+**Quand `dateJour` est `null` :**
+- Aucun filtrage par date, toutes les lignes sont retournées (comportement inchangé)
+
+#### **🛡️ Garde-fous**
+
+- **Vérification tri DESC** : En debug, vérifie que les premières lignes sont bien triées DESC (anti-régression si `order(...)` est retiré)
+- **Gestion `date_jour == null`** : Warnings explicites selon que `dateJour` est fourni ou non
+- **Logging debug** : Warning si plusieurs dates distinctes détectées avant filtrage (avec liste des dates triées DESC)
+- **Cast sûr** : Utilisation de `(rows as List).cast<Map<String, dynamic>>()` pour éviter les crashes avec `List<dynamic>`
+
+#### **✅ Rétrocompatibilité**
+- ✅ Aucun changement de signature publique
+- ✅ Comportement inchangé quand `dateJour` est `null`
+- ✅ Les tests existants continuent de passer
+
+#### **📝 Fichiers modifiés**
+- `lib/data/repositories/stocks_kpi_repository.dart`
+
+---
+
 ### 🔒 **DB-STRICT Hardening Sorties (19/12/2025)**
 
 #### **🎯 Objectif**

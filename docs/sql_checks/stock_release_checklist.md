@@ -32,17 +32,19 @@ FROM public.stocks_journaliers;
 
 ---
 
-## 1️⃣ TEST A — v_stocks_citerne_global = somme des "courants owner"
+## 1️⃣ TEST A — v_stocks_citerne_global_daily = somme des "courants owner"
 
-**Objectif** : Vérifier que la vue `v_stocks_citerne_global` agrège correctement les stocks de tous les propriétaires (MONALUXE + PARTENAIRE) pour chaque citerne.
+**Objectif** : Vérifier que la vue `v_stocks_citerne_global_daily` (vue canonique Flutter) agrège correctement les stocks de tous les propriétaires (MONALUXE + PARTENAIRE) pour chaque citerne.
 
 **✅ Résultat attendu** : **0 lignes**
 
 **Explication** :
 - Calcule le stock courant de chaque propriétaire (dernière date par propriétaire)
 - Somme les stocks de tous les propriétaires par citerne/produit
-- Compare avec `v_stocks_citerne_global`
+- Compare avec `v_stocks_citerne_global_daily`
 - Si des différences existent, elles sont retournées
+
+> **Note** : `v_stocks_citerne_global` est legacy conservée en DB, l'app n'y touche plus. Ce test vérifie la vue canonique `v_stocks_citerne_global_daily`.
 
 ```sql
 WITH owner_current AS (
@@ -78,7 +80,7 @@ SELECT
   os.amb_sum,
   g.stock_15c_total,
   os.v15_sum
-FROM public.v_stocks_citerne_global g
+FROM public.v_stocks_citerne_global_daily g
 JOIN owner_sum os
   ON os.citerne_id = g.citerne_id
  AND os.produit_id = g.produit_id
@@ -89,7 +91,7 @@ WHERE
 ```
 
 **Si des lignes sont retournées** :
-- ❌ La vue `v_stocks_citerne_global` n'agrège pas correctement les stocks multi-propriétaires
+- ❌ La vue `v_stocks_citerne_global_daily` n'agrège pas correctement les stocks multi-propriétaires
 - ❌ Vérifier la logique de la vue (dernière date par propriétaire vs dernière date globale)
 - ❌ Voir : `docs/incidents/BUG-2025-12-stocks-multi-proprietaire-incoherence.md`
 
@@ -127,7 +129,7 @@ HAVING COUNT(*) > 1;
 
 ## 3️⃣ TEST C — KPI dépôt = somme des citernes (même vérité)
 
-**Objectif** : Vérifier la cohérence entre la vue KPI au niveau dépôt (`v_kpi_stock_depot`) et la somme des citernes (`v_stocks_citerne_global`).
+**Objectif** : Vérifier la cohérence entre la vue KPI au niveau dépôt (`v_kpi_stock_depot`) et la somme des citernes (`v_stocks_citerne_global_daily`, vue canonique Flutter).
 
 **✅ Résultat attendu** : **0 lignes**
 
@@ -143,7 +145,7 @@ WITH sum_citernes AS (
     produit_id,
     SUM(stock_ambiant_total) AS amb_total,
     SUM(stock_15c_total)     AS v15_total
-  FROM public.v_stocks_citerne_global
+  FROM public.v_stocks_citerne_global_daily
   GROUP BY 1,2
 ),
 depot_kpi AS (
@@ -178,14 +180,16 @@ WHERE
 
 ## 4️⃣ TEST D — Dashboard legacy (v_citerne_stock_actuel) aligné avec la vue canonique
 
-**Objectif** : Vérifier que la vue legacy `v_citerne_stock_actuel` (si encore utilisée) est alignée avec la vue canonique `v_stocks_citerne_global`.
+**Objectif** : Vérifier que la vue legacy `v_citerne_stock_actuel` (si encore utilisée) est alignée avec la vue canonique `v_stocks_citerne_global_daily`.
 
 **✅ Résultat attendu** : **0 lignes**
 
 **Explication** :
-- Si `v_citerne_stock_actuel` est encore utilisée, elle doit refléter les mêmes données que `v_stocks_citerne_global`
+- Si `v_citerne_stock_actuel` est encore utilisée, elle doit refléter les mêmes données que `v_stocks_citerne_global_daily` (vue canonique Flutter)
 - Évite les incohérences entre différents modules utilisant des vues différentes
 - Si des différences existent, il faut migrer vers la vue canonique
+
+> **Note** : `v_stocks_citerne_global` est legacy conservée en DB, l'app n'y touche plus. La vue canonique est `v_stocks_citerne_global_daily`.
 
 ```sql
 SELECT *
@@ -198,7 +202,7 @@ FROM (
 JOIN (
   SELECT citerne_id, produit_id,
          stock_ambiant_total amb2, stock_15c_total v152
-  FROM public.v_stocks_citerne_global
+  FROM public.v_stocks_citerne_global_daily
 ) b USING (citerne_id, produit_id)
 WHERE a.amb1 IS DISTINCT FROM b.amb2
    OR a.v151 IS DISTINCT FROM b.v152;
@@ -207,7 +211,7 @@ WHERE a.amb1 IS DISTINCT FROM b.amb2
 **Si des lignes sont retournées** :
 - ❌ Les deux vues ne reflètent pas la même réalité
 - ❌ Vérifier la logique de `v_citerne_stock_actuel`
-- ❌ Migrer les modules utilisant `v_citerne_stock_actuel` vers `v_stocks_citerne_global`
+- ❌ Migrer les modules utilisant `v_citerne_stock_actuel` vers `v_stocks_citerne_global_daily`
 
 ---
 
@@ -268,7 +272,7 @@ Une fois tous les tests verts :
 - **Règle métier officielle** : `docs/db/REGLE_METIER_STOCKS_AMBIANT_15C.md`
 - **Audit DB** : `docs/db/AUDIT_STOCKS_AMBIANT_15C_VERROUILLAGE.md`
 - **Bug multi-propriétaire** : `docs/incidents/BUG-2025-12-stocks-multi-proprietaire-incoherence.md`
-- **Vues SQL** : `v_stocks_citerne_global`, `v_kpi_stock_depot`, `v_citerne_stock_actuel`
+- **Vues SQL** : `v_stocks_citerne_global_daily` (canonique Flutter), `v_kpi_stock_depot`, `v_citerne_stock_actuel`, `v_stocks_citerne_global` (legacy conservée en DB, l'app n'y touche plus)
 - **Table stocks_journaliers** : Schéma Supabase
 
 ---
