@@ -49,7 +49,7 @@ final kpiProviderProvider = FutureProvider.autoDispose<KpiSnapshot>((ref) async 
     _fetchSortiesOfDay(supa, depotId, today),
     _fetchStocksActuels(supa, depotId),
     _fetchCiternesSousSeuil(supa, depotId),
-    _fetchTrend7d(supa, depotId, from7d, today),
+    // Note: Trend 7 jours supprimé du dashboard (déprécié). Si nécessaire, à déplacer dans /analytics/trends (Post-MVP)
   ]);
   
   return KpiSnapshot(/* données unifiées */);
@@ -65,7 +65,7 @@ class KpiSnapshot {
   final KpiStocks stocks;
   final KpiBalanceToday balanceToday;
   final List<KpiCiterneAlerte> citernesSousSeuil;
-  final List<KpiTrendPoint> trend7d;
+  // Note: trend7d supprimé (déprécié). Remplacé par "Stock par propriétaire" (MONALUXE / PARTENAIRE)
 }
 ```
 
@@ -87,9 +87,9 @@ class RoleDashboard extends ConsumerWidget {
         ModernKpiCard(title: 'Réceptions du jour', ...),
         ModernKpiCard(title: 'Sorties du jour', ...),
         ModernKpiCard(title: 'Stock total (15°C)', ...),
+        ModernKpiCard(title: 'Stock par propriétaire', ...), // Remplace "Tendance 7 jours" (MONALUXE / PARTENAIRE)
         ModernKpiCard(title: 'Balance du jour', ...),
         ModernKpiCard(title: 'Citernes sous seuil', ...),
-        ModernKpiCard(title: 'Tendance 7 jours', ...),
       ]),
     );
   }
@@ -147,11 +147,13 @@ class DashboardAdminScreen extends StatelessWidget {
 - **Affichage signé** : + ou - selon le résultat
 - **Couleur** : Teal si positif, rouge si négatif
 
-### 6. **Tendance 7 jours**
-- **Somme réceptions 15°C** : Total des 7 derniers jours à 15°C
-- **Somme sorties 15°C** : Total des 7 derniers jours à 15°C
-- **Navigation** : Vers la page d'analytics
-- **Couleur** : Violet (analytique)
+### 6. **Stock par propriétaire** (Remplace "Tendance 7 jours")
+- **Stock MONALUXE** : Stock total Monaluxe (15°C et ambiant)
+- **Stock PARTENAIRE** : Stock total Partenaire (15°C et ambiant)
+- **Répartition visuelle** : Comparaison MONALUXE vs PARTENAIRE
+- **Navigation** : Vers la page des stocks
+- **Couleur** : Bleu/Vert (selon propriétaire)
+- **Note** : L'ancien KPI "Tendance 7 jours" a été supprimé et remplacé par cette répartition par propriétaire, plus utile métier.
 
 ---
 

@@ -6,6 +6,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ml_pp_mvp/features/dashboard/screens/dashboard_admin_screen.dart';
 import 'package:ml_pp_mvp/features/dashboard/screens/dashboard_operateur_screen.dart';
 import 'package:ml_pp_mvp/features/dashboard/screens/dashboard_directeur_screen.dart';
@@ -29,6 +30,24 @@ class _FakeProfilNotifier extends CurrentProfilNotifier {
 
   @override
   Future<Profil?> build() async => _profil;
+}
+
+/// Helper pour créer un MaterialApp.router avec GoRouter minimal pour les tests
+/// Note: Les screens passés en paramètre (DashboardAdminScreen, etc.) créent déjà leur propre Scaffold via RoleDashboard
+Widget _appWithRouter(Widget child, {String initialLocation = "/"}) {
+  final router = GoRouter(
+    initialLocation: initialLocation,
+    routes: [
+      GoRoute(
+        path: "/",
+        pageBuilder: (context, state) => MaterialPage(
+          key: state.pageKey,
+          child: child,
+        ),
+      ),
+    ],
+  );
+  return MaterialApp.router(routerConfig: router);
 }
 
 void main() {
@@ -102,9 +121,7 @@ void main() {
       final container = _createTestContainer(role: role);
       final widget = UncontrolledProviderScope(
         container: container,
-        child: MaterialApp(
-          home: screen,
-        ),
+        child: _appWithRouter(screen),
       );
       return (widget, container);
     }

@@ -365,7 +365,7 @@ Améliorer l'expérience utilisateur avec des messages d'erreur clairs et une ge
 ### Priorité 3 : Fonctionnalités avancées
 - [ ] **Export CSV/PDF** : Stocks journaliers, réceptions, sorties
 - [ ] **Multi-citerne pour sorties** : Répartition par citerne (au-delà du MVP)
-- [ ] **Graphiques** : Tendances 7 jours, évolution stocks
+- [ ] **Graphiques** : Évolution stocks (tendances hebdomadaires à déplacer dans section Analytics `/analytics/trends` - Post-MVP)
 - [ ] **Offline mode** : Cache local pour fonctionnement hors ligne partiel
 
 ### Priorité 4 : Optimisations

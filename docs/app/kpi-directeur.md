@@ -92,5 +92,24 @@ order by pourcentage_utilisation desc;
 ## Périodes de reporting
 
 - **Quotidien** : Activité du jour en cours
-- **Hebdomadaire** : Cumul sur 7 jours glissants
 - **Mensuel** : Cumul sur le mois en cours
+
+## KPIs Dashboard (MVP)
+
+Le dashboard affiche les KPIs suivants :
+
+- **Stock global** : Stock total (toutes citernes, tous dépôts)
+- **Stock par propriétaire** : Répartition MONALUXE vs PARTENAIRE
+- **Réceptions du jour** : Count, volumes (ambiant/15°C), répartition MONALUXE/PARTENAIRE
+- **Sorties du jour** : Count, volumes (ambiant/15°C), répartition MONALUXE/PARTENAIRE
+- **Camions à suivre** : Cours de route en cours (CHARGEMENT, TRANSIT, FRONTIERE, ARRIVE)
+- **Alertes citernes** : Citernes sous seuil de sécurité
+
+---
+
+## Post-MVP / Analytics (Non implémenté dans le dashboard)
+
+Les fonctionnalités suivantes sont prévues pour une phase ultérieure, mais ne font pas partie du dashboard MVP :
+
+- **Tendances hebdomadaires** : Graphiques d'évolution sur 7 jours glissants (à déplacer dans une section Analytics dédiée `/analytics/trends`)
+- **Export CSV/PDF** : Export des données pour analyses externes

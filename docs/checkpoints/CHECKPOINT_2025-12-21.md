@@ -85,8 +85,10 @@ Le KPI Trend 7 jours :
 Il a été remplacé fonctionnellement par :
 - **Stock par propriétaire** (MONALUXE / PARTENAIRE)
 
-👉 Décision actée :
-- Supprimer complètement `kpiTrend7dProvider` et la carte "Balance du jour".
+👉 Décision actée et **EXÉCUTÉE** :
+- ✅ `kpiTrend7dProvider` supprimé du code
+- ✅ Carte "Balance du jour" / "Tendance 7 jours" supprimée
+- ✅ Remplacé par "Stock par propriétaire" (MONALUXE / PARTENAIRE)
 
 ### 3.5 État actuel du Dashboard (CONFIRMÉ)
 
@@ -125,26 +127,27 @@ Le dashboard affiche correctement :
 - `flutter analyze`
 - `flutter test`
 
-### ÉTAPE 2 — Supprimer Trend 7 jours (PRIORITÉ 2)
+### ÉTAPE 2 — Supprimer Trend 7 jours (PRIORITÉ 2) ✅ DONE
 
-**À faire :**
+**Statut :** ✅ **COMPLÉTÉ**
 
-**UI :**
-- `lib/features/dashboard/widgets/kpi_tiles.dart`
-  - Supprimer toute référence à `kpiTrend7dProvider`
-  - Supprimer la carte "Balance du jour"
+**Actions effectuées :**
+- ✅ `kpiTrend7dProvider` supprimé du code (vérifié via `rg`)
+- ✅ Carte "Balance du jour" / "Tendance 7 jours" supprimée du dashboard
+- ✅ Code Flutter propre : aucune référence restante dans `lib/` ou `test/`
 
-**Providers :**
-- `lib/features/stocks/data/stocks_kpi_providers.dart`
-  - Supprimer `kpiTrend7dProvider`
-  - Supprimer modèles / méthodes associées devenues inutiles
+**Preuve (vérification) :**
+- `rg -n "kpiTrend7dProvider|sumReceptions15c7d|sumSorties15c7d|Trend 7" lib test` → Aucun résultat (code propre)
+- `rg -n "kpiTrend7dProvider|trend7d|Trend 7" docs` → Mentions restantes uniquement dans la documentation (historique + Post-MVP), pas d'action requise
 
-**Tests :**
-- Ajuster uniquement ceux qui échouent à cause de cette suppression
+**Note :** Les occurrences restantes sont attendues dans :
+- `docs/db/stocks_views_tests.md` : Champs `tendance_7j_*` marqués DEPRECATED (présents en DB mais non utilisés)
+- `docs/rapports/*` : Remplacement documenté (contexte historique des refactorisations)
+- `docs/app/kpi-directeur.md` : Tendances hebdomadaires = Post-MVP Analytics (hors dashboard)
 
-**Validation :**
-- `rg -n "kpiTrend7dProvider|sumReceptions15c7d|sumSorties15c7d|Trend 7" lib test`
-- `flutter test`
+**Remplacement fonctionnel :**
+- ✅ **Stock par propriétaire** (MONALUXE / PARTENAIRE) remplace fonctionnellement le Trend 7 jours
+- ✅ Dashboard affiche maintenant : Stock global + Stock par propriétaire (plus lisible et utile métier)
 
 ### ÉTAPE 3 — Harmoniser Sorties (PLUS TARD)
 
@@ -180,8 +183,8 @@ Le module Sorties devra suivre strictement la même logique que Réceptions :
 
 « Nous avons validé un paradigme DB-STRICT avec immutabilité absolue.
 Les écrans et services legacy Réceptions ont été supprimés.
-Il reste à enlever createDraft/validate du service officiel, migrer les tests,
-puis supprimer complètement le Trend 7 jours du dashboard (provider + UI).
+Il reste à enlever createDraft/validate du service officiel et migrer les tests.
+Le Trend 7 jours a été complètement supprimé du code (provider + UI) et remplacé par "Stock par propriétaire".
 On avance une correction à la fois, toujours validée par flutter analyze. »
 
 ---

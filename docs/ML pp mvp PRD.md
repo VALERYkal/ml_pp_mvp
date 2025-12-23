@@ -143,9 +143,8 @@ Créer une application de gestion logistique pétrolière pour Monaluxe permetta
 - Récap volumes stockés, reçus, sortis
 - **KPI Réceptions du jour** : Count, volumes (ambiant/15°C), répartition MONALUXE/PARTENAIRE
 - **KPI Sorties du jour** : Count, volumes (ambiant/15°C), répartition MONALUXE/PARTENAIRE
-- **KPI Stocks** : Stocks totaux par citerne, alertes de sécurité
+- **KPI Stocks** : Stocks totaux (global) et stocks par propriétaire (MONALUXE / PARTENAIRE)
 - **KPI Balance** : Balance du jour (réceptions - sorties)
-- **Tendances 7 jours** : Graphique des volumes sur 7 jours
 - **Camions à suivre** : Cours de route en cours (CHARGEMENT, TRANSIT, FRONTIERE, ARRIVE)
 - Filtres : date, produit, citerne, propriétaire (à venir)
 - Alertes :

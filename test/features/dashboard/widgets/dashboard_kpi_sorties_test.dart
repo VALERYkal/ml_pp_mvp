@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ml_pp_mvp/features/dashboard/widgets/role_dashboard.dart';
 import 'package:ml_pp_mvp/features/kpi/providers/kpi_provider.dart';
 import 'package:ml_pp_mvp/features/kpi/models/kpi_models.dart';
@@ -20,6 +21,23 @@ class _FakeProfilNotifier extends CurrentProfilNotifier {
 
   @override
   Future<Profil?> build() async => _profil;
+}
+
+/// Helper pour créer un MaterialApp.router avec GoRouter minimal pour les tests
+Widget _appWithRouter(Widget child, {String initialLocation = "/"}) {
+  final router = GoRouter(
+    initialLocation: initialLocation,
+    routes: [
+      GoRoute(
+        path: "/",
+        pageBuilder: (context, state) => MaterialPage(
+          key: state.pageKey,
+          child: Scaffold(body: child),
+        ),
+      ),
+    ],
+  );
+  return MaterialApp.router(routerConfig: router);
 }
 
 void main() {
@@ -72,11 +90,7 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
-            home: Scaffold(
-              body: const RoleDashboard(),
-            ),
-          ),
+          child: _appWithRouter(const RoleDashboard()),
         ),
       );
 
@@ -180,11 +194,7 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
-            home: Scaffold(
-              body: const RoleDashboard(),
-            ),
-          ),
+          child: _appWithRouter(const RoleDashboard()),
         ),
       );
 

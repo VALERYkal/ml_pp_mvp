@@ -7,12 +7,30 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ml_pp_mvp/features/dashboard/widgets/role_dashboard.dart';
 import 'package:ml_pp_mvp/features/kpi/providers/kpi_provider.dart';
 import 'package:ml_pp_mvp/features/kpi/models/kpi_models.dart';
 import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart';
 import 'package:ml_pp_mvp/core/models/profil.dart';
 import 'package:ml_pp_mvp/features/dashboard/providers/citernes_sous_seuil_provider.dart';
+
+/// Helper pour créer un MaterialApp.router avec GoRouter minimal pour les tests
+Widget _appWithRouter(Widget child, {String initialLocation = "/"}) {
+  final router = GoRouter(
+    initialLocation: initialLocation,
+    routes: [
+      GoRoute(
+        path: "/",
+        pageBuilder: (context, state) => MaterialPage(
+          key: state.pageKey,
+          child: Scaffold(body: child),
+        ),
+      ),
+    ],
+  );
+  return MaterialApp.router(routerConfig: router);
+}
 
 void main() {
   group('RoleDashboard Golden Tests', () {
@@ -29,11 +47,7 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
-            home: Scaffold(
-              body: const RoleDashboard(),
-            ),
-          ),
+          child: _appWithRouter(const RoleDashboard()),
         ),
       );
 
@@ -68,11 +82,7 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
-            home: Scaffold(
-              body: const RoleDashboard(),
-            ),
-          ),
+          child: _appWithRouter(const RoleDashboard()),
         ),
       );
       await tester.pumpAndSettle();
@@ -126,11 +136,7 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
-            home: Scaffold(
-              body: const RoleDashboard(),
-            ),
-          ),
+          child: _appWithRouter(const RoleDashboard()),
         ),
       );
       await tester.pumpAndSettle();
@@ -188,11 +194,7 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
-            home: Scaffold(
-              body: const RoleDashboard(),
-            ),
-          ),
+          child: _appWithRouter(const RoleDashboard()),
         ),
       );
       await tester.pumpAndSettle();
@@ -249,11 +251,7 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
-            home: Scaffold(
-              body: const RoleDashboard(),
-            ),
-          ),
+          child: _appWithRouter(const RoleDashboard()),
         ),
       );
       await tester.pumpAndSettle();

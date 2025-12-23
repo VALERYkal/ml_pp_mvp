@@ -1,25 +1,25 @@
 #  RAPPORT TECHNIQUE - ARCHITECTURE DES DASHBOARDS
-## ML_PP MVP - Système de Gestion Logistique Pétrolière
+## ML_PP MVP - Systï¿½me de Gestion Logistique Pï¿½troliï¿½re
 
 ---
 
 ** Date :** 17 septembre 2025  
-** Équipe :** Développement ML_PP MVP  
+** ï¿½quipe :** Dï¿½veloppement ML_PP MVP  
 ** Version :** 2.0.0  
 ** Statut :**  Production  
 
 ---
 
-##  RÉSUMÉ EXÉCUTIF
+##  Rï¿½SUMï¿½ EXï¿½CUTIF
 
-Ce rapport présente l'architecture complète du système de dashboards de ML_PP MVP, une application Flutter de gestion logistique pour produits pétroliers. Le système fournit des indicateurs clés de performance (KPIs) en temps réel pour 6 rôles utilisateurs différents, avec une architecture modulaire et scalable.
+Ce rapport prï¿½sente l'architecture complï¿½te du systï¿½me de dashboards de ML_PP MVP, une application Flutter de gestion logistique pour produits pï¿½troliers. Le systï¿½me fournit des indicateurs clï¿½s de performance (KPIs) en temps rï¿½el pour 6 rï¿½les utilisateurs diffï¿½rents, avec une architecture modulaire et scalable.
 
 ###  Objectifs Atteints
--  **Interface unifiée** : Dashboards cohérents pour tous les rôles
--  **Performance optimisée** : Chargement rapide avec cache intelligent
+-  **Interface unifiï¿½e** : Dashboards cohï¿½rents pour tous les rï¿½les
+-  **Performance optimisï¿½e** : Chargement rapide avec cache intelligent
 -  **Responsive design** : Adaptation automatique mobile/desktop
--  **Architecture modulaire** : Composants réutilisables et maintenables
--  **Temps réel** : Mise à jour automatique des données
+-  **Architecture modulaire** : Composants rï¿½utilisables et maintenables
+-  **Temps rï¿½el** : Mise ï¿½ jour automatique des donnï¿½es
 
 ---
 
@@ -29,34 +29,34 @@ Ce rapport présente l'architecture complète du système de dashboards de ML_PP MV
 
 `
 lib/features/dashboard/
- screens/                    # 6 dashboards spécialisés par rôle
+ screens/                    # 6 dashboards spï¿½cialisï¿½s par rï¿½le
     dashboard_admin_screen.dart      # Admin complet
-    dashboard_operateur_screen.dart  # Opérateur avec actions rapides
+    dashboard_operateur_screen.dart  # Opï¿½rateur avec actions rapides
     dashboard_directeur_screen.dart # Directeur (via RoleDashboard)
-    dashboard_gerant_screen.dart    # Gérant (via RoleDashboard)
+    dashboard_gerant_screen.dart    # Gï¿½rant (via RoleDashboard)
     dashboard_pca_screen.dart       # PCA (via RoleDashboard)
     dashboard_lecture_screen.dart   # Lecture seule (via RoleDashboard)
- widgets/                    # Composants réutilisables
-    role_dashboard.dart     # Dashboard commun (4 rôles)
-    kpi_tiles.dart         # Widgets KPI spécialisés
+ widgets/                    # Composants rï¿½utilisables
+    role_dashboard.dart     # Dashboard commun (4 rï¿½les)
+    kpi_tiles.dart         # Widgets KPI spï¿½cialisï¿½s
     dashboard_shell.dart    # Shell responsive
- providers/                  # Gestion d'état et logique métier
+ providers/                  # Gestion d'ï¿½tat et logique mï¿½tier
     admin_trends_provider.dart      # Graphiques tendances
-    activites_recentes_provider.dart # Logs système
+    activites_recentes_provider.dart # Logs systï¿½me
     admin_kpi_provider.dart         # KPIs admin
     directeur_kpi_provider.dart     # KPIs directeur
     citernes_sous_seuil_provider.dart # Alertes citernes
- models/                     # Modèles de données
+ models/                     # Modï¿½les de donnï¿½es
      activite_recente.dart
 
-lib/features/kpi/               # Système KPI centralisé
- providers/                  # 5 providers KPI spécialisés
+lib/features/kpi/               # Systï¿½me KPI centralisï¿½
+ providers/                  # 5 providers KPI spï¿½cialisï¿½s
     cours_kpi_provider.dart         # Camions en route/attente
-    receptions_kpi_provider.dart    # Réceptions du jour
+    receptions_kpi_provider.dart    # Rï¿½ceptions du jour
     stocks_kpi_provider.dart        # Stocks actuels
     sorties_kpi_provider.dart       # Sorties du jour
-    balance_kpi_provider.dart       # Balance (réceptions-sorties)
- models/                     # Modèles KPI
+    balance_kpi_provider.dart       # Balance (rï¿½ceptions-sorties)
+ models/                     # Modï¿½les KPI
     kpi_models.dart
  widgets/                    # Widgets KPI
      kpi_summary_card.dart
@@ -65,21 +65,21 @@ lib/features/kpi/               # Système KPI centralisé
 lib/shared/ui/modern_components/ # Composants UI modernes
  modern_kpi_card.dart        # Carte KPI avec animations Material 3
  dashboard_grid.dart         # Grille responsive adaptative
- dashboard_header.dart       # En-tête avec salutation personnalisée
+ dashboard_header.dart       # En-tï¿½te avec salutation personnalisï¿½e
 `
 
-### 2. Gestion d'État avec Riverpod
+### 2. Gestion d'ï¿½tat avec Riverpod
 
 #### Providers Principaux
-- **coursKpiProvider** : Données des camions en route et en attente
-- **receptionsKpiProvider** : Statistiques des réceptions du jour
+- **coursKpiProvider** : Donnï¿½es des camions en route et en attente
+- **receptionsKpiProvider** : Statistiques des rï¿½ceptions du jour
 - **stocksTotalsProvider** : Totaux des stocks actuels
 - **sortiesKpiProvider** : Statistiques des sorties du jour
-- **balanceTodayProvider** : Calcul de la balance (réceptions - sorties)
+- **balanceTodayProvider** : Calcul de la balance (rï¿½ceptions - sorties)
 
-#### Invalidation Temps Réel
+#### Invalidation Temps Rï¿½el
 `dart
-// Providers d'invalidation pour mise à jour automatique
+// Providers d'invalidation pour mise ï¿½ jour automatique
 ref.watch(coursRealtimeInvalidatorProvider);
 ref.watch(stocksRealtimeInvalidatorProvider);
 ref.watch(sortiesRealtimeInvalidatorProvider);
@@ -87,9 +87,9 @@ ref.watch(sortiesRealtimeInvalidatorProvider);
 
 #### Filtrage Automatique par Profil
 `dart
-// Paramètres automatiques selon le profil utilisateur
+// Paramï¿½tres automatiques selon le profil utilisateur
 final coursParam = ref.watch(coursDefaultParamProvider);
-final depotId = profil?.depotId; // Filtrage automatique par dépôt
+final depotId = profil?.depotId; // Filtrage automatique par dï¿½pï¿½t
 `
 
 ### 3. Composants UI Modernes
@@ -97,159 +97,159 @@ final depotId = profil?.depotId; // Filtrage automatique par dépôt
 #### ModernKpiCard
 - **Design Material 3** avec gradients et ombres
 - **Animations** : Scale et fade au tap
-- **Métriques détaillées** : Affichage de sous-métriques
-- **Navigation** : Tap pour aller aux détails
-- **États** : Loading, Error, Data avec gestion appropriée
+- **Mï¿½triques dï¿½taillï¿½es** : Affichage de sous-mï¿½triques
+- **Navigation** : Tap pour aller aux dï¿½tails
+- **ï¿½tats** : Loading, Error, Data avec gestion appropriï¿½e
 
 #### DashboardGrid
-- **Responsive** : Adaptation automatique selon la taille d'écran
+- **Responsive** : Adaptation automatique selon la taille d'ï¿½cran
 - **Breakpoints** : Mobile (1 col), Tablet (2 cols), Desktop (3 cols)
 - **Espacement** : Marges et padding adaptatifs
 
 #### DashboardSection
-- **Titres hiérarchisés** : Titre principal + sous-titre
+- **Titres hiï¿½rarchisï¿½s** : Titre principal + sous-titre
 - **Actions contextuelles** : Boutons d'action optionnels
-- **Espacement cohérent** : Marges standardisées
+- **Espacement cohï¿½rent** : Marges standardisï¿½es
 
 ---
 
-##  DASHBOARDS PAR RÔLE
+##  DASHBOARDS PAR Rï¿½LE
 
 ### 1. Dashboard Admin (dashboard_admin_screen.dart)
 
-#### Sections Spécifiques
-1. **Vue d'ensemble** : Camions à suivre, Stock total, Balance du jour
-2. **Activités du jour** : Réceptions et sorties
-3. **Tendances 7 jours** : Graphique en aires (AreaChart)
-4. **À surveiller** : Table des citernes sous seuil critique
-5. **Activité récente** : Logs système des 24h avec export CSV
+#### Sections Spï¿½cifiques
+1. **Vue d'ensemble** : Camions ï¿½ suivre, Stock total, Balance du jour
+2. **Activitï¿½s du jour** : Rï¿½ceptions et sorties
+3. **Stock par propriÃ©taire** : RÃ©partition MONALUXE vs PARTENAIRE (remplace "Tendances 7 jours")
+4. **ï¿½ surveiller** : Table des citernes sous seuil critique
+5. **Activitï¿½ rï¿½cente** : Logs systï¿½me des 24h avec export CSV
 6. **Actions rapides** : Bouton flottant pour actions courantes
 
-#### Providers Spécialisés
-- **adminTrends7dProvider** : Données pour graphique tendances
-- **activitesRecentesProvider** : Logs système récents
-- **citernesSousSeuilProvider** : Citernes nécessitant attention
+#### Providers Spï¿½cialisï¿½s
+- **depotStocksSnapshotProvider** : DonnÃ©es stock par propriÃ©taire (remplace adminTrends7dProvider - dÃ©prÃ©ciÃ©)
+- **activitesRecentesProvider** : Logs systï¿½me rï¿½cents
+- **citernesSousSeuilProvider** : Citernes nï¿½cessitant attention
 
-#### Fonctionnalités Avancées
-- **Export CSV** : Export des logs d'activité
+#### Fonctionnalitï¿½s Avancï¿½es
+- **Export CSV** : Export des logs d'activitï¿½
 - **Surveillance** : Alertes sur citernes critiques
 - **Analytics** : Graphiques de tendances
 
-### 2. Dashboard Opérateur (dashboard_operateur_screen.dart)
+### 2. Dashboard Opï¿½rateur (dashboard_operateur_screen.dart)
 
-#### Sections Spécifiques
-1. **Vue d'ensemble** : Camions à suivre, Stock total, Balance du jour
-2. **Activités du jour** : Réceptions et sorties
-3. **Accès rapide** : Boutons pour créer cours, réception, sortie
+#### Sections Spï¿½cifiques
+1. **Vue d'ensemble** : Camions ï¿½ suivre, Stock total, Balance du jour
+2. **Activitï¿½s du jour** : Rï¿½ceptions et sorties
+3. **Accï¿½s rapide** : Boutons pour crï¿½er cours, rï¿½ception, sortie
 
-#### Fonctionnalités Opérationnelles
-- **Actions rapides** : Interface simplifiée pour les tâches courantes
-- **Navigation directe** : Accès immédiat aux formulaires de création
-- **Interface focalisée** : Design épuré pour l'efficacité opérationnelle
+#### Fonctionnalitï¿½s Opï¿½rationnelles
+- **Actions rapides** : Interface simplifiï¿½e pour les tï¿½ches courantes
+- **Navigation directe** : Accï¿½s immï¿½diat aux formulaires de crï¿½ation
+- **Interface focalisï¿½e** : Design ï¿½purï¿½ pour l'efficacitï¿½ opï¿½rationnelle
 
-### 3. Dashboards Autres Rôles (role_dashboard.dart)
+### 3. Dashboards Autres Rï¿½les (role_dashboard.dart)
 
-#### Rôles Utilisant RoleDashboard
-- **Directeur** : Vue globale avec filtrage par dépôt
-- **Gérant** : Vue du dépôt avec KPIs locaux
-- **PCA** : Vue de contrôle avec métriques clés
+#### Rï¿½les Utilisant RoleDashboard
+- **Directeur** : Vue globale avec filtrage par dï¿½pï¿½t
+- **Gï¿½rant** : Vue du dï¿½pï¿½t avec KPIs locaux
+- **PCA** : Vue de contrï¿½le avec mï¿½triques clï¿½s
 - **Lecture** : Vue en lecture seule
 
 #### Sections Communes
-1. **Vue d'ensemble** : Camions à suivre, Stock total, Balance du jour
-2. **Activités du jour** : Réceptions et sorties
+1. **Vue d'ensemble** : Camions ï¿½ suivre, Stock total, Balance du jour
+2. **Activitï¿½s du jour** : Rï¿½ceptions et sorties
 
 ---
 
-##  ARCHITECTURE MÉTIER
+##  ARCHITECTURE Mï¿½TIER
 
 ### 1. KPIs Principaux
 
-#### Camions à suivre
-- **Données** : Nombre total (en route + en attente)
-- **Volumes** : Volume total prévu (ambiant + 15C)
-- **Détails** : Répartition par statut
+#### Camions ï¿½ suivre
+- **Donnï¿½es** : Nombre total (en route + en attente)
+- **Volumes** : Volume total prï¿½vu (ambiant + 15C)
+- **Dï¿½tails** : Rï¿½partition par statut
 - **Source** : Table cours_de_route avec filtrage par statut
 
 #### Stock total
-- **Données** : Volume ambiant et 15C actuels
-- **Métadonnées** : Dernière mise à jour
-- **Source** : Vue v_citerne_stock_actuel agrégée
+- **Donnï¿½es** : Volume ambiant et 15C actuels
+- **Mï¿½tadonnï¿½es** : Derniï¿½re mise ï¿½ jour
+- **Source** : Vue v_citerne_stock_actuel agrï¿½gï¿½e
 
 #### Balance du jour
-- **Calcul** : Réceptions - Sorties
-- **Indicateur** : Positif (vert) ou négatif (rouge)
-- **Tendance** : Pourcentage d'évolution
-- **Source** : Agrégation des tables réceptions et sorties_produit
+- **Calcul** : Rï¿½ceptions - Sorties
+- **Indicateur** : Positif (vert) ou nï¿½gatif (rouge)
+- **Tendance** : Pourcentage d'ï¿½volution
+- **Source** : Agrï¿½gation des tables rï¿½ceptions et sorties_produit
 
-#### Réceptions du jour
-- **Données** : Nombre de camions reçus
+#### Rï¿½ceptions du jour
+- **Donnï¿½es** : Nombre de camions reï¿½us
 - **Volumes** : Volume ambiant et 15C
-- **Source** : Table réceptions filtrée par date et statut
+- **Source** : Table rï¿½ceptions filtrï¿½e par date et statut
 
 #### Sorties du jour
-- **Données** : Nombre de camions sortis
+- **Donnï¿½es** : Nombre de camions sortis
 - **Volumes** : Volume ambiant et 15C
-- **Source** : Table sorties_produit filtrée par date et statut
+- **Source** : Table sorties_produit filtrï¿½e par date et statut
 
-### 2. Logique Métier
+### 2. Logique Mï¿½tier
 
 #### Filtrage Automatique
-- **Par dépôt** : Selon le profil utilisateur
+- **Par dï¿½pï¿½t** : Selon le profil utilisateur
 - **Par date** : Jour courant en UTC
-- **Par statut** : Seulement les données validées
+- **Par statut** : Seulement les donnï¿½es validï¿½es
 
 #### Calculs de Volumes
-- **Priorité 15C** : Si disponible, sinon volume ambiant
-- **Agrégation** : Somme des volumes par période
+- **Prioritï¿½ 15C** : Si disponible, sinon volume ambiant
+- **Agrï¿½gation** : Somme des volumes par pï¿½riode
 - **Conversion** : Formatage automatique (L, kL, ML)
 
-#### Gestion des États
+#### Gestion des ï¿½tats
 - **Loading** : Indicateurs de chargement
 - **Error** : Gestion d'erreur avec retry
-- **Data** : Affichage des données avec formatage
+- **Data** : Affichage des donnï¿½es avec formatage
 
-### 3. Sources de Données
+### 3. Sources de Donnï¿½es
 
 #### Tables Principales
-- **cours_de_route** : État des camions et volumes prévus
-- **réceptions** : Réceptions validées avec volumes
-- **sorties_produit** : Sorties validées avec volumes
+- **cours_de_route** : ï¿½tat des camions et volumes prï¿½vus
+- **rï¿½ceptions** : Rï¿½ceptions validï¿½es avec volumes
+- **sorties_produit** : Sorties validï¿½es avec volumes
 - **stocks_journaliers** : Historique des stocks par citerne
-- **citernes** : Capacités et seuils de sécurité
+- **citernes** : Capacitï¿½s et seuils de sï¿½curitï¿½
 
-#### Vues Spécialisées
+#### Vues Spï¿½cialisï¿½es
 - **v_citerne_stock_actuel** : Dernier stock par citerne
-- **logs** : Activité système (vue de compatibilité)
+- **logs** : Activitï¿½ systï¿½me (vue de compatibilitï¿½)
 
 #### Filtres Temporels
-- **Réceptions** : Filtrage par date_reception (TYPE DATE)
+- **Rï¿½ceptions** : Filtrage par date_reception (TYPE DATE)
 - **Sorties** : Filtrage par date_sortie (TIMESTAMPTZ)
 - **Logs** : Filtrage par created_at (TIMESTAMPTZ)
 
 ---
 
-##  FONCTIONNALITÉS AVANCÉES
+##  FONCTIONNALITï¿½S AVANCï¿½ES
 
-### 1. Temps Réel
-- **Invalidation automatique** : Mise à jour des KPIs lors des changements
-- **Providers réactifs** : Réaction aux modifications de données
-- **Cache intelligent** : Évite les requêtes inutiles
+### 1. Temps Rï¿½el
+- **Invalidation automatique** : Mise ï¿½ jour des KPIs lors des changements
+- **Providers rï¿½actifs** : Rï¿½action aux modifications de donnï¿½es
+- **Cache intelligent** : ï¿½vite les requï¿½tes inutiles
 
 ### 2. Responsive Design
 - **Breakpoints** : Mobile (<800px), Tablet (800-1199px), Desktop (1200px)
-- **Grilles adaptatives** : Nombre de colonnes selon l'écran
+- **Grilles adaptatives** : Nombre de colonnes selon l'ï¿½cran
 - **Composants flexibles** : Adaptation automatique du contenu
 
 ### 3. Performance
-- **Lazy loading** : Chargement à la demande
-- **Mémorisation** : Cache des données calculées
-- **Optimisation** : Requêtes SQL optimisées
+- **Lazy loading** : Chargement ï¿½ la demande
+- **Mï¿½morisation** : Cache des donnï¿½es calculï¿½es
+- **Optimisation** : Requï¿½tes SQL optimisï¿½es
 
-### 4. Accessibilité
+### 4. Accessibilitï¿½
 - **Navigation clavier** : Support des raccourcis
-- **Contraste** : Couleurs contrastées pour la lisibilité
-- **Icônes** : Icônes explicites pour chaque métrique
+- **Contraste** : Couleurs contrastï¿½es pour la lisibilitï¿½
+- **Icï¿½nes** : Icï¿½nes explicites pour chaque mï¿½trique
 
 ---
 
@@ -265,9 +265,9 @@ final kpiData = kpiState.when(
 );
 `
 
-### 2. Formatage des Données
+### 2. Formatage des Donnï¿½es
 `dart
-// Utilitaires de formatage centralisés
+// Utilitaires de formatage centralisï¿½s
 fmtLiters(volume)           // Formatage des volumes
 fmtShortDate(date)          // Formatage des dates
 fmtLitersSigned(delta)      // Formatage avec signe
@@ -277,92 +277,92 @@ fmtLitersSigned(delta)      // Formatage avec signe
 `dart
 // Navigation contextuelle
 onTap: () => context.go('/cours'),     // Vers les cours
-onTap: () => context.go('/réceptions'), // Vers les réceptions
+onTap: () => context.go('/rï¿½ceptions'), // Vers les rï¿½ceptions
 onTap: () => context.go('/stocks'),     // Vers les stocks
 `
 
-### 4. États de Chargement
+### 4. ï¿½tats de Chargement
 - **Shimmer effects** : Indicateurs visuels de chargement
 - **Skeleton screens** : Structure visible pendant le chargement
 - **Error boundaries** : Gestion gracieuse des erreurs
 
 ---
 
-##  MÉTRIQUES ET MONITORING
+##  Mï¿½TRIQUES ET MONITORING
 
 ### 1. KPIs Techniques
-- **Temps de chargement** : Performance des requêtes
-- **Taux de cache** : Efficacité du cache
+- **Temps de chargement** : Performance des requï¿½tes
+- **Taux de cache** : Efficacitï¿½ du cache
 - **Erreurs** : Monitoring des erreurs de chargement
 
-### 2. KPIs Métier
-- **Camions en transit** : Suivi opérationnel
-- **Volumes traités** : Capacité opérationnelle
-- **Balance** : Équilibre entrées/sorties
+### 2. KPIs Mï¿½tier
+- **Camions en transit** : Suivi opï¿½rationnel
+- **Volumes traitï¿½s** : Capacitï¿½ opï¿½rationnelle
+- **Balance** : ï¿½quilibre entrï¿½es/sorties
 - **Alertes** : Citernes sous seuil
 
 ---
 
-##  MAINTENANCE ET ÉVOLUTION
+##  MAINTENANCE ET ï¿½VOLUTION
 
 ### 1. Ajout de Nouveaux KPIs
-1. Créer le provider dans lib/features/kpi/providers/
-2. Définir le modèle dans lib/features/kpi/models/
-3. Intégrer dans les dashboards appropriés
+1. Crï¿½er le provider dans lib/features/kpi/providers/
+2. Dï¿½finir le modï¿½le dans lib/features/kpi/models/
+3. Intï¿½grer dans les dashboards appropriï¿½s
 4. Ajouter les tests unitaires
 
 ### 2. Modification des Dashboards
 1. Modifier le composant dans lib/features/dashboard/widgets/
-2. Tester sur tous les rôles concernés
-3. Mettre à jour la documentation
-4. Valider la responsivité
+2. Tester sur tous les rï¿½les concernï¿½s
+3. Mettre ï¿½ jour la documentation
+4. Valider la responsivitï¿½
 
 ### 3. Optimisations
-- **Requêtes SQL** : Optimiser les jointures et filtres
+- **Requï¿½tes SQL** : Optimiser les jointures et filtres
 - **Cache** : Ajuster les TTL selon l'usage
-- **UI** : Améliorer les animations et transitions
+- **UI** : Amï¿½liorer les animations et transitions
 
 ---
 
 ##  RESSOURCES ET DOCUMENTATION
 
-### Fichiers Clés
+### Fichiers Clï¿½s
 - **Architecture** : lib/features/dashboard/
 - **KPIs** : lib/features/kpi/
 - **Composants** : lib/shared/ui/modern_components/
 - **Tests** : test/features/dashboard/
 
-### Documentation Associée
+### Documentation Associï¿½e
 - **Changelog** : CHANGELOG.md
 - **Guides** : docs/ (various guides)
 - **API** : Documentation Supabase
 
 ---
 
-##  RÉSUMÉ POUR L'ÉQUIPE DEV
+##  Rï¿½SUMï¿½ POUR L'ï¿½QUIPE DEV
 
 ### Architecture Actuelle
-- **6 dashboards** spécialisés par rôle utilisateur
-- **5 KPIs principaux** avec données temps réel
-- **Architecture modulaire** avec composants réutilisables
-- **Gestion d'état** centralisée avec Riverpod
+- **6 dashboards** spï¿½cialisï¿½s par rï¿½le utilisateur
+- **5 KPIs principaux** avec donnï¿½es temps rï¿½el
+- **Architecture modulaire** avec composants rï¿½utilisables
+- **Gestion d'ï¿½tat** centralisï¿½e avec Riverpod
 
 ### Points Forts
--  **Interface cohérente** : Même structure pour tous les rôles
+-  **Interface cohï¿½rente** : Mï¿½me structure pour tous les rï¿½les
 -  **Performance** : Cache intelligent et lazy loading
 -  **Responsive** : Adaptation automatique mobile/desktop
--  **Maintenabilité** : Code modulaire et bien structuré
+-  **Maintenabilitï¿½** : Code modulaire et bien structurï¿½
 
-### Améliorations Récentes
--  **Suppression de la redondance** : Section "Cours de route" éliminée
--  **Interface simplifiée** : Focus sur les KPIs essentiels
--  **UX améliorée** : Navigation plus claire et intuitive
+### Amï¿½liorations Rï¿½centes
+-  **Suppression de la redondance** : Section "Cours de route" ï¿½liminï¿½e
+-  **Interface simplifiï¿½e** : Focus sur les KPIs essentiels
+-  **UX amï¿½liorï¿½e** : Navigation plus claire et intuitive
 
-### Prochaines Étapes
--  **Temps réel** : Connexion complète avec Supabase
--  **Nouveaux KPIs** : Ajout de métriques supplémentaires
+### Prochaines ï¿½tapes
+-  **Temps rï¿½el** : Connexion complï¿½te avec Supabase
+-  **Nouveaux KPIs** : Ajout de mï¿½triques supplï¿½mentaires
 -  **Tests** : Couverture de tests pour les dashboards
--  **Analytics** : Métriques d'usage et performance
+-  **Analytics** : Mï¿½triques d'usage et performance
 
 ---
 
@@ -371,31 +371,31 @@ onTap: () => context.go('/stocks'),     // Vers les stocks
 ###  Tests Fonctionnels
 - [ ] Tous les KPIs s'affichent correctement
 - [ ] Navigation fonctionne sur tous les dashboards
-- [ ] Responsive design validé sur mobile/tablet/desktop
-- [ ] Gestion d'erreur testée
-- [ ] États de chargement validés
+- [ ] Responsive design validï¿½ sur mobile/tablet/desktop
+- [ ] Gestion d'erreur testï¿½e
+- [ ] ï¿½tats de chargement validï¿½s
 
 ###  Tests Techniques
 - [ ] Providers Riverpod fonctionnent
-- [ ] Cache intelligent opérationnel
-- [ ] Requêtes SQL optimisées
+- [ ] Cache intelligent opï¿½rationnel
+- [ ] Requï¿½tes SQL optimisï¿½es
 - [ ] Performance acceptable (<2s chargement)
 - [ ] Pas d'erreurs de compilation
 
-###  Tests Métier
-- [ ] Données cohérentes entre les KPIs
-- [ ] Filtrage par dépôt fonctionne
+###  Tests Mï¿½tier
+- [ ] Donnï¿½es cohï¿½rentes entre les KPIs
+- [ ] Filtrage par dï¿½pï¿½t fonctionne
 - [ ] Calculs de volumes corrects
-- [ ] Alertes citernes opérationnelles
+- [ ] Alertes citernes opï¿½rationnelles
 - [ ] Export CSV fonctionnel
 
 ---
 
-** Généré le :** 17 septembre 2025  
-** Par :** Équipe de développement ML_PP MVP  
+** Gï¿½nï¿½rï¿½ le :** 17 septembre 2025  
+** Par :** ï¿½quipe de dï¿½veloppement ML_PP MVP  
 ** Contact :** dev-team@ml-pp-mvp.com  
 ** Repository :** https://github.com/ml-pp-mvp/dashboard-architecture  
 
 ---
 
-*Ce rapport est confidentiel et destiné à l'équipe de développement ML_PP MVP. Toute reproduction ou diffusion non autorisée est interdite.*
+*Ce rapport est confidentiel et destinï¿½ ï¿½ l'ï¿½quipe de dï¿½veloppement ML_PP MVP. Toute reproduction ou diffusion non autorisï¿½e est interdite.*

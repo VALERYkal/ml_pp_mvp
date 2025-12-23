@@ -45,15 +45,16 @@ La refactorisation majeure du système KPI a été **validée avec succès**. To
 - ✅ **Couverture :** Tests complets pour tous les composants
 - ✅ **Résultat :** Suite de tests robuste et documentée
 
-### 5. **Navigation depuis les cartes vers /receptions, /sorties, /stocks, /analytics/trends OK**
+### 5. **Navigation depuis les cartes vers /receptions, /sorties, /stocks OK**
 - ✅ **Statut :** VALIDÉ
 - ✅ **Routes vérifiées :**
   - Réceptions → `/receptions`
   - Sorties → `/sorties`
   - Stocks → `/stocks`
   - Citernes sous seuil → `/stocks`
-  - Tendance 7j → `/analytics/trends`
+  - Stock par propriétaire → `/stocks` (remplace l'ancienne route "Tendance 7j → /analytics/trends")
 - ✅ **Résultat :** Navigation fonctionnelle et cohérente
+- **Note** : Le KPI "Tendance 7 jours" a été supprimé du dashboard et remplacé par "Stock par propriétaire". La route `/analytics/trends` n'est plus utilisée (Post-MVP si nécessaire).
 
 ## 📊 Métriques de qualité
 

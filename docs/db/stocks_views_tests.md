@@ -91,8 +91,8 @@ SELECT
   sorties_jour_ambiant,
   balance_jour_15c,
   balance_jour_ambiant,
-  tendance_7j_15c,
-  tendance_7j_ambiant
+  tendance_7j_15c,    -- ⚠️ DEPRECATED: Non utilisé dans l'UI (Trend 7 jours supprimé)
+  tendance_7j_ambiant -- ⚠️ DEPRECATED: Non utilisé dans l'UI (Trend 7 jours supprimé)
 FROM public.v_dashboard_kpi
 WHERE date_jour = CURRENT_DATE;
 ```
@@ -102,7 +102,7 @@ WHERE date_jour = CURRENT_DATE;
 - Une ligne par date_jour (ou agrégation globale selon design)
 - Les totaux correspondent aux sommes manuelles
 - Les balances = réceptions - sorties
-- Les tendances 7j = somme nette sur 7 jours
+- ~~Les tendances 7j = somme nette sur 7 jours~~ ⚠️ **DEPRECATED** : Champ non utilisé dans l'UI
 
 ### Résultats observés
 
@@ -115,7 +115,7 @@ WHERE date_jour = CURRENT_DATE;
 - [ ] receptions_jour = somme des volumes des réceptions du jour
 - [ ] sorties_jour = somme des volumes des sorties du jour
 - [ ] balance_jour = receptions_jour - sorties_jour
-- [ ] tendance_7j = somme nette (réceptions - sorties) sur 7 jours
+- [ ] ~~tendance_7j = somme nette (réceptions - sorties) sur 7 jours~~ ⚠️ **DEPRECATED** : Champ présent en DB mais non utilisé dans l'UI (Trend 7 jours supprimé du dashboard)
 
 ### Statut
 
