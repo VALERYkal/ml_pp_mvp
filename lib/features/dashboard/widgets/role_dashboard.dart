@@ -192,14 +192,18 @@ class _RoleDashboardState extends ConsumerState<RoleDashboard> {
                                       capacityTotal *
                                       100);
 
-                            // Source unifiée = snapshot.owners pour éviter divergence UI
-                            // Utilise le même provider que OwnerStockBreakdownCard
+                            // PHASE 3: Source unifiée = depotStocksSnapshotProvider pour TOUS les KPIs stock
+                            // Utilise la même date normalisée pour stock total ET breakdown par propriétaire
+                            // Normaliser la date une seule fois de manière stable pour éviter rebuild loops
+                            final today = DateTime.now();
+                            final normalizedToday = DateTime(today.year, today.month, today.day);
+                            
                             final snapshotAsync = depotId != null
                                 ? ref.watch(
                                     depotStocksSnapshotProvider(
                                       DepotStocksSnapshotParams(
                                         depotId: depotId,
-                                        dateJour: null, // Pas de filtre date pour aligner avec dashboard
+                                        dateJour: normalizedToday, // Date normalisée stable
                                       ),
                                     ),
                                   )
@@ -211,24 +215,33 @@ class _RoleDashboardState extends ConsumerState<RoleDashboard> {
                                 // RÈGLE MÉTIER : Stock ambiant = source de vérité opérationnelle
                                 // Le stock à 15°C est une valeur dérivée, analytique, non décisionnelle
                                 // Référentiel : docs/db/REGLE_METIER_STOCKS_AMBIANT_15C.md
-                                KpiCard(
-                                  cardKey: const Key('kpi_stock_total_card'),
-                                   icon: Icons.inventory_2_outlined,
-                                   title: 'Stock total',
-                                   tintColor: const Color(0xFFFF9800),
-                                  primaryValue: fmtL(
-                                    data.stocks.totalAmbient,
-                                  ), // Stock ambiant = source de vérité opérationnelle
-                                  primaryLabel: 'Volume ambiant',
-                                  subLeftLabel: '≈ Volume 15°C',
-                                  subLeftValue: fmtL(
-                                    data.stocks.total15c,
-                                  ), // Valeur dérivée, analytique
-                                  subRightLabel:
-                                      '${usagePct.toStringAsFixed(0)}% utilisation',
-                                  subRightValue:
-                                      'Capacité ${fmtL(capacityTotal, fixed: 0)}', // Utilise la nouvelle capacité
-                                   onTap: () => context.go('/stocks'),
+                                // PHASE 3: Utiliser snapshot.totals pour cohérence avec breakdown propriétaire
+                                Builder(
+                                  builder: (context) {
+                                    final stockTotals = snapshotAsync?.valueOrNull?.totals;
+                                    final displayAmbient = stockTotals?.stockAmbiantTotal ?? data.stocks.totalAmbient;
+                                    final display15c = stockTotals?.stock15cTotal ?? data.stocks.total15c;
+                                    
+                                    return KpiCard(
+                                      cardKey: const Key('kpi_stock_total_card'),
+                                       icon: Icons.inventory_2_outlined,
+                                       title: 'Stock total',
+                                       tintColor: const Color(0xFFFF9800),
+                                      primaryValue: fmtL(
+                                        displayAmbient,
+                                      ), // Stock ambiant = source de vérité opérationnelle
+                                      primaryLabel: 'Volume ambiant',
+                                      subLeftLabel: '≈ Volume 15°C',
+                                      subLeftValue: fmtL(
+                                        display15c,
+                                      ), // Valeur dérivée, analytique
+                                      subRightLabel:
+                                          '${usagePct.toStringAsFixed(0)}% utilisation',
+                                      subRightValue:
+                                          'Capacité ${fmtL(capacityTotal, fixed: 0)}', // Utilise la nouvelle capacité
+                                       onTap: () => context.go('/stocks'),
+                                    );
+                                  },
                                 ),
                                 // Nouvelle section : Détail par propriétaire
                                 // Source unifiée = snapshot.owners pour éviter divergence UI

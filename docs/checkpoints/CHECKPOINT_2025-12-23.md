@@ -14,11 +14,29 @@
 - ✅ Références docs nettoyées : mentions "vue principale" pointent vers `v_stocks_citerne_global_daily`
 - ✅ Notes legacy ajoutées : clarifications que `v_stocks_citerne_global` est legacy conservée en DB, l'app n'y touche plus
 
+## ✅ PHASE 3 — UI & Providers (2025-12-23) — TERMINÉE
+
+### Alignement UI 100% sur snapshot daily canonique
+- ✅ **Dashboard** : Utilise `depotStocksSnapshotProvider` avec date normalisée pour stock total ET breakdown propriétaire
+- ✅ **Date normalisation** : Date normalisée une seule fois en amont dans `depotStocksSnapshotProvider` pour éviter rebuild loops
+- ✅ **Citernes** : Utilise déjà `depotStocksSnapshotProvider` avec date normalisée
+- ✅ **Guards de régression** : Assertions debug ajoutées pour vérifier normalisation date et cohérence dates dans résultats
+- ✅ **Logs debug** : Tous les `debugPrint` wrappés avec `kDebugMode` pour éviter spam en release
+
+### Changements clés Phase 3
+- `depotStocksSnapshotProvider` : Normalisation date améliorée (évite `DateTime.now()` instable)
+- `role_dashboard.dart` : Stock total utilise maintenant `snapshot.totals` au lieu de `data.stocks` pour cohérence
+- Guards ajoutés : Vérification normalisation date + vérification dates distinctes dans résultats
+
+### Tests
+- ✅ `flutter test test/features/stocks/stocks_kpi_repository_test.dart` → 8/8 passent
+- ✅ `flutter test test/features/dashboard/` → 26/26 passent
+
 ## 📋 Prochaine étape proposée
 
 **Ajouter un test anti-régression `_filterToLatestDate` multi-dates** :
-- Vérifier que quand plusieurs `date_jour` reviennent d'une requête, le repository ne garde que le plus récent
-- Test unitaire ciblé sur la méthode `_filterToLatestDate` ou test d'intégration via `fetchCiterneGlobalSnapshots`
+- ✅ **FAIT** : Test ajouté dans `test/features/stocks/stocks_kpi_repository_test.dart`
+- Vérifie que quand plusieurs `date_jour` reviennent d'une requête, le repository ne garde que le plus récent
 
 ## Architecture finale
 

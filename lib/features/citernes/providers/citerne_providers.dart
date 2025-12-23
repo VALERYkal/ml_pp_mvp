@@ -78,9 +78,18 @@ final citerneStocksSnapshotProvider = Riverpod.FutureProvider.autoDispose<DepotS
     );
   }
   
-  // 2) Récupérer la date sélectionnée (ou utiliser maintenant)
+  // 2) Récupérer la date sélectionnée (ou utiliser maintenant) et normaliser
+  // PHASE 3: Normaliser la date une seule fois de manière stable
   final selectedDate = ref.watch(stocksSelectedDateProvider);
   final dateJour = DateTime(selectedDate.year, selectedDate.month, selectedDate.day);
+  
+  // Guard de régression : vérifier que dateJour est bien normalisé (debug only)
+  if (kDebugMode) {
+    assert(
+      dateJour.hour == 0 && dateJour.minute == 0 && dateJour.second == 0 && dateJour.millisecond == 0,
+      '⚠️ citerneStocksSnapshotProvider: dateJour doit être normalisé (YYYY-MM-DD 00:00:00.000)',
+    );
+  }
   
   // 3) Récupérer toutes les citernes actives du dépôt
   final sb = Supabase.instance.client;

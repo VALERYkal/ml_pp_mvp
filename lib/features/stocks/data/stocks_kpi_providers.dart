@@ -142,13 +142,27 @@ final depotStocksSnapshotProvider = riverpod.FutureProvider.autoDispose
       params,
     ) async {
       // Normaliser la date à minuit pour rester cohérent avec stocks_journaliers.date_jour (DATE)
-      final rawDate = params.dateJour ?? DateTime.now();
+      // CRITICAL: Normaliser AVANT toute utilisation pour éviter les rebuild loops
+      // Si dateJour est null, utiliser la date d'aujourd'hui normalisée une seule fois
+      final now = DateTime.now();
+      final todayNormalized = DateTime(now.year, now.month, now.day);
+      final rawDate = params.dateJour ?? todayNormalized;
       final dateJour = DateTime(rawDate.year, rawDate.month, rawDate.day);
 
+      // Guard de régression : vérifier que dateJour est bien normalisé (debug only)
+      if (kDebugMode) {
+        assert(
+          dateJour.hour == 0 && dateJour.minute == 0 && dateJour.second == 0 && dateJour.millisecond == 0,
+          '⚠️ depotStocksSnapshotProvider: dateJour doit être normalisé (YYYY-MM-DD 00:00:00.000)',
+        );
+      }
+
       // Log pour vérifier si les params changent constamment
-      debugPrint(
-        '🔄 depotStocksSnapshotProvider: Début - depotId=${params.depotId}, dateJour=$dateJour',
-      );
+      if (kDebugMode) {
+        debugPrint(
+          '🔄 depotStocksSnapshotProvider: Début - depotId=${params.depotId}, dateJour=$dateJour (normalisé)',
+        );
+      }
 
       StocksKpiRepository repo;
 
@@ -167,16 +181,20 @@ final depotStocksSnapshotProvider = riverpod.FutureProvider.autoDispose
       // Try/catch pour les appels Supabase
       try {
         // 1) Global totals per depot
-        debugPrint(
-          '🔄 depotStocksSnapshotProvider: Appel fetchDepotProductTotals...',
-        );
+        if (kDebugMode) {
+          debugPrint(
+            '🔄 depotStocksSnapshotProvider: Appel fetchDepotProductTotals (dateJour=$dateJour)...',
+          );
+        }
         final globalList = await repo.fetchDepotProductTotals(
           depotId: params.depotId,
           dateJour: dateJour,
         );
-        debugPrint(
-          '🔄 depotStocksSnapshotProvider: fetchDepotProductTotals OK (${globalList.length} items)',
-        );
+        if (kDebugMode) {
+          debugPrint(
+            '🔄 depotStocksSnapshotProvider: fetchDepotProductTotals OK (${globalList.length} items)',
+          );
+        }
 
         final totals = globalList.isNotEmpty
             ? globalList.first
@@ -191,35 +209,50 @@ final depotStocksSnapshotProvider = riverpod.FutureProvider.autoDispose
 
         // 2) Breakdown by owner
         // Utiliser dateJour pour garantir cohérence avec les totaux globaux
-        debugPrint(
-          '🔄 depotStocksSnapshotProvider: Appel fetchDepotOwnerTotals (avec dateJour=$dateJour)...',
-        );
+        if (kDebugMode) {
+          debugPrint(
+            '🔄 depotStocksSnapshotProvider: Appel fetchDepotOwnerTotals (avec dateJour=$dateJour)...',
+          );
+        }
         final owners = await repo.fetchDepotOwnerTotals(
           depotId: params.depotId,
           dateJour: dateJour,
         );
-        debugPrint(
-          '🔄 depotStocksSnapshotProvider: fetchDepotOwnerTotals OK (${owners.length} items)',
-        );
+        if (kDebugMode) {
+          debugPrint(
+            '🔄 depotStocksSnapshotProvider: fetchDepotOwnerTotals OK (${owners.length} items)',
+          );
+        }
 
         // 3) Citerne-level snapshots
         // Utilise v_stocks_citerne_global_daily qui supporte date_jour avec filtrage cohérent
-        debugPrint(
-          '🔄 depotStocksSnapshotProvider: Appel fetchCiterneGlobalSnapshots (v_stocks_citerne_global_daily avec dateJour)...',
-        );
+        if (kDebugMode) {
+          debugPrint(
+            '🔄 depotStocksSnapshotProvider: Appel fetchCiterneGlobalSnapshots (v_stocks_citerne_global_daily avec dateJour=$dateJour)...',
+          );
+        }
         final citerneRowsRaw = await repo.fetchCiterneGlobalSnapshots(
           depotId: params.depotId,
           dateJour: dateJour,
         );
-        debugPrint(
-          '🔄 depotStocksSnapshotProvider: fetchCiterneGlobalSnapshots OK (${citerneRowsRaw.length} items)',
-        );
-        // Log détaillé pour diagnostic
-        for (final row in citerneRowsRaw) {
+        
+        // Guard de régression : vérifier que toutes les lignes ont la même date_jour (debug only)
+        if (kDebugMode && citerneRowsRaw.isNotEmpty) {
+          final distinctDates = citerneRowsRaw
+              .map((row) => '${row.dateJour.year}-${row.dateJour.month.toString().padLeft(2, '0')}-${row.dateJour.day.toString().padLeft(2, '0')}')
+              .toSet();
+          if (distinctDates.length > 1) {
+            debugPrint(
+              '⚠️ depotStocksSnapshotProvider: Plusieurs dates distinctes détectées dans citerneRowsRaw: ${distinctDates.join(", ")}. '
+              'Le repository devrait avoir filtré à une seule date.',
+            );
+          } else {
+            debugPrint(
+              '✅ depotStocksSnapshotProvider: Toutes les lignes ont la même date_jour: ${distinctDates.first}',
+            );
+          }
           debugPrint(
-            '  📊 Citerne: ${row.citerneNom} (${row.citerneId}) | '
-            'Stock ambiant: ${row.stockAmbiantTotal} L | '
-            'Stock 15°C: ${row.stock15cTotal} L',
+            '🔄 depotStocksSnapshotProvider: fetchCiterneGlobalSnapshots OK (${citerneRowsRaw.length} items)',
           );
         }
 
@@ -252,15 +285,16 @@ final depotStocksSnapshotProvider = riverpod.FutureProvider.autoDispose
         }
 
         final citerneRows = byCiterneProduct.values.toList();
-        debugPrint(
-          '🔄 depotStocksSnapshotProvider: Agrégation citernes OK (${citerneRows.length} items après agrégation)',
-        );
+        if (kDebugMode) {
+          debugPrint(
+            '🔄 depotStocksSnapshotProvider: Agrégation citernes OK (${citerneRows.length} items après agrégation)',
+          );
+          debugPrint(
+            '✅ depotStocksSnapshotProvider: Succès - retour snapshot normal (dateJour=$dateJour)',
+          );
+        }
 
         const bool isFallback = false;
-
-        debugPrint(
-          '✅ depotStocksSnapshotProvider: Succès - retour snapshot normal',
-        );
         return DepotStocksSnapshot(
           dateJour: dateJour,
           isFallback: isFallback,
