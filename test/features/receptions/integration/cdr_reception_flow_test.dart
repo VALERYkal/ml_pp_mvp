@@ -210,7 +210,14 @@ class _FakeRefRepoForIntegration extends refs.ReferentielsRepo {
 // TESTS D'INTÉGRATION
 // ════════════════════════════════════════════════════════════════════════════
 
+import '../../test_utils/supabase_test_bootstrap.dart';
+
 void main() {
+  setUpAll(() async {
+    // Initialiser Supabase pour éviter les erreurs "Supabase.instance not initialized"
+    await ensureSupabaseInitializedForTests();
+  });
+
   group('CDR → Réception → CDR.DECHARGE Integration Flow', () {
     // ⚠️ NOTE : Ces tests nécessitent un SupabaseClient configuré
     // Pour les tests unitaires, utilisez des fakes/mocks

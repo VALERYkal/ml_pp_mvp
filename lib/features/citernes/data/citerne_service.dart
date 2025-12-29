@@ -38,11 +38,17 @@ class CiterneService {
 
   /// Récupère le stock actuel pour une citerne et un produit à une date donnée
   /// 
+  /// LEGACY: Utilise la vue SQL `stock_actuel` (ancienne source de vérité).
+  /// 
+  /// ⚠️ DEPRECATED: Cette méthode est conservée uniquement pour compatibilité avec ReceptionService.
+  /// Pour le module Citernes, utiliser `CiterneRepository.fetchCiterneStockSnapshots()` (v_citerne_stock_snapshot_agg) à la place.
+  /// 
   /// [citerneId] : ID de la citerne
   /// [produitId] : ID du produit
   /// [date] : Date optionnelle (par défaut aujourd'hui)
   /// 
   /// Retourne : Map avec 'ambiant' et 'c15' (volumes en litres)
+  @Deprecated('Legacy method using stock_actuel. Kept for ReceptionService compatibility. Use CiterneRepository.fetchCiterneStockSnapshots() for Citernes.')
   Future<Map<String, double>> getStockActuel(
     String citerneId, 
     String produitId, 

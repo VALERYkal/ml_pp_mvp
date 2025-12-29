@@ -68,6 +68,23 @@ class FakeStocksKpiRepositoryForWidget implements StocksKpiRepository {
   }) async {
     return 0.0;
   }
+
+  @override
+  Future<List<Map<String, dynamic>>> fetchCiterneStocksFromSnapshot({
+    String? depotId,
+    String? citerneId,
+    String? produitId,
+  }) async {
+    return [];
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> fetchDepotOwnerStocksFromSnapshot({
+    required String depotId,
+    String? produitId,
+  }) async {
+    return [];
+  }
 }
 
 void main() {

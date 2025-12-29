@@ -6,8 +6,9 @@ class SortieServiceException implements Exception {
   final String message;
   final String? code; // Code erreur SQL (ex: "23505" pour unique violation)
   final String? hint; // Hint de PostgrestException
+  final String? details; // Détails de PostgrestException
   
-  SortieServiceException(this.message, {this.code, this.hint});
+  SortieServiceException(this.message, {this.code, this.hint, this.details});
   
   @override
   String toString() => 'SortieServiceException: $message';

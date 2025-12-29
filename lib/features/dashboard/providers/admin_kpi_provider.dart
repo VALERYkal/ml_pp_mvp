@@ -23,8 +23,13 @@ String _ymd(DateTime d) =>
 String _isoUtc(DateTime d) =>
     d.toUtc().toIso8601String().split('.').first + 'Z';
 
+/// Provider legacy pour les KPIs Admin
+/// 
+/// ⚠️ NOTE : Ce provider utilise DateTime.now().toUtc() pour calculer la date du jour.
+/// Pour les KPI "du jour" du dashboard principal, utiliser kpiProviderProvider qui utilise la date métier locale.
 final adminKpiProvider = FutureProvider<AdminKpis>((ref) async {
   final supa = Supabase.instance.client;
+  // LEGACY: Utilise UTC système (peut être corrigé dans une tâche séparée)
   final now = DateTime.now().toUtc();
   final dayStart = DateTime.utc(now.year, now.month, now.day);
   final dayEnd = dayStart.add(const Duration(days: 1));

@@ -4,7 +4,7 @@
 // Architecture simplifiée : Les validations métier sont gérées par le trigger SQL
 // `fn_sorties_after_insert()`. Ce service fait uniquement l'insert et gère les erreurs SQL.
 
-import 'dart:developer';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ml_pp_mvp/core/errors/sortie_service_exception.dart';
 // no riverpod import here; provider is defined in providers/sortie_providers.dart
@@ -53,8 +53,10 @@ class SortieService {
       // created_by sera géré par le trigger ou la DB
     };
 
-    log('[SortieService] INSERT sortie MONALUXE');
-    log('[SortieService] payload=$payload');
+    if (kDebugMode) {
+      debugPrint('[SORTIE][CALL] insert sorties_produit');
+      debugPrint('[SORTIE][PAYLOAD] $payload');
+    }
 
     try {
       await client
@@ -63,17 +65,24 @@ class SortieService {
           .select('id')
           .single();
       
-      log('[SortieService] OK - Sortie MONALUXE créée');
+      if (kDebugMode) {
+        debugPrint('[SORTIE] OK - Sortie MONALUXE créée');
+      }
     } on PostgrestException catch (e, st) {
-      log('[SortieService][PostgrestException] message=${e.message}', stackTrace: st);
-      log('[SortieService] code=${e.code} hint=${e.hint}');
+      if (kDebugMode) {
+        debugPrint('[SORTIE][ERROR] code=${e.code} message=${e.message ?? 'N/A'} details=${e.details ?? 'N/A'} hint=${e.hint ?? 'N/A'}');
+        debugPrint('[SORTIE][ERROR] stackTrace: $st');
+      }
       
       // Mapper les erreurs du trigger vers des messages utilisateur lisibles
       final userMessage = _mapErrorToUserMessage(e.message);
       
-      throw SortieServiceException(userMessage, code: e.code, hint: e.hint);
+      throw SortieServiceException(userMessage, code: e.code, hint: e.hint, details: e.details);
     } catch (e, st) {
-      log('[SortieService][Unknown] $e', stackTrace: st);
+      if (kDebugMode) {
+        debugPrint('[SORTIE][ERROR] Unknown exception: $e');
+        debugPrint('[SORTIE][ERROR] stackTrace: $st');
+      }
       rethrow;
     }
   }
@@ -117,8 +126,10 @@ class SortieService {
       // created_by sera géré par le trigger ou la DB
     };
 
-    log('[SortieService] INSERT sortie PARTENAIRE');
-    log('[SortieService] payload=$payload');
+    if (kDebugMode) {
+      debugPrint('[SORTIE][CALL] insert sorties_produit');
+      debugPrint('[SORTIE][PAYLOAD] $payload');
+    }
 
     try {
       await client
@@ -127,17 +138,24 @@ class SortieService {
           .select('id')
           .single();
       
-      log('[SortieService] OK - Sortie PARTENAIRE créée');
+      if (kDebugMode) {
+        debugPrint('[SORTIE] OK - Sortie PARTENAIRE créée');
+      }
     } on PostgrestException catch (e, st) {
-      log('[SortieService][PostgrestException] message=${e.message}', stackTrace: st);
-      log('[SortieService] code=${e.code} hint=${e.hint}');
+      if (kDebugMode) {
+        debugPrint('[SORTIE][ERROR] code=${e.code} message=${e.message ?? 'N/A'} details=${e.details ?? 'N/A'} hint=${e.hint ?? 'N/A'}');
+        debugPrint('[SORTIE][ERROR] stackTrace: $st');
+      }
       
       // Mapper les erreurs du trigger vers des messages utilisateur lisibles
       final userMessage = _mapErrorToUserMessage(e.message);
       
-      throw SortieServiceException(userMessage, code: e.code, hint: e.hint);
+      throw SortieServiceException(userMessage, code: e.code, hint: e.hint, details: e.details);
     } catch (e, st) {
-      log('[SortieService][Unknown] $e', stackTrace: st);
+      if (kDebugMode) {
+        debugPrint('[SORTIE][ERROR] Unknown exception: $e');
+        debugPrint('[SORTIE][ERROR] stackTrace: $st');
+      }
       rethrow;
     }
   }
@@ -212,8 +230,10 @@ class SortieService {
       if (transporteur != null && transporteur.trim().isNotEmpty) 'transporteur': transporteur.trim(),
       };
 
-      log('[SortieService] INSERT sortie MONALUXE (via createValidated)');
-    log('[SortieService] payload=$payload');
+      if (kDebugMode) {
+        debugPrint('[SORTIE][CALL] insert sorties_produit');
+        debugPrint('[SORTIE][PAYLOAD] $payload');
+      }
 
     try {
         await client
@@ -222,15 +242,22 @@ class SortieService {
           .select('id')
           .single();
 
-        log('[SortieService] OK - Sortie MONALUXE créée');
+        if (kDebugMode) {
+          debugPrint('[SORTIE] OK - Sortie MONALUXE créée');
+        }
     } on PostgrestException catch (e, st) {
-      log('[SortieService][PostgrestException] message=${e.message}', stackTrace: st);
-        log('[SortieService] code=${e.code} hint=${e.hint}');
+      if (kDebugMode) {
+        debugPrint('[SORTIE][ERROR] code=${e.code} message=${e.message ?? 'N/A'} details=${e.details ?? 'N/A'} hint=${e.hint ?? 'N/A'}');
+        debugPrint('[SORTIE][ERROR] stackTrace: $st');
+      }
         
         final userMessage = _mapErrorToUserMessage(e.message);
-        throw SortieServiceException(userMessage, code: e.code, hint: e.hint);
+        throw SortieServiceException(userMessage, code: e.code, hint: e.hint, details: e.details);
       } catch (e, st) {
-        log('[SortieService][Unknown] $e', stackTrace: st);
+        if (kDebugMode) {
+          debugPrint('[SORTIE][ERROR] Unknown exception: $e');
+          debugPrint('[SORTIE][ERROR] stackTrace: $st');
+        }
         rethrow;
       }
     } else if (proprietaireTypeFinal == 'PARTENAIRE') {
@@ -263,8 +290,10 @@ class SortieService {
         if (transporteur != null && transporteur.trim().isNotEmpty) 'transporteur': transporteur.trim(),
       };
 
-      log('[SortieService] INSERT sortie PARTENAIRE (via createValidated)');
-      log('[SortieService] payload=$payload');
+      if (kDebugMode) {
+        debugPrint('[SORTIE][CALL] insert sorties_produit');
+        debugPrint('[SORTIE][PAYLOAD] $payload');
+      }
 
       try {
         await client
@@ -273,15 +302,22 @@ class SortieService {
             .select('id')
             .single();
         
-        log('[SortieService] OK - Sortie PARTENAIRE créée');
+        if (kDebugMode) {
+          debugPrint('[SORTIE] OK - Sortie PARTENAIRE créée');
+        }
       } on PostgrestException catch (e, st) {
-        log('[SortieService][PostgrestException] message=${e.message}', stackTrace: st);
-        log('[SortieService] code=${e.code} hint=${e.hint}');
+        if (kDebugMode) {
+          debugPrint('[SORTIE][ERROR] code=${e.code} message=${e.message ?? 'N/A'} details=${e.details ?? 'N/A'} hint=${e.hint ?? 'N/A'}');
+          debugPrint('[SORTIE][ERROR] stackTrace: $st');
+        }
         
         final userMessage = _mapErrorToUserMessage(e.message);
-        throw SortieServiceException(userMessage, code: e.code, hint: e.hint);
+        throw SortieServiceException(userMessage, code: e.code, hint: e.hint, details: e.details);
     } catch (e, st) {
-      log('[SortieService][Unknown] $e', stackTrace: st);
+      if (kDebugMode) {
+        debugPrint('[SORTIE][ERROR] Unknown exception: $e');
+        debugPrint('[SORTIE][ERROR] stackTrace: $st');
+      }
       rethrow;
       }
     } else {

@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../kpi/providers/kpi_provider.dart';
 import '../data/stocks_kpi_providers.dart';
 
-/// Normalise une date à minuit (00:00:00) pour cohérence avec stocks_journaliers.date_jour
+/// Normalise une date à minuit (00:00:00)
 DateTime _normalizeDay(DateTime d) => DateTime(d.year, d.month, d.day);
 
 /// Invalide tous les providers liés aux stocks après un mouvement (sortie/réception).

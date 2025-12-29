@@ -9,7 +9,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart' as Riverpod;
 
 import '../data/reception_input.dart';
 import '../../citernes/data/citerne_service.dart';
-import '../../stocks_journaliers/data/stocks_service.dart';
 import 'package:ml_pp_mvp/shared/utils/volume_calc.dart';
 import 'package:ml_pp_mvp/shared/referentiels/referentiels.dart' as refs;
 import 'package:ml_pp_mvp/core/errors/reception_validation_exception.dart';
@@ -18,16 +17,13 @@ import 'package:ml_pp_mvp/core/errors/reception_insert_exception.dart';
 class ReceptionService {
   final SupabaseClient _client;
   final CiterneService Function(SupabaseClient) _citerneServiceFactory;
-  final StocksService Function(SupabaseClient) _stocksServiceFactory;
   final refs.ReferentielsRepo _refRepo;
 
   const ReceptionService.withClient(
     this._client, {
     CiterneService Function(SupabaseClient)? citerneServiceFactory,
-    StocksService Function(SupabaseClient)? stocksServiceFactory,
     required refs.ReferentielsRepo refRepo,
   })  : _citerneServiceFactory = citerneServiceFactory ?? CiterneService.withClient,
-        _stocksServiceFactory = stocksServiceFactory ?? StocksService.withClient,
         _refRepo = refRepo;
 
   /// Crée une réception "validée" (par défaut DB) et déclenche les effets (stocks + CDR DECHARGE).

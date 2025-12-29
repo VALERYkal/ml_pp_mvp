@@ -13,6 +13,7 @@ import 'package:ml_pp_mvp/shared/dev/hot_reload_hooks.dart';
 import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart';
 import 'package:ml_pp_mvp/features/stocks/widgets/stocks_kpi_cards.dart';
 import 'package:ml_pp_mvp/features/stocks/data/stocks_kpi_providers.dart';
+import 'package:ml_pp_mvp/data/repositories/stocks_kpi_repository.dart';
 import 'package:ml_pp_mvp/features/dashboard/providers/citernes_sous_seuil_provider.dart';
 import 'trucks_to_follow_card.dart';
 
@@ -215,138 +216,263 @@ class _RoleDashboardState extends ConsumerState<RoleDashboard> {
                                 // RÈGLE MÉTIER : Stock ambiant = source de vérité opérationnelle
                                 // Le stock à 15°C est une valeur dérivée, analytique, non décisionnelle
                                 // Référentiel : docs/db/REGLE_METIER_STOCKS_AMBIANT_15C.md
-                                // PHASE 3: Utiliser snapshot.totals pour cohérence avec breakdown propriétaire
+                                // Source de vérité : v_stock_actuel_snapshot via depotGlobalStockFromSnapshotProvider
                                 Builder(
                                   builder: (context) {
-                                    final stockTotals = snapshotAsync?.valueOrNull?.totals;
-                                    final displayAmbient = stockTotals?.stockAmbiantTotal ?? data.stocks.totalAmbient;
-                                    final display15c = stockTotals?.stock15cTotal ?? data.stocks.total15c;
-                                    
-                                    return KpiCard(
+                                    final snapAsync = depotId != null
+                                        ? ref.watch(depotGlobalStockFromSnapshotProvider(depotId))
+                                        : null;
+
+                                    return snapAsync?.when(
+                                      data: (s) {
+                                        final displayAmbient = s.amb;
+                                        final display15c = s.v15;
+                                        
+                                        return KpiCard(
+                                          cardKey: const Key('kpi_stock_total_card'),
+                                          icon: Icons.inventory_2_outlined,
+                                          title: 'Stock total',
+                                          tintColor: const Color(0xFFFF9800),
+                                          primaryValue: fmtL(
+                                            displayAmbient,
+                                          ), // Stock ambiant = source de vérité opérationnelle
+                                          primaryLabel: 'Volume ambiant',
+                                          subLeftLabel: '≈ Volume 15°C',
+                                          subLeftValue: fmtL(
+                                            display15c,
+                                          ), // Valeur dérivée, analytique
+                                          subRightLabel:
+                                              '${usagePct.toStringAsFixed(0)}% utilisation',
+                                          subRightValue:
+                                              'Capacité ${fmtL(capacityTotal, fixed: 0)}', // Utilise la nouvelle capacité
+                                          onTap: () => context.go('/stocks'),
+                                        );
+                                      },
+                                      loading: () => KpiCard(
+                                        cardKey: const Key('kpi_stock_total_card'),
+                                        icon: Icons.inventory_2_outlined,
+                                        title: 'Stock total',
+                                        tintColor: const Color(0xFFFF9800),
+                                        primaryValue: fmtL(0.0),
+                                        primaryLabel: 'Volume ambiant',
+                                        subLeftLabel: '≈ Volume 15°C',
+                                        subLeftValue: fmtL(0.0),
+                                        subRightLabel: '...',
+                                        subRightValue: 'Chargement...',
+                                        onTap: () => context.go('/stocks'),
+                                      ),
+                                      error: (e, st) => KpiCard(
+                                        cardKey: const Key('kpi_stock_total_card'),
+                                        icon: Icons.inventory_2_outlined,
+                                        title: 'Stock total',
+                                        tintColor: const Color(0xFFFF9800),
+                                        primaryValue: fmtL(0.0),
+                                        primaryLabel: 'Volume ambiant',
+                                        subLeftLabel: '≈ Volume 15°C',
+                                        subLeftValue: fmtL(0.0),
+                                        subRightLabel: 'Erreur',
+                                        subRightValue: 'Recharger',
+                                        onTap: () => context.go('/stocks'),
+                                      ),
+                                    ) ?? KpiCard(
                                       cardKey: const Key('kpi_stock_total_card'),
-                                       icon: Icons.inventory_2_outlined,
-                                       title: 'Stock total',
-                                       tintColor: const Color(0xFFFF9800),
-                                      primaryValue: fmtL(
-                                        displayAmbient,
-                                      ), // Stock ambiant = source de vérité opérationnelle
+                                      icon: Icons.inventory_2_outlined,
+                                      title: 'Stock total',
+                                      tintColor: const Color(0xFFFF9800),
+                                      primaryValue: fmtL(data.stocks.totalAmbient),
                                       primaryLabel: 'Volume ambiant',
                                       subLeftLabel: '≈ Volume 15°C',
-                                      subLeftValue: fmtL(
-                                        display15c,
-                                      ), // Valeur dérivée, analytique
+                                      subLeftValue: fmtL(data.stocks.total15c),
                                       subRightLabel:
                                           '${usagePct.toStringAsFixed(0)}% utilisation',
                                       subRightValue:
-                                          'Capacité ${fmtL(capacityTotal, fixed: 0)}', // Utilise la nouvelle capacité
-                                       onTap: () => context.go('/stocks'),
+                                          'Capacité ${fmtL(capacityTotal, fixed: 0)}',
+                                      onTap: () => context.go('/stocks'),
                                     );
                                   },
                                 ),
-                                // Nouvelle section : Détail par propriétaire
-                                // Source unifiée = snapshot.owners pour éviter divergence UI
-                                snapshotAsync == null
-                                    ? const SizedBox.shrink()
-                                    : snapshotAsync.when(
-                                    data: (snapshot) {
-                                      // Utiliser snapshot.owners directement (déjà filtré par depotId par le provider)
-                                      final owners = snapshot.owners;
+                                // Détail par propriétaire depuis v_stock_actuel_owner_snapshot
+                                Builder(
+                                  builder: (context) {
+                                    final ownersAsync = depotId != null
+                                        ? ref.watch(depotOwnerStockFromSnapshotProvider(depotId))
+                                        : null;
 
-                                      // Agréger les valeurs par propriétaire
-                                      double mon15c = 0.0;
-                                      double monAmb = 0.0;
-                                      double part15c = 0.0;
-                                      double partAmb = 0.0;
+                                    return ownersAsync?.when(
+                                      data: (owners) {
+                                        // Trouver MONALUXE et PARTENAIRE (ou utiliser 0.0 si absent)
+                                        final monaluxe = owners.firstWhere(
+                                          (o) => o.proprietaireType.toUpperCase() == 'MONALUXE',
+                                          orElse: () => DepotOwnerStockKpi(
+                                            depotId: depotId ?? '',
+                                            depotNom: '',
+                                            proprietaireType: 'MONALUXE',
+                                            produitId: '',
+                                            produitNom: '',
+                                            stockAmbiantTotal: 0.0,
+                                            stock15cTotal: 0.0,
+                                          ),
+                                        );
+                                        
+                                        final partenaire = owners.firstWhere(
+                                          (o) => o.proprietaireType.toUpperCase() == 'PARTENAIRE',
+                                          orElse: () => DepotOwnerStockKpi(
+                                            depotId: depotId ?? '',
+                                            depotNom: '',
+                                            proprietaireType: 'PARTENAIRE',
+                                            produitId: '',
+                                            produitNom: '',
+                                            stockAmbiantTotal: 0.0,
+                                            stock15cTotal: 0.0,
+                                          ),
+                                        );
 
-                                      for (final item in owners) {
-                                        if (item.proprietaireType.toUpperCase() ==
-                                            'MONALUXE') {
-                                          mon15c += item.stock15cTotal;
-                                          monAmb += item.stockAmbiantTotal;
-                                        } else if (item.proprietaireType
-                                                .toUpperCase() ==
-                                            'PARTENAIRE') {
-                                          part15c += item.stock15cTotal;
-                                          partAmb += item.stockAmbiantTotal;
-                                        }
-                                      }
+                                        final monAmb = monaluxe.stockAmbiantTotal;
+                                        final mon15c = monaluxe.stock15cTotal;
+                                        final partAmb = partenaire.stockAmbiantTotal;
+                                        final part15c = partenaire.stock15cTotal;
 
-                                    return Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        const SizedBox(height: 16),
-                                        Text(
-                                          'Détail par propriétaire',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .titleSmall
-                                              ?.copyWith(
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                        ),
-                                        const SizedBox(height: 12),
-                                        // Layout responsive : Row sur grand écran, Column sur mobile
-                                        LayoutBuilder(
-                                          builder: (context, constraints) {
-                                            final isWide =
-                                                constraints.maxWidth > 400;
-                                            if (isWide) {
-                                              // Desktop : côte à côte
-                                              return Row(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Expanded(
-                                                    child:
-                                                        _buildOwnerDetailColumn(
+                                        return Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            const SizedBox(height: 16),
+                                            Text(
+                                              'Détail par propriétaire',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .titleSmall
+                                                  ?.copyWith(
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                            ),
+                                            const SizedBox(height: 12),
+                                            // Layout responsive : Row sur grand écran, Column sur mobile
+                                            LayoutBuilder(
+                                              builder: (context, constraints) {
+                                                final isWide = constraints.maxWidth > 400;
+                                                if (isWide) {
+                                                  // Desktop : côte à côte
+                                                  return Row(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Expanded(
+                                                        child: _buildOwnerDetailColumn(
                                                           context,
                                                           'MONALUXE',
                                                           monAmb,
                                                           mon15c,
                                                         ),
-                                                  ),
-                                                  const SizedBox(width: 16),
-                                                  Expanded(
-                                                    child:
-                                                        _buildOwnerDetailColumn(
+                                                      ),
+                                                      const SizedBox(width: 16),
+                                                      Expanded(
+                                                        child: _buildOwnerDetailColumn(
                                                           context,
                                                           'PARTENAIRE',
                                                           partAmb,
                                                           part15c,
                                                         ),
+                                                      ),
+                                                    ],
+                                                  );
+                                                } else {
+                                                  // Mobile : empilé
+                                                  return Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                                    children: [
+                                                      _buildOwnerDetailColumn(
+                                                        context,
+                                                        'MONALUXE',
+                                                        monAmb,
+                                                        mon15c,
+                                                      ),
+                                                      const SizedBox(height: 12),
+                                                      _buildOwnerDetailColumn(
+                                                        context,
+                                                        'PARTENAIRE',
+                                                        partAmb,
+                                                        part15c,
+                                                      ),
+                                                    ],
+                                                  );
+                                                }
+                                              },
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                      loading: () => const SizedBox.shrink(),
+                                      error: (error, stack) {
+                                        // Fallback : afficher 0.0 plutôt que de masquer complètement
+                                        if (kDebugMode) {
+                                          debugPrint('⚠️ Dashboard Stock par propriétaire: Erreur $error');
+                                        }
+                                        return Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            const SizedBox(height: 16),
+                                            Text(
+                                              'Détail par propriétaire',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .titleSmall
+                                                  ?.copyWith(
+                                                    fontWeight: FontWeight.w600,
                                                   ),
-                                                ],
-                                              );
-                                            } else {
-                                              // Mobile : empilé
-                                              return Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.stretch,
-                                                children: [
-                                                  _buildOwnerDetailColumn(
-                                                    context,
-                                                    'MONALUXE',
-                                                    monAmb,
-                                                    mon15c,
-                                                  ),
-                                                  const SizedBox(height: 12),
-                                                  _buildOwnerDetailColumn(
-                                                    context,
-                                                    'PARTENAIRE',
-                                                    partAmb,
-                                                    part15c,
-                                                  ),
-                                                ],
-                                              );
-                                            }
-                                          },
-                                        ),
-                                      ],
-                                    );
+                                            ),
+                                            const SizedBox(height: 12),
+                                            LayoutBuilder(
+                                              builder: (context, constraints) {
+                                                final isWide = constraints.maxWidth > 400;
+                                                if (isWide) {
+                                                  return Row(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Expanded(
+                                                        child: _buildOwnerDetailColumn(
+                                                          context,
+                                                          'MONALUXE',
+                                                          0.0,
+                                                          0.0,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(width: 16),
+                                                      Expanded(
+                                                        child: _buildOwnerDetailColumn(
+                                                          context,
+                                                          'PARTENAIRE',
+                                                          0.0,
+                                                          0.0,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  );
+                                                } else {
+                                                  return Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                                    children: [
+                                                      _buildOwnerDetailColumn(
+                                                        context,
+                                                        'MONALUXE',
+                                                        0.0,
+                                                        0.0,
+                                                      ),
+                                                      const SizedBox(height: 12),
+                                                      _buildOwnerDetailColumn(
+                                                        context,
+                                                        'PARTENAIRE',
+                                                        0.0,
+                                                        0.0,
+                                                      ),
+                                                    ],
+                                                  );
+                                                }
+                                              },
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    ) ?? const SizedBox.shrink();
                                   },
-                                  loading: () => const SizedBox.shrink(),
-                                  error: (_, __) => const SizedBox.shrink(),
                                 ),
                               ],
                             );

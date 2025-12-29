@@ -26,6 +26,8 @@ import 'package:ml_pp_mvp/features/kpi/providers/kpi_provider.dart';
 import 'package:ml_pp_mvp/features/kpi/models/kpi_models.dart';
 import 'package:ml_pp_mvp/features/stocks/data/stocks_kpi_providers.dart';
 import 'package:ml_pp_mvp/features/stocks/data/stocks_kpi_service.dart';
+import 'package:ml_pp_mvp/data/repositories/stocks_kpi_repository.dart';
+import 'package:ml_pp_mvp/features/stocks/domain/depot_stocks_snapshot.dart';
 import '../../../test/integration/mocks.mocks.dart';
 import 'package:mockito/mockito.dart';
 
@@ -338,6 +340,77 @@ Future<void> pumpAppAsRole(
         sp.partenairesListProvider.overrideWith(
           (ref) async => <Map<String, String>>[],
         ),
+        // Override des providers stock pour éviter les appels Supabase
+        depotStocksSnapshotProvider.overrideWith((ref, params) async {
+          final dateJour = DateTime(2025, 1, 1); // Date normalisée
+          return DepotStocksSnapshot(
+            dateJour: dateJour,
+            isFallback: false,
+            totals: DepotGlobalStockKpi(
+              depotId: params.depotId,
+              depotNom: 'Dépôt Test',
+              produitId: 'produit-go',
+              produitNom: 'Gasoil/AGO',
+              stockAmbiantTotal: 2000.0,
+              stock15cTotal: 1900.0,
+            ),
+            owners: [
+              DepotOwnerStockKpi(
+                depotId: params.depotId,
+                depotNom: 'Dépôt Test',
+                proprietaireType: 'MONALUXE',
+                produitId: 'produit-go',
+                produitNom: 'Gasoil/AGO',
+                stockAmbiantTotal: 1200.0,
+                stock15cTotal: 1140.0,
+              ),
+              DepotOwnerStockKpi(
+                depotId: params.depotId,
+                depotNom: 'Dépôt Test',
+                proprietaireType: 'PARTENAIRE',
+                produitId: 'produit-go',
+                produitNom: 'Gasoil/AGO',
+                stockAmbiantTotal: 800.0,
+                stock15cTotal: 760.0,
+              ),
+            ],
+            citerneRows: [
+              CiterneGlobalStockSnapshot(
+                citerneId: 'citerne-1',
+                citerneNom: 'TANK1',
+                produitId: 'produit-go',
+                produitNom: 'Gasoil/AGO',
+                dateJour: dateJour,
+                stockAmbiantTotal: 2000.0,
+                stock15cTotal: 1900.0,
+                capaciteTotale: 100000.0,
+                capaciteSecurite: 0.0,
+              ),
+            ],
+          );
+        }),
+        depotOwnerStockFromSnapshotProvider.overrideWith((ref, depotId) async {
+          return [
+            DepotOwnerStockKpi(
+              depotId: depotId,
+              depotNom: 'Dépôt Test',
+              proprietaireType: 'MONALUXE',
+              produitId: 'produit-go',
+              produitNom: 'Gasoil/AGO',
+              stockAmbiantTotal: 1200.0,
+              stock15cTotal: 1140.0,
+            ),
+            DepotOwnerStockKpi(
+              depotId: depotId,
+              depotNom: 'Dépôt Test',
+              proprietaireType: 'PARTENAIRE',
+              produitId: 'produit-go',
+              produitNom: 'Gasoil/AGO',
+              stockAmbiantTotal: 800.0,
+              stock15cTotal: 760.0,
+            ),
+          ];
+        }),
       ],
       child: Consumer(
         builder: (context, ref, _) {

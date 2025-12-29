@@ -187,7 +187,7 @@ void main() {
               'date_jour': '2025-12-08', // Date plus ancienne (devrait être exclue)
             },
           ];
-          fakeClient.setViewData('v_kpi_stock_owner', rowsToReturn);
+          fakeClient.setViewData('v_stock_actuel_owner_snapshot', rowsToReturn);
 
           final repo = StocksKpiRepository(fakeClient);
 
@@ -200,12 +200,12 @@ void main() {
           // Assert
           expect(result, isNotEmpty);
 
-          // Le filtre devrait garder uniquement les lignes avec date_jour = '2025-12-09'
-          // Il y a 2 lignes avec cette date dans rowsToReturn, donc on devrait avoir 2 résultats
-          // (les lignes avec date_jour = '2025-12-08' doivent être exclues)
+          // Note: v_stock_actuel_owner_snapshot ignore dateJour (snapshot = toujours état actuel)
+          // Le test vérifie que la vue correcte est utilisée et que les données sont retournées
+          // Il y a 2 lignes dans rowsToReturn (MONALUXE et PARTENAIRE), donc on devrait avoir 2 résultats
           expect(result.length, 2);
           
-          // Vérifier que les stocks correspondent aux lignes de la date la plus récente
+          // Vérifier que les stocks correspondent aux données mockées
           final monaluxeResult = result.firstWhere(
             (kpi) => kpi.proprietaireType == 'MONALUXE',
           );
@@ -304,7 +304,7 @@ void main() {
               'capacite_securite': 500.0,
             },
           ];
-          fakeClient.setViewData('v_stocks_citerne_global_daily', rowsToReturn);
+          fakeClient.setViewData('v_stock_actuel_snapshot', rowsToReturn);
 
           final repo = StocksKpiRepository(fakeClient);
 
@@ -318,23 +318,11 @@ void main() {
           expect(result, isNotEmpty);
           
           // Vérifier que la vue correcte a été utilisée
-          expect(fakeClient.capturedViewName, 'v_stocks_citerne_global_daily');
+          expect(fakeClient.capturedViewName, 'v_stock_actuel_snapshot');
           
-          // Vérifier que tous les snapshots ont la même date_jour (la plus récente)
-          final allDates = result.map((snapshot) {
-            // Extraire la date au format YYYY-MM-DD pour comparer
-            final dateStr = '${snapshot.dateJour.year.toString().padLeft(4, '0')}-'
-                '${snapshot.dateJour.month.toString().padLeft(2, '0')}-'
-                '${snapshot.dateJour.day.toString().padLeft(2, '0')}';
-            return dateStr;
-          }).toSet();
-
-          // Tous les snapshots devraient avoir la même date (la plus récente)
-          expect(allDates.length, 1);
-          expect(allDates.first, '2025-12-09');
-          
-          // Le filtre devrait garder uniquement les lignes avec date_jour = '2025-12-09'
-          // Il y a 2 lignes avec cette date, donc on devrait avoir 2 résultats
+          // Note: v_stock_actuel_snapshot ignore dateJour (snapshot = toujours état actuel)
+          // Le test vérifie que la vue correcte est utilisée et que les données sont retournées
+          // Il y a 2 lignes dans rowsToReturn, donc on devrait avoir 2 résultats
           expect(result.length, 2);
           
           // Vérifier que les données correspondent aux lignes de la date la plus récente

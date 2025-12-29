@@ -2,6 +2,7 @@
    ML_PP MVP — SortieFormScreen
    Rôle: Écran pour créer une sortie validée avec validation métier stricte.
    =========================================================== */
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -21,7 +22,6 @@ import 'package:ml_pp_mvp/features/sorties/providers/sortie_providers.dart'
 import 'package:ml_pp_mvp/features/sorties/data/sortie_service.dart';
 import 'package:ml_pp_mvp/features/sorties/providers/sorties_table_provider.dart';
 import 'package:ml_pp_mvp/features/sorties/kpi/sorties_kpi_provider.dart';
-import 'package:ml_pp_mvp/features/stocks_journaliers/providers/stocks_providers.dart';
 import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart';
 import 'package:ml_pp_mvp/shared/refresh/refresh_helpers.dart';
 
@@ -215,6 +215,32 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
       densiteA15: dens,
     );
 
+    // Construire le payload pour logging détaillé (debug uniquement)
+    final payloadMap = <String, dynamic>{
+      'citerne_id': _selectedCiterneId!,
+      'produit_id': _selectedProduitId!,
+      'client_id': _owner == OwnerType.monaluxe ? clientId : null,
+      'partenaire_id': _owner == OwnerType.partenaire ? partenaireId : null,
+      'index_avant': avant,
+      'index_apres': apres,
+      'volume_ambiant': volAmb,
+      'volume_corrige_15c': vol15,
+      'temperature_ambiante_c': temp,
+      'densite_a_15': dens,
+      'proprietaire_type': _owner == OwnerType.monaluxe ? 'MONALUXE' : 'PARTENAIRE',
+      'statut': 'validee',
+      if (_selectedDate != null) 'date_sortie': _selectedDate!.toUtc().toIso8601String(),
+      if (ctrlChauffeur.text.trim().isNotEmpty) 'chauffeur_nom': ctrlChauffeur.text.trim(),
+      if (ctrlPlaqueCamion.text.trim().isNotEmpty) 'plaque_camion': ctrlPlaqueCamion.text.trim(),
+      if (ctrlPlaqueRemorque.text.trim().isNotEmpty) 'plaque_remorque': ctrlPlaqueRemorque.text.trim(),
+      if (ctrlTransporteur.text.trim().isNotEmpty) 'transporteur': ctrlTransporteur.text.trim(),
+      if (ctrlNote.text.trim().isNotEmpty) 'note': ctrlNote.text.trim(),
+    };
+
+    if (kDebugMode) {
+      debugPrint('[SORTIE][PAYLOAD] $payloadMap');
+    }
+
     setState(() => busy = true);
     try {
       // En PROD : on utilise le provider.
@@ -278,9 +304,6 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
           ref.invalidate(sortiesTableProvider);
           ref.invalidate(sortiesKpiTodayProvider);
         } catch (_) {}
-        try {
-        ref.invalidate(stocksListProvider);
-      } catch (_) {}
         context.go('/sorties');
       }
     } on SortieValidationException catch (e) {
@@ -302,7 +325,9 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
       }
     } on SortieServiceException catch (e) {
       // Erreur SQL/DB du trigger
-      debugPrint('[SortieForm] SortieServiceException: ${e.message}');
+      if (kDebugMode) {
+        debugPrint('[SORTIE][ERROR] code=${e.code} message=${e.message} details=${e.details ?? 'N/A'} hint=${e.hint ?? 'N/A'}');
+      }
       if (mounted) {
         final errorMessage = e.message.toLowerCase();
         final isStockInsufficient =

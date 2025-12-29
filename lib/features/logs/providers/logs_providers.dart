@@ -82,7 +82,6 @@ const List<String> logsModules = <String>[
   'receptions',
   'sorties_produit',
   'cours_de_route',
-  'stocks_journaliers',
   'citernes',
   'auth',
 ];

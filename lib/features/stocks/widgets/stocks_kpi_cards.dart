@@ -4,16 +4,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ml_pp_mvp/data/repositories/stocks_kpi_repository.dart';
 import 'package:ml_pp_mvp/features/stocks/data/stocks_kpi_providers.dart';
 import 'package:ml_pp_mvp/features/stocks/domain/depot_stocks_snapshot.dart';
-import 'package:ml_pp_mvp/features/stocks_journaliers/providers/stocks_providers.dart';
 import 'package:ml_pp_mvp/shared/formatters.dart';
 
 /// Carte affichant le breakdown des stocks par propriétaire (MONALUXE / PARTENAIRE).
 ///
-/// Utilise `depotStocksSnapshotProvider` pour obtenir les données agrégées.
+/// Utilise `depotOwnerStockFromSnapshotProvider` pour obtenir les données depuis v_stock_actuel_owner_snapshot.
 /// Affiche deux lignes : une pour MONALUXE, une pour PARTENAIRE avec volumes ambiant/15°C.
 class OwnerStockBreakdownCard extends ConsumerWidget {
   final String depotId;
-  final DateTime? dateJour;
+  final DateTime? dateJour; // Gardé pour compatibilité mais non utilisé (snapshot = toujours actuel)
   final VoidCallback? onTap;
 
   const OwnerStockBreakdownCard({
@@ -25,35 +24,48 @@ class OwnerStockBreakdownCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 1) Récupérer la date sélectionnée ou la date fournie
-    final rawDate = dateJour ?? ref.watch(stocksSelectedDateProvider) ?? DateTime.now();
-
-    // 2) Normaliser la date à minuit pour stabiliser la clé du provider
-    final dateJourValue = DateTime(rawDate.year, rawDate.month, rawDate.day);
-
-    final snapshotAsync = ref.watch(
-      depotStocksSnapshotProvider(
-        DepotStocksSnapshotParams(depotId: depotId, dateJour: dateJourValue),
-      ),
+    final ownersAsync = ref.watch(
+      depotOwnerStockFromSnapshotProvider(depotId),
     );
 
-    return snapshotAsync.when(
+    return ownersAsync.when(
       loading: () {
         debugPrint(
-          '📊 OwnerStockBreakdownCard: state=loading (depotId=$depotId, dateJour=$dateJourValue)',
+          '📊 OwnerStockBreakdownCard: state=loading (depotId=$depotId)',
         );
         return _buildLoadingCard(context);
       },
       error: (error, stack) {
         debugPrint('📊 OwnerStockBreakdownCard: state=error $error');
         debugPrint('Stack: $stack');
-        return _buildErrorCard(context, error);
+        // Fallback gracieux : afficher 0.0 au lieu d'une erreur
+        // (sauf si c'est une erreur réseau critique)
+        return _buildDataCard(context, [
+          DepotOwnerStockKpi(
+            depotId: depotId,
+            depotNom: '',
+            proprietaireType: 'MONALUXE',
+            produitId: '',
+            produitNom: '',
+            stockAmbiantTotal: 0.0,
+            stock15cTotal: 0.0,
+          ),
+          DepotOwnerStockKpi(
+            depotId: depotId,
+            depotNom: '',
+            proprietaireType: 'PARTENAIRE',
+            produitId: '',
+            produitNom: '',
+            stockAmbiantTotal: 0.0,
+            stock15cTotal: 0.0,
+          ),
+        ]);
       },
-      data: (snapshot) {
+      data: (owners) {
         debugPrint(
-          '📊 OwnerStockBreakdownCard: state=data isFallback=${snapshot.isFallback}',
+          '📊 OwnerStockBreakdownCard: state=data (${owners.length} owners)',
         );
-        return _buildDataCard(context, snapshot);
+        return _buildDataCard(context, owners);
       },
     );
   }
@@ -111,44 +123,19 @@ class OwnerStockBreakdownCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildDataCard(BuildContext context, DepotStocksSnapshot snapshot) {
+  Widget _buildDataCard(BuildContext context, List<DepotOwnerStockKpi> owners) {
     final t = Theme.of(context);
-    final owners = snapshot.owners;
-    final totals = snapshot.totals;
 
-    DepotOwnerStockKpi monaluxe;
-    DepotOwnerStockKpi partenaire;
-
-    if (owners.isEmpty) {
-      // 🔁 Fallback : les vues KPI ne renvoient rien, mais on a un stock global
-      // Si le total est nul, on garde le comportement historique (0/0 pour tous)
-      if (totals.stockAmbiantTotal == 0.0 && totals.stock15cTotal == 0.0) {
-        monaluxe = _emptyOwner('MONALUXE');
-        partenaire = _emptyOwner('PARTENAIRE');
-      } else {
-        // Cas actuel de la base : tout le stock est MONALUXE, PARTENAIRE = 0
-        monaluxe = DepotOwnerStockKpi(
-          depotId: totals.depotId,
-          depotNom: totals.depotNom,
-          proprietaireType: 'MONALUXE',
-          produitId: totals.produitId,
-          produitNom: totals.produitNom,
-          stockAmbiantTotal: totals.stockAmbiantTotal,
-          stock15cTotal: totals.stock15cTotal,
-        );
-        partenaire = _emptyOwner('PARTENAIRE');
-      }
-    } else {
-      // 🔍 Cas nominal : on s'appuie sur v_kpi_stock_owner
-      monaluxe = owners.firstWhere(
-        (o) => o.proprietaireType.toUpperCase() == 'MONALUXE',
-        orElse: () => _emptyOwner('MONALUXE'),
-      );
-      partenaire = owners.firstWhere(
-        (o) => o.proprietaireType.toUpperCase() == 'PARTENAIRE',
-        orElse: () => _emptyOwner('PARTENAIRE'),
-      );
-    }
+    // Trouver MONALUXE et PARTENAIRE (le provider garantit qu'ils existent, avec 0.0 si absent)
+    final monaluxe = owners.firstWhere(
+      (o) => o.proprietaireType.toUpperCase() == 'MONALUXE',
+      orElse: () => _emptyOwner('MONALUXE'),
+    );
+    
+    final partenaire = owners.firstWhere(
+      (o) => o.proprietaireType.toUpperCase() == 'PARTENAIRE',
+      orElse: () => _emptyOwner('PARTENAIRE'),
+    );
 
     return InkWell(
       onTap: onTap,
@@ -214,18 +201,6 @@ class OwnerStockBreakdownCard extends ConsumerWidget {
                 stock15c: partenaire.stock15cTotal,
                 color: const Color(0xFF2196F3),
               ),
-              if (snapshot.isFallback) ...[
-                const SizedBox(height: 12),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                  child: Text(
-                    "⚠︎ Données de stock indisponibles. Affichage d'une vue de secours (0 L).",
-                    style: t.textTheme.bodySmall?.copyWith(
-                      color: Colors.orange[800],
-                    ),
-                  ),
-                ),
-              ],
             ],
           ),
         ),

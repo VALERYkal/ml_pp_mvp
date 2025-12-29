@@ -28,9 +28,8 @@ import 'package:ml_pp_mvp/dev/clear_cache_screen.dart';
 import 'package:ml_pp_mvp/features/dashboard/screens/dashboard_pca_screen.dart';
 import 'package:ml_pp_mvp/features/dashboard/widgets/dashboard_shell.dart';
 import 'package:ml_pp_mvp/features/logs/screens/logs_list_screen.dart';
-import 'package:ml_pp_mvp/features/stocks_journaliers/screens/stocks_list_screen.dart';
-import 'package:ml_pp_mvp/features/stocks_journaliers/screens/stocks_journaliers_screen.dart';
 import 'package:ml_pp_mvp/features/citernes/screens/citerne_list_screen.dart';
+import 'package:ml_pp_mvp/features/stocks/screens/stocks_screen.dart';
 
 // Default home page for authenticated users
 const String kDefaultHome = '/receptions';
@@ -123,13 +122,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             },
           ),
 
-          GoRoute(path: '/stocks', builder: (ctx, st) => const StocksListScreen()),
-          GoRoute(
-            path: '/stocks-journaliers',
-            name: 'stocksJournaliers',
-            builder: (ctx, st) => const StocksJournaliersScreen(),
-          ),
           GoRoute(path: '/citernes', builder: (ctx, st) => const CiterneListScreen()),
+          GoRoute(path: '/stocks', builder: (ctx, st) => const StocksScreen()),
           GoRoute(path: '/logs', builder: (ctx, st) => const LogsListScreen()),
         ],
       ),

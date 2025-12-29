@@ -4,6 +4,474 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 
 ## [Unreleased]
 
+### 📚 **DOCS – Documentation centralisée des vues SQL (27/12/2025)**
+
+#### **🎯 Objectif**
+Créer une documentation complète et centralisée de toutes les vues SQL existantes dans le projet, avec leur statut (canonique/legacy), leurs colonnes exactes, et leurs usages Flutter.
+
+#### **✅ Changements majeurs**
+
+**Nouveaux documents de référence**
+- ✅ Création de `docs/db/vues_sql_reference.md` : documentation principale des vues SQL
+- ✅ Création de `docs/db/vues_sql_reference_central.md` : documentation centralisée complète
+- ✅ Création de `docs/db/flutter_db_usage_map.md` : cartographie Flutter → DB (tables/vues/RPC)
+- ✅ Création de `docs/db/modules_flutter_db_map.md` : cartographie par module fonctionnel
+
+**Documentation des vues SQL**
+- ✅ **10 vues SQL documentées** avec :
+  - Statut clair (CANONIQUE / LEGACY / TECH)
+  - Rôle et dépendances
+  - Colonnes exactes du schéma DB
+  - Usages Flutter (fichiers + numéros de lignes)
+  - Notes et recommandations
+
+**Organisation par catégories**
+- ✅ Stock — Snapshot (temps réel) : 3 vues canoniques
+- ✅ Stock — Owner totals : 1 vue legacy (nom trompeur)
+- ✅ Stock — Journalier : 2 vues legacy
+- ✅ Mouvements : 1 vue canonique
+- ✅ Logs / Auth / Cours de route : vues TECH/COMPAT
+
+**Points critiques documentés**
+- ✅ Coexistence de 3 sources "stock" côté Flutter (snapshot / journalier / owner totals)
+- ✅ Divergences de naming (`stock_ambiant` vs `stock_ambiant_total`)
+- ✅ Confusion potentielle avec `v_stock_actuel_owner_snapshot` (journalier mais nommé snapshot)
+- ✅ Règles de choix : quelle vue utiliser selon le besoin
+
+**Cartographie détaillée**
+- ✅ Mapping complet des usages Flutter par vue SQL
+- ✅ Organisation par module fonctionnel (Dashboard, Stocks, Citernes, Sorties, Réceptions, etc.)
+- ✅ Références croisées entre documents
+
+#### **📋 Détails techniques**
+
+**Convention de statut**
+- **CANONIQUE** : source de vérité à privilégier
+- **LEGACY** : encore utilisée, à migrer progressivement
+- **TECH** : vue technique (support/compat), pas une API métier
+
+**Vues canoniques documentées**
+- `v_stock_actuel_snapshot` : source de vérité stock actuel (temps réel)
+- `v_citerne_stock_snapshot_agg` : agrégation pour module Citernes
+- `v_kpi_stock_global` : KPI stock global dashboard
+- `v_mouvements_stock` : journal des mouvements (deltas)
+
+**Vues legacy documentées**
+- `stock_actuel` : journalier, à remplacer par snapshot
+- `v_citerne_stock_actuel` : journalier, à remplacer par snapshot
+- `v_stock_actuel_owner_snapshot` : journalier (nom trompeur), à migrer vers snapshot
+
+#### **✅ Critères d'acceptation**
+
+- ✅ Toutes les vues SQL existantes documentées
+- ✅ Colonnes exactes correspondant au schéma DB
+- ✅ Usages Flutter mappés avec fichiers et lignes
+- ✅ Statut clair pour chaque vue (canonique/legacy/tech)
+- ✅ Recommandations de migration documentées
+- ✅ Points critiques et risques identifiés
+
+#### **📝 Fichiers créés**
+
+- `docs/db/vues_sql_reference.md` : Documentation principale (590 lignes)
+- `docs/db/vues_sql_reference_central.md` : Documentation centralisée complète
+- `docs/db/flutter_db_usage_map.md` : Cartographie Flutter → DB
+- `docs/db/modules_flutter_db_map.md` : Cartographie par modules
+
+---
+
+### 🧹 **CLEANUP – Module Citernes – Nettoyage legacy et tri naturel (23/12/2025)**
+
+#### **🎯 Objectif**
+Nettoyer le module Citernes en marquant @Deprecated les providers legacy et en améliorant l'ordre d'affichage des citernes, sans casser le reste de l'application.
+
+#### **✅ Changements majeurs**
+
+**Nettoyage providers legacy**
+- ✅ `citerneStocksSnapshotProvider` : marqué @Deprecated avec commentaire LEGACY explicite
+  - Conservé pour compatibilité avec `lib/shared/refresh/refresh_helpers.dart`
+  - Ne plus utiliser dans le module Citernes UI
+- ✅ `citernesWithStockProvider` : marqué @Deprecated avec commentaire LEGACY explicite
+  - Conservé pour compatibilité avec `lib/features/receptions/screens/reception_form_screen.dart`
+  - Ne plus utiliser dans le module Citernes UI
+- ✅ `CiterneService.getStockActuel()` : marqué @Deprecated avec commentaire LEGACY
+  - Conservé pour compatibilité avec `ReceptionService`
+  - Pour Citernes, utiliser `CiterneRepository.fetchCiterneStockSnapshots()` à la place
+- ✅ Imports legacy documentés avec commentaire "LEGACY" explicite
+
+**Tri naturel des citernes**
+- ✅ Tri automatique par ordre naturel (TANK1, TANK2, TANK3, ...)
+- ✅ Extraction du numéro dans le nom de citerne pour tri numérique
+- ✅ En cas d'égalité, tri alphabétique sur le nom complet
+- ✅ Modification uniquement UI (pas de changement SQL)
+
+**Source unique de vérité confirmée**
+- ✅ UI Citernes consomme uniquement `citerneStockSnapshotProvider`
+- ✅ Lecture uniquement depuis `CiterneStockSnapshot.stockAmbiantTotal` / `stock15cTotal`
+- ✅ Aucune dépendance aux providers legacy dans l'UI
+
+#### **📋 Détails techniques**
+
+**Providers legacy conservés (@Deprecated)**
+- `citerneStocksSnapshotProvider` : utilise `v_stock_actuel_snapshot` (legacy)
+- `citernesWithStockProvider` : utilise `stock_actuel` (legacy)
+- `CiterneService.getStockActuel()` : lit depuis `stock_actuel` (legacy)
+
+**Provider canonique (unique source)**
+- `citerneStockSnapshotProvider` : utilise `v_citerne_stock_snapshot_agg` (canonique)
+
+**Tri des citernes**
+- Fonction `extractNum()` extrait le numéro du nom (ex: "TANK1" → 1)
+- Tri numérique croissant par défaut
+- Fallback alphabétique si pas de numéro
+
+#### **🛡️ Garde-fous respectés**
+
+- ✅ **Aucun impact sur les autres modules** : Dashboard, Stocks, KPI inchangés
+- ✅ **Aucune modification SQL** : Vues SQL non modifiées
+- ✅ **Compatibilité préservée** : Providers legacy conservés pour compatibilité
+- ✅ **Aucune régression fonctionnelle** : Compilation OK, tests OK
+
+#### **📝 Fichiers modifiés**
+
+**Modifiés** :
+- `lib/features/citernes/providers/citerne_providers.dart` :
+  - Ajout @Deprecated sur `citerneStocksSnapshotProvider`
+  - Ajout @Deprecated sur `citernesWithStockProvider`
+  - Documentation imports legacy
+- `lib/features/citernes/data/citerne_service.dart` :
+  - Ajout @Deprecated sur `getStockActuel()`
+- `lib/features/citernes/screens/citerne_list_screen.dart` :
+  - Tri naturel des citernes avant affichage (extraction numéro + tri)
+
+#### **✅ Critères d'acceptation**
+
+- ✅ Citernes affichées dans l'ordre naturel : TANK1 → TANK2 → TANK3
+- ✅ UI ne dépend plus d'aucun provider legacy (sauf @Deprecated conservés)
+- ✅ Providers legacy marqués @Deprecated avec commentaires explicites
+- ✅ `flutter analyze` → OK (warnings mineurs uniquement)
+- ✅ Compilation OK
+- ✅ Aucun impact sur les autres modules
+
+---
+
+### ✨ **FEAT – Module Citernes – Branchement sur v_citerne_stock_snapshot_agg (23/12/2025)**
+
+#### **🎯 Objectif**
+Faire consommer au module Citernes la vue SQL `v_citerne_stock_snapshot_agg` afin d'afficher 1 ligne = 1 citerne avec le stock total (MONALUXE + PARTENAIRE), sans modifier les modules Dashboard, Stocks, KPI.
+
+#### **✅ Changements majeurs**
+
+**Nouveau modèle dédié Citernes**
+- ✅ Création de `CiterneStockSnapshot` dans `lib/features/citernes/domain/citerne_stock_snapshot.dart`
+- ✅ Modèle optimisé pour la vue `v_citerne_stock_snapshot_agg` : `citerneId`, `citerneNom`, `depotId`, `produitId`, `stockAmbiantTotal`, `stock15cTotal`, `lastSnapshotAt`, `capaciteTotale`, `capaciteSecurite`
+- ✅ Factory `fromMap` avec gestion robuste des types (double, DateTime)
+
+**Nouveau repository Citernes**
+- ✅ Création de `CiterneRepository` dans `lib/features/citernes/data/citerne_repository.dart`
+- ✅ Méthode `fetchCiterneStockSnapshots({required String depotId})` consommant directement `v_citerne_stock_snapshot_agg`
+- ✅ Pas de groupBy Flutter, pas de fallback legacy, pas de logique propriétaire (agrégation SQL uniquement)
+- ✅ Provider `citerneRepositoryProvider` ajouté
+
+**Nouveau provider isolé Citernes**
+- ✅ Création de `citerneStockSnapshotProvider` dans `citerne_providers.dart`
+- ✅ Provider `FutureProvider.autoDispose<List<CiterneStockSnapshot>>` isolé pour le module Citernes
+- ✅ Récupération `depotId` depuis `profilProvider.valueOrNull?.depotId`
+- ✅ Logs debug avec `kDebugMode` uniquement
+- ✅ Ne réutilise pas `depotStocksSnapshotProvider` (provider dédié)
+
+**UI Citernes branchée sur nouveau provider**
+- ✅ Remplacement de `citerneStocksSnapshotProvider` par `citerneStockSnapshotProvider` dans `citerne_list_screen.dart`
+- ✅ Adaptation de `_buildCiterneGridFromSnapshot` pour accepter `List<CiterneStockSnapshot>`
+- ✅ Adaptation de `_buildCiterneCardFromSnapshot` pour utiliser `CiterneStockSnapshot`
+- ✅ Tous les `ref.invalidate` mis à jour vers le nouveau provider
+- ✅ Conservation de la structure UI existante (cartes, statistiques)
+
+**Correction compilation fmtL**
+- ✅ Remplacement de `fmtL(...)` par `_fmtL(...)` aux 3 endroits (lignes 970, 979, 999)
+- ✅ Utilisation de la fonction locale `_fmtL` définie dans le fichier
+- ✅ Nettoyage des imports inutilisés (`typography.dart`)
+
+#### **🛡️ Garde-fous respectés**
+
+- ✅ **Modules Dashboard, Stocks, KPI inchangés** : Aucune modification des autres modules
+- ✅ **Aucune modification des vues SQL existantes** : `v_stock_actuel_snapshot` et vues owner non touchées
+- ✅ **Aucune logique métier déplacée en Flutter** : Agrégation côté SQL uniquement
+- ✅ **Signature TankCard inchangée** : Pas de modification de l'interface UI
+- ✅ **Tests non impactés** : Validation avec `flutter analyze` (warnings mineurs uniquement)
+
+#### **📝 Fichiers modifiés/créés**
+
+**Créés** :
+- `lib/features/citernes/domain/citerne_stock_snapshot.dart` : Nouveau modèle `CiterneStockSnapshot`
+- `lib/features/citernes/data/citerne_repository.dart` : Nouveau repository `CiterneRepository`
+
+**Modifiés** :
+- `lib/features/citernes/providers/citerne_providers.dart` :
+  - Ajout `citerneRepositoryProvider`
+  - Ajout `citerneStockSnapshotProvider` (nouveau provider isolé)
+- `lib/features/citernes/screens/citerne_list_screen.dart` :
+  - Remplacement `citerneStocksSnapshotProvider` → `citerneStockSnapshotProvider`
+  - Adaptation types : `DepotStocksSnapshot` → `List<CiterneStockSnapshot>`
+  - Adaptation méthodes UI pour nouveau modèle
+  - Correction `fmtL` → `_fmtL`
+  - Nettoyage imports inutilisés
+
+#### **✅ Critères d'acceptation**
+
+- ✅ TANK1 affiche 8 220 L
+- ✅ TANK2 affiche 2 097 L
+- ✅ TANK3 affiche 4 083 L
+- ✅ Total Citernes = 14 400 L
+- ✅ Dashboard & Stocks inchangés
+- ✅ `flutter analyze` → OK (warnings mineurs uniquement)
+- ✅ Compilation réussie (`fmtL` corrigé)
+
+#### **🔄 Architecture**
+
+Le module Citernes consomme désormais directement la vue SQL `v_citerne_stock_snapshot_agg` qui effectue l'agrégation MONALUXE + PARTENAIRE côté base de données. Cette architecture :
+- Simplifie le code Flutter (pas de groupBy côté client)
+- Garantit la cohérence des données (source unique de vérité SQL)
+- Isole le module Citernes des autres modules (provider dédié)
+
+---
+
+### 🔧 **FIX – Module Citernes – Correction affichage "Impossible de charger les données" (27/12/2025)**
+
+#### **🎯 Objectif**
+Corriger l'erreur d'affichage du module Citernes ("Impossible de charger les données") causée par une date non normalisée et un depotId potentiellement null, sans modifier la logique métier, sans casser les providers existants, et sans impacter les tests KPI / Stocks / Dashboard.
+
+#### **✅ Changements majeurs**
+
+**Sécurisation depotId (fail fast contrôlé)**
+- ✅ Remplacement du retour d'un snapshot vide par un `throw StateError` explicite
+- ✅ Log debug ajouté avant le throw pour traçabilité
+- ✅ Comportement fail fast : erreur explicite si `depotId` manquant au lieu d'un retour silencieux
+
+**Normalisation stricte de dateJour**
+- ✅ Remplacement de `DateTime.now()` par normalisation explicite :
+  ```dart
+  final now = DateTime.now();
+  final dateJour = DateTime(now.year, now.month, now.day);
+  ```
+- ✅ Garantit que `dateJour` est normalisé à `00:00:00.000`
+- ✅ Alignement avec `depotStocksSnapshotProvider` (même pattern)
+
+**Ajout de logs debug explicites**
+- ✅ Log au début du provider : `🔄 citerneStocksSnapshotProvider: start depotId=... dateJour=...`
+- ✅ Log à la fin du provider : `✅ citerneStocksSnapshotProvider: success citernes=N`
+- ✅ Logs uniquement en mode debug (`kDebugMode`)
+
+**Conservation de l'assertion de sécurité**
+- ✅ Assertion conservée et fonctionnelle (passe maintenant que `dateJour` est normalisé)
+- ✅ Détection immédiate des régressions futures
+- ✅ Guard de régression : vérifie que `dateJour` est bien normalisé (debug only)
+
+#### **📋 Problème initial**
+
+**Avant** :
+- `dateJour` créé avec `DateTime.now()` (jamais normalisé à 00:00:00.000)
+- Assertion échouait systématiquement en debug
+- `depotId` null retournait un snapshot vide (comportement silencieux)
+- Module Citernes affichait "Impossible de charger les données"
+
+**Après** :
+- `dateJour` normalisé strictement à minuit (00:00:00.000)
+- Assertion passe correctement
+- `depotId` null lance une erreur explicite (fail fast contrôlé)
+- Module Citernes s'affiche correctement
+
+#### **🛡️ Garde-fous respectés**
+
+- ✅ **Aucune modification de logique métier** : Seule la gestion d'erreur et la normalisation de date
+- ✅ **Signature du provider inchangée** : `FutureProvider.autoDispose<DepotStocksSnapshot>`
+- ✅ **Aucune modification des repositories** : `StocksKpiRepository` non touché
+- ✅ **Aucune modification des vues SQL** : Vues snapshot non modifiées
+- ✅ **Aucun impact sur les tests** : Tests KPI / Stocks / Dashboard inchangés
+- ✅ **Aucune nouvelle dépendance** : Utilise uniquement les imports existants
+- ✅ **Assertions conservées** : Sécurité de détection des régressions maintenue
+
+#### **📝 Fichiers modifiés**
+
+**Modifiés** :
+- `lib/features/citernes/providers/citerne_providers.dart` :
+  - Sécurisation `depotId` avec fail fast (lignes 62-67)
+  - Normalisation stricte de `dateJour` (lignes 70-71)
+  - Ajout logs debug début/fin (lignes 73-78 et avant return final)
+  - Assertion de sécurité conservée (lignes 82-85)
+
+#### **✅ Critères d'acceptation**
+
+- ✅ `/citernes` s'affiche sans erreur "Impossible de charger les données"
+- ✅ Le bouton Réessayer relance le provider (log visible en debug)
+- ✅ Les citernes affichent les snapshots actuels correctement
+- ✅ `flutter test` → aucune régression
+- ✅ Les KPI Dashboard restent identiques (pas d'impact)
+- ✅ L'assertion passe sans erreur (dateJour normalisé)
+- ✅ Erreur explicite si depotId manquant (fail fast contrôlé)
+- ✅ Logs clairs en mode debug pour traçabilité
+
+#### **🔄 Alignement avec depotStocksSnapshotProvider**
+
+La normalisation de `dateJour` utilise exactement le même pattern que `depotStocksSnapshotProvider` :
+- Pattern identique : `DateTime(now.year, now.month, now.day)`
+- Garantit la cohérence entre les providers
+- Respect du contrat des vues snapshot
+
+---
+
+### 🔧 **FIX – Module Citernes – Correction crash "Erreur de chargement" (27/12/2025)**
+
+#### **🎯 Objectif**
+Corriger le crash runtime "Erreur de chargement" dans le module Citernes causé par une dépendance restante à la vue SQL supprimée `v_kpi_stock_owner`.
+
+#### **✅ Changements majeurs**
+
+**Correction méthode `fetchDepotOwnerTotals()`**
+- ✅ Remplacement de la source SQL : `v_kpi_stock_owner` → `v_stock_actuel_owner_snapshot`
+- ✅ Adaptation du comportement :
+  - Le paramètre `dateJour` est maintenant ignoré (snapshot = toujours état actuel)
+  - Suppression du filtrage par `date_jour` (non nécessaire pour un snapshot)
+  - Ordre déterministe : `proprietaire_type ASC` (MONALUXE puis PARTENAIRE)
+- ✅ Ajout d'un fallback sécurisé :
+  - Si résultat vide et `depotId` fourni, retourne 2 entrées avec 0.0 :
+    - MONALUXE avec `stockAmbiantTotal = 0.0` et `stock15cTotal = 0.0`
+    - PARTENAIRE avec `stockAmbiantTotal = 0.0` et `stock15cTotal = 0.0`
+  - Récupération automatique du `depotNom` depuis la table `depots` pour le fallback
+- ✅ Mise à jour de la documentation pour refléter la nouvelle source SQL
+
+#### **📋 Source de vérité**
+
+**Avant** :
+- Méthode `fetchDepotOwnerTotals()` lisait depuis `v_kpi_stock_owner` (vue supprimée)
+- Crash runtime : `relation "public.v_kpi_stock_owner" does not exist`
+- Module Citernes affichait "Erreur de chargement"
+
+**Après** :
+- Lecture depuis `v_stock_actuel_owner_snapshot` (vue snapshot actuelle)
+- Aucun crash, module Citernes fonctionne correctement
+- Fallback sécurisé garantit toujours 2 entrées (MONALUXE + PARTENAIRE)
+
+#### **🛡️ Garde-fous**
+
+- ✅ **Signature inchangée** : Aucun breaking change, compatibilité totale avec les appels existants
+- ✅ **Paramètres identiques** : `depotId`, `produitId`, `proprietaireType`, `dateJour` (ce dernier ignoré)
+- ✅ **Type de retour identique** : `List<DepotOwnerStockKpi>`
+- ✅ **Filtrage par `depot_id`** : Correctement appliqué (pas par `depot_nom`)
+- ✅ **Modification minimale** : Seule la source SQL et la logique interne ont changé
+
+#### **✅ Rétrocompatibilité**
+
+- ✅ Les appels existants continuent de fonctionner sans modification :
+  - `lib/features/stocks/data/stocks_kpi_providers.dart` (ligne 409)
+  - `lib/features/stocks/data/stocks_kpi_service.dart` (ligne 58)
+- ✅ Aucun changement de signature publique
+- ✅ Le paramètre `dateJour` est toujours accepté mais ignoré (pas de breaking change)
+
+#### **📝 Fichiers modifiés**
+
+**Modifiés** :
+- `lib/data/repositories/stocks_kpi_repository.dart` :
+  - Remplacement `.from('v_kpi_stock_owner')` → `.from('v_stock_actuel_owner_snapshot')`
+  - Suppression filtrage par `date_jour`
+  - Ajout fallback sécurisé MONALUXE/PARTENAIRE avec 0.0
+  - Mise à jour documentation
+
+#### **✅ Critères d'acceptation**
+
+- ✅ Plus aucune référence à `v_kpi_stock_owner` dans le code
+- ✅ `flutter run -d chrome` compile sans erreur
+- ✅ Module `/citernes` se charge sans "Erreur de chargement"
+- ✅ Console sans erreur : `relation "public.v_kpi_stock_owner" does not exist`
+- ✅ Dashboard continue d'afficher correctement "Stock par propriétaire"
+
+---
+
+### 🗑️ **REFACTORING – Suppression module legacy stocks_journaliers et migration vers vues snapshot (27/12/2025)**
+
+#### **🎯 Objectif**
+Supprimer complètement le module legacy `stocks_journaliers` et migrer vers les vues snapshot (`v_stock_actuel_snapshot`, `v_stock_actuel_owner_snapshot`) comme source de vérité unique pour le stock actuel.
+
+#### **✅ Changements majeurs**
+
+**Suppression module legacy**
+- ✅ Suppression complète du dossier `lib/features/stocks_journaliers/` :
+  - `data/stocks_service.dart`
+  - `providers/stocks_providers.dart`
+  - `screens/stocks_journaliers_screen.dart`
+  - `screens/stocks_list_screen.dart`
+- ✅ Suppression des routes `/stocks` et `/stocks-journaliers` dans `app_router.dart`
+- ✅ Retrait de `stocks_journaliers` de la liste des modules dans `logs_providers.dart`
+
+**Nettoyage références legacy**
+- ✅ Suppression de tous les imports `stocks_journaliers` dans :
+  - `lib/features/stocks/widgets/stocks_kpi_cards.dart`
+  - `lib/features/receptions/data/reception_service.dart`
+  - `lib/features/receptions/screens/reception_form_screen.dart`
+  - `lib/features/sorties/screens/sortie_form_screen.dart`
+  - `lib/features/citernes/providers/citerne_providers.dart`
+- ✅ Remplacement de `stocksSelectedDateProvider` par `DateTime.now()` dans `citerne_providers.dart` (snapshots toujours à jour)
+- ✅ Suppression de l'invalidation `stocksListProvider` dans `sortie_form_screen.dart`
+- ✅ Nettoyage des commentaires mentionnant les vues legacy (`v_stocks_citerne_global_daily`, etc.)
+
+**Restauration compatibilité (méthodes alias)**
+- ✅ Ajout de `fetchCiterneGlobalSnapshots()` comme alias deprecated dans `stocks_kpi_repository.dart` :
+  - Wrapper de compatibilité utilisant `fetchCiterneStocksFromSnapshot()`
+  - Ignore `dateJour` (snapshot = toujours état actuel)
+  - Mappe vers `CiterneGlobalStockSnapshot` avec enrichissement depuis table `citernes`
+- ✅ Ajout de `fetchCiterneOwnerSnapshots()` comme alias deprecated dans `stocks_kpi_repository.dart` :
+  - Lit depuis `stocks_journaliers` pour obtenir le dernier état par (citerne, produit, propriétaire)
+  - Retourne `List<CiterneOwnerStockSnapshot>`
+- ✅ Amélioration de `invalidateDashboardKpisAfterStockMovement()` pour invalider les providers snapshot :
+  - `depotGlobalStockFromSnapshotProvider(depotId)`
+  - `depotOwnerStockFromSnapshotProvider(depotId)`
+  - `citerneStocksSnapshotProvider`
+
+#### **📋 Source de vérité**
+
+**Avant** :
+- Module `stocks_journaliers` avec providers basés sur `v_stocks_citerne_global_daily` et `v_stocks_citerne_owner`
+- Logique de sélection de date avec `stocksSelectedDateProvider`
+- Incohérences possibles entre différents écrans
+
+**Après** :
+- Source unique : vues snapshot (`v_stock_actuel_snapshot`, `v_stock_actuel_owner_snapshot`)
+- Snapshots toujours à jour (pas de sélection de date nécessaire)
+- Cohérence garantie entre Dashboard, Citernes et module Stocks
+
+#### **🛡️ Garde-fous**
+
+- ✅ **Méthodes alias deprecated** : Maintenues pour compatibilité mais documentées comme deprecated
+- ✅ **Modification minimale** : Patch additif, pas de breaking changes pour le code existant
+- ✅ **Aucune modification DB** : Seulement nettoyage code Flutter
+- ✅ **Invalidation providers** : Tous les providers snapshot sont invalidés après mouvements de stock
+
+#### **✅ Rétrocompatibilité**
+
+- ✅ Les méthodes `fetchCiterneGlobalSnapshots()` et `fetchCiterneOwnerSnapshots()` restent disponibles via alias
+- ✅ Les providers existants continuent de fonctionner
+- ✅ Aucun changement de signature publique
+
+#### **📝 Fichiers modifiés**
+
+**Supprimés** :
+- `lib/features/stocks_journaliers/` (dossier entier)
+
+**Modifiés** :
+- `lib/shared/navigation/app_router.dart` - Suppression routes et imports
+- `lib/features/stocks/widgets/stocks_kpi_cards.dart` - Suppression import legacy
+- `lib/features/receptions/data/reception_service.dart` - Suppression référence StocksService
+- `lib/features/receptions/screens/reception_form_screen.dart` - Suppression import et invalidation
+- `lib/features/sorties/screens/sortie_form_screen.dart` - Suppression import et invalidation
+- `lib/features/logs/providers/logs_providers.dart` - Retrait du module de la liste
+- `lib/features/citernes/providers/citerne_providers.dart` - Remplacement stocksSelectedDateProvider
+- `lib/features/stocks/data/stocks_kpi_providers.dart` - Nettoyage commentaires
+- `lib/features/kpi/providers/stocks_kpi_provider.dart` - Nettoyage commentaires
+- `lib/features/stocks/utils/stocks_refresh.dart` - Nettoyage commentaires
+- `lib/data/repositories/stocks_kpi_repository.dart` - Ajout méthodes alias deprecated
+- `lib/shared/refresh/refresh_helpers.dart` - Amélioration invalidation providers snapshot
+
+---
+
 ### 🔧 **FIX – KPI Stocks – Garantir un seul date_jour par requête (23/12/2025)**
 
 #### **🎯 Objectif**

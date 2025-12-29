@@ -24,7 +24,7 @@ final stocksTotalsProvider =
   return repo.totauxActuels(depotId: p.depotId, produitId: p.produitId);
 });
 
-/// Realtime invalidation (stocks_journaliers -> la vue se mettra à jour)
+/// Realtime invalidation (les vues snapshot se mettront à jour)
 final stocksRealtimeInvalidatorProvider = riverpod.Provider.autoDispose<void>((ref) {
   final p = ref.watch(stocksDefaultParamProvider);
 

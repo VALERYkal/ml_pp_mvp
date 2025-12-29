@@ -4,6 +4,8 @@
 **Version** : 2.0  
 **Objectif** : Définir l'interface SQL stable que Flutter consommera pour les stocks
 
+**Migration Supabase** : `20251223_1200_stocks_views_daily.sql` — Vue canonique versionnée et idempotente
+
 ---
 
 ## But
@@ -18,17 +20,28 @@ La source canonique pour "stock global par citerne" est `v_stocks_citerne_global
 
 **Rôle** : Snapshot "global" par citerne & produit (tous propriétaires confondus) avec `date_jour`.
 
-**Colonnes garanties** :
-- `citerne_id`
-- `citerne_nom`
-- `produit_id`
-- `produit_nom`
-- `depot_id`
-- `depot_nom`
-- `date_jour`
-- `stock_ambiant_total`
-- `stock_15c_total`
-- `capacite_totale`
+**Statut** : **Canonical view consumed by Flutter**. This is the single source of truth for all Flutter modules (Dashboard, Stocks, Citernes). The legacy view `v_stocks_citerne_global` is DB-only and not used by the app.
+
+**Colonnes garanties (MUST expose)** :
+- `citerne_id` (UUID) — **MANDATORY**
+- `citerne_nom` (TEXT) — **MANDATORY**
+- `produit_id` (UUID) — **MANDATORY**
+- `produit_nom` (TEXT) — **MANDATORY**
+- `depot_id` (UUID) — **MANDATORY**
+- `depot_nom` (TEXT) — **MANDATORY**
+- `date_jour` (DATE) — **CRITICAL** : Type DATE (not timestamp), represents the daily snapshot. MUST remain filterable.
+- `stock_ambiant_total` (NUMERIC) — **MANDATORY**
+- `stock_15c_total` (NUMERIC) — **MANDATORY**
+- `capacite_totale` (NUMERIC) — **MANDATORY**
+
+**Contract requirements** :
+- `date_jour` MUST remain type DATE (not timestamp) and MUST be filterable.
+- Legacy `v_stocks_citerne_global` is DB-only and not used by the app.
+
+**Canonical invariant** :
+- **`global_daily = SUM(owner rows)`** : For the same `(citerne_id, produit_id, date_jour)`, the values in `v_stocks_citerne_global_daily` MUST equal the sum of all rows in `stocks_journaliers` for that combination (all owners aggregated).
+
+**Schéma validé** : Migration Supabase `supabase/migrations/20251223_1200_stocks_views_daily.sql`
 
 ---
 

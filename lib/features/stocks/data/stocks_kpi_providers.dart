@@ -38,6 +38,171 @@ final kpiGlobalStockByDepotProvider =
       return list.isNotEmpty ? list.first : null;
     });
 
+/// Calcule les totaux de stock d'un dépôt depuis v_stock_actuel_snapshot.
+///
+/// Ce provider agrège les données de toutes les citernes d'un dépôt
+/// depuis la vue snapshot qui représente l'état actuel.
+///
+/// Retourne un record avec :
+/// - amb : total stock ambiant
+/// - v15 : total stock @15°C
+/// - nbTanks : nombre de citernes distinctes avec stock
+final depotGlobalStockFromSnapshotProvider =
+    riverpod.FutureProvider.autoDispose.family<({double amb, double v15, int nbTanks}), String>((
+      ref,
+      depotId,
+    ) async {
+      final repo = ref.watch(stocksKpiRepositoryProvider);
+      final rows = await repo.fetchCiterneStocksFromSnapshot(depotId: depotId);
+
+      double amb = 0.0;
+      double v15 = 0.0;
+      final tanks = <String>{};
+
+      for (final r in rows) {
+        final m = Map<String, dynamic>.from(r);
+        tanks.add(m['citerne_id']?.toString() ?? '');
+        amb += (m['stock_ambiant_total'] as num?)?.toDouble()
+            ?? (m['stock_ambiant'] as num?)?.toDouble()
+            ?? 0.0;
+        v15 += (m['stock_15c_total'] as num?)?.toDouble()
+            ?? (m['stock_15c'] as num?)?.toDouble()
+            ?? 0.0;
+      }
+
+      return (amb: amb, v15: v15, nbTanks: tanks.where((e) => e.isNotEmpty).length);
+    });
+
+/// Calcule les stocks par propriétaire d'un dépôt depuis v_stock_actuel_owner_snapshot.
+///
+/// Retourne une liste de DepotOwnerStockKpi, une par propriétaire (MONALUXE, PARTENAIRE).
+/// Si un propriétaire n'a pas de stock, il est inclus avec des valeurs à 0.0.
+final depotOwnerStockFromSnapshotProvider = 
+    riverpod.FutureProvider.family<List<DepotOwnerStockKpi>, String>((
+      ref,
+      depotId,
+    ) async {
+      final repo = ref.watch(stocksKpiRepositoryProvider);
+      
+      try {
+        final rows = await repo.fetchDepotOwnerStocksFromSnapshot(depotId: depotId);
+
+        if (kDebugMode) {
+          debugPrint(
+            '🔍 depotOwnerStockFromSnapshotProvider: Reçu ${rows.length} lignes depuis la vue'
+          );
+        }
+
+        // Helper safe pour conversion numérique
+        double safeDouble(dynamic v) => (v is num) ? v.toDouble() : 0.0;
+
+        // Normaliser et filtrer les rows valides
+        final validOwners = <DepotOwnerStockKpi>[];
+        String? depotNom;
+
+        for (final row in rows) {
+          // Normaliser proprietaire_type
+          final propTypeRaw = row['proprietaire_type'];
+          if (propTypeRaw == null || (propTypeRaw is String && propTypeRaw.trim().isEmpty)) {
+            if (kDebugMode) {
+              debugPrint(
+                '⚠️ depotOwnerStockFromSnapshotProvider: Ignoré une row avec proprietaire_type absent/null'
+              );
+            }
+            continue; // Ignorer les rows sans proprietaire_type
+          }
+
+          final proprietaireType = (propTypeRaw as String).toUpperCase().trim();
+          
+          // Stocker le depotNom depuis la première ligne valide
+          depotNom ??= (row['depot_nom'] as String?) ?? '';
+
+          // Créer le DepotOwnerStockKpi avec conversion safe
+          final owner = DepotOwnerStockKpi(
+            depotId: (row['depot_id'] as String?) ?? depotId,
+            depotNom: depotNom,
+            proprietaireType: proprietaireType,
+            produitId: (row['produit_id'] as String?) ?? '',
+            produitNom: (row['produit_nom'] as String?) ?? '',
+            // Utiliser stock_ambiant_total et stock_15c_total (cohérence avec autres vues)
+            stockAmbiantTotal: safeDouble(row['stock_ambiant_total'] ?? row['stock_ambiant']),
+            stock15cTotal: safeDouble(row['stock_15c_total'] ?? row['stock_15c']),
+          );
+
+          validOwners.add(owner);
+        }
+
+        // S'assurer que MONALUXE et PARTENAIRE existent (avec 0.0 si absents)
+        final hasMonaluxe = validOwners.any((o) => o.proprietaireType == 'MONALUXE');
+        final hasPartenaire = validOwners.any((o) => o.proprietaireType == 'PARTENAIRE');
+
+        final result = <DepotOwnerStockKpi>[];
+
+        // Ajouter MONALUXE en premier
+        if (hasMonaluxe) {
+          result.add(validOwners.firstWhere((o) => o.proprietaireType == 'MONALUXE'));
+        } else {
+          result.add(DepotOwnerStockKpi(
+            depotId: depotId,
+            depotNom: depotNom ?? '',
+            proprietaireType: 'MONALUXE',
+            produitId: '',
+            produitNom: '',
+            stockAmbiantTotal: 0.0,
+            stock15cTotal: 0.0,
+          ));
+        }
+
+        // Ajouter PARTENAIRE en second
+        if (hasPartenaire) {
+          result.add(validOwners.firstWhere((o) => o.proprietaireType == 'PARTENAIRE'));
+        } else {
+          result.add(DepotOwnerStockKpi(
+            depotId: depotId,
+            depotNom: depotNom ?? '',
+            proprietaireType: 'PARTENAIRE',
+            produitId: '',
+            produitNom: '',
+            stockAmbiantTotal: 0.0,
+            stock15cTotal: 0.0,
+          ));
+        }
+
+        if (kDebugMode) {
+          debugPrint(
+            '🔍 depotOwnerStockFromSnapshotProvider: Retourne MONALUXE=${result[0].stockAmbiantTotal}L, '
+            'PARTENAIRE=${result[1].stockAmbiantTotal}L'
+          );
+        }
+
+        return result;
+      } catch (e, stack) {
+        debugPrint('❌ depotOwnerStockFromSnapshotProvider: Erreur $e');
+        debugPrint('Stack: $stack');
+        // Fallback : retourner 2 entrées à 0.0 plutôt que de faire planter l'UI
+        return [
+          DepotOwnerStockKpi(
+            depotId: depotId,
+            depotNom: '',
+            proprietaireType: 'MONALUXE',
+            produitId: '',
+            produitNom: '',
+            stockAmbiantTotal: 0.0,
+            stock15cTotal: 0.0,
+          ),
+          DepotOwnerStockKpi(
+            depotId: depotId,
+            depotNom: '',
+            proprietaireType: 'PARTENAIRE',
+            produitId: '',
+            produitNom: '',
+            stockAmbiantTotal: 0.0,
+            stock15cTotal: 0.0,
+          ),
+        ];
+      }
+    });
+
 /// Snapshots par citerne pour un dépôt donné (détail propriétaires)
 ///
 /// Provider family pour filtrer les snapshots par citerne et propriétaire
@@ -78,23 +243,32 @@ final stocksDashboardKpisProvider =
 class DepotStocksSnapshotParams {
   final String depotId;
   final DateTime? dateJour;
+  /// En debug/test : si `false`, une assertion échouera si un fallback est utilisé.
+  /// En release : toujours autorisé pour éviter les crashes.
+  /// Par défaut : `true` en release, `false` en debug (pour forcer la détection des problèmes).
+  final bool allowFallbackInDebug;
 
-  const DepotStocksSnapshotParams({required this.depotId, this.dateJour});
+  const DepotStocksSnapshotParams({
+    required this.depotId,
+    this.dateJour,
+    this.allowFallbackInDebug = kDebugMode ? false : true,
+  });
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is DepotStocksSnapshotParams &&
         other.depotId == depotId &&
-        other.dateJour == dateJour;
+        other.dateJour == dateJour &&
+        other.allowFallbackInDebug == allowFallbackInDebug;
   }
 
   @override
-  int get hashCode => Object.hash(depotId, dateJour);
+  int get hashCode => Object.hash(depotId, dateJour, allowFallbackInDebug);
 
   @override
   String toString() =>
-      'DepotStocksSnapshotParams(depotId: $depotId, dateJour: $dateJour)';
+      'DepotStocksSnapshotParams(depotId: $depotId, dateJour: $dateJour, allowFallbackInDebug: $allowFallbackInDebug)';
 }
 
 /// Snapshot complet des stocks d'un dépôt pour une date donnée.
@@ -116,10 +290,29 @@ class DepotStocksSnapshotParams {
 ///   );
 
 /// Fonction helper pour créer un snapshot de fallback
+/// 
+/// En debug : si `allowFallbackInDebug == false`, une assertion échoue pour forcer
+/// la détection des problèmes (repository manquant, erreurs Supabase, etc.).
 DepotStocksSnapshot _fallbackSnapshot(
   DateTime dateJour,
   DepotStocksSnapshotParams params,
 ) {
+  // Policy explicite : en debug, fallback doit être explicitement autorisé
+  if (kDebugMode && !params.allowFallbackInDebug) {
+    assert(
+      false,
+      '❌ depotStocksSnapshotProvider: Fallback utilisé mais allowFallbackInDebug=false. '
+      'Cela indique un problème (repository manquant, erreur Supabase, etc.). '
+      'Pour autoriser le fallback en test, passez allowFallbackInDebug: true dans DepotStocksSnapshotParams.',
+    );
+  }
+
+  if (kDebugMode) {
+    debugPrint(
+      '⚠️ depotStocksSnapshotProvider: Retour snapshot fallback (dateJour=$dateJour, depotId=${params.depotId})',
+    );
+  }
+
   return DepotStocksSnapshot(
     dateJour: dateJour,
     isFallback: true,
@@ -141,7 +334,7 @@ final depotStocksSnapshotProvider = riverpod.FutureProvider.autoDispose
       ref,
       params,
     ) async {
-      // Normaliser la date à minuit pour rester cohérent avec stocks_journaliers.date_jour (DATE)
+      // Normaliser la date à minuit
       // CRITICAL: Normaliser AVANT toute utilisation pour éviter les rebuild loops
       // Si dateJour est null, utiliser la date d'aujourd'hui normalisée une seule fois
       final now = DateTime.now();
@@ -170,11 +363,10 @@ final depotStocksSnapshotProvider = riverpod.FutureProvider.autoDispose
       try {
         repo = ref.watch(stocksKpiRepositoryProvider);
       } catch (e, stack) {
-        debugPrint('❌ depotStocksSnapshotProvider ERROR(creation repo): $e');
-        debugPrint('Stack: $stack');
-        debugPrint(
-          '⚠️ depotStocksSnapshotProvider: Retour snapshot fallback (repo)',
-        );
+        if (kDebugMode) {
+          debugPrint('❌ depotStocksSnapshotProvider ERROR(creation repo): $e');
+          debugPrint('Stack: $stack');
+        }
         return _fallbackSnapshot(dateJour, params);
       }
 
@@ -225,10 +417,10 @@ final depotStocksSnapshotProvider = riverpod.FutureProvider.autoDispose
         }
 
         // 3) Citerne-level snapshots
-        // Utilise v_stocks_citerne_global_daily qui supporte date_jour avec filtrage cohérent
+        // Utilise la vue snapshot de stock actuel
         if (kDebugMode) {
           debugPrint(
-            '🔄 depotStocksSnapshotProvider: Appel fetchCiterneGlobalSnapshots (v_stocks_citerne_global_daily avec dateJour=$dateJour)...',
+            '🔄 depotStocksSnapshotProvider: Appel fetchCiterneGlobalSnapshots (vue snapshot avec dateJour=$dateJour)...',
           );
         }
         final citerneRowsRaw = await repo.fetchCiterneGlobalSnapshots(
@@ -303,11 +495,10 @@ final depotStocksSnapshotProvider = riverpod.FutureProvider.autoDispose
           citerneRows: citerneRows,
         );
       } catch (e, stack) {
-        debugPrint('❌ depotStocksSnapshotProvider ERROR(fetch): $e');
-        debugPrint('Stack: $stack');
-        debugPrint(
-          '⚠️ depotStocksSnapshotProvider: Retour snapshot fallback (fetch)',
-        );
+        if (kDebugMode) {
+          debugPrint('❌ depotStocksSnapshotProvider ERROR(fetch): $e');
+          debugPrint('Stack: $stack');
+        }
         return _fallbackSnapshot(dateJour, params);
       }
     });

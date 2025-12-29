@@ -1,4 +1,5 @@
-﻿import 'package:flutter_riverpod/flutter_riverpod.dart';
+﻿import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/kpi_models.dart';
 import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart';
 import 'package:ml_pp_mvp/features/receptions/kpi/receptions_kpi_provider.dart';
@@ -177,10 +178,8 @@ Future<List<ReceptionRow>> _fetchReceptionsRawOfDay(
   String? depotId,
   DateTime today,
 ) async {
-  // Formatage de la date pour la requête
+  // Formatage de la date métier pour la requête (YYYY-MM-DD)
   final dayStr = '${today.year.toString().padLeft(4, '0')}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
-  
-  print('🔍 DEBUG KPI: Recherche réceptions pour la date: $dayStr, depotId: $depotId');
   
   List result;
   
@@ -201,19 +200,33 @@ Future<List<ReceptionRow>> _fetchReceptionsRawOfDay(
         .eq('date_reception', dayStr);
   }
   
-  print('🔍 DEBUG KPI: Nombre de réceptions trouvées: ${result.length}');
+  // Calcul des sommes pour log debug
+  double sumAmb = 0.0;
+  double sum15c = 0.0;
+  for (final row in (result as List)) {
+    final vAmb = _toD(row['volume_ambiant']);
+    final v15c = _toD(row['volume_corrige_15c'] ?? row['volume_15c']);
+    sumAmb += vAmb;
+    sum15c += v15c;
+  }
+  
+  if (kDebugMode) {
+    debugPrint('[KPI receptions] depot=$depotId date=$dayStr rows=${result.length} amb=$sumAmb 15c=$sum15c');
+  }
   
   return List<Map<String, dynamic>>.from(result);
 }
 
 /// Provider brut pour les réceptions du jour (rows brutes)
 /// 
+/// Utilise la date métier locale (DateTime.now()) pour filtrer sur date_reception.
 /// Ce provider peut être override dans les tests avec des données mockées.
 final receptionsRawTodayProvider = FutureProvider.autoDispose<List<ReceptionRow>>((ref) async {
   final profil = await ref.watch(profilProvider.future);
   final depotId = profil?.depotId;
-  final now = DateTime.now().toUtc();
-  final today = DateTime.utc(now.year, now.month, now.day);
+  // Utiliser la date métier locale (pas UTC système) pour correspondre à date_reception
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
   final supa = Supabase.instance.client;
   
   return _fetchReceptionsRawOfDay(supa, depotId, today);
@@ -234,10 +247,10 @@ Future<List<SortieRow>> _fetchSortiesRawOfDay(
   String? depotId,
   DateTime today,
 ) async {
+  // Convertir la date locale en intervalle UTC pour filtrer date_sortie (TIMESTAMPTZ)
+  // today est déjà en date locale (jour métier), on convertit en UTC pour l'intervalle
   final dayStart = today.toUtc().toIso8601String();
   final dayEnd = today.add(const Duration(days: 1)).toUtc().toIso8601String();
-  
-  print('🔍 DEBUG KPI: Recherche sorties pour la date: $dayStart -> $dayEnd, depotId: $depotId');
   
   List result;
   
@@ -260,19 +273,34 @@ Future<List<SortieRow>> _fetchSortiesRawOfDay(
         .lt('date_sortie', dayEnd);
   }
   
-  print('🔍 DEBUG KPI: Nombre de sorties trouvées: ${result.length}');
+  // Calcul des sommes pour log debug
+  double sumAmb = 0.0;
+  double sum15c = 0.0;
+  for (final row in (result as List)) {
+    final vAmb = _toD(row['volume_ambiant']);
+    final v15c = _toD(row['volume_corrige_15c'] ?? row['volume_15c']);
+    sumAmb += vAmb;
+    sum15c += v15c;
+  }
+  
+  if (kDebugMode) {
+    final dayStr = '${today.year.toString().padLeft(4, '0')}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+    debugPrint('[KPI sorties] depot=$depotId date=$dayStr interval=[$dayStart, $dayEnd) rows=${result.length} amb=$sumAmb 15c=$sum15c');
+  }
   
   return List<Map<String, dynamic>>.from(result);
 }
 
 /// Provider brut pour les sorties du jour (rows brutes)
 /// 
+/// Utilise la date métier locale (DateTime.now()) pour créer l'intervalle UTC filtrant date_sortie.
 /// Ce provider peut être override dans les tests avec des données mockées.
 final sortiesRawTodayProvider = FutureProvider.autoDispose<List<SortieRow>>((ref) async {
   final profil = await ref.watch(profilProvider.future);
   final depotId = profil?.depotId;
-  final now = DateTime.now().toUtc();
-  final today = DateTime.utc(now.year, now.month, now.day);
+  // Utiliser la date métier locale (pas UTC système) pour correspondre au jour métier
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
   final supa = Supabase.instance.client;
   
   return _fetchSortiesRawOfDay(supa, depotId, today);

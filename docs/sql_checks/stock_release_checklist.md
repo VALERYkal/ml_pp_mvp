@@ -282,6 +282,287 @@ Une fois tous les tests verts :
 | Date | Version/Migration | Validé par | Résultats |
 |------|------------------|------------|-----------|
 | 2025-12-13 | Initial | Équipe ML_PP MVP | ✅ Tous les tests verts |
+| 2025-12-23 | Migration `20251223_1200_stocks_views_daily.sql` | Équipe ML_PP MVP | ✅ Vue canonique créée, contract checks ajoutés |
+
+---
+
+## ✅ PHASE 5 — Validation après déploiement migration (2025-12-23)
+
+### Objectif
+Vérifier que la migration de `v_stocks_citerne_global_daily` a été correctement déployée et que la vue fonctionne comme attendu.
+
+**✅ À exécuter après chaque déploiement de la migration `20251223_1200_stocks_views_daily.sql`**
+
+---
+
+## 5.1️⃣ TEST F — Vérification du schéma de la vue canonique
+
+**Objectif** : Vérifier que la vue `v_stocks_citerne_global_daily` expose les colonnes attendues avec les bons types.
+
+**✅ Résultat attendu** : 10 colonnes avec les types corrects
+
+**Explication** :
+- La vue doit exposer exactement les colonnes documentées dans `docs/db/stocks_views_contract.md`
+- Les types doivent être cohérents avec les attentes Flutter (DATE pour `date_jour`, NUMERIC pour stocks, TEXT pour noms)
+
+```sql
+SELECT column_name, data_type, is_nullable
+FROM information_schema.columns
+WHERE table_schema = 'public'
+  AND table_name = 'v_stocks_citerne_global_daily'
+ORDER BY ordinal_position;
+```
+
+**Résultats attendus** :
+- `citerne_id` : `uuid` (ou type utilisé pour les IDs)
+- `citerne_nom` : `text`
+- `produit_id` : `uuid` (ou type utilisé pour les IDs)
+- `produit_nom` : `text`
+- `depot_id` : `uuid` (ou type utilisé pour les IDs)
+- `depot_nom` : `text`
+- `date_jour` : `date` (CRITICAL: doit être DATE, pas timestamp)
+- `stock_ambiant_total` : `numeric` (ou `double precision`)
+- `stock_15c_total` : `numeric` (ou `double precision`)
+- `capacite_totale` : `numeric` (ou `double precision`)
+
+**Si des colonnes manquent ou ont le mauvais type** :
+- ❌ La migration n'a pas été correctement appliquée
+- ❌ Vérifier le fichier de migration `20251223_1200_stocks_views_daily.sql`
+- ❌ Relancer la migration si nécessaire
+
+---
+
+## 5.2️⃣ TEST G — Aucun doublon dans la vue canonique
+
+**Objectif** : Vérifier l'intégrité structurelle de `v_stocks_citerne_global_daily`. La clé métier est `(citerne_id, produit_id, date_jour)`.
+
+**✅ Résultat attendu** : **0 lignes**
+
+**Explication** :
+- Pour chaque combinaison `(citerne_id, produit_id, date_jour)`, il ne doit y avoir qu'une seule ligne
+- Si des doublons existent, c'est une violation de l'intégrité des données ou un problème dans la logique de la vue
+
+```sql
+SELECT citerne_id, produit_id, date_jour, COUNT(*) AS nb
+FROM public.v_stocks_citerne_global_daily
+GROUP BY citerne_id, produit_id, date_jour
+HAVING COUNT(*) > 1;
+```
+
+**Si des lignes sont retournées** :
+- ❌ Violation de l'intégrité (doublons dans `stocks_journaliers` ou problème dans la logique de GROUP BY)
+- ❌ Vérifier que `stocks_journaliers` respecte la contrainte UNIQUE `(citerne_id, produit_id, date_jour, proprietaire_type)`
+- ❌ Vérifier la logique de GROUP BY dans la vue (CTE `stocks_agreges`)
+
+---
+
+## 5.3️⃣ TEST H — Échantillon de données (smoke test)
+
+**Objectif** : Vérifier que la vue retourne des données cohérentes et que les valeurs sont plausibles.
+
+**✅ Résultat attendu** : Des lignes avec des données cohérentes (stocks ≥ 0, dates cohérentes, noms non vides)
+
+**Explication** :
+- La vue doit retourner des données pour les citernes existantes
+- Les stocks doivent être ≥ 0 (invariant métier)
+- Les dates doivent être cohérentes (pas de dates futures, dates dans une plage raisonnable)
+
+```sql
+SELECT *
+FROM public.v_stocks_citerne_global_daily
+ORDER BY date_jour DESC, citerne_id, produit_id
+LIMIT 20;
+```
+
+**Vérifications manuelles à faire** :
+- ✅ Les dates sont dans le passé ou aujourd'hui (pas de dates futures)
+- ✅ Les stocks sont ≥ 0
+- ✅ Les noms de citernes/produits/dépôts sont non vides (sauf si NULL est acceptable)
+- ✅ Les `capacite_totale` sont cohérentes (≥ 0)
+- ✅ Les `depot_id` correspondent aux dépôts existants
+
+**Si des problèmes sont détectés** :
+- ❌ Vérifier les données source dans `stocks_journaliers`
+- ❌ Vérifier les jointures dans la vue (LEFT JOIN avec `citernes`, `produits`, `depots`)
+- ❌ Vérifier que les agrégations (MONALUXE + PARTENAIRE) sont correctes
+
+---
+
+## 📋 Procédure de validation Phase 5
+
+### Étape 1 : Exécuter les 3 requêtes de smoke-check
+
+Exécuter les requêtes dans l'ordre (5.1, 5.2, 5.3) et noter les résultats.
+
+### Étape 2 : Vérifier les résultats
+
+**✅ Tous les tests doivent être verts** :
+- TEST F : 10 colonnes avec types corrects
+- TEST G : 0 lignes (pas de doublons)
+- TEST H : Données cohérentes (vérification manuelle)
+
+Si un test échoue :
+1. ❌ **STOP deployment**
+2. 🔍 Analyser le problème
+3. 🔧 Corriger (migration SQL ou données source)
+4. 🔄 Relancer tous les tests
+5. ✅ Répéter jusqu'à ce que tous les tests soient verts
+
+### Étape 3 : Documenter la validation
+
+Une fois tous les tests verts :
+- ✅ Noter la date de validation
+- ✅ Noter la version/migration validée (`20251223_1200_stocks_views_daily.sql`)
+- ✅ Conserver les résultats
+
+---
+
+## 🔍 VIEW CONTRACT — daily global
+
+### Objectif
+Vérifier que la vue canonique `v_stocks_citerne_global_daily` respecte le contrat d'interface Flutter.
+
+**✅ À exécuter après chaque modification de la vue ou migration**
+
+---
+
+## 6.1️⃣ TEST I — View exists
+
+**Objectif** : Vérifier que la vue `v_stocks_citerne_global_daily` existe dans le schéma public.
+
+**✅ Résultat attendu** : `exists` = `true` (1 ligne)
+
+```sql
+SELECT to_regclass('public.v_stocks_citerne_global_daily') IS NOT NULL AS exists;
+```
+
+**Si `exists` = `false`** :
+- ❌ La vue n'existe pas dans la base de données
+- ❌ Exécuter la migration `20251223_1200_stocks_views_daily.sql`
+- ❌ Vérifier que la migration a été appliquée correctement
+
+---
+
+## 6.2️⃣ TEST J — Columns contract
+
+**Objectif** : Vérifier que la vue expose toutes les colonnes requises par le contrat Flutter avec les bons types.
+
+**✅ Résultat attendu** : 10 colonnes avec types corrects
+
+```sql
+SELECT column_name, data_type
+FROM information_schema.columns
+WHERE table_schema='public' AND table_name='v_stocks_citerne_global_daily'
+ORDER BY ordinal_position;
+```
+
+**Résultats attendus (exact order)** :
+1. `citerne_id` — type doit être UUID (ou équivalent)
+2. `citerne_nom` — type doit être TEXT (ou character varying)
+3. `produit_id` — type doit être UUID (ou équivalent)
+4. `produit_nom` — type doit être TEXT (ou character varying)
+5. `depot_id` — type doit être UUID (ou équivalent)
+6. `depot_nom` — type doit être TEXT (ou character varying)
+7. `date_jour` — **CRITICAL** : type DOIT être `date` (pas timestamp, pas timestamp with time zone)
+8. `stock_ambiant_total` — type doit être numeric ou double precision
+9. `stock_15c_total` — type doit être numeric ou double precision
+10. `capacite_totale` — type doit être numeric ou double precision
+
+**Si des colonnes manquent ou ont le mauvais type** :
+- ❌ Le contrat n'est pas respecté
+- ❌ Flutter peut échouer à lire la vue
+- ❌ Vérifier la migration `20251223_1200_stocks_views_daily.sql` et corriger si nécessaire
+
+---
+
+## 6.3️⃣ TEST K — Filtering sanity (returns only <= date)
+
+**Objectif** : Vérifier que le filtrage par `date_jour` fonctionne correctement et que la vue retourne des données cohérentes.
+
+**✅ Résultat attendu** : Des lignes avec `date_jour <= CURRENT_DATE`, ordonnées par date décroissante
+
+**Note** : Ajuster le `depot_id` si nécessaire pour votre environnement de test.
+
+```sql
+-- Pick a depot_id that exists in fixtures or run without filter
+SELECT *
+FROM public.v_stocks_citerne_global_daily
+WHERE date_jour <= CURRENT_DATE
+ORDER BY date_jour DESC
+LIMIT 20;
+```
+
+**Vérifications manuelles** :
+- ✅ Toutes les dates retournées sont ≤ CURRENT_DATE (pas de dates futures)
+- ✅ Les stocks sont ≥ 0 (invariant métier)
+- ✅ Les noms (citerne_nom, produit_nom, depot_nom) sont non vides
+- ✅ Les `capacite_totale` sont cohérentes (≥ 0)
+- ✅ Les `depot_id` correspondent aux dépôts existants
+- ✅ Les données sont ordonnées correctement (date_jour DESC)
+
+**Si des problèmes sont détectés** :
+- ❌ Vérifier les données source dans `stocks_journaliers`
+- ❌ Vérifier les jointures dans la vue (JOIN avec `citernes`, `produits`, `depots`)
+- ❌ Vérifier que le GROUP BY et les agrégations sont corrects
+
+---
+
+## 6.4️⃣ TEST L — global_daily equals sum of owners
+
+**Objectif** : Vérifier l'invariant canonique : `v_stocks_citerne_global_daily` doit être égal à la somme des lignes `stocks_journaliers` groupées par `(citerne_id, produit_id, date_jour)`.
+
+**✅ Résultat attendu** : **0 lignes**
+
+**Explication** :
+- La vue `v_stocks_citerne_global_daily` agrège tous les propriétaires (MONALUXE + PARTENAIRE) pour chaque combinaison `(citerne_id, produit_id, date_jour)`
+- Cette somme doit être exactement égale à la somme directe des `stock_ambiant` et `stock_15c` de `stocks_journaliers` pour la même combinaison
+- Si des différences existent, c'est une violation de l'invariant canonique
+
+```sql
+WITH daily_view AS (
+  SELECT
+    citerne_id,
+    produit_id,
+    date_jour,
+    stock_ambiant_total AS view_ambiant,
+    stock_15c_total AS view_15c
+  FROM public.v_stocks_citerne_global_daily
+),
+journaliers_sum AS (
+  SELECT
+    citerne_id,
+    produit_id,
+    date_jour,
+    SUM(stock_ambiant) AS sum_ambiant,
+    SUM(stock_15c) AS sum_15c
+  FROM public.stocks_journaliers
+  GROUP BY citerne_id, produit_id, date_jour
+)
+SELECT
+  v.citerne_id,
+  v.produit_id,
+  v.date_jour,
+  v.view_ambiant,
+  j.sum_ambiant,
+  v.view_15c,
+  j.sum_15c
+FROM daily_view v
+JOIN journaliers_sum j
+  ON j.citerne_id = v.citerne_id
+  AND j.produit_id = v.produit_id
+  AND j.date_jour = v.date_jour
+WHERE
+  (v.view_ambiant IS DISTINCT FROM j.sum_ambiant)
+  OR
+  (v.view_15c IS DISTINCT FROM j.sum_15c);
+```
+
+**Si des lignes sont retournées** :
+- ❌ Violation de l'invariant canonique : `global_daily ≠ SUM(owner rows)`
+- ❌ La vue `v_stocks_citerne_global_daily` ne correspond pas à la somme des `stocks_journaliers`
+- ❌ Vérifier la logique de GROUP BY et d'agrégation dans la vue
+- ❌ Vérifier que la vue agrège correctement tous les propriétaires (MONALUXE + PARTENAIRE)
+- ❌ Vérifier la migration `20251223_1200_stocks_views_daily.sql`
 
 ---
 

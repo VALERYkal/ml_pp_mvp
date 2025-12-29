@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../providers/citerne_providers.dart';
-import '../../../shared/ui/typography.dart';
-import '../../../shared/formatters.dart';
-import '../../stocks/domain/depot_stocks_snapshot.dart';
-import '../../../data/repositories/stocks_kpi_repository.dart';
+import '../domain/citerne_stock_snapshot.dart';
 
 // Fonctions de formatage modernisées avec chiffres tabulaires
 final _n0 = NumberFormat.decimalPattern();
@@ -72,25 +69,25 @@ class CiterneListScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final snapshotAsync = ref.watch(citerneStocksSnapshotProvider);
+    final snapshotAsync = ref.watch(citerneStockSnapshotProvider);
     final theme = Theme.of(context);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC), // Fond légèrement bleuté
       appBar: _buildModernAppBar(context, ref),
       body: RefreshIndicator(
-        onRefresh: () async => ref.invalidate(citerneStocksSnapshotProvider),
+        onRefresh: () async => ref.invalidate(citerneStockSnapshotProvider),
         color: theme.colorScheme.primary,
         child: snapshotAsync.when(
           loading: () => _buildLoadingState(context, theme),
           error: (error, stack) => _buildErrorState(context, error, theme, ref),
-          data: (snapshot) => snapshot.citerneRows.isEmpty
+          data: (citernes) => citernes.isEmpty
               ? _buildEmptyState(context, theme)
-              : _buildCiterneGridFromSnapshot(context, snapshot, theme),
+              : _buildCiterneGridFromSnapshot(context, citernes, theme),
         ),
       ),
       floatingActionButton: FloatingActionButton.small(
-        onPressed: () => ref.invalidate(citerneStocksSnapshotProvider),
+        onPressed: () => ref.invalidate(citerneStockSnapshotProvider),
         backgroundColor: theme.colorScheme.primaryContainer,
         child: Icon(
           Icons.refresh_rounded,
@@ -162,7 +159,7 @@ class CiterneListScreen extends ConsumerWidget {
       ),
       actions: [
         IconButton(
-          onPressed: () => ref.invalidate(citerneStocksSnapshotProvider),
+          onPressed: () => ref.invalidate(citerneStockSnapshotProvider),
           icon: const Icon(
             Icons.refresh_rounded,
             color: Color(0xFF64748B),
@@ -247,7 +244,7 @@ class CiterneListScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 20),
             ElevatedButton.icon(
-              onPressed: () => ref.invalidate(citerneStocksSnapshotProvider),
+              onPressed: () => ref.invalidate(citerneStockSnapshotProvider),
               icon: const Icon(Icons.refresh_rounded, size: 20),
               label: const Text('Réessayer'),
               style: ElevatedButton.styleFrom(
@@ -432,31 +429,29 @@ class CiterneListScreen extends ConsumerWidget {
     );
   }
 
-  /// Construit la grille de citernes à partir du snapshot KPI
-  /// Utilise la même source de données que le dashboard et le module Stocks
+  /// Construit la grille de citernes à partir des snapshots.
+  /// Utilise directement la vue SQL `v_citerne_stock_snapshot_agg`
   Widget _buildCiterneGridFromSnapshot(
     BuildContext context,
-    DepotStocksSnapshot snapshot,
+    List<CiterneStockSnapshot> citernes,
     ThemeData theme,
   ) {
-    final citerneRows = snapshot.citerneRows;
-    
-    // Calculer les statistiques depuis le snapshot
-    final totalCiternes = citerneRows.length;
-    final alertesCiternes = citerneRows
+    // Calculer les statistiques depuis les snapshots
+    final totalCiternes = citernes.length;
+    final alertesCiternes = citernes
         .where((c) => c.stockAmbiantTotal <= c.capaciteSecurite)
         .length;
-    final capaciteTotale = citerneRows.fold<double>(
+    final capaciteTotale = citernes.fold<double>(
       0.0,
       (sum, c) => sum + c.capaciteTotale,
     );
     // RÈGLE MÉTIER : Stock ambiant = source de vérité opérationnelle
     // Calculer les totaux séparément pour affichage conforme
-    final stockTotalAmbiant = citerneRows.fold<double>(
+    final stockTotalAmbiant = citernes.fold<double>(
       0.0,
       (sum, c) => sum + c.stockAmbiantTotal,
     );
-    final stockTotal15c = citerneRows.fold<double>(
+    final stockTotal15c = citernes.fold<double>(
       0.0,
       (sum, c) => sum + c.stock15cTotal,
     );
@@ -558,21 +553,39 @@ class CiterneListScreen extends ConsumerWidget {
         // Grille des citernes
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          sliver: SliverGrid(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              crossAxisSpacing: 14,
-              mainAxisSpacing: 14,
-              childAspectRatio: 1.35,
-            ),
-            delegate: SliverChildBuilderDelegate(
-              (context, index) => _buildCiterneCardFromSnapshot(
-                context,
-                citerneRows[index],
-                theme,
-              ),
-              childCount: citerneRows.length,
-            ),
+          sliver: Builder(
+            builder: (context) {
+              // Tri des citernes par ordre naturel (TANK1, TANK2, TANK3, ...)
+              final sortedCiternes = [...citernes]..sort((a, b) {
+                int extractNum(String name) {
+                  final m = RegExp(r'(\d+)').firstMatch(name);
+                  return m == null ? 0 : int.parse(m.group(1)!);
+                }
+
+                final an = extractNum(a.citerneNom);
+                final bn = extractNum(b.citerneNom);
+
+                if (an != bn) return an.compareTo(bn);
+                return a.citerneNom.compareTo(b.citerneNom);
+              });
+
+              return SliverGrid(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  crossAxisSpacing: 14,
+                  mainAxisSpacing: 14,
+                  childAspectRatio: 1.35,
+                ),
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) => _buildCiterneCardFromSnapshot(
+                    context,
+                    sortedCiternes[index],
+                    theme,
+                  ),
+                  childCount: sortedCiternes.length,
+                ),
+              );
+            },
           ),
         ),
         
@@ -759,11 +772,11 @@ class CiterneListScreen extends ConsumerWidget {
     );
   }
 
-  /// Construit une carte de citerne à partir d'un snapshot KPI
-  /// Utilise CiterneGlobalStockSnapshot (données agrégées de v_stocks_citerne_global_daily)
+  /// Construit une carte de citerne à partir d'un snapshot.
+  /// Utilise CiterneStockSnapshot (données depuis la vue v_citerne_stock_snapshot_agg)
   Widget _buildCiterneCardFromSnapshot(
     BuildContext context,
-    CiterneGlobalStockSnapshot citerne,
+    CiterneStockSnapshot citerne,
     ThemeData theme,
   ) {
     final stock15c = citerne.stock15cTotal;
@@ -777,7 +790,7 @@ class CiterneListScreen extends ConsumerWidget {
       stockAmb: stockAmbiant,
       capacity: capacite,
       utilPct: utilPct.toDouble(),
-      lastUpdated: citerne.dateJour,
+      lastUpdated: citerne.lastSnapshotAt,
     );
   }
 
@@ -972,7 +985,7 @@ class TankCard extends StatelessWidget {
                               context,
                               icon: Icons.water_drop_outlined,
                               label: 'Amb',
-                              value: fmtL(stockAmb),
+                              value: _fmtL(stockAmb),
                               color: const Color(0xFF3B82F6),
                             ),
                             const SizedBox(height: 6),
@@ -981,7 +994,7 @@ class TankCard extends StatelessWidget {
                               context,
                               icon: Icons.thermostat_rounded,
                               label: '≈ 15°C',
-                              value: fmtL(stock15c),
+                              value: _fmtL(stock15c),
                               color: const Color(0xFF94A3B8),
                             ),
                           ],
@@ -1001,7 +1014,7 @@ class TankCard extends StatelessWidget {
                               context,
                               icon: Icons.straighten_rounded,
                               label: 'Cap',
-                              value: fmtL(capacity, fixed: 0),
+                              value: _fmtL(capacity, fixed: 0),
                               alignEnd: true,
                               color: const Color(0xFF8B5CF6),
                             ),

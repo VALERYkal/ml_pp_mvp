@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ml_pp_mvp/features/receptions/screens/reception_form_screen.dart';
 import 'package:ml_pp_mvp/features/receptions/providers/reception_providers.dart'
     as RP;
@@ -105,7 +106,17 @@ void main() {
             ],
           ),
         ],
-        child: const MaterialApp(home: ReceptionFormScreen()),
+        child: MaterialApp.router(
+          routerConfig: GoRouter(
+            routes: [
+              GoRoute(
+                path: '/receptions',
+                builder: (context, state) => const ReceptionFormScreen(),
+              ),
+            ],
+            initialLocation: '/receptions',
+          ),
+        ),
       ),
     );
 

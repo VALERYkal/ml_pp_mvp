@@ -32,6 +32,47 @@
 - ✅ `flutter test test/features/stocks/stocks_kpi_repository_test.dart` → 8/8 passent
 - ✅ `flutter test test/features/dashboard/` → 26/26 passent
 
+## ✅ PHASE 4 — Stocks KPI Hardening (2025-12-23) — TERMINÉE
+
+### Objectif
+Rendre les fallbacks explicites, améliorer l'hygiène des logs (kDebugMode), ajouter des tests anti-régression ciblés.
+
+### Changements clés Phase 4
+
+#### Politique de fallback explicite
+- ✅ **Paramètre `allowFallbackInDebug`** : Ajouté à `DepotStocksSnapshotParams` pour contrôler explicitement le comportement de fallback
+  - Par défaut : `false` en debug (force la détection des problèmes), `true` en release (évite les crashes)
+  - Assertion debug : Si `allowFallbackInDebug == false` et qu'un fallback est utilisé, une assertion échoue avec message explicite
+- ✅ **Logs d'erreur wrappés** : Tous les `debugPrint` d'erreur wrappés avec `kDebugMode` pour éviter spam en release
+- ✅ **Messages améliorés** : Messages d'erreur clarifiés pour indiquer clairement quand un fallback est utilisé
+
+#### Log hygiene
+- ✅ **Tous les logs wrappés** : Vérification complète que tous les `debugPrint` sont wrappés avec `kDebugMode`
+- ✅ **Réduction verbosité** : Logs critiques uniquement, pas de spam sur les rebuilds
+
+#### Tests anti-régression
+- ✅ **Test 1** : `returns isFallback=false for normal fixtures` — Vérifie que avec des données valides, `isFallback` est toujours `false` (même avec `allowFallbackInDebug: false`)
+- ✅ **Test 2** : `normalizes dateJour to 00:00:00.000` — Vérifie que la date est normalisée avant d'être passée au repository et dans le snapshot retourné
+- ✅ **Test 3** : `ensures all citerneRows have same date_jour` — Vérifie la cohérence des dates dans les snapshots citernes (gardefou si le repository ne filtre pas correctement)
+
+### Fichiers modifiés Phase 4
+- `lib/features/stocks/data/stocks_kpi_providers.dart` : Politique de fallback, logs wrappés
+- `test/features/stocks/depot_stocks_snapshot_provider_test.dart` : 3 nouveaux tests anti-régression
+
+### DB Migration
+- ✅ **View SQL frozen** : Migration `supabase/migrations/20251223_1200_stocks_views_daily.sql` créée
+  - Vue canonique `v_stocks_citerne_global_daily` versionnée et idempotente (CREATE OR REPLACE VIEW)
+  - Required for new environments : cette migration doit être exécutée pour créer la vue dans tout nouvel environnement
+  - Contract checks ajoutés au checklist de release (VIEW CONTRACT — daily global)
+
+### Validation Phase 4
+```bash
+flutter analyze
+flutter test test/features/stocks/stocks_kpi_repository_test.dart -r expanded
+flutter test test/features/stocks/depot_stocks_snapshot_provider_test.dart -r expanded
+flutter test test/features/dashboard/ -r expanded
+```
+
 ## 📋 Prochaine étape proposée
 
 **Ajouter un test anti-régression `_filterToLatestDate` multi-dates** :

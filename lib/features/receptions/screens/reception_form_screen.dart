@@ -35,8 +35,6 @@ import 'package:ml_pp_mvp/features/cours_route/providers/cours_route_providers.d
         coursDeRouteArrivesProvider;
 import 'package:ml_pp_mvp/features/citernes/providers/citerne_providers.dart'
     show citernesWithStockProvider;
-import 'package:ml_pp_mvp/features/stocks_journaliers/providers/stocks_providers.dart'
-    show stocksListProvider;
 import 'package:ml_pp_mvp/features/receptions/widgets/partenaire_autocomplete.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -317,9 +315,6 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
         } catch (_) {}
         try {
           ref.invalidate(citernesWithStockProvider);
-        } catch (_) {}
-        try {
-          ref.invalidate(stocksListProvider);
         } catch (_) {}
         context.go('/receptions');
       }
