@@ -516,27 +516,53 @@ void main() {
         // (via WidgetsBinding.instance.addPostFrameCallback)
         await tester.pumpAndSettle(const Duration(seconds: 2));
         
-        final citerneRadioListTiles = find.byType(RadioListTile<String>);
-        debugPrint('🔍 DEBUG: RadioListTile de citerne trouvées: ${citerneRadioListTiles.evaluate().length}');
+        // Utiliser la Key stable pour trouver le sélecteur de citerne
+        final citerneSelectorKey = find.byKey(const Key('reception_citerne_selector'));
+        debugPrint('🔍 DEBUG: Sélecteur citerne (Key) trouvé: ${citerneSelectorKey.evaluate().length}');
         
-        if (citerneRadioListTiles.evaluate().isNotEmpty) {
-          // Sélectionner la première citerne disponible (même si elle est déjà pré-sélectionnée)
-          await tester.tap(citerneRadioListTiles.first);
-          await tester.pumpAndSettle();
-          debugPrint('✅ Citerne sélectionnée explicitement');
+        if (citerneSelectorKey.evaluate().isNotEmpty) {
+          // Le sélecteur existe, chercher les RadioListTile à l'intérieur
+          final citerneRadioListTiles = find.descendant(
+            of: citerneSelectorKey,
+            matching: find.byType(RadioListTile<String>),
+          );
+          debugPrint('🔍 DEBUG: RadioListTile de citerne trouvées: ${citerneRadioListTiles.evaluate().length}');
+          
+          if (citerneRadioListTiles.evaluate().isNotEmpty) {
+            // Si plusieurs citernes, sélectionner la première (ou celle qui est déjà sélectionnée)
+            // Mais si une seule citerne existe, elle devrait être auto-sélectionnée
+            // On peut vérifier si elle est déjà sélectionnée avant de taper
+            await tester.tap(citerneRadioListTiles.first, warnIfMissed: false);
+            await tester.pumpAndSettle();
+            debugPrint('✅ Citerne trouvée et sélectionnée');
+          } else {
+            // Si le sélecteur existe mais aucune RadioListTile n'est trouvée,
+            // cela signifie probablement qu'il n'y a qu'une seule citerne et qu'elle est auto-sélectionnée
+            // On attend un peu plus pour laisser le temps à la pré-sélection de se faire
+            debugPrint('⚠️  Sélecteur trouvé mais aucune RadioListTile visible. Attente de l\'auto-sélection...');
+            await tester.pumpAndSettle(const Duration(seconds: 2));
+            debugPrint('✅ Auto-sélection attendue (1 seule citerne disponible)');
+          }
         } else {
-          // Si aucune RadioListTile n'est trouvée, peut-être qu'elle est pré-sélectionnée automatiquement
-          // Le formulaire fait une pré-sélection automatique via addPostFrameCallback
-          // On attend un peu plus pour laisser le temps à la pré-sélection de se faire
-          debugPrint('⚠️  Aucune RadioListTile de citerne trouvée. Attente de la pré-sélection automatique...');
+          // Le sélecteur n'existe pas encore, attendre un peu plus
+          debugPrint('⚠️  Sélecteur de citerne non trouvé. Attente supplémentaire...');
           await tester.pumpAndSettle(const Duration(seconds: 2));
           
           // Vérifier à nouveau
-          final citerneRadioListTiles2 = find.byType(RadioListTile<String>);
-          if (citerneRadioListTiles2.evaluate().isEmpty) {
-            debugPrint('⚠️  Toujours aucune RadioListTile trouvée après attente. La citerne devrait être pré-sélectionnée automatiquement.');
+          final citerneSelectorKey2 = find.byKey(const Key('reception_citerne_selector'));
+          if (citerneSelectorKey2.evaluate().isEmpty) {
+            debugPrint('⚠️  Sélecteur toujours introuvable après attente. Vérifier que le produit est sélectionné.');
           } else {
-            debugPrint('✅ RadioListTile trouvées après attente: ${citerneRadioListTiles2.evaluate().length}');
+            debugPrint('✅ Sélecteur trouvé après attente');
+            // Essayer de trouver les RadioListTile maintenant
+            final citerneRadioListTiles2 = find.descendant(
+              of: citerneSelectorKey2,
+              matching: find.byType(RadioListTile<String>),
+            );
+            if (citerneRadioListTiles2.evaluate().isNotEmpty) {
+              await tester.tap(citerneRadioListTiles2.first, warnIfMissed: false);
+              await tester.pumpAndSettle();
+            }
           }
         }
 

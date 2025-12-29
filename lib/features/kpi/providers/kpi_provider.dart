@@ -6,6 +6,7 @@ import 'package:ml_pp_mvp/features/receptions/kpi/receptions_kpi_provider.dart';
 import 'package:ml_pp_mvp/features/sorties/kpi/sorties_kpi_provider.dart';
 import 'package:ml_pp_mvp/features/stocks/data/stocks_kpi_providers.dart';
 import 'package:ml_pp_mvp/features/stocks/data/stocks_kpi_service.dart';
+import 'package:ml_pp_mvp/data/repositories/repositories.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Helper de parsing robuste pour convertir num | String → double
@@ -227,7 +228,7 @@ final receptionsRawTodayProvider = FutureProvider.autoDispose<List<ReceptionRow>
   // Utiliser la date métier locale (pas UTC système) pour correspondre à date_reception
   final now = DateTime.now();
   final today = DateTime(now.year, now.month, now.day);
-  final supa = Supabase.instance.client;
+  final supa = ref.watch(supabaseClientProvider);
   
   return _fetchReceptionsRawOfDay(supa, depotId, today);
 });
@@ -301,7 +302,7 @@ final sortiesRawTodayProvider = FutureProvider.autoDispose<List<SortieRow>>((ref
   // Utiliser la date métier locale (pas UTC système) pour correspondre au jour métier
   final now = DateTime.now();
   final today = DateTime(now.year, now.month, now.day);
-  final supa = Supabase.instance.client;
+  final supa = ref.watch(supabaseClientProvider);
   
   return _fetchSortiesRawOfDay(supa, depotId, today);
 });
@@ -318,7 +319,7 @@ final kpiProviderProvider = FutureProvider.autoDispose<KpiSnapshot>((ref) async 
     final profil = await ref.watch(profilProvider.future);
     print('🔍 KPI DEBUG: Profil chargé: ${profil?.id}, depot=${profil?.depotId}');
     final depotId = profil?.depotId; // null => global si rôle le permet
-    final supa = Supabase.instance.client;
+    final supa = ref.watch(supabaseClientProvider);
     
     // 2) Requêtes parallèles pour optimiser les performances
     // Utiliser les nouveaux providers pour les réceptions et sorties (retournent KpiReceptions et KpiSorties)

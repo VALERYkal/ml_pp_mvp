@@ -316,7 +316,11 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
         try {
           ref.invalidate(citernesWithStockProvider);
         } catch (_) {}
-        context.go('/receptions');
+        // Test-safe: certains widget tests montent l'écran sans MaterialApp.router
+        final router = GoRouter.maybeOf(context);
+        if (router != null) {
+          router.go('/receptions');
+        }
       }
     } on ReceptionValidationException catch (e) {
       // Erreur métier : afficher un message clair avec le champ concerné
@@ -538,6 +542,7 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
           child: FilledButton.icon(
+            key: const Key('reception_submit_btn'),
             icon: busy
                 ? const SizedBox(
                     width: 16,
@@ -598,17 +603,20 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
           children: [
             const Text('Produit & Citerne'),
             const SizedBox(height: 8),
-            _ProduitChips(
-              selectedId: _selectedProduitId,
-              enabled:
-                  _owner == OwnerType.partenaire, // Monaluxe => chip disabled
-              onSelected: (pid) {
-                setState(() {
-                  _selectedProduitId = pid;
-                  _selectedCiterneId =
-                      null; // reset citerne au changement de produit
-                });
-              },
+            KeyedSubtree(
+              key: const Key('reception_produit_chips'),
+              child: _ProduitChips(
+                selectedId: _selectedProduitId,
+                enabled:
+                    _owner == OwnerType.partenaire, // Monaluxe => chip disabled
+                onSelected: (pid) {
+                  setState(() {
+                    _selectedProduitId = pid;
+                    _selectedCiterneId =
+                        null; // reset citerne au changement de produit
+                  });
+                },
+              ),
             ),
             const SizedBox(height: 8),
             ref
@@ -623,39 +631,44 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
                     final filtered = (pid == null)
                         ? <refs.CiterneRef>[]
                         : list.where((c) => c.produitId == pid).toList();
-                    // 4) Pré-sélection automatique si une seule citerne
+                    // 3) Auto-select citerne when only one choice
+                    // Pré-sélection automatique si une seule citerne disponible et aucune sélection manuelle existante
                     if (filtered.length == 1 && _selectedCiterneId == null) {
                       WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (mounted)
+                        if (mounted && _selectedCiterneId == null) {
                           setState(
                             () => _selectedCiterneId = filtered.first.id,
                           );
+                        }
                       });
                     }
                     if (filtered.isEmpty)
                       return const Text(
                         'Aucune citerne active disponible pour ce produit',
                       );
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Citerne *'),
-                        const SizedBox(height: 4),
-                        for (final c in filtered)
-                          RadioListTile<String>(
-                            dense: true,
-                            value: c.id,
-                            groupValue: _selectedCiterneId,
-                            onChanged: (v) =>
-                                setState(() => _selectedCiterneId = v),
-                            title: Text(
-                              '${c.nom.isNotEmpty ? c.nom : _shorten(c.id, 8)}',
+                    return KeyedSubtree(
+                      key: const Key('reception_citerne_selector'),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Citerne *'),
+                          const SizedBox(height: 4),
+                          for (final c in filtered)
+                            RadioListTile<String>(
+                              dense: true,
+                              value: c.id,
+                              groupValue: _selectedCiterneId,
+                              onChanged: (v) =>
+                                  setState(() => _selectedCiterneId = v),
+                              title: Text(
+                                '${c.nom.isNotEmpty ? c.nom : _shorten(c.id, 8)}',
+                              ),
+                              subtitle: Text(
+                                'Capacité ${c.capaciteTotale.toStringAsFixed(0)} L | Sécurité ${c.capaciteSecurite.toStringAsFixed(0)} L',
+                              ),
                             ),
-                            subtitle: Text(
-                              'Capacité ${c.capaciteTotale.toStringAsFixed(0)} L | Sécurité ${c.capaciteSecurite.toStringAsFixed(0)} L',
-                            ),
-                          ),
-                      ],
+                        ],
+                      ),
                     );
                   },
                 ),
