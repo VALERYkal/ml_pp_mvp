@@ -4,6 +4,41 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 
 ## [Unreleased]
 
+### 🧪 **TEST – Stabilisation assertions menu principal auth_integration_test (01/01/2026)**
+
+#### **🎯 Objectif**
+Rendre les assertions du menu principal robustes dans les tests d'intégration d'authentification, en acceptant que les labels de menu puissent apparaître plusieurs fois dans l'UI.
+
+#### **✅ Changements majeurs**
+
+**Assertions robustes du menu principal**
+- ✅ Remplacement de `findsOneWidget` par `findsWidgets` pour tous les items de menu dans 3 blocs de tests :
+  - Test "should redirect admin to admin dashboard"
+  - Test "should redirect directeur to directeur dashboard"
+  - Test "should redirect gerant to gerant dashboard"
+- ✅ Items de menu concernés : "Cours de route", "Réceptions", "Sorties", "Stocks", "Citernes", "Logs / Audit"
+- ✅ Les assertions uniques restent inchangées : `UserRole.xxx.value`, `_routerLocation(...)`, etc.
+
+#### **📋 Détails techniques**
+
+**Fichier modifié**
+- `test/integration/auth/auth_integration_test.dart` : 3 blocs avec commentaire `// Menu principal`
+
+**Changements**
+- `expect(find.text('...'), findsOneWidget)` → `expect(find.text('...'), findsWidgets)`
+- `expect(find.text('Citernes'), findsAtLeastNWidgets(1))` → `expect(find.text('Citernes'), findsWidgets)`
+- Aucune modification du code de production
+- Logique des tests préservée : même routes, mêmes rôles, seuls les matchers ajustés
+
+#### **✅ Critères d'acceptation**
+
+- ✅ Tests plus robustes face aux duplications potentielles des labels de menu
+- ✅ Pas de modification du code de production
+- ✅ Assertions uniques (rôles, routes) préservées
+- ✅ Aucun hack ou skip ajouté
+
+---
+
 ### 📚 **DOCS – Documentation centralisée des vues SQL (27/12/2025)**
 
 #### **🎯 Objectif**
