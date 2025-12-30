@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mockito/mockito.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 import 'package:ml_pp_mvp/features/cours_route/data/cours_de_route_service.dart';
 import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart';
@@ -15,58 +16,92 @@ import 'package:ml_pp_mvp/shared/providers/ref_data_provider.dart';
 
 /// Helper pour pomper un widget avec les providers nécessaires
 /// 
-/// [widget] : Le widget à tester
+/// [tester] : Le WidgetTester Flutter
+/// [child] : Le widget à tester
 /// [overrides] : Overrides supplémentaires pour les providers
-/// [routerConfig] : Configuration du routeur (optionnel)
+/// [router] : Configuration du routeur (optionnel)
 Future<void> pumpWithProviders(
-  Widget widget, {
+  WidgetTester tester,
+  Widget child, {
   List<Override> overrides = const [],
-  GoRouter? routerConfig,
+  GoRouter? router,
 }) async {
-  final defaultOverrides = [
-    // Providers par défaut pour les tests CDR
+  final defaultOverrides = <Override>[
     userRoleProvider.overrideWith((ref) => UserRole.lecture),
-    refDataProvider.overrideWith((ref) => AsyncValue.data(FakeRefData())),
+
+    // IMPORTANT: refDataProvider doit retourner RefDataCache (pas AsyncValue)
+    refDataProvider.overrideWith((ref) async => RefDataCache(
+          fournisseurs: const {
+            'fournisseur-1': 'Fournisseur Test 1',
+            'fournisseur-2': 'Fournisseur Test 2',
+            'fournisseur-3': 'Fournisseur Test 3',
+          },
+          produits: const {
+            'produit-1': 'Essence',
+            'produit-2': 'Diesel',
+            'produit-3': 'Kérosène',
+          },
+          produitCodes: const {
+            'produit-1': 'ESS',
+            'produit-2': 'GO',
+            'produit-3': 'KER',
+          },
+          depots: const {
+            'depot-1': 'Dépôt Central',
+            'depot-2': 'Dépôt Nord',
+          },
+          loadedAt: DateTime(2025, 1, 27),
+        )),
   ];
 
-  final allOverrides = [...defaultOverrides, ...overrides];
+  final allOverrides = <Override>[...defaultOverrides, ...overrides];
 
   await tester.pumpWidget(
     ProviderScope(
       overrides: allOverrides,
-      child: MaterialApp(
-        home: routerConfig != null 
-            ? Router(routerConfig: routerConfig, child: widget)
-            : widget,
-      ),
+      child: router == null
+          ? MaterialApp(home: child)
+          : MaterialApp.router(
+              routerDelegate: router.routerDelegate,
+              routeInformationParser: router.routeInformationParser,
+              routeInformationProvider: router.routeInformationProvider,
+            ),
     ),
   );
+
+  await tester.pump();
 }
 
-/// Fake ref data pour les tests
-class FakeRefData {
-  final Map<String, String> fournisseurs;
-  final Map<String, String> produits;
-  final Map<String, String> depots;
-
-  FakeRefData({
-    Map<String, String>? fournisseurs,
-    Map<String, String>? produits,
-    Map<String, String>? depots,
-  }) : fournisseurs = fournisseurs ?? {
-          'fournisseur-1': 'Fournisseur Test 1',
-          'fournisseur-2': 'Fournisseur Test 2',
-          'fournisseur-3': 'Fournisseur Test 3',
-        },
-       produits = produits ?? {
-          'produit-1': 'Essence',
-          'produit-2': 'Diesel',
-          'produit-3': 'Kérosène',
-        },
-       depots = depots ?? {
-          'depot-1': 'Dépôt Central',
-          'depot-2': 'Dépôt Nord',
-        };
+/// Helper pour créer un RefDataCache de test
+RefDataCache createFakeRefDataCache({
+  Map<String, String>? fournisseurs,
+  Map<String, String>? produits,
+  Map<String, String>? produitCodes,
+  Map<String, String>? depots,
+  DateTime? loadedAt,
+}) {
+  return RefDataCache(
+    fournisseurs: fournisseurs ?? {
+      'fournisseur-1': 'Fournisseur Test 1',
+      'fournisseur-2': 'Fournisseur Test 2',
+      'fournisseur-3': 'Fournisseur Test 3',
+    },
+    produits: produits ?? {
+      'produit-1': 'Essence',
+      'produit-2': 'Diesel',
+      'produit-3': 'Kérosène',
+    },
+    produitCodes: produitCodes ?? {
+      'produit-1': 'ESS',
+      'produit-2': 'GO',
+      'produit-3': 'KER',
+    },
+    depots: depots ?? {
+      'depot-1': 'Dépôt Central',
+      'depot-2': 'Dépôt Nord',
+    },
+    loadedAt: loadedAt ?? DateTime.now(),
+  );
 }
 
 /// Builder pour créer des cours de route de test
@@ -194,82 +229,20 @@ List<CoursDeRoute> fakeCdrList({
   });
 }
 
-/// Fake service minimal pour les tests
-class FakeCoursDeRouteService implements CoursDeRouteService {
-  final List<CoursDeRoute> _cours;
-  final CoursDeRoute? _coursById;
-
-  FakeCoursDeRouteService({
-    List<CoursDeRoute>? cours,
-    CoursDeRoute? coursById,
-  }) : _cours = cours ?? fakeCdrList(),
-       _coursById = coursById;
-
-  @override
-  Future<List<CoursDeRoute>> getAll() async {
-    return _cours;
-  }
-
-  @override
-  Future<List<CoursDeRoute>> getActifs() async {
-    return _cours.where((c) => c.statut != StatutCours.decharge).toList();
-  }
-
-  @override
-  Future<CoursDeRoute?> getById(String id) async {
-    return _coursById ?? _cours.firstWhere((c) => c.id == id, orElse: () => throw StateError('Not found'));
-  }
-
-  // Méthodes non utilisées dans les tests - implémentation minimale
-  @override
-  Future<void> create(dynamic cours) async => throw UnimplementedError();
-  
-  @override
-  Future<void> update(dynamic cours) async => throw UnimplementedError();
-  
-  @override
-  Future<void> delete(String id) async => throw UnimplementedError();
-  
-  @override
-  Future<void> updateStatut({
-    required String id,
-    required dynamic to,
-    bool fromReception = false,
-  }) async => throw UnimplementedError();
-  
-  @override
-  Future<List<dynamic>> getByStatut(dynamic statut) async => throw UnimplementedError();
-  
-  @override
-  Future<bool> canTransition({
-    required dynamic from,
-    required dynamic to,
-  }) async => throw UnimplementedError();
-  
-  @override
-  Future<bool> applyTransition({
-    required String cdrId,
-    required dynamic from,
-    required dynamic to,
-    String? userId,
-  }) async => throw UnimplementedError();
-  
-  @override
-  Future<Map<String, int>> countByStatut() async => throw UnimplementedError();
-  
-  @override
-  Future<Map<String, int>> countByCategorie() async => throw UnimplementedError();
-}
+/// Mock service pour les tests (utilise Mockito)
+class MockCoursDeRouteService extends Mock implements CoursDeRouteService {}
 
 /// Helper pour vérifier qu'un widget est affiché sans exception
 /// 
+/// [tester] : Le WidgetTester Flutter
 /// [widget] : Le widget à tester
 /// [overrides] : Overrides supplémentaires pour les providers
 Future<void> expectNoRenderException(
+  WidgetTester tester,
   Widget widget, {
   List<Override> overrides = const [],
 }) async {
-  await pumpWithProviders(widget, overrides: overrides);
+  await pumpWithProviders(tester, widget, overrides: overrides);
   
   // Vérifier qu'il n'y a pas d'exception de rendu
   expect(tester.takeException(), isNull);
