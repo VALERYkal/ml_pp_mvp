@@ -28,11 +28,11 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      # 3) Installer Flutter (canal stable)
-      - name: Set up Flutter
+      # 3) Installer Flutter (version épinglée)
+      - name: Set up Flutter (pinned)
         uses: subosito/flutter-action@v2
         with:
-          channel: "stable"
+          flutter-version: "3.38.3"
           cache: true
 
       # 4) Vérifier la version de Flutter (debug)
@@ -52,8 +52,7 @@ jobs:
       # (Optionnel) 7) Vérifier le formatage
       #   Tu peux commenter cette étape si tu ne veux pas que le build casse sur le format.
       - name: Dart format check
-        run: |
-          dart format --set-exit-if-changed lib test
+        run: dart format --output=none --set-exit-if-changed lib test
 
       # 8) Lancer TOUTES les suites de tests
   
