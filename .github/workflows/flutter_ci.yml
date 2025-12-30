@@ -43,7 +43,11 @@ jobs:
       - name: Flutter pub get
         run: flutter pub get
 
-      # 5bis) Préparer un .env placeholder pour le CI
+      # 5bis) Générer les mocks nécessaires aux tests
+      - name: Generate mocks (build_runner)
+        run: flutter pub run build_runner build --delete-conflicting-outputs
+
+      # 5ter) Préparer un .env placeholder pour le CI
       - name: Prepare .env (CI placeholder)
         shell: bash
         run: |
@@ -73,6 +77,8 @@ jobs:
           mapfile -t TESTS < <(find test -type f -name "*_test.dart" \
             ! -path "test/integration/*" \
             ! -path "test/*/integration/*" \
+            ! -path "test/e2e/*" \
+            ! -path "test/*/e2e/*" \
             | sort)
           echo "Running ${#TESTS[@]} test files"
           flutter test -r expanded "${TESTS[@]}"
