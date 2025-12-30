@@ -21,9 +21,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 Future<void> ensureSupabaseInitializedForTests() async {
   try {
     // Vérifier si Supabase est déjà initialisé
-    // Si Supabase.instance.client n'est pas null, c'est qu'il est déjà initialisé
-    final client = Supabase.instance.client;
-    if (client != null) {
+    // Supabase.instance.client est toujours non-null (plugin chargé ou pas).
+    // Donc ce null-check est inutile.
+    {
       return; // Déjà initialisé, on ne fait rien
     }
   } catch (_) {
