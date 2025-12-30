@@ -74,14 +74,19 @@ jobs:
         run: |
           set -euo pipefail
           # Exclure les tests d'intégration (Supabase/plugins) en CI
-          mapfile -t TESTS < <(find test -type f -name "*_test.dart" \
+          TESTS=$(find test -type f -name "*_test.dart" \
             ! -path "test/integration/*" \
             ! -path "test/*/integration/*" \
             ! -path "test/e2e/*" \
             ! -path "test/*/e2e/*" \
+            ! -path "test/**/e2e/*" \
+            ! -name "*_e2e_test.dart" \
+            ! -name "*e2e_test.dart" \
             | sort)
-          echo "Running ${#TESTS[@]} test files"
-          flutter test -r expanded "${TESTS[@]}"
+
+          echo "COUNT=$(echo "$TESTS" | wc -l | tr -d ' ')"
+          # shellcheck disable=SC2086
+          flutter test -r expanded $TESTS
 
 
 

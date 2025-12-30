@@ -4,6 +4,31 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 
 ## [Unreleased]
 
+### 🛠️ **CI / Tests – Génération des mocks et exclusion E2E (02/01/2026)**
+
+#### **🎯 Objectif**
+Stabiliser le pipeline CI Flutter en générant les mocks nécessaires, en excluant explicitement les tests E2E du job unit/widget, et en ajoutant les placeholders requis pour éviter les échecs de compilation en CI.
+
+#### **✅ Changements majeurs**
+- **build_runner en CI** : ajout de l’étape `flutter pub run build_runner build --delete-conflicting-outputs` et inclusion de `test/**` dans `build.yaml` pour générer les `*.mocks.dart` utilisés par les tests.
+- **Exclusion E2E** : le job unit/widget ignore désormais `test/e2e/**`, `test/*/e2e/**`, `*_e2e_test.dart` et `*e2e_test.dart`.
+- **Placeholder .env CI** : création d’un `.env` minimal (`SUPABASE_URL`, `SUPABASE_ANON_KEY`) si absent en CI.
+- **CI Flutter** : Flutter épinglé (`3.38.3`), `flutter analyze` tolérant (warnings non bloquants), `dart format --output=none --set-exit-if-changed lib test`.
+- **Placeholder dev** : ajout de `lib/dev/clear_cache_screen.dart` pour satisfaire l’import `app_router.dart` sans logique métier.
+- **Tests** : ajout de `FakeStocksKpiRepository` (in-memory) pour surcharger `stocksKpiRepositoryProvider` en tests sans toucher Supabase.
+
+#### **📋 Fichiers impactés**
+- `.github/workflows/flutter_ci.yml`
+- `build.yaml`
+- `lib/dev/clear_cache_screen.dart` (dev-only, placeholder)
+- `test/support/fakes/fake_stocks_kpi_repository.dart` (tests)
+
+#### **✅ Résultat attendu**
+- Plus d’erreurs “mocks.mocks.dart missing” en CI.
+- Les tests unit/widget ne lancent plus les suites E2E.
+- Compilation CI rétablie (import ClearCacheScreen résolu).
+- Aucune modification de logique métier ni de fichiers générés commités.
+
 ### 🧪 **TEST – Stabilisation assertions menu principal auth_integration_test (01/01/2026)**
 
 #### **🎯 Objectif**
