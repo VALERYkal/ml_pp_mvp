@@ -43,6 +43,15 @@ jobs:
       - name: Flutter pub get
         run: flutter pub get
 
+      # 5bis) Préparer un .env placeholder pour le CI
+      - name: Prepare .env (CI placeholder)
+        shell: bash
+        run: |
+          if [ ! -f .env ]; then
+            echo "SUPABASE_URL=" > .env
+            echo "SUPABASE_ANON_KEY=" >> .env
+          fi
+
       # (Optionnel) 6) Analyse statique
       # MVP: flutter analyze produces warnings that are not blocking.
       # Full lint cleanup will be done post-MVP.
