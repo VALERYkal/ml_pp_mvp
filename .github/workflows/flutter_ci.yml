@@ -55,6 +55,18 @@ jobs:
           flutter format --set-exit-if-changed lib test
 
       # 8) Lancer TOUTES les suites de tests
-      - name: Flutter tests
-        run: flutter test -r expanded
+  
+      - name: Flutter tests (unit & widget only)
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Exclure les tests d'intégration (Supabase/plugins) en CI
+          mapfile -t TESTS < <(find test -type f -name "*_test.dart" \
+            ! -path "test/integration/*" \
+            ! -path "test/*/integration/*" \
+            | sort)
+          echo "Running ${#TESTS[@]} test files"
+          flutter test -r expanded "${TESTS[@]}"
+
+
 
