@@ -51,9 +51,9 @@ jobs:
 
       # (Optionnel) 7) Vérifier le formatage
       #   Tu peux commenter cette étape si tu ne veux pas que le build casse sur le format.
-      - name: Flutter format check
+      - name: Dart format check
         run: |
-          flutter format --set-exit-if-changed lib test
+          dart format --set-exit-if-changed lib test
 
       # 8) Lancer TOUTES les suites de tests
   
