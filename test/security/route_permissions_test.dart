@@ -7,21 +7,29 @@ enum UserRole { admin, operateur }
 
 final roleProvider = StateProvider<UserRole>((_) => UserRole.operateur);
 
-class _App extends ConsumerWidget {
+class _App extends ConsumerStatefulWidget {
   const _App({super.key});
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final role = ref.watch(roleProvider);
-    String? redirect(BuildContext _, GoRouterState s) {
-      // /admin est réservé admin
-      if (s.matchedLocation == '/admin' && role != UserRole.admin)
-        return '/forbidden';
-      return null;
-    }
 
-    final router = GoRouter(
+  @override
+  ConsumerState<_App> createState() => _AppState();
+}
+
+class _AppState extends ConsumerState<_App> {
+  late final GoRouter _router;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _router = GoRouter(
       initialLocation: '/admin',
-      redirect: redirect,
+      redirect: (_, s) {
+        final role = ref.read(roleProvider);
+        if (s.matchedLocation == '/admin' && role != UserRole.admin) {
+          return '/forbidden';
+        }
+        return null;
+      },
       routes: [
         GoRoute(
           path: '/admin',
@@ -33,7 +41,11 @@ class _App extends ConsumerWidget {
         ),
       ],
     );
-    return MaterialApp.router(routerConfig: router);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp.router(routerConfig: _router);
   }
 }
 

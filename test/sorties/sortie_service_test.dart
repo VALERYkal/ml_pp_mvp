@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ml_pp_mvp/features/sorties/data/sortie_service.dart';
 
 // Fake StocksService pour compter les appels
 class FakeStocksService {
