@@ -64,8 +64,10 @@ class StocksRepository {
 
     // Debug (retirable)
     // ignore: avoid_print
-    print('📦 KPI3 stocks: amb=$amb, 15c=$s15, lastDay=$lastDay'
-          '${depotId!=null?' depot='+depotId:''}${produitId!=null?' produit='+produitId:''}');
+    print(
+      '📦 KPI3 stocks: amb=$amb, 15c=$s15, lastDay=$lastDay'
+      '${depotId != null ? ' depot=' + depotId : ''}${produitId != null ? ' produit=' + produitId : ''}',
+    );
 
     return StocksTotals(totalAmbiant: amb, total15c: s15, lastDay: lastDay);
   }

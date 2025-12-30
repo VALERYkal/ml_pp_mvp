@@ -6,10 +6,10 @@
 import 'dart:io';
 
 /// Script pour exécuter tous les tests d'authentification
-/// 
+///
 /// Usage:
 /// dart run test/features/auth/run_auth_tests.dart
-/// 
+///
 /// Options:
 /// --unit: Exécuter seulement les tests unitaires
 /// --widget: Exécuter seulement les tests widget
@@ -21,7 +21,7 @@ import 'dart:io';
 void main(List<String> args) async {
   print('🔐 ML_PP MVP - Auth Testing Suite');
   print('================================');
-  
+
   final bool unitOnly = args.contains('--unit');
   final bool widgetOnly = args.contains('--widget');
   final bool integrationOnly = args.contains('--integration');
@@ -29,67 +29,75 @@ void main(List<String> args) async {
   final bool securityOnly = args.contains('--security');
   final bool coverage = args.contains('--coverage');
   final bool verbose = args.contains('--verbose');
-  
+
   if (args.contains('--help') || args.isEmpty) {
     _printHelp();
     return;
   }
-  
+
   final List<String> testCommands = [];
-  
+
   if (unitOnly || args.isEmpty) {
     testCommands.addAll([
       'flutter test test/features/auth/auth_service_test.dart',
       'flutter test test/features/auth/profil_service_test.dart',
     ]);
   }
-  
+
   if (widgetOnly || args.isEmpty) {
-    testCommands.add('flutter test test/features/auth/screens/login_screen_test.dart');
+    testCommands.add(
+      'flutter test test/features/auth/screens/login_screen_test.dart',
+    );
   }
-  
+
   if (integrationOnly || args.isEmpty) {
-    testCommands.add('flutter test test/features/auth/integration/auth_integration_test.dart');
+    testCommands.add(
+      'flutter test test/features/auth/integration/auth_integration_test.dart',
+    );
   }
-  
+
   if (e2eOnly || args.isEmpty) {
-    testCommands.add('flutter test integration_test/features/auth/e2e/auth_e2e_test.dart');
+    testCommands.add(
+      'flutter test integration_test/features/auth/e2e/auth_e2e_test.dart',
+    );
   }
-  
+
   if (securityOnly || args.isEmpty) {
-    testCommands.add('flutter test test/features/auth/security/auth_security_test.dart');
+    testCommands.add(
+      'flutter test test/features/auth/security/auth_security_test.dart',
+    );
   }
-  
+
   if (coverage) {
     testCommands.clear();
     testCommands.add('flutter test --coverage test/features/auth/');
   }
-  
+
   if (testCommands.isEmpty) {
     print('❌ Aucun test à exécuter');
     return;
   }
-  
+
   print('📋 Tests à exécuter:');
   for (final command in testCommands) {
     print('  • $command');
   }
   print('');
-  
+
   int successCount = 0;
   int totalCount = testCommands.length;
-  
+
   for (final command in testCommands) {
     print('🚀 Exécution: $command');
     print('─' * 50);
-    
+
     try {
       final result = await Process.run(
         'flutter',
         command.split(' ').skip(1).toList(),
         workingDirectory: Directory.current.path,
       );
-      
+
       if (result.exitCode == 0) {
         print('✅ Succès');
         successCount++;
@@ -98,30 +106,29 @@ void main(List<String> args) async {
         print('Sortie d\'erreur:');
         print(result.stderr);
       }
-      
+
       if (verbose && result.stdout.isNotEmpty) {
         print('Sortie:');
         print(result.stdout);
       }
-      
     } catch (e) {
       print('❌ Erreur d\'exécution: $e');
     }
-    
+
     print('');
   }
-  
+
   print('📊 Résumé');
   print('=========');
   print('Tests réussis: $successCount/$totalCount');
-  
+
   if (successCount == totalCount) {
     print('🎉 Tous les tests sont passés!');
   } else {
     print('⚠️  Certains tests ont échoué');
     exit(1);
   }
-  
+
   if (coverage) {
     print('');
     print('📈 Rapport de couverture généré dans coverage/lcov.info');

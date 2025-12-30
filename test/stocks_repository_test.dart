@@ -9,7 +9,7 @@ void main() {
         total15c: 950.0,
         lastDay: null,
       );
-      
+
       expect(totals.totalAmbiant, equals(1000.0));
       expect(totals.total15c, equals(950.0));
       expect(totals.lastDay, isNull);
@@ -22,7 +22,7 @@ void main() {
         total15c: 1900.0,
         lastDay: date,
       );
-      
+
       expect(totals.totalAmbiant, equals(2000.0));
       expect(totals.total15c, equals(1900.0));
       expect(totals.lastDay, equals(date));
@@ -34,7 +34,7 @@ void main() {
         total15c: 0.0,
         lastDay: null,
       );
-      
+
       expect(totals.totalAmbiant, equals(0.0));
       expect(totals.total15c, equals(0.0));
       expect(totals.lastDay, isNull);

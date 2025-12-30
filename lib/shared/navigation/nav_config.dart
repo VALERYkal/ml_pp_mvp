@@ -16,18 +16,18 @@ const kAllRoles = <UserRole>[
   UserRole.directeur,
   UserRole.gerant,
   UserRole.operateur,
-  UserRole.pca,       // <- AJOUT
-  UserRole.lecture,   // <- déjà présent mais on centralise
+  UserRole.pca, // <- AJOUT
+  UserRole.lecture, // <- déjà présent mais on centralise
 ];
 
 class NavItem {
   final String id;
   final String title;
-  final String path;           // chemin "générique"
+  final String path; // chemin "générique"
   final IconData icon;
   final List<UserRole> allowedRoles;
   final int order;
-  final bool isDashboard;      // si true, le chemin effectif dépend du rôle
+  final bool isDashboard; // si true, le chemin effectif dépend du rôle
 
   const NavItem({
     required this.id,
@@ -52,7 +52,7 @@ class NavConfig {
     NavItem(
       id: 'dashboard',
       title: 'Tableau de bord',
-      path: '/dashboard',                 // remplacé dynamiquement selon le rôle
+      path: '/dashboard', // remplacé dynamiquement selon le rôle
       icon: Icons.space_dashboard_outlined,
       isDashboard: true,
       order: 0,

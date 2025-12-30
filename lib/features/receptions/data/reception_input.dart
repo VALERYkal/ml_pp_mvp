@@ -13,20 +13,20 @@ part 'reception_input.g.dart';
 class ReceptionInput with _$ReceptionInput {
   const factory ReceptionInput({
     required String proprietaireType, // 'MONALUXE' | 'PARTENAIRE'
-    String? partenaireId,    // requis si PARTENAIRE
-    required String citerneId,        // citerne active
-    required String produitCode,      // 'ESS' | 'AGO' (reste utile pour calcul @15°C)
-    String? produitId,       // <-- NEW: override direct du produit (UUID)
+    String? partenaireId, // requis si PARTENAIRE
+    required String citerneId, // citerne active
+    required String
+    produitCode, // 'ESS' | 'AGO' (reste utile pour calcul @15°C)
+    String? produitId, // <-- NEW: override direct du produit (UUID)
     double? indexAvant,
     double? indexApres,
     double? temperatureC,
     double? densiteA15,
     DateTime? dateReception, // SQL date -> yyyy-MM-dd
-    String? coursDeRouteId,  // requis si Monaluxe lié à un cours 'arrivé'
+    String? coursDeRouteId, // requis si Monaluxe lié à un cours 'arrivé'
     String? note,
   }) = _ReceptionInput;
 
-  factory ReceptionInput.fromJson(Map<String, dynamic> json) => _$ReceptionInputFromJson(json);
+  factory ReceptionInput.fromJson(Map<String, dynamic> json) =>
+      _$ReceptionInputFromJson(json);
 }
-
-

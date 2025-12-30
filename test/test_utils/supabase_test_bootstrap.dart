@@ -41,4 +41,3 @@ Future<void> ensureSupabaseInitializedForTests() async {
     anonKey: 'test-anon-key',
   );
 }
-

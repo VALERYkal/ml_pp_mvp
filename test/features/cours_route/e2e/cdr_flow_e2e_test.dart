@@ -40,26 +40,26 @@ import 'package:mockito/mockito.dart';
 // ════════════════════════════════════════════════════════════════════════════
 // PHASE 6 - Helpers Auth réutilisables pour les tests E2E métier
 // ════════════════════════════════════════════════════════════════════════════
-// 
+//
 // Ces helpers permettent de démarrer les tests E2E dans un contexte Auth
 // cohérent (utilisateur connecté avec un rôle défini, router prêt).
-// 
+//
 // Ils peuvent être copiés/adaptés dans d'autres fichiers e2e (réceptions, stocks).
 
 /// Fake Session pour les tests E2E
 class _FakeSessionForE2E extends Session {
   _FakeSessionForE2E(User user)
-      : super(
-          accessToken: 'fake-token',
-          tokenType: 'bearer',
-          user: user,
-          expiresIn: 3600,
-          refreshToken: 'fake-refresh-token',
-        );
+    : super(
+        accessToken: 'fake-token',
+        tokenType: 'bearer',
+        user: user,
+        expiresIn: 3600,
+        refreshToken: 'fake-refresh-token',
+      );
 }
 
 /// Helper pour construire un Profil pour un rôle donné
-/// 
+///
 /// Usage:
 ///   final gerantProfil = buildProfilForRole(role: UserRole.gerant);
 ///   final directeurProfil = buildProfilForRole(role: UserRole.directeur, depotId: 'depot-2');
@@ -72,10 +72,10 @@ Profil buildProfilForRole({
   String depotId = 'depot-1',
 }) {
   // Si emailPrefix n'est pas fourni, utiliser juste le nom du rôle
-  final email = emailPrefix != null 
+  final email = emailPrefix != null
       ? '$emailPrefix.${role.name}@example.com'
       : '${role.name}@example.com';
-  
+
   return Profil(
     id: id,
     userId: userId,
@@ -88,15 +88,12 @@ Profil buildProfilForRole({
 }
 
 /// Helper pour construire un AppAuthState authentifié
-/// 
+///
 /// Usage:
 ///   final authState = buildAuthenticatedState(mockUser);
 AppAuthState buildAuthenticatedState(MockUser mockUser) {
   final fakeSession = _FakeSessionForE2E(mockUser);
-  return AppAuthState(
-    session: fakeSession,
-    authStream: const Stream.empty(),
-  );
+  return AppAuthState(session: fakeSession, authStream: const Stream.empty());
 }
 
 /// Helper utilitaire pour capitaliser la première lettre
@@ -119,11 +116,7 @@ class _FakeCurrentProfilNotifier extends CurrentProfilNotifier {
 /// Utilise le Ref passé et un Stream vide
 /// Cohérent avec _DummyRefresh dans auth_integration_test.dart
 class _DummyRefresh extends GoRouterCompositeRefresh {
-  _DummyRefresh(Ref ref)
-      : super(
-          ref: ref,
-          authStream: Stream.empty(),
-        );
+  _DummyRefresh(Ref ref) : super(ref: ref, authStream: Stream.empty());
 
   @override
   void dispose() {
@@ -297,7 +290,7 @@ class FakeCoursDeRouteServiceForE2E implements CoursDeRouteService {
 // ════════════════════════════════════════════════════════════════════════════
 
 /// Helper principal : démarre l'app dans un contexte Auth avec un rôle donné
-/// 
+///
 /// Usage dans les tests E2E :
 ///   await pumpCdrTestApp(
 ///     tester,
@@ -307,7 +300,7 @@ class FakeCoursDeRouteServiceForE2E implements CoursDeRouteService {
 ///     mockUser: mockUser,
 ///     fakeCdrService: fakeCdrService,
 ///   );
-/// 
+///
 /// Ensuite, le test peut naviguer vers les écrans métier (Cours de Route, etc.)
 /// sans se préoccuper du setup Auth.
 Future<void> pumpCdrTestApp(
@@ -341,17 +334,18 @@ Future<void> pumpCdrTestApp(
         appAuthStateProvider.overrideWith(
           (ref) => Stream.value(initialAuthState),
         ),
-        isAuthenticatedProvider.overrideWith(
-          (ref) {
-            final asyncState = ref.watch(appAuthStateProvider);
-            return asyncState.when(
-              data: (s) => s.isAuthenticated,
-              loading: () => true, // Considérer comme authentifié pendant le chargement
-              error: (_, __) => false,
-            );
-          },
+        isAuthenticatedProvider.overrideWith((ref) {
+          final asyncState = ref.watch(appAuthStateProvider);
+          return asyncState.when(
+            data: (s) => s.isAuthenticated,
+            loading: () =>
+                true, // Considérer comme authentifié pendant le chargement
+            error: (_, __) => false,
+          );
+        }),
+        currentUserProvider.overrideWith(
+          (ref) => mockAuthService.getCurrentUser(),
         ),
-        currentUserProvider.overrideWith((ref) => mockAuthService.getCurrentUser()),
         goRouterRefreshProvider.overrideWith((ref) => _DummyRefresh(ref)),
         userRoleProvider.overrideWith((ref) => role),
         // Overrides CDR
@@ -359,18 +353,10 @@ Future<void> pumpCdrTestApp(
         // Override RefData pour fournisseurs/produits/dépôts
         refDataProvider.overrideWith(
           (ref) async => RefDataCache(
-            fournisseurs: {
-              'fournisseur-1': 'Fournisseur Test',
-            },
-            produits: {
-              'produit-1': 'Essence',
-            },
-            produitCodes: {
-              'produit-1': 'ESS',
-            },
-            depots: {
-              'depot-1': 'Dépôt Test',
-            },
+            fournisseurs: {'fournisseur-1': 'Fournisseur Test'},
+            produits: {'produit-1': 'Essence'},
+            produitCodes: {'produit-1': 'ESS'},
+            depots: {'depot-1': 'Dépôt Test'},
             loadedAt: DateTime.now(),
           ),
         ),
@@ -401,11 +387,11 @@ void main() {
       mockAuthService = MockAuthService();
       mockProfilService = MockProfilService();
       mockUser = MockUser();
-      
+
       // Stub MockAuthService
       when(mockAuthService.isAuthenticated).thenReturn(true);
       when(mockAuthService.getCurrentUser()).thenReturn(mockUser);
-      
+
       // Initialiser le fake service CDR
       fakeCdrService = FakeCoursDeRouteServiceForE2E();
     });
@@ -414,100 +400,110 @@ void main() {
       fakeCdrService.clear();
     });
 
-    testWidgets(
-      'E2E UI : Un gérant crée un cours de route et le voit dans la liste',
-      (WidgetTester tester) async {
-        // Arrange : Setup mocks Auth, fake service CDR, pump app as gerant
-        await pumpCdrTestApp(
-          tester,
-          role: UserRole.gerant,
-          mockAuthService: mockAuthService,
-          mockProfilService: mockProfilService,
-          mockUser: mockUser,
-          fakeCdrService: fakeCdrService,
+    testWidgets('E2E UI : Un gérant crée un cours de route et le voit dans la liste', (
+      WidgetTester tester,
+    ) async {
+      // Arrange : Setup mocks Auth, fake service CDR, pump app as gerant
+      await pumpCdrTestApp(
+        tester,
+        role: UserRole.gerant,
+        mockAuthService: mockAuthService,
+        mockProfilService: mockProfilService,
+        mockUser: mockUser,
+        fakeCdrService: fakeCdrService,
+      );
+
+      // Attendre que l'authentification soit prête et que le router redirige
+      await tester.pumpAndSettle(const Duration(seconds: 2));
+
+      // Act 1 : Naviguer vers /cours (liste CDR)
+      // Option 1 : Via le menu "Cours de route"
+      final coursMenu = find.text('Cours de route');
+      if (coursMenu.evaluate().isNotEmpty) {
+        await tester.tap(coursMenu);
+        await tester.pumpAndSettle();
+      } else {
+        // Option 2 : Navigation directe via GoRouter
+        final dashboardShellFinder = find.byType(DashboardShell);
+        expect(
+          dashboardShellFinder,
+          findsOneWidget,
+          reason: 'DashboardShell doit être présent pour la navigation',
         );
-
-        // Attendre que l'authentification soit prête et que le router redirige
-        await tester.pumpAndSettle(const Duration(seconds: 2));
-
-        // Act 1 : Naviguer vers /cours (liste CDR)
-        // Option 1 : Via le menu "Cours de route"
-        final coursMenu = find.text('Cours de route');
-        if (coursMenu.evaluate().isNotEmpty) {
-          await tester.tap(coursMenu);
-          await tester.pumpAndSettle();
-        } else {
-          // Option 2 : Navigation directe via GoRouter
-          final dashboardShellFinder = find.byType(DashboardShell);
-          expect(dashboardShellFinder, findsOneWidget,
-              reason: 'DashboardShell doit être présent pour la navigation');
-          final context = tester.element(dashboardShellFinder);
-          GoRouter.of(context).go('/cours');
-          await tester.pumpAndSettle();
-        }
-
-        // Assert 1 : Vérifier que CoursRouteListScreen est affiché
-        expect(find.byType(CoursRouteListScreen), findsOneWidget);
-
-        // Act 2 : Cliquer sur le bouton + (FAB ou bouton "Nouveau")
-        final addButton = find.byIcon(Icons.add);
-        if (addButton.evaluate().isEmpty) {
-          // Essayer avec le texte "Nouveau" ou "Nouveau cours de route"
-          final nouveauButton = find.textContaining('Nouveau');
-          if (nouveauButton.evaluate().isNotEmpty) {
-            await tester.tap(nouveauButton.first);
-          } else {
-            fail('Aucun bouton pour créer un nouveau cours de route trouvé');
-          }
-        } else {
-          await tester.tap(addButton.first);
-        }
+        final context = tester.element(dashboardShellFinder);
+        GoRouter.of(context).go('/cours');
         await tester.pumpAndSettle();
+      }
 
-        // Assert 2 : Vérifier que CoursRouteFormScreen est affiché (route /cours/new)
-        expect(find.byType(CoursRouteFormScreen), findsOneWidget);
+      // Assert 1 : Vérifier que CoursRouteListScreen est affiché
+      expect(find.byType(CoursRouteListScreen), findsOneWidget);
 
-        // Act 3 : Remplir le formulaire
-        // Note: Le formulaire CDR peut avoir des champs complexes (autocomplete, dropdowns)
-        // Pour simplifier, on va juste vérifier que le formulaire est présent
-        // et que les champs requis peuvent être remplis
-        
-        // Attendre que le formulaire soit complètement chargé
-        await tester.pumpAndSettle(const Duration(seconds: 2));
+      // Act 2 : Cliquer sur le bouton + (FAB ou bouton "Nouveau")
+      final addButton = find.byIcon(Icons.add);
+      if (addButton.evaluate().isEmpty) {
+        // Essayer avec le texte "Nouveau" ou "Nouveau cours de route"
+        final nouveauButton = find.textContaining('Nouveau');
+        if (nouveauButton.evaluate().isNotEmpty) {
+          await tester.tap(nouveauButton.first);
+        } else {
+          fail('Aucun bouton pour créer un nouveau cours de route trouvé');
+        }
+      } else {
+        await tester.tap(addButton.first);
+      }
+      await tester.pumpAndSettle();
 
-        // Vérifier que le formulaire n'est pas en état de chargement
-        expect(find.byType(CircularProgressIndicator), findsNothing,
-            reason: 'Le formulaire ne devrait pas être en état de chargement');
+      // Assert 2 : Vérifier que CoursRouteFormScreen est affiché (route /cours/new)
+      expect(find.byType(CoursRouteFormScreen), findsOneWidget);
 
-        // Pour un test E2E complet, il faudrait :
-        // - Sélectionner un fournisseur (via autocomplete ou dropdown)
-        // - Sélectionner un produit
-        // - Sélectionner un dépôt destination
-        // - Optionnel : remplir plaque camion, transporteur, chauffeur, volume
-        // 
-        // Pour l'instant, on va juste vérifier que le formulaire est présent
-        // et que le formulaire se charge correctement
-        // Le bouton "Enregistrer" peut ne pas être visible si le formulaire est en chargement
-        // ou si les champs requis ne sont pas remplis
-        expect(find.byType(CoursRouteFormScreen), findsOneWidget,
-            reason: 'Le formulaire CoursRouteFormScreen doit être présent');
+      // Act 3 : Remplir le formulaire
+      // Note: Le formulaire CDR peut avoir des champs complexes (autocomplete, dropdowns)
+      // Pour simplifier, on va juste vérifier que le formulaire est présent
+      // et que les champs requis peuvent être remplis
 
-        // Note: Pour un test E2E complet, il faudrait remplir tous les champs
-        // et soumettre le formulaire. Pour l'instant, on se contente de vérifier
-        // que le formulaire est accessible et que la navigation fonctionne.
-        
-        // Act 4 : Retourner à la liste pour vérifier la navigation
-        final dashboardShellFinder2 = find.byType(DashboardShell);
-        expect(dashboardShellFinder2, findsOneWidget,
-            reason: 'DashboardShell doit être présent pour la navigation');
-        final context2 = tester.element(dashboardShellFinder2);
-        GoRouter.of(context2).go('/cours');
-        await tester.pumpAndSettle();
+      // Attendre que le formulaire soit complètement chargé
+      await tester.pumpAndSettle(const Duration(seconds: 2));
 
-        // Assert 3 : Vérifier la navigation retour vers /cours (liste)
-        expect(find.byType(CoursRouteListScreen), findsOneWidget);
-      },
-    );
+      // Vérifier que le formulaire n'est pas en état de chargement
+      expect(
+        find.byType(CircularProgressIndicator),
+        findsNothing,
+        reason: 'Le formulaire ne devrait pas être en état de chargement',
+      );
+
+      // Pour un test E2E complet, il faudrait :
+      // - Sélectionner un fournisseur (via autocomplete ou dropdown)
+      // - Sélectionner un produit
+      // - Sélectionner un dépôt destination
+      // - Optionnel : remplir plaque camion, transporteur, chauffeur, volume
+      //
+      // Pour l'instant, on va juste vérifier que le formulaire est présent
+      // et que le formulaire se charge correctement
+      // Le bouton "Enregistrer" peut ne pas être visible si le formulaire est en chargement
+      // ou si les champs requis ne sont pas remplis
+      expect(
+        find.byType(CoursRouteFormScreen),
+        findsOneWidget,
+        reason: 'Le formulaire CoursRouteFormScreen doit être présent',
+      );
+
+      // Note: Pour un test E2E complet, il faudrait remplir tous les champs
+      // et soumettre le formulaire. Pour l'instant, on se contente de vérifier
+      // que le formulaire est accessible et que la navigation fonctionne.
+
+      // Act 4 : Retourner à la liste pour vérifier la navigation
+      final dashboardShellFinder2 = find.byType(DashboardShell);
+      expect(
+        dashboardShellFinder2,
+        findsOneWidget,
+        reason: 'DashboardShell doit être présent pour la navigation',
+      );
+      final context2 = tester.element(dashboardShellFinder2);
+      GoRouter.of(context2).go('/cours');
+      await tester.pumpAndSettle();
+
+      // Assert 3 : Vérifier la navigation retour vers /cours (liste)
+      expect(find.byType(CoursRouteListScreen), findsOneWidget);
+    });
   });
 }
-

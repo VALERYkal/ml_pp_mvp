@@ -55,13 +55,13 @@ class _DummyRefresh extends GoRouterCompositeRefresh {
 /// Fake Session pour les tests d'intégration
 class _FakeSession extends Session {
   _FakeSession(User user)
-      : super(
-          accessToken: 'fake-token',
-          tokenType: 'bearer',
-          user: user,
-          expiresIn: 3600,
-          refreshToken: 'fake-refresh-token',
-        );
+    : super(
+        accessToken: 'fake-token',
+        tokenType: 'bearer',
+        user: user,
+        expiresIn: 3600,
+        refreshToken: 'fake-refresh-token',
+      );
 }
 
 String _routerLocation(WidgetTester tester) {
@@ -75,7 +75,7 @@ String _routerLocation(WidgetTester tester) {
 // ============================================================================
 
 /// Helper pour construire un Profil pour un rôle donné
-/// 
+///
 /// Utilise les valeurs par défaut communes à tous les tests.
 /// Permet de surcharger nomComplet et email si nécessaire.
 Profil _buildProfil({
@@ -89,7 +89,7 @@ Profil _buildProfil({
   // Générer nomComplet et email basés sur le rôle si non fournis
   final defaultNomComplet = nomComplet ?? '${_capitalizeRole(role.name)} User';
   final defaultEmail = email ?? '${role.name}@example.com';
-  
+
   return Profil(
     id: id,
     userId: userId,
@@ -102,15 +102,12 @@ Profil _buildProfil({
 }
 
 /// Helper pour construire une AppAuthState avec une session fake
-/// 
+///
 /// Usage:
 ///   final authState = _buildAuthenticatedState(mockUser);
 AppAuthState _buildAuthenticatedState(MockUser mockUser) {
   final fakeSession = _FakeSession(mockUser);
-  return AppAuthState(
-    session: fakeSession,
-    authStream: const Stream.empty(),
-  );
+  return AppAuthState(session: fakeSession, authStream: const Stream.empty());
 }
 
 /// Helper utilitaire pour capitaliser le nom d'un rôle
@@ -123,7 +120,7 @@ void main() {
   setUpAll(() async {
     // Initialiser le binding Flutter pour les tests
     TestWidgetsFlutterBinding.ensureInitialized();
-    
+
     // Initialiser Supabase pour éviter les erreurs "Supabase.instance not initialized"
     await ensureSupabaseInitializedForTests();
   });
@@ -148,12 +145,12 @@ void main() {
     });
 
     /// Helper pour mettre en place un admin authentifié sur son dashboard
-    /// 
+    ///
     /// Utilisé par :
     /// - "should redirect admin to admin dashboard"
     /// - "should allow access to admin routes for admin users"
     /// - "should redirect to login after logout" (setup initial)
-    /// 
+    ///
     /// Retourne le Profil admin créé pour permettre des modifications si nécessaire.
     Future<Profil> _pumpAdminDashboardApp(
       WidgetTester tester, {
@@ -163,10 +160,10 @@ void main() {
     }) async {
       // 1. Construire Profil admin
       final adminProfil = _buildProfil(role: UserRole.admin);
-      
+
       // 2. Construire AppAuthState initial avec session authentifiée
       final authState = _buildAuthenticatedState(mockUser);
-      
+
       // 3. Construire ProviderScope avec overrides cohérents
       await tester.pumpWidget(
         ProviderScope(
@@ -176,19 +173,15 @@ void main() {
             currentProfilProvider.overrideWith(
               () => _FakeCurrentProfilNotifier(adminProfil),
             ),
-            appAuthStateProvider.overrideWith(
-              (ref) => Stream.value(authState),
-            ),
-            isAuthenticatedProvider.overrideWith(
-              (ref) {
-                final asyncState = ref.watch(appAuthStateProvider);
-                return asyncState.when(
-                  data: (s) => s.isAuthenticated,
-                  loading: () => true,
-                  error: (_, __) => false,
-                );
-              },
-            ),
+            appAuthStateProvider.overrideWith((ref) => Stream.value(authState)),
+            isAuthenticatedProvider.overrideWith((ref) {
+              final asyncState = ref.watch(appAuthStateProvider);
+              return asyncState.when(
+                data: (s) => s.isAuthenticated,
+                loading: () => true,
+                error: (_, __) => false,
+              );
+            }),
             currentUserProvider.overrideWith(
               (ref) => mockAuthService.getCurrentUser(),
             ),
@@ -202,18 +195,18 @@ void main() {
           ),
         ),
       );
-      
+
       // 4. Attendre la stabilisation
       await tester.pumpAndSettle();
-      
+
       return adminProfil;
     }
 
     /// Helper pour créer une app de test avec authentification configurable
-    /// 
+    ///
     /// Par défaut, simule un état non authentifié (profil null = session null).
     /// Si un profil est fourni, crée une session fake pour simuler l'authentification.
-    /// 
+    ///
     /// Usage:
     ///   - Test non authentifié : createTestApp(profil: null)
     ///   - Test avec profil : createTestApp(profil: _buildProfil(role: UserRole.admin))
@@ -224,42 +217,39 @@ void main() {
         session: session,
         authStream: const Stream.empty(),
       );
-      
+
       return ProviderScope(
         overrides: [
           // Override des services mockés
           authServiceProvider.overrideWithValue(mockAuthService),
           profilServiceProvider.overrideWithValue(mockProfilService),
-          
+
           // Override du profil courant (peut être null pour simuler non authentifié)
           currentProfilProvider.overrideWith(
             () => _FakeCurrentProfilNotifier(profil),
           ),
-          
+
           // Override de l'état d'authentification (bypass Supabase)
           // Si profil != null, crée une session fake pour simuler l'authentification
-          appAuthStateProvider.overrideWith(
-            (ref) => Stream.value(authState),
-          ),
-          
+          appAuthStateProvider.overrideWith((ref) => Stream.value(authState)),
+
           // Override de isAuthenticatedProvider pour éviter l'accès à Supabase.instance
           // Lit uniquement depuis appAuthStateProvider (pas de fallback vers Supabase)
-          isAuthenticatedProvider.overrideWith(
-            (ref) {
-              final asyncState = ref.watch(appAuthStateProvider);
-              return asyncState.when(
-                data: (s) => s.isAuthenticated,
-                loading: () => false, // Par défaut non authentifié pendant le chargement
-                error: (_, __) => false, // Non authentifié en cas d'erreur
-              );
-            },
-          ),
-          
+          isAuthenticatedProvider.overrideWith((ref) {
+            final asyncState = ref.watch(appAuthStateProvider);
+            return asyncState.when(
+              data: (s) => s.isAuthenticated,
+              loading: () =>
+                  false, // Par défaut non authentifié pendant le chargement
+              error: (_, __) => false, // Non authentifié en cas d'erreur
+            );
+          }),
+
           // Override de l'utilisateur courant depuis le mock
           currentUserProvider.overrideWith(
             (ref) => mockAuthService.getCurrentUser(),
           ),
-          
+
           // Override du refresh router (dummy pour éviter les dépendances au stream réel)
           goRouterRefreshProvider.overrideWith((ref) => _DummyRefresh(ref)),
         ],
@@ -622,7 +612,7 @@ void main() {
           findsOneWidget,
           reason: 'DashboardShell doit être monté pour naviguer',
         );
-        
+
         // Obtenir le router depuis DashboardShell de manière sécurisée
         final dashboardElement = tester.firstElement(dashboardShellFinder);
         final router = GoRouter.of(dashboardElement);
@@ -662,23 +652,19 @@ void main() {
                 () => _FakeCurrentProfilNotifier(adminProfil),
               ),
               // CHANGEMENT : Override appAuthStateProvider avec un stream authentifié
-              appAuthStateProvider.overrideWith(
-                (ref) async* {
-                  yield initialAuthState;
-                  yield* authStateController.stream;
-                },
-              ),
+              appAuthStateProvider.overrideWith((ref) async* {
+                yield initialAuthState;
+                yield* authStateController.stream;
+              }),
               // Override isAuthenticatedProvider pour qu'il lise depuis appAuthStateProvider
-              isAuthenticatedProvider.overrideWith(
-                (ref) {
-                  final asyncState = ref.watch(appAuthStateProvider);
-                  return asyncState.when(
-                    data: (s) => s.isAuthenticated,
-                    loading: () => true,
-                    error: (_, __) => false,
-                  );
-                },
-              ),
+              isAuthenticatedProvider.overrideWith((ref) {
+                final asyncState = ref.watch(appAuthStateProvider);
+                return asyncState.when(
+                  data: (s) => s.isAuthenticated,
+                  loading: () => true,
+                  error: (_, __) => false,
+                );
+              }),
               currentUserProvider.overrideWith(
                 (ref) => mockAuthService.getCurrentUser(),
               ),
@@ -698,32 +684,33 @@ void main() {
         expect(find.text('Tableau de bord'), findsWidgets);
         expect(find.text(UserRole.admin.value), findsOneWidget);
         expect(_routerLocation(tester), equals(UserRole.admin.dashboardPath));
-        
+
         // Act - Chercher et cliquer sur le bouton de déconnexion
         // CHANGEMENT : Utiliser find.descendant pour chercher l'icône logout dans l'AppBar
         final logoutIconFinder = find.descendant(
           of: find.byType(AppBar),
           matching: find.byIcon(Icons.logout),
         );
-        
+
         // Vérifier que le bouton existe avant de taper (assertion défensive)
         expect(
           logoutIconFinder,
           findsOneWidget,
-          reason: 'Le bouton de déconnexion (icône logout dans AppBar) doit être présent',
+          reason:
+              'Le bouton de déconnexion (icône logout dans AppBar) doit être présent',
         );
-        
+
         // S'assurer que le widget est visible avant de taper
         await tester.ensureVisible(logoutIconFinder);
         await tester.pumpAndSettle();
-        
+
         // Taper sur le bouton de déconnexion
         await tester.tap(logoutIconFinder, warnIfMissed: false);
         await tester.pumpAndSettle();
 
         // Assert : le service est appelé
         verify(mockAuthService.signOut()).called(1);
-        
+
         // Vérifier que la redirection vers /login a eu lieu
         // CHANGEMENT : Réutiliser exactement le même pattern que "should redirect to login when not authenticated"
         expect(find.byType(LoginScreen), findsOneWidget);

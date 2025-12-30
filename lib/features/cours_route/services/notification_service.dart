@@ -16,12 +16,7 @@ enum NotificationType {
 }
 
 /// Priorité des notifications
-enum NotificationPriority {
-  low,
-  medium,
-  high,
-  critical,
-}
+enum NotificationPriority { low, medium, high, critical }
 
 /// Modèle de notification
 class CoursNotification {
@@ -167,7 +162,8 @@ class CoursNotificationService {
   }) {
     return createNotification(
       title: 'Statut mis à jour',
-      message: 'Le cours ${cours.id} est passé de ${oldStatus.label} à ${newStatus.label}',
+      message:
+          'Le cours ${cours.id} est passé de ${oldStatus.label} à ${newStatus.label}',
       type: NotificationType.statusChange,
       priority: NotificationPriority.medium,
       coursId: cours.id,
@@ -278,7 +274,9 @@ class NotificationWidget extends StatelessWidget {
         title: Text(
           notification.title,
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            fontWeight: notification.isRead ? FontWeight.normal : FontWeight.bold,
+            fontWeight: notification.isRead
+                ? FontWeight.normal
+                : FontWeight.bold,
           ),
         ),
         subtitle: Column(
@@ -301,10 +299,7 @@ class NotificationWidget extends StatelessWidget {
               Container(
                 width: 8,
                 height: 8,
-                decoration: BoxDecoration(
-                  color: color,
-                  shape: BoxShape.circle,
-                ),
+                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
               ),
             const SizedBox(width: 8),
             IconButton(

@@ -34,7 +34,9 @@ Widget _appWithRouter(Widget child, {String initialLocation = "/"}) {
 
 void main() {
   group('RoleDashboard Golden Tests', () {
-    testWidgets('should render loading state correctly', (WidgetTester tester) async {
+    testWidgets('should render loading state correctly', (
+      WidgetTester tester,
+    ) async {
       // Arrange - Utiliser un Completer pour contrôler quand le Future se résout
       final completer = Completer<KpiSnapshot>();
       final container = ProviderContainer(
@@ -56,25 +58,30 @@ void main() {
 
       // Assert - Vérifier que l'état de chargement est affiché via Key stable
       // (avant que le Future ne se résolve)
-      expect(find.byKey(const Key('role_dashboard_loading_state')), findsOneWidget);
+      expect(
+        find.byKey(const Key('role_dashboard_loading_state')),
+        findsOneWidget,
+      );
       // Vérifier que le spinner est présent
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
-      
+
       // Résoudre le Future pour nettoyer
       completer.complete(KpiSnapshot.empty);
       await tester.pumpAndSettle();
-      
+
       container.dispose();
     });
 
-    testWidgets('should render error state correctly', (WidgetTester tester) async {
+    testWidgets('should render error state correctly', (
+      WidgetTester tester,
+    ) async {
       // Arrange
       final container = ProviderContainer(
         overrides: [
-          kpiProviderProvider.overrideWith((ref) => Future<KpiSnapshot>.error(
-            'Test error',
-            StackTrace.current,
-          )),
+          kpiProviderProvider.overrideWith(
+            (ref) =>
+                Future<KpiSnapshot>.error('Test error', StackTrace.current),
+          ),
         ],
       );
 
@@ -88,17 +95,22 @@ void main() {
       await tester.pumpAndSettle();
 
       // Assert - Vérifier que l'état d'erreur est affiché via Key stable
-      expect(find.byKey(const Key('role_dashboard_error_state')), findsOneWidget);
+      expect(
+        find.byKey(const Key('role_dashboard_error_state')),
+        findsOneWidget,
+      );
       // Vérifier que l'icône d'erreur est présente
       expect(find.byIcon(Icons.error_outline), findsOneWidget);
       // Vérifier que le texte d'erreur est présent (texte stable dans le widget)
       expect(find.text('Erreur de chargement des KPIs'), findsOneWidget);
       expect(find.text('Veuillez réessayer plus tard'), findsOneWidget);
-      
+
       container.dispose();
     });
 
-    testWidgets('should render data state correctly', (WidgetTester tester) async {
+    testWidgets('should render data state correctly', (
+      WidgetTester tester,
+    ) async {
       // Arrange - Données de test
       final testData = KpiSnapshot(
         receptionsToday: const KpiNumberVolume(
@@ -128,7 +140,9 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           kpiProviderProvider.overrideWith((ref) async => testData),
-          citernesSousSeuilProvider.overrideWith((ref) async => []), // Pas d'alertes pour ce test
+          citernesSousSeuilProvider.overrideWith(
+            (ref) async => [],
+          ), // Pas d'alertes pour ce test
         ],
       );
 
@@ -142,21 +156,35 @@ void main() {
       await tester.pumpAndSettle();
 
       // Assert - Vérifier que toutes les cartes KPI sont présentes via Keys stables
-      expect(find.byKey(const Key('kpi_receptions_today_card')), findsOneWidget);
+      expect(
+        find.byKey(const Key('kpi_receptions_today_card')),
+        findsOneWidget,
+      );
       expect(find.byKey(const Key('kpi_sorties_today_card')), findsOneWidget);
       expect(find.byKey(const Key('kpi_stock_total_card')), findsOneWidget);
       expect(find.byKey(const Key('kpi_balance_today_card')), findsOneWidget);
-      expect(find.byKey(const Key('kpi_alertes_citernes_card')), findsOneWidget);
+      expect(
+        find.byKey(const Key('kpi_alertes_citernes_card')),
+        findsOneWidget,
+      );
 
       // Vérifier que les valeurs formatées sont présentes (formatage stable)
       // Réceptions: 2500.0 L = "2,500.0 L" ou "2.5 kL" selon le formatage
-      expect(find.textContaining('2'), findsWidgets); // Présent dans plusieurs valeurs
-      expect(find.textContaining('1'), findsWidgets); // Présent dans plusieurs valeurs
-      
+      expect(
+        find.textContaining('2'),
+        findsWidgets,
+      ); // Présent dans plusieurs valeurs
+      expect(
+        find.textContaining('1'),
+        findsWidgets,
+      ); // Présent dans plusieurs valeurs
+
       container.dispose();
     });
 
-    testWidgets('should handle empty citernes sous seuil', (WidgetTester tester) async {
+    testWidgets('should handle empty citernes sous seuil', (
+      WidgetTester tester,
+    ) async {
       // Arrange - Données sans alertes (trucksToFollow.zero signifie aucune alerte)
       final testData = const KpiSnapshot(
         receptionsToday: KpiNumberVolume(
@@ -186,7 +214,9 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           kpiProviderProvider.overrideWith((ref) async => testData),
-          citernesSousSeuilProvider.overrideWith((ref) async => []), // Pas d'alertes pour ce test
+          citernesSousSeuilProvider.overrideWith(
+            (ref) async => [],
+          ), // Pas d'alertes pour ce test
         ],
       );
 
@@ -201,15 +231,21 @@ void main() {
 
       // Assert - Vérifier que le dashboard s'affiche sans erreur avec des données vides
       // Les cartes KPI principales doivent être présentes
-      expect(find.byKey(const Key('kpi_receptions_today_card')), findsOneWidget);
+      expect(
+        find.byKey(const Key('kpi_receptions_today_card')),
+        findsOneWidget,
+      );
       expect(find.byKey(const Key('kpi_sorties_today_card')), findsOneWidget);
       expect(find.byKey(const Key('kpi_stock_total_card')), findsOneWidget);
       expect(find.byKey(const Key('kpi_balance_today_card')), findsOneWidget);
-      expect(find.byKey(const Key('kpi_alertes_citernes_card')), findsOneWidget);
-      
+      expect(
+        find.byKey(const Key('kpi_alertes_citernes_card')),
+        findsOneWidget,
+      );
+
       // Vérifier qu'il n'y a pas d'erreur
       expect(find.byKey(const Key('role_dashboard_error_state')), findsNothing);
-      
+
       container.dispose();
     });
 
@@ -243,7 +279,9 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           kpiProviderProvider.overrideWith((ref) async => testData),
-          citernesSousSeuilProvider.overrideWith((ref) async => []), // Pas d'alertes pour ce test
+          citernesSousSeuilProvider.overrideWith(
+            (ref) async => [],
+          ), // Pas d'alertes pour ce test
         ],
       );
 
@@ -258,17 +296,20 @@ void main() {
 
       // Assert - Vérifier que la carte Balance est présente
       expect(find.byKey(const Key('kpi_balance_today_card')), findsOneWidget);
-      
+
       // Vérifier que la balance négative est affichée
       // delta15c = 500 - 1200 = -700
       // Le formatage fmtDelta utilise un tiret cadratin "–" pour les valeurs négatives
       // On cherche la valeur absolue "700" qui doit être présente dans le texte formaté
-      expect(find.textContaining('700'), findsWidgets); // La valeur absolue doit être présente
-      
+      expect(
+        find.textContaining('700'),
+        findsWidgets,
+      ); // La valeur absolue doit être présente
+
       // Vérifier que la carte Balance utilise la couleur rouge pour les valeurs négatives
       // (tintColor devrait être Color(0xFFF44336) pour delta15c < 0)
       // On peut vérifier que la carte est présente, ce qui confirme que le rendu est correct
-      
+
       container.dispose();
     });
   });

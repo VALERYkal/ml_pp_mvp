@@ -8,42 +8,43 @@ import 'package:riverpod/riverpod.dart';
 
 void main() {
   group('sortiesKpiTodayProvider', () {
-    test('agrège correctement les données depuis sortiesRawTodayProvider', () async {
-      final rowsFixture = [
-        {
-          'volume_ambiant': 500,
-          'volume_corrige_15c': 480,
-          'proprietaire_type': 'MONALUXE',
-        },
-        {
-          'volume_ambiant': 700,
-          'volume_corrige_15c': 680,
-          'proprietaire_type': 'PARTENAIRE',
-        },
-      ];
+    test(
+      'agrège correctement les données depuis sortiesRawTodayProvider',
+      () async {
+        final rowsFixture = [
+          {
+            'volume_ambiant': 500,
+            'volume_corrige_15c': 480,
+            'proprietaire_type': 'MONALUXE',
+          },
+          {
+            'volume_ambiant': 700,
+            'volume_corrige_15c': 680,
+            'proprietaire_type': 'PARTENAIRE',
+          },
+        ];
 
-      final container = ProviderContainer(
-        overrides: [
-          sortiesRawTodayProvider.overrideWith((ref) async => rowsFixture),
-        ],
-      );
+        final container = ProviderContainer(
+          overrides: [
+            sortiesRawTodayProvider.overrideWith((ref) async => rowsFixture),
+          ],
+        );
 
-      addTearDown(container.dispose);
+        addTearDown(container.dispose);
 
-      final kpi = await container.read(sortiesKpiTodayProvider.future);
+        final kpi = await container.read(sortiesKpiTodayProvider.future);
 
-      expect(kpi.count, 2);
-      expect(kpi.volumeAmbient, 1200.0);
-      expect(kpi.volume15c, 1160.0);
-      expect(kpi.countMonaluxe, 1);
-      expect(kpi.countPartenaire, 1);
-    });
+        expect(kpi.count, 2);
+        expect(kpi.volumeAmbient, 1200.0);
+        expect(kpi.volume15c, 1160.0);
+        expect(kpi.countMonaluxe, 1);
+        expect(kpi.countPartenaire, 1);
+      },
+    );
 
     test('retourne des valeurs zéro quand il n\'y a pas de sorties', () async {
       final container = ProviderContainer(
-        overrides: [
-          sortiesRawTodayProvider.overrideWith((ref) async => []),
-        ],
+        overrides: [sortiesRawTodayProvider.overrideWith((ref) async => [])],
       );
 
       addTearDown(container.dispose);
@@ -114,4 +115,3 @@ void main() {
     });
   });
 }
-

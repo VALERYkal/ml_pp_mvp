@@ -27,20 +27,18 @@ class FakeCoursDeRouteService implements CoursDeRouteService {
   FakeCoursDeRouteService({
     Map<String, int>? countByStatutData,
     Map<String, int>? countByCategorieData,
-  })  : _countByStatutData = countByStatutData ??
-            {
-              'CHARGEMENT': 0,
-              'TRANSIT': 0,
-              'FRONTIERE': 0,
-              'ARRIVE': 0,
-              'DECHARGE': 0,
-            },
-        _countByCategorieData = countByCategorieData ??
-            {
-              'en_route': 0,
-              'en_attente': 0,
-              'termines': 0,
-            };
+  }) : _countByStatutData =
+           countByStatutData ??
+           {
+             'CHARGEMENT': 0,
+             'TRANSIT': 0,
+             'FRONTIERE': 0,
+             'ARRIVE': 0,
+             'DECHARGE': 0,
+           },
+       _countByCategorieData =
+           countByCategorieData ??
+           {'en_route': 0, 'en_attente': 0, 'termines': 0};
 
   @override
   Future<Map<String, int>> countByStatut() async {
@@ -76,8 +74,7 @@ class FakeCoursDeRouteService implements CoursDeRouteService {
     required String id,
     required StatutCours to,
     bool fromReception = false,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<List<CoursDeRoute>> getByStatut(StatutCours statut) async =>
@@ -87,8 +84,7 @@ class FakeCoursDeRouteService implements CoursDeRouteService {
   Future<bool> canTransition({
     required dynamic from,
     required dynamic to,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<bool> applyTransition({
@@ -96,8 +92,7 @@ class FakeCoursDeRouteService implements CoursDeRouteService {
     required dynamic from,
     required dynamic to,
     String? userId,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 }
 
 /// Structure de résultat KPI CDR (pour les tests de logique pure)
@@ -206,13 +201,23 @@ void main() {
         final result = calculateCdrKpi(coursDeRouteData);
 
         // Assert
-        expect(result.cdrCountChargement, equals(2),
-            reason: 'Au chargement = 2');
+        expect(
+          result.cdrCountChargement,
+          equals(2),
+          reason: 'Au chargement = 2',
+        );
         expect(result.cdrCountEnRoute, equals(0), reason: 'En route = 0');
         expect(result.cdrCountArrive, equals(0), reason: 'Arrivés = 0');
-        expect(result.cdrCountTotalActifs, equals(2), reason: 'Total actifs = 2');
-        expect(result.totalPendingVolume, equals(22000.0),
-            reason: 'Volume au chargement = 10000 + 12000');
+        expect(
+          result.cdrCountTotalActifs,
+          equals(2),
+          reason: 'Total actifs = 2',
+        );
+        expect(
+          result.totalPendingVolume,
+          equals(22000.0),
+          reason: 'Volume au chargement = 10000 + 12000',
+        );
       });
     });
 
@@ -229,12 +234,18 @@ void main() {
 
         // Assert
         expect(result.cdrCountChargement, equals(0));
-        expect(result.cdrCountEnRoute, equals(2),
-            reason: 'En route = TRANSIT + FRONTIERE');
+        expect(
+          result.cdrCountEnRoute,
+          equals(2),
+          reason: 'En route = TRANSIT + FRONTIERE',
+        );
         expect(result.cdrCountArrive, equals(0));
         expect(result.cdrCountTotalActifs, equals(2));
-        expect(result.totalEnRouteVolume, equals(33000.0),
-            reason: 'Volume en route = 15000 + 18000');
+        expect(
+          result.totalEnRouteVolume,
+          equals(33000.0),
+          reason: 'Volume en route = 15000 + 18000',
+        );
       });
     });
 
@@ -254,48 +265,70 @@ void main() {
         expect(result.cdrCountChargement, equals(0));
         expect(result.cdrCountEnRoute, equals(0));
         expect(result.cdrCountArrive, equals(3), reason: 'Arrivés = 3');
-        expect(result.cdrCountTotalActifs, equals(3), reason: 'Total actifs = 3');
-        expect(result.totalArriveVolume, equals(75000.0),
-            reason: 'Volume arrivés = 20000 + 25000 + 30000');
+        expect(
+          result.cdrCountTotalActifs,
+          equals(3),
+          reason: 'Total actifs = 3',
+        );
+        expect(
+          result.totalArriveVolume,
+          equals(75000.0),
+          reason: 'Volume arrivés = 20000 + 25000 + 30000',
+        );
       });
     });
 
     group('Test 5: Combinaison complète avec DECHARGE exclu', () {
-      test('1 CHARGEMENT + 2 EN ROUTE + 1 ARRIVE + 1 DECHARGE → totalActifs = 4',
-          () {
-        // Arrange: Scénario de référence
-        final coursDeRouteData = [
-          {'id': '1', 'statut': 'CHARGEMENT', 'volume': 10000}, // Compté
-          {'id': '2', 'statut': 'TRANSIT', 'volume': 15000}, // Compté
-          {'id': '3', 'statut': 'FRONTIERE', 'volume': 18000}, // Compté
-          {'id': '4', 'statut': 'ARRIVE', 'volume': 20000}, // Compté
-          {'id': '5', 'statut': 'DECHARGE', 'volume': 25000}, // EXCLU
-        ];
+      test(
+        '1 CHARGEMENT + 2 EN ROUTE + 1 ARRIVE + 1 DECHARGE → totalActifs = 4',
+        () {
+          // Arrange: Scénario de référence
+          final coursDeRouteData = [
+            {'id': '1', 'statut': 'CHARGEMENT', 'volume': 10000}, // Compté
+            {'id': '2', 'statut': 'TRANSIT', 'volume': 15000}, // Compté
+            {'id': '3', 'statut': 'FRONTIERE', 'volume': 18000}, // Compté
+            {'id': '4', 'statut': 'ARRIVE', 'volume': 20000}, // Compté
+            {'id': '5', 'statut': 'DECHARGE', 'volume': 25000}, // EXCLU
+          ];
 
-        // Act
-        final result = calculateCdrKpi(coursDeRouteData);
+          // Act
+          final result = calculateCdrKpi(coursDeRouteData);
 
-        // Assert
-        expect(result.cdrCountChargement, equals(1),
-            reason: 'Au chargement = 1');
-        expect(result.cdrCountEnRoute, equals(2),
-            reason: 'En route = 2 (TRANSIT + FRONTIERE)');
-        expect(result.cdrCountArrive, equals(1), reason: 'Arrivés = 1');
-        expect(result.cdrCountTotalActifs, equals(4),
-            reason: 'Total actifs = 4 (DECHARGE exclu)');
+          // Assert
+          expect(
+            result.cdrCountChargement,
+            equals(1),
+            reason: 'Au chargement = 1',
+          );
+          expect(
+            result.cdrCountEnRoute,
+            equals(2),
+            reason: 'En route = 2 (TRANSIT + FRONTIERE)',
+          );
+          expect(result.cdrCountArrive, equals(1), reason: 'Arrivés = 1');
+          expect(
+            result.cdrCountTotalActifs,
+            equals(4),
+            reason: 'Total actifs = 4 (DECHARGE exclu)',
+          );
 
-        // Volumes
-        expect(result.totalPendingVolume, equals(10000.0));
-        expect(result.totalEnRouteVolume, equals(33000.0));
-        expect(result.totalArriveVolume, equals(20000.0));
+          // Volumes
+          expect(result.totalPendingVolume, equals(10000.0));
+          expect(result.totalEnRouteVolume, equals(33000.0));
+          expect(result.totalArriveVolume, equals(20000.0));
 
-        // DECHARGE ne doit pas apparaître dans les totaux
-        final totalVolume = result.totalPendingVolume +
-            result.totalEnRouteVolume +
-            result.totalArriveVolume;
-        expect(totalVolume, equals(63000.0),
-            reason: 'Volume DECHARGE (25000) non inclus');
-      });
+          // DECHARGE ne doit pas apparaître dans les totaux
+          final totalVolume =
+              result.totalPendingVolume +
+              result.totalEnRouteVolume +
+              result.totalArriveVolume;
+          expect(
+            totalVolume,
+            equals(63000.0),
+            reason: 'Volume DECHARGE (25000) non inclus',
+          );
+        },
+      );
 
       test('DECHARGE uniquement → tous les compteurs = 0', () {
         // Arrange
@@ -312,8 +345,11 @@ void main() {
         expect(result.cdrCountChargement, equals(0));
         expect(result.cdrCountEnRoute, equals(0));
         expect(result.cdrCountArrive, equals(0));
-        expect(result.cdrCountTotalActifs, equals(0),
-            reason: 'Tous DECHARGE = 0 actifs');
+        expect(
+          result.cdrCountTotalActifs,
+          equals(0),
+          reason: 'Tous DECHARGE = 0 actifs',
+        );
         expect(result.totalPendingVolume, equals(0.0));
         expect(result.totalEnRouteVolume, equals(0.0));
         expect(result.totalArriveVolume, equals(0.0));
@@ -333,12 +369,21 @@ void main() {
         final result = calculateCdrKpi(coursDeRouteData);
 
         // Assert
-        expect(result.totalPendingVolume, equals(22000.0),
-            reason: 'Volume CHARGEMENT = 10000 + 12000');
-        expect(result.totalEnRouteVolume, equals(15000.0),
-            reason: 'Volume EN ROUTE = 15000');
-        expect(result.totalArriveVolume, equals(0.0),
-            reason: 'Volume ARRIVE = 0');
+        expect(
+          result.totalPendingVolume,
+          equals(22000.0),
+          reason: 'Volume CHARGEMENT = 10000 + 12000',
+        );
+        expect(
+          result.totalEnRouteVolume,
+          equals(15000.0),
+          reason: 'Volume EN ROUTE = 15000',
+        );
+        expect(
+          result.totalArriveVolume,
+          equals(0.0),
+          reason: 'Volume ARRIVE = 0',
+        );
       });
 
       test('Volume null traité comme 0', () {
@@ -354,8 +399,11 @@ void main() {
         // Assert
         expect(result.cdrCountChargement, equals(1));
         expect(result.cdrCountEnRoute, equals(1));
-        expect(result.totalPendingVolume, equals(0.0),
-            reason: 'Volume null = 0');
+        expect(
+          result.totalPendingVolume,
+          equals(0.0),
+          reason: 'Volume null = 0',
+        );
         expect(result.totalEnRouteVolume, equals(15000.0));
       });
     });
@@ -374,8 +422,11 @@ void main() {
         final result = calculateCdrKpi(coursDeRouteData);
 
         // Assert
-        expect(result.cdrCountTotalActifs, equals(3),
-            reason: 'Statuts convertis en majuscules');
+        expect(
+          result.cdrCountTotalActifs,
+          equals(3),
+          reason: 'Statuts convertis en majuscules',
+        );
         expect(result.cdrCountChargement, equals(1));
         expect(result.cdrCountEnRoute, equals(1));
         expect(result.cdrCountArrive, equals(1));
@@ -392,8 +443,11 @@ void main() {
         final result = calculateCdrKpi(coursDeRouteData);
 
         // Assert
-        expect(result.cdrCountTotalActifs, equals(2),
-            reason: 'Les espaces sont trimés');
+        expect(
+          result.cdrCountTotalActifs,
+          equals(2),
+          reason: 'Les espaces sont trimés',
+        );
         expect(result.cdrCountEnRoute, equals(1));
         expect(result.cdrCountArrive, equals(1));
       });
@@ -409,8 +463,11 @@ void main() {
         final result = calculateCdrKpi(coursDeRouteData);
 
         // Assert
-        expect(result.cdrCountTotalActifs, equals(1),
-            reason: 'Statut null ignoré');
+        expect(
+          result.cdrCountTotalActifs,
+          equals(1),
+          reason: 'Statut null ignoré',
+        );
         expect(result.cdrCountEnRoute, equals(1));
       });
 
@@ -425,8 +482,11 @@ void main() {
         final result = calculateCdrKpi(coursDeRouteData);
 
         // Assert
-        expect(result.cdrCountTotalActifs, equals(1),
-            reason: 'Statut inconnu ignoré');
+        expect(
+          result.cdrCountTotalActifs,
+          equals(1),
+          reason: 'Statut inconnu ignoré',
+        );
       });
     });
   });
@@ -442,9 +502,7 @@ void main() {
     setUp(() {
       fakeService = FakeCoursDeRouteService();
       container = ProviderContainer(
-        overrides: [
-          coursDeRouteServiceProvider.overrideWithValue(fakeService),
-        ],
+        overrides: [coursDeRouteServiceProvider.overrideWithValue(fakeService)],
       );
     });
 
@@ -466,14 +524,13 @@ void main() {
         );
 
         final testContainer = ProviderContainer(
-          overrides: [
-            coursDeRouteServiceProvider.overrideWithValue(service),
-          ],
+          overrides: [coursDeRouteServiceProvider.overrideWithValue(service)],
         );
 
         // Act
-        final result =
-            await testContainer.read(cdrKpiCountsByStatutProvider.future);
+        final result = await testContainer.read(
+          cdrKpiCountsByStatutProvider.future,
+        );
 
         // Assert
         expect(result['CHARGEMENT'], equals(2));
@@ -504,8 +561,9 @@ void main() {
         );
 
         // Act
-        final result =
-            await testContainer.read(cdrKpiCountsByStatutProvider.future);
+        final result = await testContainer.read(
+          cdrKpiCountsByStatutProvider.future,
+        );
 
         // Assert
         expect(result['CHARGEMENT'], equals(0));
@@ -530,14 +588,13 @@ void main() {
         );
 
         final testContainer = ProviderContainer(
-          overrides: [
-            coursDeRouteServiceProvider.overrideWithValue(service),
-          ],
+          overrides: [coursDeRouteServiceProvider.overrideWithValue(service)],
         );
 
         // Act
-        final result =
-            await testContainer.read(cdrKpiCountsByCategorieProvider.future);
+        final result = await testContainer.read(
+          cdrKpiCountsByCategorieProvider.future,
+        );
 
         // Assert
         expect(result['en_route'], equals(4));
@@ -559,31 +616,28 @@ void main() {
             'ARRIVE': 1,
             'DECHARGE': 3,
           },
-          countByCategorieData: {
-            'en_route': 4,
-            'en_attente': 1,
-            'termines': 3,
-          },
+          countByCategorieData: {'en_route': 4, 'en_attente': 1, 'termines': 3},
         );
 
         final testContainer = ProviderContainer(
-          overrides: [
-            coursDeRouteServiceProvider.overrideWithValue(service),
-          ],
+          overrides: [coursDeRouteServiceProvider.overrideWithValue(service)],
         );
 
         // Act
-        final byStatut =
-            await testContainer.read(cdrKpiCountsByStatutProvider.future);
-        final byCategorie =
-            await testContainer.read(cdrKpiCountsByCategorieProvider.future);
+        final byStatut = await testContainer.read(
+          cdrKpiCountsByStatutProvider.future,
+        );
+        final byCategorie = await testContainer.read(
+          cdrKpiCountsByCategorieProvider.future,
+        );
 
         // Assert
         expect(byStatut, isNotEmpty);
         expect(byCategorie, isNotEmpty);
 
         // Vérifier la cohérence
-        final totalActifsByStatut = (byStatut['CHARGEMENT'] ?? 0) +
+        final totalActifsByStatut =
+            (byStatut['CHARGEMENT'] ?? 0) +
             (byStatut['TRANSIT'] ?? 0) +
             (byStatut['FRONTIERE'] ?? 0) +
             (byStatut['ARRIVE'] ?? 0);
@@ -599,13 +653,15 @@ void main() {
 
       test('invalidation du provider force un nouveau fetch', () async {
         // Act
-        final result1 =
-            await container.read(cdrKpiCountsByStatutProvider.future);
+        final result1 = await container.read(
+          cdrKpiCountsByStatutProvider.future,
+        );
 
         container.invalidate(cdrKpiCountsByStatutProvider);
 
-        final result2 =
-            await container.read(cdrKpiCountsByStatutProvider.future);
+        final result2 = await container.read(
+          cdrKpiCountsByStatutProvider.future,
+        );
 
         // Assert: Les résultats doivent être identiques (même fake service)
         expect(result1, equals(result2));
@@ -691,10 +747,14 @@ void main() {
       );
 
       // Vérifier la cohérence
-      expect(kpi.totalTrucks,
-          equals(kpi.trucksLoading + kpi.trucksOnRoute + kpi.trucksArrived));
-      expect(kpi.totalPlannedVolume,
-          equals(kpi.volumeLoading + kpi.volumeOnRoute + kpi.volumeArrived));
+      expect(
+        kpi.totalTrucks,
+        equals(kpi.trucksLoading + kpi.trucksOnRoute + kpi.trucksArrived),
+      );
+      expect(
+        kpi.totalPlannedVolume,
+        equals(kpi.volumeLoading + kpi.volumeOnRoute + kpi.volumeArrived),
+      );
     });
   });
 }

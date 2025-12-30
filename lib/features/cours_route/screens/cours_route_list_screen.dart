@@ -28,9 +28,13 @@ import 'package:ml_pp_mvp/features/cours_route/widgets/statistics_widgets.dart';
 import 'package:ml_pp_mvp/features/cours_route/widgets/notifications_panel.dart';
 
 /// Fonction utilitaire pour afficher le libellé du produit
-/// 
+///
 /// Priorité : produitCode > produitNom > référentiels > fallback
-String produitLabel(CoursDeRoute c, Map<String, String> produits, Map<String, String> produitCodes) {
+String produitLabel(
+  CoursDeRoute c,
+  Map<String, String> produits,
+  Map<String, String> produitCodes,
+) {
   final code = (c.produitCode ?? '').trim();
   final nom = (c.produitNom ?? '').trim();
   if (code.isNotEmpty) return code;
@@ -46,14 +50,14 @@ String produitLabel(CoursDeRoute c, Map<String, String> produits, Map<String, St
 }
 
 /// Écran de liste des cours de route (v2.2)
-/// 
+///
 /// Affiche la liste de tous les cours de route avec :
 /// - Gestion des états asynchrones (loading, error, empty)
 /// - Filtrage réactif par statut, produit et recherche
 /// - Affichage responsive (DataTable desktop / Cards mobile)
 /// - Actions selon les rôles (voir, avancer statut)
 /// - Navigation vers création et détail
-/// 
+///
 /// Architecture :
 /// - Utilise AsyncValue.when() pour gérer les états
 /// - Providers dérivés pour le filtrage réactif
@@ -87,7 +91,7 @@ class CoursRouteListScreen extends ConsumerWidget {
     // Récupération des données asynchrones
     final coursAsync = ref.watch(coursDeRouteListProvider);
     final refDataAsync = ref.watch(refDataProvider);
-    
+
     // Activer la mise à jour du cache
     ref.watch(coursCacheUpdaterProvider);
 
@@ -132,31 +136,31 @@ class CoursRouteListScreen extends ConsumerWidget {
             ),
           ],
         ),
-      body: coursAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => _ErrorState('Erreur chargement: $e'),
-        data: (cours) {
-          if (cours.isEmpty) {
-            return _EmptyState(onCreate: () => context.go('/cours/new'));
-          }
-          
-          return refDataAsync.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => _ErrorState('Erreur référentiels: $e'),
-            data: (refData) => _ListContent(
-              fournisseurs: refData.fournisseurs,
-              produits: refData.produits,
-              produitCodes: refData.produitCodes,
-              depots: refData.depots,
-            ),
-          );
-        },
+        body: coursAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => _ErrorState('Erreur chargement: $e'),
+          data: (cours) {
+            if (cours.isEmpty) {
+              return _EmptyState(onCreate: () => context.go('/cours/new'));
+            }
+
+            return refDataAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, _) => _ErrorState('Erreur référentiels: $e'),
+              data: (refData) => _ListContent(
+                fournisseurs: refData.fournisseurs,
+                produits: refData.produits,
+                produitCodes: refData.produitCodes,
+                depots: refData.depots,
+              ),
+            );
+          },
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () => context.go('/cours/new'),
+          child: const Icon(Icons.add),
+        ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => context.go('/cours/new'),
-        child: const Icon(Icons.add),
-      ),
-    ),
     );
   }
 }
@@ -189,15 +193,13 @@ class _ListContent extends ConsumerWidget {
       children: [
         // Actions rapides (Nouveau / Rafraîchir)
         _ActionsBar(),
-        _FiltersBar(
-          fournisseurs: fournisseurs,
-        ),
+        _FiltersBar(fournisseurs: fournisseurs),
         // Indicateur de tri mobile
         if (!isWide) _SortIndicator(),
-        
+
         // Indicateur de performance adaptatif
         if (isWide) const PerformanceIndicator(),
-        
+
         const Divider(height: 1),
         Expanded(
           child: RefreshIndicator(
@@ -222,11 +224,12 @@ class _ListContent extends ConsumerWidget {
                   ),
           ),
         ),
-        
+
         // Contrôles de pagination adaptatifs
         if (isVeryWide) const PaginationControls(),
         if (isWide && !isVeryWide) const CompactPaginationControls(),
-        if (!isWide) const SizedBox.shrink(), // Pas de pagination sur mobile avec scroll infini
+        if (!isWide)
+          const SizedBox.shrink(), // Pas de pagination sur mobile avec scroll infini
       ],
     );
   }
@@ -234,9 +237,7 @@ class _ListContent extends ConsumerWidget {
 
 /// Barre de filtres simplifiée
 class _FiltersBar extends ConsumerWidget {
-  const _FiltersBar({
-    required this.fournisseurs,
-  });
+  const _FiltersBar({required this.fournisseurs});
 
   final Map<String, String> fournisseurs;
 
@@ -244,7 +245,7 @@ class _FiltersBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final filters = ref.watch(coursFiltersProvider);
     final screenWidth = MediaQuery.of(context).size.width;
-    
+
     void setFilters(CoursFilters f) {
       ref.read(coursFiltersProvider.notifier).state = f;
     }
@@ -264,45 +265,48 @@ class _FiltersBar extends ConsumerWidget {
               DropdownButton<String?>(
                 hint: const Text('Fournisseur'),
                 value: filters.fournisseurId,
-                items: <DropdownMenuItem<String?>>[
-                  const DropdownMenuItem<String?>(
-                    value: null,
-                    child: Text('Tous les fournisseurs'),
-                  ),
-                ] +
+                items:
+                    <DropdownMenuItem<String?>>[
+                      const DropdownMenuItem<String?>(
+                        value: null,
+                        child: Text('Tous les fournisseurs'),
+                      ),
+                    ] +
                     fournisseurs.entries
-                        .map((e) => DropdownMenuItem<String?>(
-                              value: e.key,
-                              child: Text(e.value),
-                            ))
+                        .map(
+                          (e) => DropdownMenuItem<String?>(
+                            value: e.key,
+                            child: Text(e.value),
+                          ),
+                        )
                         .toList(),
-                onChanged: (id) => setFilters(filters.copyWith(fournisseurId: id)),
+                onChanged: (id) =>
+                    setFilters(filters.copyWith(fournisseurId: id)),
               ),
-              
+
               // Affichage du filtre volume actuel
               Chip(
                 label: Text(
-                  'Volume: ${filters.volumeMin.toInt()}L - ${filters.volumeMax.toInt()}L'
+                  'Volume: ${filters.volumeMin.toInt()}L - ${filters.volumeMax.toInt()}L',
                 ),
                 onDeleted: () => setFilters(const CoursFilters()),
               ),
-              
+
               // Bouton pour ouvrir le range slider volume
               OutlinedButton.icon(
-                onPressed: () => _showVolumeRangeDialog(context, filters, setFilters),
+                onPressed: () =>
+                    _showVolumeRangeDialog(context, filters, setFilters),
                 icon: const Icon(Icons.tune),
                 label: const Text('Modifier volume'),
               ),
-              
+
               // Bouton reset filtres
               if (_hasActiveFilters(filters))
                 OutlinedButton.icon(
                   onPressed: () => setFilters(const CoursFilters()),
                   icon: const Icon(Icons.clear),
                   label: const Text('Effacer'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.red,
-                  ),
+                  style: OutlinedButton.styleFrom(foregroundColor: Colors.red),
                 ),
             ],
           ),
@@ -310,7 +314,6 @@ class _FiltersBar extends ConsumerWidget {
       ),
     );
   }
-
 
   /// Vérifie si des filtres sont actifs (différents des valeurs par défaut)
   bool _hasActiveFilters(CoursFilters filters) {
@@ -366,17 +369,14 @@ class _FiltersBar extends ConsumerWidget {
               child: const Text('Annuler'),
             ),
             TextButton(
-              onPressed: () => Navigator.of(context).pop({
-                'min': 0.0,
-                'max': 100000.0,
-              }),
+              onPressed: () =>
+                  Navigator.of(context).pop({'min': 0.0, 'max': 100000.0}),
               child: const Text('Effacer'),
             ),
             FilledButton(
-              onPressed: () => Navigator.of(context).pop({
-                'min': volumeMin,
-                'max': volumeMax,
-              }),
+              onPressed: () => Navigator.of(
+                context,
+              ).pop({'min': volumeMin, 'max': volumeMax}),
               child: const Text('Appliquer'),
             ),
           ],
@@ -387,14 +387,9 @@ class _FiltersBar extends ConsumerWidget {
     if (result != null) {
       final min = result['min'] == 0 ? null : result['min'];
       final max = result['max'] == 50000 ? null : result['max'];
-      setFilters(filters.copyWith(
-        volumeMin: min,
-        volumeMax: max,
-      ));
+      setFilters(filters.copyWith(volumeMin: min, volumeMax: max));
     }
   }
-
-
 }
 
 /// Vue mobile avec scroll infini
@@ -420,12 +415,17 @@ class _InfiniteScrollView extends ConsumerWidget {
       depots: depots,
       onCoursTap: (cours) => context.go('/cours/${cours.id}'),
       onAdvanceStatus: (cours) => _advanceStatus(context, ref, cours),
-      onCreateReception: (cours) => context.push('/receptions/new?coursId=${cours.id}'),
+      onCreateReception: (cours) =>
+          context.push('/receptions/new?coursId=${cours.id}'),
     );
   }
 
   /// Fonction helper pour avancer le statut d'un cours
-  Future<void> _advanceStatus(BuildContext context, WidgetRef ref, CoursDeRoute cours) async {
+  Future<void> _advanceStatus(
+    BuildContext context,
+    WidgetRef ref,
+    CoursDeRoute cours,
+  ) async {
     final nextEnum = StatutCoursDb.next(cours.statut);
     if (nextEnum == null) return;
 
@@ -440,7 +440,11 @@ class _InfiniteScrollView extends ConsumerWidget {
           .read(coursDeRouteServiceProvider)
           .updateStatut(id: cours.id, to: nextEnum);
       if (context.mounted) {
-        showAppToast(context, 'Statut mis à jour → ${nextEnum.label}', type: ToastType.success);
+        showAppToast(
+          context,
+          'Statut mis à jour → ${nextEnum.label}',
+          type: ToastType.success,
+        );
         // Rafraîchir les listes
         ref.invalidate(coursDeRouteListProvider);
         ref.invalidate(coursDeRouteActifsProvider);
@@ -473,7 +477,7 @@ class _DataTableView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Utiliser la liste paginée au lieu de la liste complète
     final paginatedList = ref.watch(paginatedCoursProvider);
-    
+
     // Helper pour afficher les plaques
     String plaquesLabel(String? plaqueCamion, String? plaqueRemorque) {
       final c = (plaqueCamion ?? '').trim();
@@ -482,7 +486,7 @@ class _DataTableView extends ConsumerWidget {
       final right = r.isEmpty ? '—' : r;
       return '$left / $right';
     }
-    
+
     final width = MediaQuery.of(context).size.width;
 
     return LayoutBuilder(
@@ -490,7 +494,7 @@ class _DataTableView extends ConsumerWidget {
         final availableWidth = constraints.maxWidth;
         final isWideScreen = availableWidth >= 1200;
         final isMediumScreen = availableWidth >= 800;
-        
+
         return Column(
           children: [
             Expanded(
@@ -506,7 +510,10 @@ class _DataTableView extends ConsumerWidget {
                     child: Theme(
                       data: Theme.of(context).copyWith(
                         dataTableTheme: DataTableThemeData(
-                          headingTextStyle: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          headingTextStyle: Theme.of(context)
+                              .textTheme
+                              .labelSmall
+                              ?.copyWith(
                                 letterSpacing: .5,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -520,52 +527,77 @@ class _DataTableView extends ConsumerWidget {
                         horizontalMargin: 12,
                         columns: _buildSortableColumns(ref, context),
                         rows: paginatedList.asMap().entries.map((entry) {
-              final index = entry.key;
-              final c = entry.value;
-              final pLabel = produitLabel(c, produits, produitCodes);
-              return DataRow(
-                color: MaterialStateProperty.resolveWith((states) {
-                  if (states.contains(MaterialState.hovered)) {
-                    return Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.18);
-                  }
-                  final isOdd = index.isOdd;
-                  return isOdd
-                      ? Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.06)
-                      : null;
-                }),
-                cells: [
-                  DataCell(Text(nameOf(fournisseurs, c.fournisseurId))),
-                  DataCell(
-                    (pLabel == '—')
-                        ? const Text('—')
-                        : Chip(label: Text(pLabel), visualDensity: VisualDensity.compact),
-                  ),
-                  DataCell(Text(plaquesLabel(c.plaqueCamion, c.plaqueRemorque))),
-                  DataCell(Text(c.chauffeur ?? '—')),
-                  DataCell(Text(c.transporteur ?? '—')),
-                  DataCell(Text(fmtVolume(c.volume))),
-                  DataCell(Text(nameOf(depots, c.depotDestinationId))),
-                  DataCell(Text(fmtDate(c.dateChargement))),
-                  DataCell(_statutBadge(c.statut)),
-                  DataCell(
-                    Row(
-                      children: [
-                        IconButton.filledTonal(
-                          tooltip: 'Voir',
-                          onPressed: () => context.go('/cours/${c.id}'),
-                          icon: const Icon(Icons.visibility_outlined, size: 18),
-                          style: IconButton.styleFrom(
-                            visualDensity: VisualDensity.compact,
-                            padding: const EdgeInsets.all(8),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        _AdvanceButton(c: c),
-                      ],
-                    ),
-                  ),
-                ],
-              );
+                          final index = entry.key;
+                          final c = entry.value;
+                          final pLabel = produitLabel(
+                            c,
+                            produits,
+                            produitCodes,
+                          );
+                          return DataRow(
+                            color: MaterialStateProperty.resolveWith((states) {
+                              if (states.contains(MaterialState.hovered)) {
+                                return Theme.of(
+                                  context,
+                                ).colorScheme.surfaceVariant.withOpacity(0.18);
+                              }
+                              final isOdd = index.isOdd;
+                              return isOdd
+                                  ? Theme.of(context).colorScheme.surfaceVariant
+                                        .withOpacity(0.06)
+                                  : null;
+                            }),
+                            cells: [
+                              DataCell(
+                                Text(nameOf(fournisseurs, c.fournisseurId)),
+                              ),
+                              DataCell(
+                                (pLabel == '—')
+                                    ? const Text('—')
+                                    : Chip(
+                                        label: Text(pLabel),
+                                        visualDensity: VisualDensity.compact,
+                                      ),
+                              ),
+                              DataCell(
+                                Text(
+                                  plaquesLabel(
+                                    c.plaqueCamion,
+                                    c.plaqueRemorque,
+                                  ),
+                                ),
+                              ),
+                              DataCell(Text(c.chauffeur ?? '—')),
+                              DataCell(Text(c.transporteur ?? '—')),
+                              DataCell(Text(fmtVolume(c.volume))),
+                              DataCell(
+                                Text(nameOf(depots, c.depotDestinationId)),
+                              ),
+                              DataCell(Text(fmtDate(c.dateChargement))),
+                              DataCell(_statutBadge(c.statut)),
+                              DataCell(
+                                Row(
+                                  children: [
+                                    IconButton.filledTonal(
+                                      tooltip: 'Voir',
+                                      onPressed: () =>
+                                          context.go('/cours/${c.id}'),
+                                      icon: const Icon(
+                                        Icons.visibility_outlined,
+                                        size: 18,
+                                      ),
+                                      style: IconButton.styleFrom(
+                                        visualDensity: VisualDensity.compact,
+                                        padding: const EdgeInsets.all(8),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    _AdvanceButton(c: c),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          );
                         }).toList(),
                       ),
                     ),
@@ -592,7 +624,7 @@ class _DataTableView extends ConsumerWidget {
   /// Construit les colonnes triables pour la DataTable
   List<DataColumn> _buildSortableColumns(WidgetRef ref, BuildContext context) {
     final sortConfig = ref.watch(coursSortProvider);
-    
+
     return [
       _buildSortableColumn(
         label: 'Fournisseur',
@@ -678,8 +710,8 @@ class _DataTableView extends ConsumerWidget {
       numeric: numeric,
       label: InkWell(
         onTap: () {
-          final newDirection = isActive && isAscending 
-              ? SortDirection.descending 
+          final newDirection = isActive && isAscending
+              ? SortDirection.descending
               : SortDirection.ascending;
           ref.read(coursSortProvider.notifier).state = CoursSortConfig(
             column: column,
@@ -729,7 +761,7 @@ class _CardsView extends ConsumerWidget {
       final right = r.isEmpty ? '—' : r;
       return '$left / $right';
     }
-    
+
     return ListView.separated(
       itemCount: list.length,
       separatorBuilder: (_, __) => const SizedBox(height: 8),
@@ -741,7 +773,8 @@ class _CardsView extends ConsumerWidget {
           context,
           onView: () => context.go('/cours/${c.id}'),
           onAdvanceStatus: () => _advanceStatus(context, ref, c),
-          onCreateReception: () => context.push('/receptions/new?coursId=${c.id}'),
+          onCreateReception: () =>
+              context.push('/receptions/new?coursId=${c.id}'),
         );
 
         return Card(
@@ -755,12 +788,8 @@ class _CardsView extends ConsumerWidget {
                 Text(
                   '${plaquesLabel(c.plaqueCamion, c.plaqueRemorque)} • ${c.chauffeur ?? '—'}',
                 ),
-                Text(
-                  '${c.transporteur ?? '—'} • ${fmtDate(c.dateChargement)}',
-                ),
-                Text(
-                  '${fmtVolume(c.volume)} • ${c.depotDestinationId}',
-                ),
+                Text('${c.transporteur ?? '—'} • ${fmtDate(c.dateChargement)}'),
+                Text('${fmtVolume(c.volume)} • ${c.depotDestinationId}'),
                 const SizedBox(height: 8),
                 Row(
                   children: [
@@ -783,7 +812,11 @@ class _CardsView extends ConsumerWidget {
   }
 
   /// Fonction helper pour avancer le statut d'un cours
-  Future<void> _advanceStatus(BuildContext context, WidgetRef ref, CoursDeRoute cours) async {
+  Future<void> _advanceStatus(
+    BuildContext context,
+    WidgetRef ref,
+    CoursDeRoute cours,
+  ) async {
     final nextEnum = StatutCoursDb.next(cours.statut);
     if (nextEnum == null) return;
 
@@ -798,7 +831,11 @@ class _CardsView extends ConsumerWidget {
           .read(coursDeRouteServiceProvider)
           .updateStatut(id: cours.id, to: nextEnum);
       if (context.mounted) {
-        showAppToast(context, 'Statut mis à jour → ${nextEnum.label}', type: ToastType.success);
+        showAppToast(
+          context,
+          'Statut mis à jour → ${nextEnum.label}',
+          type: ToastType.success,
+        );
         // Rafraîchir les listes
         ref.invalidate(coursDeRouteListProvider);
         ref.invalidate(coursDeRouteActifsProvider);
@@ -827,8 +864,12 @@ class _AdvanceButtonState extends ConsumerState<_AdvanceButton> {
   @override
   Widget build(BuildContext context) {
     final role = ref.watch(userRoleProvider);
-    final canAdvance = ['operateur', 'gerant', 'directeur', 'admin']
-        .contains((role ?? UserRole.lecture).value);
+    final canAdvance = [
+      'operateur',
+      'gerant',
+      'directeur',
+      'admin',
+    ].contains((role ?? UserRole.lecture).value);
     final nextEnum = StatutCoursDb.next(widget.c.statut);
 
     return IconButton.filledTonal(
@@ -848,14 +889,22 @@ class _AdvanceButtonState extends ConsumerState<_AdvanceButton> {
                     .read(coursDeRouteServiceProvider)
                     .updateStatut(id: widget.c.id, to: nextEnum);
                 if (mounted) {
-                  showAppToast(context, 'Statut mis à jour → ${nextEnum.label}', type: ToastType.success);
+                  showAppToast(
+                    context,
+                    'Statut mis à jour → ${nextEnum.label}',
+                    type: ToastType.success,
+                  );
                   // Rafraîchir les listes
                   ref.invalidate(coursDeRouteListProvider);
                   ref.invalidate(coursDeRouteActifsProvider);
                 }
               } catch (e) {
                 if (mounted) {
-                  showAppToast(context, humanizePostgrest(e), type: ToastType.error);
+                  showAppToast(
+                    context,
+                    humanizePostgrest(e),
+                    type: ToastType.error,
+                  );
                 }
               } finally {
                 if (mounted) setState(() => busy = false);
@@ -913,16 +962,9 @@ class _ErrorState extends ConsumerWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
-            Icons.error_outline,
-            size: 64,
-            color: Colors.red,
-          ),
+          const Icon(Icons.error_outline, size: 64, color: Colors.red),
           const SizedBox(height: 16),
-          Text(
-            'Erreur',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
+          Text('Erreur', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 8),
           Text(
             message,
@@ -980,13 +1022,13 @@ class _ActionsBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final screenWidth = MediaQuery.of(context).size.width;
-    
+
     return Padding(
       padding: EdgeInsets.fromLTRB(
-        screenWidth >= 800 ? 16 : 12, 
-        screenWidth >= 800 ? 16 : 12, 
-        screenWidth >= 800 ? 16 : 12, 
-        0
+        screenWidth >= 800 ? 16 : 12,
+        screenWidth >= 800 ? 16 : 12,
+        screenWidth >= 800 ? 16 : 12,
+        0,
       ),
       child: Wrap(
         spacing: screenWidth >= 800 ? 12 : 8,
@@ -1018,7 +1060,7 @@ class _SortIndicator extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final sortConfig = ref.watch(coursSortProvider);
-    
+
     String getColumnLabel(CoursSortColumn column) {
       switch (column) {
         case CoursSortColumn.fournisseur:
@@ -1043,11 +1085,11 @@ class _SortIndicator extends ConsumerWidget {
     }
 
     final screenWidth = MediaQuery.of(context).size.width;
-    
+
     return Padding(
       padding: EdgeInsets.symmetric(
-        horizontal: screenWidth >= 800 ? 16 : 12, 
-        vertical: screenWidth >= 800 ? 12 : 8
+        horizontal: screenWidth >= 800 ? 16 : 12,
+        vertical: screenWidth >= 800 ? 12 : 8,
       ),
       child: Row(
         children: [
@@ -1065,8 +1107,8 @@ class _SortIndicator extends ConsumerWidget {
           ),
           const SizedBox(width: 4),
           Icon(
-            sortConfig.direction == SortDirection.ascending 
-                ? Icons.arrow_upward 
+            sortConfig.direction == SortDirection.ascending
+                ? Icons.arrow_upward
                 : Icons.arrow_downward,
             size: 14,
             color: Theme.of(context).colorScheme.primary,
@@ -1074,10 +1116,7 @@ class _SortIndicator extends ConsumerWidget {
           const Spacer(),
           TextButton(
             onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) => _SortDialog(),
-              );
+              showDialog(context: context, builder: (context) => _SortDialog());
             },
             child: const Text('Modifier'),
           ),
@@ -1094,7 +1133,7 @@ class _SortDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final sortConfig = ref.watch(coursSortProvider);
-    
+
     final columns = [
       (CoursSortColumn.date, 'Date'),
       (CoursSortColumn.fournisseur, 'Fournisseur'),
@@ -1114,7 +1153,7 @@ class _SortDialog extends ConsumerWidget {
         children: columns.map((column) {
           final (col, label) = column;
           final isSelected = sortConfig.column == col;
-          
+
           return RadioListTile<CoursSortColumn>(
             title: Text(label),
             value: col,
@@ -1129,8 +1168,8 @@ class _SortDialog extends ConsumerWidget {
             },
             secondary: isSelected
                 ? Icon(
-                    sortConfig.direction == SortDirection.ascending 
-                        ? Icons.arrow_upward 
+                    sortConfig.direction == SortDirection.ascending
+                        ? Icons.arrow_upward
                         : Icons.arrow_downward,
                     color: Theme.of(context).colorScheme.primary,
                   )
@@ -1147,14 +1186,14 @@ class _SortDialog extends ConsumerWidget {
           onPressed: () {
             ref.read(coursSortProvider.notifier).state = CoursSortConfig(
               column: sortConfig.column,
-              direction: sortConfig.direction == SortDirection.ascending 
-                  ? SortDirection.descending 
+              direction: sortConfig.direction == SortDirection.ascending
+                  ? SortDirection.descending
                   : SortDirection.ascending,
             );
           },
           child: Text(
-            sortConfig.direction == SortDirection.ascending 
-                ? 'Décroissant' 
+            sortConfig.direction == SortDirection.ascending
+                ? 'Décroissant'
                 : 'Croissant',
           ),
         ),
@@ -1162,4 +1201,3 @@ class _SortDialog extends ConsumerWidget {
     );
   }
 }
-

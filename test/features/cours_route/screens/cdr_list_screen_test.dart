@@ -45,10 +45,11 @@ class FakeCoursDeRouteServiceForWidgets implements CoursDeRouteService {
   final Map<String, StatutCours> _updateStatutCalls = {};
 
   FakeCoursDeRouteServiceForWidgets({List<CoursDeRoute>? seedData})
-      : _seedData = seedData ?? [];
+    : _seedData = seedData ?? [];
 
   /// Récupère les appels à updateStatut pour vérification
-  Map<String, StatutCours> get updateStatutCalls => Map.unmodifiable(_updateStatutCalls);
+  Map<String, StatutCours> get updateStatutCalls =>
+      Map.unmodifiable(_updateStatutCalls);
 
   @override
   Future<List<CoursDeRoute>> getAll() async => List.from(_seedData);
@@ -82,7 +83,8 @@ class FakeCoursDeRouteServiceForWidgets implements CoursDeRouteService {
   }
 
   @override
-  Future<void> delete(String id) async => _seedData.removeWhere((c) => c.id == id);
+  Future<void> delete(String id) async =>
+      _seedData.removeWhere((c) => c.id == id);
 
   @override
   Future<void> updateStatut({
@@ -117,7 +119,8 @@ class FakeCoursDeRouteServiceForWidgets implements CoursDeRouteService {
   }
 
   @override
-  Future<Map<String, int>> countByCategorie() async => throw UnimplementedError();
+  Future<Map<String, int>> countByCategorie() async =>
+      throw UnimplementedError();
 
   @override
   Future<bool> canTransition({
@@ -163,137 +166,191 @@ CoursDeRoute createTestCdr({
 
 void main() {
   group('CDR List Screen - Boutons de progression', () {
-    testWidgets('CDR List - CHARGEMENT propose uniquement la progression vers TRANSIT', (tester) async {
-      // Arrange
-      final cdrChargement = createTestCdr(
-        id: 'cdr-1',
-        statut: StatutCours.chargement,
-      );
-      final fakeService = FakeCoursDeRouteServiceForWidgets(seedData: [cdrChargement]);
+    testWidgets(
+      'CDR List - CHARGEMENT propose uniquement la progression vers TRANSIT',
+      (tester) async {
+        // Arrange
+        final cdrChargement = createTestCdr(
+          id: 'cdr-1',
+          statut: StatutCours.chargement,
+        );
+        final fakeService = FakeCoursDeRouteServiceForWidgets(
+          seedData: [cdrChargement],
+        );
 
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            coursDeRouteServiceProvider.overrideWithValue(fakeService),
-            coursDeRouteListProvider.overrideWith((ref) async => [cdrChargement]),
-            userRoleProvider.overrideWith((ref) => UserRole.operateur),
-            refDataProvider.overrideWith((ref) async => createFakeRefData()),
-          ],
-          child: const MaterialApp(
-            home: CoursRouteListScreen(),
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              coursDeRouteServiceProvider.overrideWithValue(fakeService),
+              coursDeRouteListProvider.overrideWith(
+                (ref) async => [cdrChargement],
+              ),
+              userRoleProvider.overrideWith((ref) => UserRole.operateur),
+              refDataProvider.overrideWith((ref) async => createFakeRefData()),
+            ],
+            child: const MaterialApp(home: CoursRouteListScreen()),
           ),
-        ),
-      );
+        );
 
-      // Attendre le chargement
-      await tester.pumpAndSettle();
+        // Attendre le chargement
+        await tester.pumpAndSettle();
 
-      // Assert: Le bouton d'avancement doit être visible et activé
-      // Le bouton est un IconButton avec l'icône trending_flat
-      final advanceButtons = find.byIcon(Icons.trending_flat);
-      expect(advanceButtons, findsWidgets, reason: 'Le bouton d\'avancement doit être visible');
+        // Assert: Le bouton d'avancement doit être visible et activé
+        // Le bouton est un IconButton avec l'icône trending_flat
+        final advanceButtons = find.byIcon(Icons.trending_flat);
+        expect(
+          advanceButtons,
+          findsWidgets,
+          reason: 'Le bouton d\'avancement doit être visible',
+        );
 
-      // Vérifier que le statut est bien affiché
-      expect(find.text('Chargement'), findsWidgets, reason: 'Le label "Chargement" doit être visible');
-    });
+        // Vérifier que le statut est bien affiché
+        expect(
+          find.text('Chargement'),
+          findsWidgets,
+          reason: 'Le label "Chargement" doit être visible',
+        );
+      },
+    );
 
-    testWidgets('CDR List - TRANSIT propose uniquement la progression vers FRONTIERE', (tester) async {
-      // Arrange
-      final cdrTransit = createTestCdr(
-        id: 'cdr-2',
-        statut: StatutCours.transit,
-      );
-      final fakeService = FakeCoursDeRouteServiceForWidgets(seedData: [cdrTransit]);
+    testWidgets(
+      'CDR List - TRANSIT propose uniquement la progression vers FRONTIERE',
+      (tester) async {
+        // Arrange
+        final cdrTransit = createTestCdr(
+          id: 'cdr-2',
+          statut: StatutCours.transit,
+        );
+        final fakeService = FakeCoursDeRouteServiceForWidgets(
+          seedData: [cdrTransit],
+        );
 
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            coursDeRouteServiceProvider.overrideWithValue(fakeService),
-            coursDeRouteListProvider.overrideWith((ref) async => [cdrTransit]),
-            userRoleProvider.overrideWith((ref) => UserRole.operateur),
-            refDataProvider.overrideWith((ref) async => createFakeRefData()),
-          ],
-          child: const MaterialApp(
-            home: CoursRouteListScreen(),
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              coursDeRouteServiceProvider.overrideWithValue(fakeService),
+              coursDeRouteListProvider.overrideWith(
+                (ref) async => [cdrTransit],
+              ),
+              userRoleProvider.overrideWith((ref) => UserRole.operateur),
+              refDataProvider.overrideWith((ref) async => createFakeRefData()),
+            ],
+            child: const MaterialApp(home: CoursRouteListScreen()),
           ),
-        ),
-      );
+        );
 
-      await tester.pumpAndSettle();
+        await tester.pumpAndSettle();
 
-      // Assert
-      expect(find.text('Transit'), findsWidgets, reason: 'Le label "Transit" doit être visible');
-      final advanceButtons = find.byIcon(Icons.trending_flat);
-      expect(advanceButtons, findsWidgets, reason: 'Le bouton d\'avancement doit être visible');
-    });
+        // Assert
+        expect(
+          find.text('Transit'),
+          findsWidgets,
+          reason: 'Le label "Transit" doit être visible',
+        );
+        final advanceButtons = find.byIcon(Icons.trending_flat);
+        expect(
+          advanceButtons,
+          findsWidgets,
+          reason: 'Le bouton d\'avancement doit être visible',
+        );
+      },
+    );
 
-    testWidgets('CDR List - FRONTIERE propose uniquement la progression vers ARRIVE', (tester) async {
-      // Arrange
-      final cdrFrontiere = createTestCdr(
-        id: 'cdr-3',
-        statut: StatutCours.frontiere,
-      );
-      final fakeService = FakeCoursDeRouteServiceForWidgets(seedData: [cdrFrontiere]);
+    testWidgets(
+      'CDR List - FRONTIERE propose uniquement la progression vers ARRIVE',
+      (tester) async {
+        // Arrange
+        final cdrFrontiere = createTestCdr(
+          id: 'cdr-3',
+          statut: StatutCours.frontiere,
+        );
+        final fakeService = FakeCoursDeRouteServiceForWidgets(
+          seedData: [cdrFrontiere],
+        );
 
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            coursDeRouteServiceProvider.overrideWithValue(fakeService),
-            coursDeRouteListProvider.overrideWith((ref) async => [cdrFrontiere]),
-            userRoleProvider.overrideWith((ref) => UserRole.operateur),
-            refDataProvider.overrideWith((ref) async => createFakeRefData()),
-          ],
-          child: const MaterialApp(
-            home: CoursRouteListScreen(),
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              coursDeRouteServiceProvider.overrideWithValue(fakeService),
+              coursDeRouteListProvider.overrideWith(
+                (ref) async => [cdrFrontiere],
+              ),
+              userRoleProvider.overrideWith((ref) => UserRole.operateur),
+              refDataProvider.overrideWith((ref) async => createFakeRefData()),
+            ],
+            child: const MaterialApp(home: CoursRouteListScreen()),
           ),
-        ),
-      );
+        );
 
-      await tester.pumpAndSettle();
+        await tester.pumpAndSettle();
 
-      // Assert
-      expect(find.text('Frontière'), findsWidgets, reason: 'Le label "Frontière" doit être visible');
-      final advanceButtons = find.byIcon(Icons.trending_flat);
-      expect(advanceButtons, findsWidgets, reason: 'Le bouton d\'avancement doit être visible');
-    });
+        // Assert
+        expect(
+          find.text('Frontière'),
+          findsWidgets,
+          reason: 'Le label "Frontière" doit être visible',
+        );
+        final advanceButtons = find.byIcon(Icons.trending_flat);
+        expect(
+          advanceButtons,
+          findsWidgets,
+          reason: 'Le bouton d\'avancement doit être visible',
+        );
+      },
+    );
 
-    testWidgets('CDR List - ARRIVE propose uniquement la progression vers DECHARGE', (tester) async {
-      // Arrange
-      final cdrArrive = createTestCdr(
-        id: 'cdr-4',
-        statut: StatutCours.arrive,
-      );
-      final fakeService = FakeCoursDeRouteServiceForWidgets(seedData: [cdrArrive]);
+    testWidgets(
+      'CDR List - ARRIVE propose uniquement la progression vers DECHARGE',
+      (tester) async {
+        // Arrange
+        final cdrArrive = createTestCdr(
+          id: 'cdr-4',
+          statut: StatutCours.arrive,
+        );
+        final fakeService = FakeCoursDeRouteServiceForWidgets(
+          seedData: [cdrArrive],
+        );
 
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            coursDeRouteServiceProvider.overrideWithValue(fakeService),
-            coursDeRouteListProvider.overrideWith((ref) async => [cdrArrive]),
-            userRoleProvider.overrideWith((ref) => UserRole.operateur),
-            refDataProvider.overrideWith((ref) async => createFakeRefData()),
-          ],
-          child: const MaterialApp(
-            home: CoursRouteListScreen(),
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              coursDeRouteServiceProvider.overrideWithValue(fakeService),
+              coursDeRouteListProvider.overrideWith((ref) async => [cdrArrive]),
+              userRoleProvider.overrideWith((ref) => UserRole.operateur),
+              refDataProvider.overrideWith((ref) async => createFakeRefData()),
+            ],
+            child: const MaterialApp(home: CoursRouteListScreen()),
           ),
-        ),
-      );
+        );
 
-      await tester.pumpAndSettle();
+        await tester.pumpAndSettle();
 
-      // Assert
-      expect(find.text('Arrivé'), findsWidgets, reason: 'Le label "Arrivé" doit être visible');
-      final advanceButtons = find.byIcon(Icons.trending_flat);
-      expect(advanceButtons, findsWidgets, reason: 'Le bouton d\'avancement doit être visible');
-    });
+        // Assert
+        expect(
+          find.text('Arrivé'),
+          findsWidgets,
+          reason: 'Le label "Arrivé" doit être visible',
+        );
+        final advanceButtons = find.byIcon(Icons.trending_flat);
+        expect(
+          advanceButtons,
+          findsWidgets,
+          reason: 'Le bouton d\'avancement doit être visible',
+        );
+      },
+    );
 
-    testWidgets('CDR List - DECHARGE est terminal, aucun bouton de progression', (tester) async {
+    testWidgets('CDR List - DECHARGE est terminal, aucun bouton de progression', (
+      tester,
+    ) async {
       // Arrange
       final cdrDecharge = createTestCdr(
         id: 'cdr-5',
         statut: StatutCours.decharge,
       );
-      final fakeService = FakeCoursDeRouteServiceForWidgets(seedData: [cdrDecharge]);
+      final fakeService = FakeCoursDeRouteServiceForWidgets(
+        seedData: [cdrDecharge],
+      );
 
       await tester.pumpWidget(
         ProviderScope(
@@ -303,57 +360,85 @@ void main() {
             userRoleProvider.overrideWith((ref) => UserRole.operateur),
             refDataProvider.overrideWith((ref) async => createFakeRefData()),
           ],
-          child: const MaterialApp(
-            home: CoursRouteListScreen(),
-          ),
+          child: const MaterialApp(home: CoursRouteListScreen()),
         ),
       );
 
       await tester.pumpAndSettle();
 
       // Assert
-      expect(find.text('Déchargé'), findsWidgets, reason: 'Le label "Déchargé" doit être visible');
-      
+      expect(
+        find.text('Déchargé'),
+        findsWidgets,
+        reason: 'Le label "Déchargé" doit être visible',
+      );
+
       // Le bouton d'avancement ne doit PAS être activé pour DECHARGE
       // (car next() retourne null, donc le bouton est désactivé)
       // Vérifier que next() retourne null pour DECHARGE
       final nextStatut = StatutCoursDb.next(StatutCours.decharge);
-      expect(nextStatut, isNull,
-          reason: 'next(DECHARGE) doit retourner null, donc le bouton doit être désactivé');
+      expect(
+        nextStatut,
+        isNull,
+        reason:
+            'next(DECHARGE) doit retourner null, donc le bouton doit être désactivé',
+      );
     });
   });
 
   group('CDR List Screen - Interaction avec repository', () {
-    testWidgets('CDR List - Bouton de progression utilise StatutCoursDb.next() pour déterminer le prochain statut', (tester) async {
-      // Arrange: Vérifier que la logique métier est respectée
-      // CHARGEMENT -> TRANSIT
-      expect(StatutCoursDb.next(StatutCours.chargement), equals(StatutCours.transit),
-          reason: 'next(CHARGEMENT) doit retourner TRANSIT');
-      
-      // TRANSIT -> FRONTIERE
-      expect(StatutCoursDb.next(StatutCours.transit), equals(StatutCours.frontiere),
-          reason: 'next(TRANSIT) doit retourner FRONTIERE');
-      
-      // FRONTIERE -> ARRIVE
-      expect(StatutCoursDb.next(StatutCours.frontiere), equals(StatutCours.arrive),
-          reason: 'next(FRONTIERE) doit retourner ARRIVE');
-      
-      // ARRIVE -> DECHARGE
-      expect(StatutCoursDb.next(StatutCours.arrive), equals(StatutCours.decharge),
-          reason: 'next(ARRIVE) doit retourner DECHARGE');
-      
-      // DECHARGE -> null (terminal)
-      expect(StatutCoursDb.next(StatutCours.decharge), isNull,
-          reason: 'next(DECHARGE) doit retourner null (statut terminal)');
-    });
+    testWidgets(
+      'CDR List - Bouton de progression utilise StatutCoursDb.next() pour déterminer le prochain statut',
+      (tester) async {
+        // Arrange: Vérifier que la logique métier est respectée
+        // CHARGEMENT -> TRANSIT
+        expect(
+          StatutCoursDb.next(StatutCours.chargement),
+          equals(StatutCours.transit),
+          reason: 'next(CHARGEMENT) doit retourner TRANSIT',
+        );
 
-    testWidgets('CDR List - Bouton de progression est désactivé pour DECHARGE', (tester) async {
+        // TRANSIT -> FRONTIERE
+        expect(
+          StatutCoursDb.next(StatutCours.transit),
+          equals(StatutCours.frontiere),
+          reason: 'next(TRANSIT) doit retourner FRONTIERE',
+        );
+
+        // FRONTIERE -> ARRIVE
+        expect(
+          StatutCoursDb.next(StatutCours.frontiere),
+          equals(StatutCours.arrive),
+          reason: 'next(FRONTIERE) doit retourner ARRIVE',
+        );
+
+        // ARRIVE -> DECHARGE
+        expect(
+          StatutCoursDb.next(StatutCours.arrive),
+          equals(StatutCours.decharge),
+          reason: 'next(ARRIVE) doit retourner DECHARGE',
+        );
+
+        // DECHARGE -> null (terminal)
+        expect(
+          StatutCoursDb.next(StatutCours.decharge),
+          isNull,
+          reason: 'next(DECHARGE) doit retourner null (statut terminal)',
+        );
+      },
+    );
+
+    testWidgets('CDR List - Bouton de progression est désactivé pour DECHARGE', (
+      tester,
+    ) async {
       // Arrange
       final cdrDecharge = createTestCdr(
         id: 'cdr-5',
         statut: StatutCours.decharge,
       );
-      final fakeService = FakeCoursDeRouteServiceForWidgets(seedData: [cdrDecharge]);
+      final fakeService = FakeCoursDeRouteServiceForWidgets(
+        seedData: [cdrDecharge],
+      );
 
       await tester.pumpWidget(
         ProviderScope(
@@ -363,9 +448,7 @@ void main() {
             userRoleProvider.overrideWith((ref) => UserRole.operateur),
             refDataProvider.overrideWith((ref) async => createFakeRefData()),
           ],
-          child: const MaterialApp(
-            home: CoursRouteListScreen(),
-          ),
+          child: const MaterialApp(home: CoursRouteListScreen()),
         ),
       );
 
@@ -373,9 +456,12 @@ void main() {
 
       // Assert: Vérifier que next() retourne null pour DECHARGE
       final nextStatut = StatutCoursDb.next(StatutCours.decharge);
-      expect(nextStatut, isNull,
-          reason: 'next(DECHARGE) doit retourner null, donc le bouton doit être désactivé');
+      expect(
+        nextStatut,
+        isNull,
+        reason:
+            'next(DECHARGE) doit retourner null, donc le bouton doit être désactivé',
+      );
     });
   });
 }
-

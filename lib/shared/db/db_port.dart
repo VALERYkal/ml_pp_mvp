@@ -9,7 +9,9 @@ abstract class DbPort {
   // DB-STRICT: rpcValidateReception est uniquement pour les tests legacy.
   // Dans le code actif, les réceptions sont créées directement validées via INSERT.
   // Cette méthode ne doit pas être utilisée dans le code de production.
-  @Deprecated('DB-STRICT: Utiliser uniquement pour tests legacy. Les réceptions sont créées directement validées.')
+  @Deprecated(
+    'DB-STRICT: Utiliser uniquement pour tests legacy. Les réceptions sont créées directement validées.',
+  )
   Future<void> rpcValidateReception(String receptionId);
   // Référentiels pour tests (produits, citernes) — renvoyés en brut:
   Future<List<Map<String, dynamic>>> selectProduitsActifs();
@@ -22,30 +24,45 @@ class SupabaseDbPort implements DbPort {
   SupabaseDbPort(this.client);
 
   @override
-  Future<Map<String, dynamic>> insertReception(Map<String, dynamic> payload) async {
-    final Map<String, dynamic> res = await client.from('receptions').insert(payload).select<Map<String, dynamic>>('id').single();
+  Future<Map<String, dynamic>> insertReception(
+    Map<String, dynamic> payload,
+  ) async {
+    final Map<String, dynamic> res = await client
+        .from('receptions')
+        .insert(payload)
+        .select<Map<String, dynamic>>('id')
+        .single();
     return res;
   }
 
   @override
-  @Deprecated('DB-STRICT: Utiliser uniquement pour tests legacy. Les réceptions sont créées directement validées.')
+  @Deprecated(
+    'DB-STRICT: Utiliser uniquement pour tests legacy. Les réceptions sont créées directement validées.',
+  )
   Future<void> rpcValidateReception(String receptionId) async {
-    await client.rpc('validate_reception', params: {'p_reception_id': receptionId});
+    await client.rpc(
+      'validate_reception',
+      params: {'p_reception_id': receptionId},
+    );
   }
 
   @override
   Future<List<Map<String, dynamic>>> selectProduitsActifs() async {
-    final List<Map<String, dynamic>> rows = await client.from('produits').select<List<Map<String, dynamic>>>('id, code, nom, actif').eq('actif', true);
+    final List<Map<String, dynamic>> rows = await client
+        .from('produits')
+        .select<List<Map<String, dynamic>>>('id, code, nom, actif')
+        .eq('actif', true);
     return rows;
   }
 
   @override
   Future<List<Map<String, dynamic>>> selectCiternesActives() async {
-    final List<Map<String, dynamic>> rows = await client.from('citernes')
-      .select<List<Map<String, dynamic>>>('id, produit_id, capacite_totale, capacite_securite, statut')
-      .eq('statut', 'active');
+    final List<Map<String, dynamic>> rows = await client
+        .from('citernes')
+        .select<List<Map<String, dynamic>>>(
+          'id, produit_id, capacite_totale, capacite_securite, statut',
+        )
+        .eq('statut', 'active');
     return rows;
   }
 }
-
-

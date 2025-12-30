@@ -8,54 +8,60 @@ import 'package:riverpod/riverpod.dart';
 
 void main() {
   group('receptionsKpiTodayProvider', () {
-    test('agrège correctement les données depuis receptionsRawTodayProvider', () async {
-      final rowsFixture = [
-        {
-          'volume_ambiant': 500,
-          'volume_corrige_15c': 480,
-          'proprietaire_type': 'MONALUXE',
-        },
-        {
-          'volume_ambiant': 700,
-          'volume_corrige_15c': 680,
-          'proprietaire_type': 'PARTENAIRE',
-        },
-      ];
+    test(
+      'agrège correctement les données depuis receptionsRawTodayProvider',
+      () async {
+        final rowsFixture = [
+          {
+            'volume_ambiant': 500,
+            'volume_corrige_15c': 480,
+            'proprietaire_type': 'MONALUXE',
+          },
+          {
+            'volume_ambiant': 700,
+            'volume_corrige_15c': 680,
+            'proprietaire_type': 'PARTENAIRE',
+          },
+        ];
 
-      final container = ProviderContainer(
-        overrides: [
-          receptionsRawTodayProvider.overrideWith((ref) async => rowsFixture),
-        ],
-      );
+        final container = ProviderContainer(
+          overrides: [
+            receptionsRawTodayProvider.overrideWith((ref) async => rowsFixture),
+          ],
+        );
 
-      addTearDown(container.dispose);
+        addTearDown(container.dispose);
 
-      final kpi = await container.read(receptionsKpiTodayProvider.future);
+        final kpi = await container.read(receptionsKpiTodayProvider.future);
 
-      expect(kpi.count, 2);
-      expect(kpi.volumeAmbient, 1200.0);
-      expect(kpi.volume15c, 1160.0);
-      expect(kpi.countMonaluxe, 1);
-      expect(kpi.countPartenaire, 1);
-    });
+        expect(kpi.count, 2);
+        expect(kpi.volumeAmbient, 1200.0);
+        expect(kpi.volume15c, 1160.0);
+        expect(kpi.countMonaluxe, 1);
+        expect(kpi.countPartenaire, 1);
+      },
+    );
 
-    test('retourne des valeurs zéro quand il n\'y a pas de réceptions', () async {
-      final container = ProviderContainer(
-        overrides: [
-          receptionsRawTodayProvider.overrideWith((ref) async => []),
-        ],
-      );
+    test(
+      'retourne des valeurs zéro quand il n\'y a pas de réceptions',
+      () async {
+        final container = ProviderContainer(
+          overrides: [
+            receptionsRawTodayProvider.overrideWith((ref) async => []),
+          ],
+        );
 
-      addTearDown(container.dispose);
+        addTearDown(container.dispose);
 
-      final kpi = await container.read(receptionsKpiTodayProvider.future);
+        final kpi = await container.read(receptionsKpiTodayProvider.future);
 
-      expect(kpi.count, 0);
-      expect(kpi.volumeAmbient, 0.0);
-      expect(kpi.volume15c, 0.0);
-      expect(kpi.countMonaluxe, 0);
-      expect(kpi.countPartenaire, 0);
-    });
+        expect(kpi.count, 0);
+        expect(kpi.volumeAmbient, 0.0);
+        expect(kpi.volume15c, 0.0);
+        expect(kpi.countMonaluxe, 0);
+        expect(kpi.countPartenaire, 0);
+      },
+    );
 
     test('gère les valeurs null sans crash', () async {
       final rowsFixture = [
@@ -114,4 +120,3 @@ void main() {
     });
   });
 }
-

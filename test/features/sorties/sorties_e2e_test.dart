@@ -18,7 +18,8 @@ import 'package:ml_pp_mvp/shared/navigation/app_router.dart';
 import 'package:ml_pp_mvp/shared/navigation/router_refresh.dart';
 import 'package:ml_pp_mvp/shared/providers/session_provider.dart';
 import 'package:ml_pp_mvp/features/sorties/data/sortie_service.dart' as sorties;
-import 'package:ml_pp_mvp/features/sorties/providers/sortie_providers.dart' as sp;
+import 'package:ml_pp_mvp/features/sorties/providers/sortie_providers.dart'
+    as sp;
 import 'package:ml_pp_mvp/features/sorties/screens/sortie_form_screen.dart';
 import 'package:ml_pp_mvp/shared/referentiels/referentiels.dart' as refs;
 import 'package:ml_pp_mvp/features/dashboard/widgets/dashboard_shell.dart';
@@ -73,12 +74,7 @@ class _CapturedSortieCall {
 /// Service de sortie fake : capture les appels sans toucher Supabase
 class _FakeSortieService extends sorties.SortieService {
   _FakeSortieService()
-      : super(
-          SupabaseClient(
-            'http://localhost:54321',
-            'test-anon-key',
-          ),
-        );
+    : super(SupabaseClient('http://localhost:54321', 'test-anon-key'));
 
   final List<_CapturedSortieCall> calls = [];
   int callsCount = 0;
@@ -133,7 +129,7 @@ class _FakeCurrentProfilNotifier extends CurrentProfilNotifier {
   final AsyncValue<Profil?>? _forcedState;
 
   _FakeCurrentProfilNotifier(this._profil, {AsyncValue<Profil?>? forcedState})
-      : _forcedState = forcedState;
+    : _forcedState = forcedState;
 
   @override
   Future<Profil?> build() async {
@@ -153,26 +149,26 @@ class _DummyRefresh extends GoRouterCompositeRefresh {
 // ============================================================================
 // PHASE 6 - Helpers Auth réutilisables pour les tests E2E métier
 // ============================================================================
-// 
+//
 // Ces helpers permettent de démarrer les tests E2E dans un contexte Auth
 // cohérent (utilisateur connecté avec un rôle défini, router prêt).
-// 
+//
 // Ils peuvent être copiés/adaptés dans d'autres fichiers e2e (réceptions, stocks).
 
 /// Fake Session pour les tests E2E
 class _FakeSessionForE2E extends Session {
   _FakeSessionForE2E(User user)
-      : super(
-          accessToken: 'fake-token',
-          tokenType: 'bearer',
-          user: user,
-          expiresIn: 3600,
-          refreshToken: 'fake-refresh-token',
-        );
+    : super(
+        accessToken: 'fake-token',
+        tokenType: 'bearer',
+        user: user,
+        expiresIn: 3600,
+        refreshToken: 'fake-refresh-token',
+      );
 }
 
 /// Helper pour construire un Profil pour un rôle donné
-/// 
+///
 /// Usage:
 ///   final operateurProfil = buildProfilForRole(role: UserRole.operateur);
 ///   final gerantProfil = buildProfilForRole(role: UserRole.gerant, depotId: 'depot-2');
@@ -185,10 +181,10 @@ Profil buildProfilForRole({
   String depotId = 'depot-1',
 }) {
   // Si emailPrefix n'est pas fourni, utiliser juste le nom du rôle
-  final email = emailPrefix != null 
+  final email = emailPrefix != null
       ? '$emailPrefix.${role.name}@example.com'
       : '${role.name}@example.com';
-  
+
   return Profil(
     id: id,
     userId: userId,
@@ -201,15 +197,12 @@ Profil buildProfilForRole({
 }
 
 /// Helper pour construire un AppAuthState authentifié
-/// 
+///
 /// Usage:
 ///   final authState = buildAuthenticatedState(mockUser);
 AppAuthState buildAuthenticatedState(MockUser mockUser) {
   final fakeSession = _FakeSessionForE2E(mockUser);
-  return AppAuthState(
-    session: fakeSession,
-    authStream: const Stream.empty(),
-  );
+  return AppAuthState(session: fakeSession, authStream: const Stream.empty());
 }
 
 /// Helper utilitaire pour capitaliser la première lettre
@@ -219,7 +212,7 @@ String _capitalizeFirstLetter(String s) {
 }
 
 /// Helper principal : démarre l'app dans un contexte Auth avec un rôle donné
-/// 
+///
 /// Usage dans les tests E2E :
 ///   await pumpAppAsRole(
 ///     tester,
@@ -229,7 +222,7 @@ String _capitalizeFirstLetter(String s) {
 ///     mockUser: mockUser,
 ///     fakeSortieService: fakeSortieService,
 ///   );
-/// 
+///
 /// Ensuite, le test peut naviguer vers les écrans métier (Sorties, etc.)
 /// sans se préoccuper du setup Auth.
 Future<void> pumpAppAsRole(
@@ -282,41 +275,29 @@ Future<void> pumpAppAsRole(
           ),
         ),
         // Override du provider principal KPI
-        kpiProviderProvider.overrideWith(
-          (ref) async => KpiSnapshot.empty,
-        ),
-        appAuthStateProvider.overrideWith(
-          (ref) async* {
-            yield initialAuthState;
-            yield* authStateController.stream;
-          },
-        ),
-        isAuthenticatedProvider.overrideWith(
-          (ref) {
-            final asyncState = ref.watch(appAuthStateProvider);
-            return asyncState.when(
-              data: (s) => s.isAuthenticated,
-              loading: () => false,
-              error: (_, __) => false,
-            );
-          },
-        ),
+        kpiProviderProvider.overrideWith((ref) async => KpiSnapshot.empty),
+        appAuthStateProvider.overrideWith((ref) async* {
+          yield initialAuthState;
+          yield* authStateController.stream;
+        }),
+        isAuthenticatedProvider.overrideWith((ref) {
+          final asyncState = ref.watch(appAuthStateProvider);
+          return asyncState.when(
+            data: (s) => s.isAuthenticated,
+            loading: () => false,
+            error: (_, __) => false,
+          );
+        }),
         currentUserProvider.overrideWith(
           (ref) => mockAuthService.getCurrentUser(),
         ),
-        goRouterRefreshProvider.overrideWith(
-          (ref) => _DummyRefresh(ref),
-        ),
+        goRouterRefreshProvider.overrideWith((ref) => _DummyRefresh(ref)),
         // Override du service de sortie (spécifique au module Sorties)
         sp.sortieServiceProvider.overrideWithValue(fakeSortieService),
         // Override des référentiels (spécifique au module Sorties)
         refs.produitsRefProvider.overrideWith(
           (ref) async => [
-            refs.ProduitRef(
-              id: 'produit-go',
-              code: 'G.O',
-              nom: 'Gasoil/AGO',
-            ),
+            refs.ProduitRef(id: 'produit-go', code: 'G.O', nom: 'Gasoil/AGO'),
           ],
         ),
         refs.citernesActivesProvider.overrideWith(
@@ -415,9 +396,7 @@ Future<void> pumpAppAsRole(
       child: Consumer(
         builder: (context, ref, _) {
           final router = ref.read(appRouterProvider);
-          return MaterialApp.router(
-            routerConfig: router,
-          );
+          return MaterialApp.router(routerConfig: router);
         },
       ),
     ),
@@ -499,7 +478,6 @@ void main() {
       when(mockAuthService.getCurrentUser()).thenReturn(mockUser);
     });
 
-
     testWidgets(
       'un opérateur peut créer une sortie MONALUXE via le formulaire et la voir dans la liste',
       (WidgetTester tester) async {
@@ -512,7 +490,7 @@ void main() {
           mockUser: mockUser,
           fakeSortieService: fakeSortieService,
         );
-        
+
         // Utiliser pump avec délais au lieu de pumpAndSettle pour éviter les timeouts
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 200));
@@ -573,7 +551,8 @@ void main() {
         expect(
           produitChipText,
           findsWidgets,
-          reason: 'Le texte du chip produit G.O · Gasoil/AGO doit être présent dans le formulaire.',
+          reason:
+              'Le texte du chip produit G.O · Gasoil/AGO doit être présent dans le formulaire.',
         );
 
         // On remonte au ChoiceChip parent
@@ -619,7 +598,8 @@ void main() {
         expect(
           monaluxeChipText,
           findsWidgets,
-          reason: 'Le texte du chip MONALUXE doit être présent dans le formulaire.',
+          reason:
+              'Le texte du chip MONALUXE doit être présent dans le formulaire.',
         );
 
         final monaluxeChip = find.ancestor(
@@ -644,7 +624,8 @@ void main() {
         expect(
           clientHint,
           findsOneWidget,
-          reason: 'Le hint "Sélectionner un client" doit être visible dans le formulaire.',
+          reason:
+              'Le hint "Sélectionner un client" doit être visible dans le formulaire.',
         );
 
         // On remonte au DropdownButton<String> parent
@@ -671,7 +652,8 @@ void main() {
         expect(
           clientItem,
           findsOneWidget,
-          reason: 'L\'option "Client Test" doit être présente dans le dropdown.',
+          reason:
+              'L\'option "Client Test" doit être présente dans le dropdown.',
         );
         await tester.tap(clientItem);
         await tester.pumpAndSettle();
@@ -741,15 +723,16 @@ void main() {
           matching: find.text('Sorties'),
         );
         final successMessage = find.textContaining('créée', findRichText: true);
-        
+
         // Au moins l'un des deux doit être présent
         expect(
-          sortiesAppBarTitleAfterSubmit.evaluate().isNotEmpty || successMessage.evaluate().isNotEmpty,
+          sortiesAppBarTitleAfterSubmit.evaluate().isNotEmpty ||
+              successMessage.evaluate().isNotEmpty,
           isTrue,
-          reason: 'Après soumission, on doit être sur la liste des sorties (AppBar avec titre "Sorties") ou voir un message de succès',
+          reason:
+              'Après soumission, on doit être sur la liste des sorties (AppBar avec titre "Sorties") ou voir un message de succès',
         );
       },
     );
   });
 }
-

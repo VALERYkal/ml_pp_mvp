@@ -27,9 +27,11 @@ import 'package:ml_pp_mvp/features/receptions/screens/reception_form_screen.dart
 import 'package:ml_pp_mvp/features/receptions/kpi/receptions_kpi_provider.dart';
 import 'package:ml_pp_mvp/features/receptions/kpi/receptions_kpi_repository.dart';
 import 'package:ml_pp_mvp/features/kpi/models/kpi_models.dart';
-import 'package:ml_pp_mvp/features/kpi/providers/kpi_provider.dart' show receptionsRawTodayProvider;
+import 'package:ml_pp_mvp/features/kpi/providers/kpi_provider.dart'
+    show receptionsRawTodayProvider;
 import 'package:ml_pp_mvp/features/receptions/data/reception_service.dart';
-import 'package:ml_pp_mvp/features/receptions/providers/reception_providers.dart' as rp;
+import 'package:ml_pp_mvp/features/receptions/providers/reception_providers.dart'
+    as rp;
 import 'package:ml_pp_mvp/shared/referentiels/referentiels.dart' as refs;
 import 'package:ml_pp_mvp/core/models/user_role.dart';
 import 'package:ml_pp_mvp/core/models/profil.dart';
@@ -38,7 +40,8 @@ import 'package:ml_pp_mvp/shared/providers/session_provider.dart';
 import 'package:ml_pp_mvp/features/receptions/providers/receptions_table_provider.dart';
 import 'package:ml_pp_mvp/features/receptions/models/reception.dart';
 import 'package:ml_pp_mvp/features/receptions/models/reception_row_vm.dart';
-import 'package:ml_pp_mvp/features/receptions/models/owner_type.dart' as owner_type;
+import 'package:ml_pp_mvp/features/receptions/models/owner_type.dart'
+    as owner_type;
 import 'package:ml_pp_mvp/features/receptions/data/citerne_info_provider.dart';
 import 'package:ml_pp_mvp/features/receptions/data/partenaires_provider.dart';
 
@@ -75,8 +78,8 @@ class FakeReceptionService extends ReceptionService {
     required SupabaseClient client,
     required refs.ReferentielsRepo refRepo,
     FakeReceptionsKpiRepository? kpiRepo,
-  })  : _kpiRepo = kpiRepo,
-        super.withClient(client, refRepo: refRepo);
+  }) : _kpiRepo = kpiRepo,
+       super.withClient(client, refRepo: refRepo);
 
   @override
   Future<String> createValidated({
@@ -109,7 +112,9 @@ class FakeReceptionService extends ReceptionService {
       volumeCorrige15c: v15c,
       temperatureAmbianteC: temperatureCAmb,
       densiteA15: densiteA15,
-      proprietaireType: proprietaireType == 'MONALUXE' ? owner_type.OwnerType.monaluxe : owner_type.OwnerType.partenaire,
+      proprietaireType: proprietaireType == 'MONALUXE'
+          ? owner_type.OwnerType.monaluxe
+          : owner_type.OwnerType.partenaire,
       statut: 'validee',
       createdAt: dateReception ?? DateTime.now(),
     );
@@ -119,11 +124,13 @@ class FakeReceptionService extends ReceptionService {
     // Mettre à jour le KPI
     if (_kpiRepo != null) {
       final currentKpi = await _kpiRepo.getReceptionsKpiForDay(DateTime.now());
-      _kpiRepo.setKpi(KpiNumberVolume(
-        count: currentKpi.count + 1,
-        volume15c: currentKpi.volume15c + v15c,
-        volumeAmbient: currentKpi.volumeAmbient + volumeAmbiant,
-      ));
+      _kpiRepo.setKpi(
+        KpiNumberVolume(
+          count: currentKpi.count + 1,
+          volume15c: currentKpi.volume15c + v15c,
+          volumeAmbient: currentKpi.volumeAmbient + volumeAmbiant,
+        ),
+      );
     }
 
     return receptionId;
@@ -141,20 +148,22 @@ class FakeRefRepo extends refs.ReferentielsRepo {
   FakeRefRepo({
     List<refs.ProduitRef>? produits,
     List<refs.CiterneRef>? citernes,
-  })  : _produits = produits ?? [
-          refs.ProduitRef(id: 'prod-1', code: 'ESS', nom: 'Essence'),
-        ],
-        _citernes = citernes ?? [
-          refs.CiterneRef(
-            id: 'citerne-1',
-            nom: 'Citerne Test',
-            produitId: 'prod-1',
-            capaciteTotale: 50000.0,
-            capaciteSecurite: 5000.0,
-            statut: 'active',
-          ),
-        ],
-        super(SupabaseClient('http://localhost', 'anon'));
+  }) : _produits =
+           produits ??
+           [refs.ProduitRef(id: 'prod-1', code: 'ESS', nom: 'Essence')],
+       _citernes =
+           citernes ??
+           [
+             refs.CiterneRef(
+               id: 'citerne-1',
+               nom: 'Citerne Test',
+               produitId: 'prod-1',
+               capaciteTotale: 50000.0,
+               capaciteSecurite: 5000.0,
+               statut: 'active',
+             ),
+           ],
+       super(SupabaseClient('http://localhost', 'anon'));
 
   @override
   Future<List<refs.ProduitRef>> loadProduits() async => _produits;
@@ -164,10 +173,12 @@ class FakeRefRepo extends refs.ReferentielsRepo {
 
   @override
   String? getProduitIdByCodeSync(String code) {
-    return _produits.firstWhere(
-      (p) => p.code.toUpperCase() == code.toUpperCase(),
-      orElse: () => _produits.first,
-    ).id;
+    return _produits
+        .firstWhere(
+          (p) => p.code.toUpperCase() == code.toUpperCase(),
+          orElse: () => _produits.first,
+        )
+        .id;
   }
 }
 
@@ -225,8 +236,12 @@ ProviderContainer createE2EUITestContainer({
       ),
       // Override des référentiels
       refs.referentielsRepoProvider.overrideWith((ref) => fakeRefRepo),
-      refs.produitsRefProvider.overrideWith((ref) => Future.value(fakeRefRepo._produits)),
-      refs.citernesActivesProvider.overrideWith((ref) => Future.value(fakeRefRepo._citernes)),
+      refs.produitsRefProvider.overrideWith(
+        (ref) => Future.value(fakeRefRepo._produits),
+      ),
+      refs.citernesActivesProvider.overrideWith(
+        (ref) => Future.value(fakeRefRepo._citernes),
+      ),
       // Override de citerneQuickInfoProvider pour éviter les appels Supabase
       citerneQuickInfoProvider.overrideWith(
         (ref, args) => Future.value(
@@ -251,21 +266,17 @@ ProviderContainer createE2EUITestContainer({
       // Override du provider de rôle
       userRoleProvider.overrideWith((ref) => userRole),
       // Override de goRouterRefreshProvider pour éviter l'appel à Supabase.instance
-      goRouterRefreshProvider.overrideWith(
-        (ref) => _DummyRefresh(ref),
-      ),
+      goRouterRefreshProvider.overrideWith((ref) => _DummyRefresh(ref)),
       // Override de isAuthenticatedProvider pour éviter l'appel à Supabase.instance
       // Pattern moderne : lit depuis appAuthStateProvider comme dans auth_integration_test.dart
-      isAuthenticatedProvider.overrideWith(
-        (ref) {
-          final asyncState = ref.watch(appAuthStateProvider);
-          return asyncState.when(
-            data: (s) => s.isAuthenticated,
-            loading: () => false,
-            error: (_, __) => false,
-          );
-        },
-      ),
+      isAuthenticatedProvider.overrideWith((ref) {
+        final asyncState = ref.watch(appAuthStateProvider);
+        return asyncState.when(
+          data: (s) => s.isAuthenticated,
+          loading: () => false,
+          error: (_, __) => false,
+        );
+      }),
       // Override du provider des partenaires pour les tests
       partenairesProvider.overrideWith(
         (ref) => Future.value([
@@ -273,23 +284,27 @@ ProviderContainer createE2EUITestContainer({
         ]),
       ),
       // Override de la liste des réceptions (retourne une liste vide pour simplifier)
-      receptionsTableProvider.overrideWith(
-        (ref) async {
-          final list = await fakeReceptionsRepo.getAll();
-          return list.map((r) => ReceptionRowVM(
-            id: r.id,
-            dateReception: r.createdAt ?? DateTime.now(),
-            propriete: r.proprietaireType == owner_type.OwnerType.monaluxe ? 'MONALUXE' : 'PARTENAIRE',
-            produitLabel: 'ESS',
-            citerneNom: 'Citerne Test',
-            vol15: r.volumeCorrige15c,
-            volAmb: r.volumeAmbiant,
-            cdrShort: null,
-            cdrPlaques: null,
-            fournisseurNom: null,
-          )).toList();
-        },
-      ),
+      receptionsTableProvider.overrideWith((ref) async {
+        final list = await fakeReceptionsRepo.getAll();
+        return list
+            .map(
+              (r) => ReceptionRowVM(
+                id: r.id,
+                dateReception: r.createdAt ?? DateTime.now(),
+                propriete: r.proprietaireType == owner_type.OwnerType.monaluxe
+                    ? 'MONALUXE'
+                    : 'PARTENAIRE',
+                produitLabel: 'ESS',
+                citerneNom: 'Citerne Test',
+                vol15: r.volumeCorrige15c,
+                volAmb: r.volumeAmbiant,
+                cdrShort: null,
+                cdrPlaques: null,
+                fournisseurNom: null,
+              ),
+            )
+            .toList();
+      }),
     ],
   );
 }
@@ -307,24 +322,20 @@ class _FakeProfilNotifier extends CurrentProfilNotifier {
 /// Fake session pour simuler l'auth
 class _FakeSession extends Session {
   _FakeSession()
-      : super(
-          accessToken: 'fake-token',
-          tokenType: 'bearer',
-          expiresIn: 3600,
-          refreshToken: 'fake-refresh',
-          user: _FakeUser(),
-        );
+    : super(
+        accessToken: 'fake-token',
+        tokenType: 'bearer',
+        expiresIn: 3600,
+        refreshToken: 'fake-refresh',
+        user: _FakeUser(),
+      );
 }
 
 /// Fake GoRouterCompositeRefresh qui n'utilise pas Supabase
 /// Utilise le Ref passé et un Stream vide
 /// Cohérent avec _DummyRefresh dans auth_integration_test.dart
 class _DummyRefresh extends GoRouterCompositeRefresh {
-  _DummyRefresh(Ref ref)
-      : super(
-          ref: ref,
-          authStream: Stream.empty(),
-        );
+  _DummyRefresh(Ref ref) : super(ref: ref, authStream: Stream.empty());
 
   @override
   void dispose() {
@@ -337,13 +348,13 @@ class _DummyRefresh extends GoRouterCompositeRefresh {
 /// Fake user pour simuler l'auth
 class _FakeUser extends User {
   _FakeUser()
-      : super(
-          id: 'user-test',
-          appMetadata: {},
-          userMetadata: {},
-          aud: 'authenticated',
-          createdAt: DateTime.now().toIso8601String(),
-        );
+    : super(
+        id: 'user-test',
+        appMetadata: {},
+        userMetadata: {},
+        aud: 'authenticated',
+        createdAt: DateTime.now().toIso8601String(),
+      );
 
   @override
   String? get email => 'test@example.com';
@@ -394,10 +405,7 @@ void main() {
 
         // Créer l'app avec les providers overridés
         await tester.pumpWidget(
-          UncontrolledProviderScope(
-            container: container,
-            child: const MyApp(),
-          ),
+          UncontrolledProviderScope(container: container, child: const MyApp()),
         );
         await tester.pumpAndSettle();
 
@@ -409,7 +417,10 @@ void main() {
 
         // Assert 1 : Vérifier que l'écran de liste s'affiche
         expect(find.byType(ReceptionListScreen), findsOneWidget);
-        expect(find.text('Réceptions'), findsAtLeastNWidgets(1)); // Peut apparaître dans menu + titre
+        expect(
+          find.text('Réceptions'),
+          findsAtLeastNWidgets(1),
+        ); // Peut apparaître dans menu + titre
         expect(find.byIcon(Icons.add), findsWidgets);
 
         // Act 2 : Cliquer sur le bouton + pour créer une nouvelle réception
@@ -418,8 +429,12 @@ void main() {
         await tester.pumpAndSettle();
 
         // Assert 2 : Vérifier que le formulaire s'affiche
-        expect(find.byType(ReceptionFormScreen), findsOneWidget,
-            reason: 'L\'écran formulaire de réception doit être affiché sur /receptions/new.');
+        expect(
+          find.byType(ReceptionFormScreen),
+          findsOneWidget,
+          reason:
+              'L\'écran formulaire de réception doit être affiché sur /receptions/new.',
+        );
         expect(find.text('Nouvelle Réception'), findsOneWidget);
 
         // ⚠️ IMPORTANT : Laisser Flutter finir toutes les animations & redirections GoRouter
@@ -427,8 +442,12 @@ void main() {
         await tester.pumpAndSettle();
 
         // Vérifier que le formulaire n'est pas en état de chargement (busy = true)
-        expect(find.byType(CircularProgressIndicator), findsNothing,
-            reason: 'Le formulaire ne devrait pas être en état de chargement initial');
+        expect(
+          find.byType(CircularProgressIndicator),
+          findsNothing,
+          reason:
+              'Le formulaire ne devrait pas être en état de chargement initial',
+        );
 
         // Act 3 : Attendre que les providers (citernes, produits) soient chargés
         // Le formulaire a déjà MONALUXE sélectionné par défaut
@@ -437,8 +456,12 @@ void main() {
         await tester.pumpAndSettle(const Duration(seconds: 2));
 
         // Vérifier qu'on n'est toujours pas en chargement après le chargement des providers
-        expect(find.byType(CircularProgressIndicator), findsNothing,
-            reason: 'Le formulaire ne devrait toujours pas être en état de chargement après le chargement des providers');
+        expect(
+          find.byType(CircularProgressIndicator),
+          findsNothing,
+          reason:
+              'Le formulaire ne devrait toujours pas être en état de chargement après le chargement des providers',
+        );
 
         // Changer en mode PARTENAIRE pour pouvoir sélectionner un produit
         // (En MONALUXE, il faut un CDR pour que le produit soit défini)
@@ -448,11 +471,11 @@ void main() {
           await tester.tap(partenaireChip);
           await tester.pumpAndSettle();
           debugPrint('✅ Mode PARTENAIRE sélectionné');
-          
+
           // En mode PARTENAIRE, un champ PartenaireAutocomplete apparaît
           // On doit attendre qu'il soit construit et sélectionner un partenaire
           await tester.pumpAndSettle(const Duration(seconds: 1));
-          
+
           // Sélectionner un partenaire via l'autocomplete
           // Le PartenaireAutocomplete contient un TextField avec label "Partenaire"
           final partenaireField = find.text('Partenaire');
@@ -464,9 +487,12 @@ void main() {
             );
             if (partenaireTextField.evaluate().isNotEmpty) {
               // Taper dans le champ pour ouvrir l'autocomplete
-              await tester.enterText(partenaireTextField.first, 'Partenaire Test');
+              await tester.enterText(
+                partenaireTextField.first,
+                'Partenaire Test',
+              );
               await tester.pumpAndSettle();
-              
+
               // Sélectionner le premier résultat de l'autocomplete
               final listTile = find.text('Partenaire Test');
               if (listTile.evaluate().isNotEmpty) {
@@ -477,20 +503,24 @@ void main() {
             }
           }
         }
-        
+
         // Sélectionner un produit (ChoiceChip avec le code du produit)
         // Le fake fournit un produit avec code 'ESS' et nom 'Essence'
         // Le chip affiche "ESS · Essence"
         await tester.pumpAndSettle(const Duration(seconds: 1));
-        
+
         // Chercher tous les ChoiceChip pour debug
         final allChoiceChips = find.byType(ChoiceChip);
-        debugPrint('🔍 DEBUG: ChoiceChip trouvés: ${allChoiceChips.evaluate().length}');
-        
+        debugPrint(
+          '🔍 DEBUG: ChoiceChip trouvés: ${allChoiceChips.evaluate().length}',
+        );
+
         // Chercher le chip qui contient "ESS"
         final produitChip = find.textContaining('ESS');
-        debugPrint('🔍 DEBUG: Text contenant "ESS" trouvés: ${produitChip.evaluate().length}');
-        
+        debugPrint(
+          '🔍 DEBUG: Text contenant "ESS" trouvés: ${produitChip.evaluate().length}',
+        );
+
         if (produitChip.evaluate().isNotEmpty) {
           // Trouver le ChoiceChip parent du Text
           final chip = find.ancestor(
@@ -510,24 +540,30 @@ void main() {
         } else {
           debugPrint('⚠️  Aucun chip produit contenant "ESS" trouvé');
         }
-        
+
         // Maintenant, attendre que les citernes soient filtrées et affichées
         // Le formulaire pré-sélectionne automatiquement si une seule citerne est disponible
         // (via WidgetsBinding.instance.addPostFrameCallback)
         await tester.pumpAndSettle(const Duration(seconds: 2));
-        
+
         // Utiliser la Key stable pour trouver le sélecteur de citerne
-        final citerneSelectorKey = find.byKey(const Key('reception_citerne_selector'));
-        debugPrint('🔍 DEBUG: Sélecteur citerne (Key) trouvé: ${citerneSelectorKey.evaluate().length}');
-        
+        final citerneSelectorKey = find.byKey(
+          const Key('reception_citerne_selector'),
+        );
+        debugPrint(
+          '🔍 DEBUG: Sélecteur citerne (Key) trouvé: ${citerneSelectorKey.evaluate().length}',
+        );
+
         if (citerneSelectorKey.evaluate().isNotEmpty) {
           // Le sélecteur existe, chercher les RadioListTile à l'intérieur
           final citerneRadioListTiles = find.descendant(
             of: citerneSelectorKey,
             matching: find.byType(RadioListTile<String>),
           );
-          debugPrint('🔍 DEBUG: RadioListTile de citerne trouvées: ${citerneRadioListTiles.evaluate().length}');
-          
+          debugPrint(
+            '🔍 DEBUG: RadioListTile de citerne trouvées: ${citerneRadioListTiles.evaluate().length}',
+          );
+
           if (citerneRadioListTiles.evaluate().isNotEmpty) {
             // Si plusieurs citernes, sélectionner la première (ou celle qui est déjà sélectionnée)
             // Mais si une seule citerne existe, elle devrait être auto-sélectionnée
@@ -539,19 +575,29 @@ void main() {
             // Si le sélecteur existe mais aucune RadioListTile n'est trouvée,
             // cela signifie probablement qu'il n'y a qu'une seule citerne et qu'elle est auto-sélectionnée
             // On attend un peu plus pour laisser le temps à la pré-sélection de se faire
-            debugPrint('⚠️  Sélecteur trouvé mais aucune RadioListTile visible. Attente de l\'auto-sélection...');
+            debugPrint(
+              '⚠️  Sélecteur trouvé mais aucune RadioListTile visible. Attente de l\'auto-sélection...',
+            );
             await tester.pumpAndSettle(const Duration(seconds: 2));
-            debugPrint('✅ Auto-sélection attendue (1 seule citerne disponible)');
+            debugPrint(
+              '✅ Auto-sélection attendue (1 seule citerne disponible)',
+            );
           }
         } else {
           // Le sélecteur n'existe pas encore, attendre un peu plus
-          debugPrint('⚠️  Sélecteur de citerne non trouvé. Attente supplémentaire...');
+          debugPrint(
+            '⚠️  Sélecteur de citerne non trouvé. Attente supplémentaire...',
+          );
           await tester.pumpAndSettle(const Duration(seconds: 2));
-          
+
           // Vérifier à nouveau
-          final citerneSelectorKey2 = find.byKey(const Key('reception_citerne_selector'));
+          final citerneSelectorKey2 = find.byKey(
+            const Key('reception_citerne_selector'),
+          );
           if (citerneSelectorKey2.evaluate().isEmpty) {
-            debugPrint('⚠️  Sélecteur toujours introuvable après attente. Vérifier que le produit est sélectionné.');
+            debugPrint(
+              '⚠️  Sélecteur toujours introuvable après attente. Vérifier que le produit est sélectionné.',
+            );
           } else {
             debugPrint('✅ Sélecteur trouvé après attente');
             // Essayer de trouver les RadioListTile maintenant
@@ -560,7 +606,10 @@ void main() {
               matching: find.byType(RadioListTile<String>),
             );
             if (citerneRadioListTiles2.evaluate().isNotEmpty) {
-              await tester.tap(citerneRadioListTiles2.first, warnIfMissed: false);
+              await tester.tap(
+                citerneRadioListTiles2.first,
+                warnIfMissed: false,
+              );
               await tester.pumpAndSettle();
             }
           }
@@ -571,9 +620,11 @@ void main() {
         // On cherche d'abord les TextField, et si on n'en trouve pas assez, on scroll
         var textFields = find.byType(TextField);
         var textFieldCount = textFields.evaluate().length;
-        
+
         if (textFieldCount < 4) {
-          debugPrint('⚠️  Seulement $textFieldCount TextField trouvés avant scroll. Tentative de scroll...');
+          debugPrint(
+            '⚠️  Seulement $textFieldCount TextField trouvés avant scroll. Tentative de scroll...',
+          );
           final listView = find.byType(ListView);
           if (listView.evaluate().isNotEmpty) {
             // Scroller vers le bas pour voir la Card "Mesures & Calculs"
@@ -593,11 +644,15 @@ void main() {
         // - Température (ctrlTemp) - valeur par défaut '15'
         // - Densité (ctrlDens) - valeur par défaut '0.83'
         // On utilise TextField car c'est ce qui est utilisé dans _buildMesuresCard
-        debugPrint('🔍 DEBUG: TextField trouvés dans le formulaire: $textFieldCount');
-        
+        debugPrint(
+          '🔍 DEBUG: TextField trouvés dans le formulaire: $textFieldCount',
+        );
+
         // Debug supplémentaire si aucun TextField n'est trouvé
         if (textFieldCount == 0) {
-          debugPrint('🔍 DEBUG: Aucun TextField trouvé. Analyse de l\'arbre de widgets:');
+          debugPrint(
+            '🔍 DEBUG: Aucun TextField trouvé. Analyse de l\'arbre de widgets:',
+          );
           final allTexts = find.byType(Text);
           final textCount = allTexts.evaluate().length;
           debugPrint('  - Text widgets trouvés: $textCount');
@@ -607,7 +662,7 @@ void main() {
               debugPrint('    TEXT: "${widget.data}"');
             }
           }
-          
+
           // Vérifier aussi s'il y a des EditableText (qui sont dans les TextField)
           final editableTextCount = find.byType(EditableText).evaluate().length;
           debugPrint('  - EditableText trouvés: $editableTextCount');
@@ -616,7 +671,8 @@ void main() {
         expect(
           textFields,
           findsAtLeastNWidgets(4),
-          reason: 'Le formulaire doit contenir au moins 4 TextField (index avant, index après, température, densité). '
+          reason:
+              'Le formulaire doit contenir au moins 4 TextField (index avant, index après, température, densité). '
               'Trouvé: $textFieldCount. '
               'Le formulaire n\'est peut-être pas encore complètement construit ou la Card "Mesures & Calculs" n\'est pas visible.',
         );
@@ -628,8 +684,10 @@ void main() {
         // 2 = Température (ctrlTemp) - a déjà '15' par défaut, on le remplace
         // 3 = Densité (ctrlDens) - a déjà '0.83' par défaut, on le remplace
         // (4+ = Note optionnel dans la Card Récapitulatif)
-        debugPrint('✅ Remplissage des 4 champs principaux (index avant, index après, température, densité)');
-        
+        debugPrint(
+          '✅ Remplissage des 4 champs principaux (index avant, index après, température, densité)',
+        );
+
         // Index avant
         await tester.enterText(textFields.at(0), '1000');
         await tester.pump();
@@ -650,9 +708,12 @@ void main() {
         // Le bouton est dans le bottomNavigationBar et utilise FilledButton.icon
         // Le bouton contient un Text avec "Enregistrer la réception"
         final submitButtonText = find.text('Enregistrer la réception');
-        expect(submitButtonText, findsOneWidget,
-            reason: 'Le texte "Enregistrer la réception" doit être présent');
-        
+        expect(
+          submitButtonText,
+          findsOneWidget,
+          reason: 'Le texte "Enregistrer la réception" doit être présent',
+        );
+
         // Le bouton est dans le bottomNavigationBar, donc il devrait être visible
         // Mais on peut scroller vers le bas pour s'assurer qu'il est visible
         final listView = find.byType(ListView);
@@ -661,7 +722,7 @@ void main() {
           await tester.drag(listView.first, const Offset(0, -500));
           await tester.pumpAndSettle();
         }
-        
+
         // Vérifier que le formulaire est dans un état valide pour la soumission
         // Le bouton est actif si _canSubmit retourne true, ce qui nécessite :
         // - _selectedProduitId != null
@@ -670,14 +731,20 @@ void main() {
         // - avant >= 0 && apres > avant
         // - temp != null && dens != null
         // On a rempli tous ces champs, donc le bouton devrait être actif
-        
+
         // Si le bouton est désactivé, c'est probablement parce que _selectedCiterneId est null
         // Dans ce cas, on ne peut pas continuer
-        debugPrint('🔍 DEBUG: Vérification de l\'état du formulaire avant soumission...');
+        debugPrint(
+          '🔍 DEBUG: Vérification de l\'état du formulaire avant soumission...',
+        );
         debugPrint('   - Produit sélectionné: devrait être "prod-1"');
-        debugPrint('   - Citerne sélectionnée: devrait être "citerne-1" (pré-sélectionnée automatiquement)');
-        debugPrint('   - Propriétaire: PARTENAIRE (mais partenaireId peut être null)');
-        
+        debugPrint(
+          '   - Citerne sélectionnée: devrait être "citerne-1" (pré-sélectionnée automatiquement)',
+        );
+        debugPrint(
+          '   - Propriétaire: PARTENAIRE (mais partenaireId peut être null)',
+        );
+
         // Cliquer directement sur le texte "Enregistrer la réception"
         // Le Text est dans un FilledButton, donc il devrait être cliquable
         // Si le bouton est désactivé, le tap ne fera rien, mais on essaie quand même
@@ -713,68 +780,70 @@ void main() {
       },
     );
 
-    testWidgets(
-      'E2E UI : Le KPI "Réceptions du jour" s\'affiche correctement',
-      (WidgetTester tester) async {
-        // Arrange : Créer des rows brutes qui correspondent au KPI attendu
-        // (count: 5, volume15c: 5000.0, volumeAmbient: 5100.0)
-        // On crée 5 réceptions avec des volumes qui totalisent 5000.0L à 15°C et 5100.0L ambiant
-        final rowsFixture = List.generate(5, (index) => {
+    testWidgets('E2E UI : Le KPI "Réceptions du jour" s\'affiche correctement', (
+      WidgetTester tester,
+    ) async {
+      // Arrange : Créer des rows brutes qui correspondent au KPI attendu
+      // (count: 5, volume15c: 5000.0, volumeAmbient: 5100.0)
+      // On crée 5 réceptions avec des volumes qui totalisent 5000.0L à 15°C et 5100.0L ambiant
+      final rowsFixture = List.generate(
+        5,
+        (index) => {
           'volume_corrige_15c': 1000.0, // 5 * 1000 = 5000
           'volume_ambiant': 1020.0, // 5 * 1020 = 5100
           'proprietaire_type': 'MONALUXE',
-        });
+        },
+      );
 
-        // Créer un container avec override de receptionsRawTodayProvider
-        final testContainer = ProviderContainer(
-          overrides: [
-            receptionsRawTodayProvider.overrideWith((ref) async => rowsFixture),
-          ],
-        );
+      // Créer un container avec override de receptionsRawTodayProvider
+      final testContainer = ProviderContainer(
+        overrides: [
+          receptionsRawTodayProvider.overrideWith((ref) async => rowsFixture),
+        ],
+      );
 
-        // Créer un widget de test qui affiche le KPI
-        await tester.pumpWidget(
-          UncontrolledProviderScope(
-            container: testContainer,
-            child: MaterialApp(
-              home: Scaffold(
-                body: Consumer(
-                  builder: (context, ref, child) {
-                    final kpiAsync = ref.watch(receptionsKpiTodayProvider);
-                    return kpiAsync.when(
-                      data: (kpi) => Column(
-                        children: [
-                          Text('Réceptions du jour: ${kpi.count}'),
-                          Text('Volume 15°C: ${kpi.volume15c}L'),
-                          Text('Volume ambiant: ${kpi.volumeAmbient}L'),
-                        ],
-                      ),
-                      loading: () => const CircularProgressIndicator(),
-                      error: (e, st) => Text('Erreur: $e'),
-                    );
-                  },
-                ),
+      // Créer un widget de test qui affiche le KPI
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: testContainer,
+          child: MaterialApp(
+            home: Scaffold(
+              body: Consumer(
+                builder: (context, ref, child) {
+                  final kpiAsync = ref.watch(receptionsKpiTodayProvider);
+                  return kpiAsync.when(
+                    data: (kpi) => Column(
+                      children: [
+                        Text('Réceptions du jour: ${kpi.count}'),
+                        Text('Volume 15°C: ${kpi.volume15c}L'),
+                        Text('Volume ambiant: ${kpi.volumeAmbient}L'),
+                      ],
+                    ),
+                    loading: () => const CircularProgressIndicator(),
+                    error: (e, st) => Text('Erreur: $e'),
+                  );
+                },
               ),
             ),
           ),
-        );
-        await tester.pumpAndSettle();
-        
-        addTearDown(() => testContainer.dispose());
+        ),
+      );
+      await tester.pumpAndSettle();
 
-        // Assert : Vérifier que le KPI s'affiche correctement
-        // On utilise des assertions plus robustes pour éviter les échecs dus aux changements de formatage
-        // Le widget mocké affiche "Réceptions du jour: 5", donc on cherche le texte contenant "Réceptions du jour"
-        expect(find.textContaining('Réceptions du jour'), findsWidgets);
-        
-        // Vérifier que le nombre 5 est affiché (dans "Réceptions du jour: 5")
-        expect(find.textContaining('5'), findsWidgets);
-        
-        // Vérifier que les volumes sont affichés (format flexible)
-        // Le widget mocké affiche "Volume 15°C: 5000.0L" et "Volume ambiant: 5100.0L"
-        expect(find.textContaining('5000'), findsWidgets);
-        expect(find.textContaining('5100'), findsWidgets);
-      },
-    );
+      addTearDown(() => testContainer.dispose());
+
+      // Assert : Vérifier que le KPI s'affiche correctement
+      // On utilise des assertions plus robustes pour éviter les échecs dus aux changements de formatage
+      // Le widget mocké affiche "Réceptions du jour: 5", donc on cherche le texte contenant "Réceptions du jour"
+      expect(find.textContaining('Réceptions du jour'), findsWidgets);
+
+      // Vérifier que le nombre 5 est affiché (dans "Réceptions du jour: 5")
+      expect(find.textContaining('5'), findsWidgets);
+
+      // Vérifier que les volumes sont affichés (format flexible)
+      // Le widget mocké affiche "Volume 15°C: 5000.0L" et "Volume ambiant: 5100.0L"
+      expect(find.textContaining('5000'), findsWidgets);
+      expect(find.textContaining('5100'), findsWidgets);
+    });
   });
 }

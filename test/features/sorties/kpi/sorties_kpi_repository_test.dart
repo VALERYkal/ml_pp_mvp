@@ -1,6 +1,6 @@
 // 📌 Module : Sorties - Tests Repository KPI
 // 🧭 Description : Tests unitaires pour SortiesKpiRepository
-// 
+//
 // Note : Ces tests se concentrent sur la logique d'agrégation.
 // Les tests d'intégration avec Supabase sont couverts par les tests du provider.
 
@@ -45,60 +45,48 @@ void main() {
     test('agrégation - plusieurs sorties agrège correctement', () {
       // Arrange
       final mockData = <Map<String, dynamic>>[
-        {
-          'volume_corrige_15c': 1000.0,
-          'volume_ambiant': 980.0,
-        },
-        {
-          'volume_corrige_15c': 2000.0,
-          'volume_ambiant': 1950.0,
-        },
-        {
-          'volume_corrige_15c': 1500.0,
-          'volume_ambiant': 1470.0,
-        },
+        {'volume_corrige_15c': 1000.0, 'volume_ambiant': 980.0},
+        {'volume_corrige_15c': 2000.0, 'volume_ambiant': 1950.0},
+        {'volume_corrige_15c': 1500.0, 'volume_ambiant': 1470.0},
       ];
 
       // Act & Assert
       _testAggregationLogic(mockData, 3, 4500.0, 4400.0);
     });
 
-    test('agrégation - plusieurs sorties avec différents proprietaire_type agrège correctement', () {
-      // Arrange
-      final mockData = <Map<String, dynamic>>[
-        {
-          'volume_corrige_15c': 1000.0,
-          'volume_ambiant': 980.0,
-          // proprietaire_type: 'MONALUXE' (non utilisé dans l'agrégation)
-        },
-        {
-          'volume_corrige_15c': 2000.0,
-          'volume_ambiant': 1950.0,
-          // proprietaire_type: 'PARTENAIRE' (non utilisé dans l'agrégation)
-        },
-        {
-          'volume_corrige_15c': 1500.0,
-          'volume_ambiant': 1470.0,
-          // proprietaire_type: 'MONALUXE' (non utilisé dans l'agrégation)
-        },
-      ];
+    test(
+      'agrégation - plusieurs sorties avec différents proprietaire_type agrège correctement',
+      () {
+        // Arrange
+        final mockData = <Map<String, dynamic>>[
+          {
+            'volume_corrige_15c': 1000.0,
+            'volume_ambiant': 980.0,
+            // proprietaire_type: 'MONALUXE' (non utilisé dans l'agrégation)
+          },
+          {
+            'volume_corrige_15c': 2000.0,
+            'volume_ambiant': 1950.0,
+            // proprietaire_type: 'PARTENAIRE' (non utilisé dans l'agrégation)
+          },
+          {
+            'volume_corrige_15c': 1500.0,
+            'volume_ambiant': 1470.0,
+            // proprietaire_type: 'MONALUXE' (non utilisé dans l'agrégation)
+          },
+        ];
 
-      // Act & Assert
-      // L'agrégation doit ignorer le proprietaire_type et sommer tous les volumes
-      _testAggregationLogic(mockData, 3, 4500.0, 4400.0);
-    });
+        // Act & Assert
+        // L'agrégation doit ignorer le proprietaire_type et sommer tous les volumes
+        _testAggregationLogic(mockData, 3, 4500.0, 4400.0);
+      },
+    );
 
     test('agrégation - valeurs null traitées comme 0', () {
       // Arrange
       final mockData = <Map<String, dynamic>>[
-        {
-          'volume_corrige_15c': null,
-          'volume_ambiant': 980.0,
-        },
-        {
-          'volume_corrige_15c': 2000.0,
-          'volume_ambiant': null,
-        },
+        {'volume_corrige_15c': null, 'volume_ambiant': 980.0},
+        {'volume_corrige_15c': 2000.0, 'volume_ambiant': null},
       ];
 
       // Act & Assert
@@ -121,4 +109,3 @@ void main() {
     });
   });
 }
-

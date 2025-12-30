@@ -95,142 +95,159 @@ void main() {
       );
     });
 
-    test('MONALUXE avec clientId vide doit lever SortieServiceException', () async {
-      // Arrange
-      const citerneId = 'citerne-123';
-      const produitId = 'produit-456';
-      const indexAvant = 100.0;
-      const indexApres = 200.0;
-      const temperatureCAmb = 15.0;
-      const densiteA15 = 0.83;
+    test(
+      'MONALUXE avec clientId vide doit lever SortieServiceException',
+      () async {
+        // Arrange
+        const citerneId = 'citerne-123';
+        const produitId = 'produit-456';
+        const indexAvant = 100.0;
+        const indexApres = 200.0;
+        const temperatureCAmb = 15.0;
+        const densiteA15 = 0.83;
 
-      // Act & Assert
-      expect(
-        () => service.createValidated(
-          citerneId: citerneId,
-          produitId: produitId,
-          indexAvant: indexAvant,
-          indexApres: indexApres,
-          temperatureCAmb: temperatureCAmb,
-          densiteA15: densiteA15,
-          proprietaireType: 'MONALUXE',
-          clientId: '', // ❌ clientId vide
-          partenaireId: null,
-        ),
-        throwsA(isA<SortieServiceException>()),
-      );
-    });
+        // Act & Assert
+        expect(
+          () => service.createValidated(
+            citerneId: citerneId,
+            produitId: produitId,
+            indexAvant: indexAvant,
+            indexApres: indexApres,
+            temperatureCAmb: temperatureCAmb,
+            densiteA15: densiteA15,
+            proprietaireType: 'MONALUXE',
+            clientId: '', // ❌ clientId vide
+            partenaireId: null,
+          ),
+          throwsA(isA<SortieServiceException>()),
+        );
+      },
+    );
 
-    test('MONALUXE avec clientId contenant uniquement des espaces doit lever SortieServiceException', () async {
-      // Arrange
-      const citerneId = 'citerne-123';
-      const produitId = 'produit-456';
-      const indexAvant = 100.0;
-      const indexApres = 200.0;
-      const temperatureCAmb = 15.0;
-      const densiteA15 = 0.83;
+    test(
+      'MONALUXE avec clientId contenant uniquement des espaces doit lever SortieServiceException',
+      () async {
+        // Arrange
+        const citerneId = 'citerne-123';
+        const produitId = 'produit-456';
+        const indexAvant = 100.0;
+        const indexApres = 200.0;
+        const temperatureCAmb = 15.0;
+        const densiteA15 = 0.83;
 
-      // Act & Assert
-      expect(
-        () => service.createValidated(
-          citerneId: citerneId,
-          produitId: produitId,
-          indexAvant: indexAvant,
-          indexApres: indexApres,
-          temperatureCAmb: temperatureCAmb,
-          densiteA15: densiteA15,
-          proprietaireType: 'MONALUXE',
-          clientId: '   ', // ❌ clientId avec uniquement des espaces (trim().isEmpty)
-          partenaireId: null,
-        ),
-        throwsA(isA<SortieServiceException>()),
-      );
-    });
+        // Act & Assert
+        expect(
+          () => service.createValidated(
+            citerneId: citerneId,
+            produitId: produitId,
+            indexAvant: indexAvant,
+            indexApres: indexApres,
+            temperatureCAmb: temperatureCAmb,
+            densiteA15: densiteA15,
+            proprietaireType: 'MONALUXE',
+            clientId:
+                '   ', // ❌ clientId avec uniquement des espaces (trim().isEmpty)
+            partenaireId: null,
+          ),
+          throwsA(isA<SortieServiceException>()),
+        );
+      },
+    );
 
-    test('PARTENAIRE sans partenaireId doit lever SortieServiceException', () async {
-      // Arrange
-      const citerneId = 'citerne-123';
-      const produitId = 'produit-456';
-      const indexAvant = 100.0;
-      const indexApres = 200.0;
-      const temperatureCAmb = 15.0;
-      const densiteA15 = 0.83;
+    test(
+      'PARTENAIRE sans partenaireId doit lever SortieServiceException',
+      () async {
+        // Arrange
+        const citerneId = 'citerne-123';
+        const produitId = 'produit-456';
+        const indexAvant = 100.0;
+        const indexApres = 200.0;
+        const temperatureCAmb = 15.0;
+        const densiteA15 = 0.83;
 
-      // Act & Assert
-      expect(
-        () => service.createValidated(
-          citerneId: citerneId,
-          produitId: produitId,
-          indexAvant: indexAvant,
-          indexApres: indexApres,
-          temperatureCAmb: temperatureCAmb,
-          densiteA15: densiteA15,
-          proprietaireType: 'PARTENAIRE',
-          clientId: null,
-          partenaireId: null, // ❌ partenaireId manquant
-        ),
-        throwsA(isA<SortieServiceException>()),
-      );
-    });
+        // Act & Assert
+        expect(
+          () => service.createValidated(
+            citerneId: citerneId,
+            produitId: produitId,
+            indexAvant: indexAvant,
+            indexApres: indexApres,
+            temperatureCAmb: temperatureCAmb,
+            densiteA15: densiteA15,
+            proprietaireType: 'PARTENAIRE',
+            clientId: null,
+            partenaireId: null, // ❌ partenaireId manquant
+          ),
+          throwsA(isA<SortieServiceException>()),
+        );
+      },
+    );
 
-    test('PARTENAIRE avec partenaireId vide doit lever SortieServiceException', () async {
-      // Arrange
-      const citerneId = 'citerne-123';
-      const produitId = 'produit-456';
-      const indexAvant = 100.0;
-      const indexApres = 200.0;
-      const temperatureCAmb = 15.0;
-      const densiteA15 = 0.83;
+    test(
+      'PARTENAIRE avec partenaireId vide doit lever SortieServiceException',
+      () async {
+        // Arrange
+        const citerneId = 'citerne-123';
+        const produitId = 'produit-456';
+        const indexAvant = 100.0;
+        const indexApres = 200.0;
+        const temperatureCAmb = 15.0;
+        const densiteA15 = 0.83;
 
-      // Act & Assert
-      expect(
-        () => service.createValidated(
-          citerneId: citerneId,
-          produitId: produitId,
-          indexAvant: indexAvant,
-          indexApres: indexApres,
-          temperatureCAmb: temperatureCAmb,
-          densiteA15: densiteA15,
-          proprietaireType: 'PARTENAIRE',
-          clientId: null,
-          partenaireId: '', // ❌ partenaireId vide
-        ),
-        throwsA(isA<SortieServiceException>()),
-      );
-    });
+        // Act & Assert
+        expect(
+          () => service.createValidated(
+            citerneId: citerneId,
+            produitId: produitId,
+            indexAvant: indexAvant,
+            indexApres: indexApres,
+            temperatureCAmb: temperatureCAmb,
+            densiteA15: densiteA15,
+            proprietaireType: 'PARTENAIRE',
+            clientId: null,
+            partenaireId: '', // ❌ partenaireId vide
+          ),
+          throwsA(isA<SortieServiceException>()),
+        );
+      },
+    );
 
-    test('PARTENAIRE avec partenaireId contenant uniquement des espaces doit lever SortieServiceException', () async {
-      // Arrange
-      const citerneId = 'citerne-123';
-      const produitId = 'produit-456';
-      const indexAvant = 100.0;
-      const indexApres = 200.0;
-      const temperatureCAmb = 15.0;
-      const densiteA15 = 0.83;
+    test(
+      'PARTENAIRE avec partenaireId contenant uniquement des espaces doit lever SortieServiceException',
+      () async {
+        // Arrange
+        const citerneId = 'citerne-123';
+        const produitId = 'produit-456';
+        const indexAvant = 100.0;
+        const indexApres = 200.0;
+        const temperatureCAmb = 15.0;
+        const densiteA15 = 0.83;
 
-      // Act & Assert
-      expect(
-        () => service.createValidated(
-          citerneId: citerneId,
-          produitId: produitId,
-          indexAvant: indexAvant,
-          indexApres: indexApres,
-          temperatureCAmb: temperatureCAmb,
-          densiteA15: densiteA15,
-          proprietaireType: 'PARTENAIRE',
-          clientId: null,
-          partenaireId: '   ', // ❌ partenaireId avec uniquement des espaces (trim().isEmpty)
-        ),
-        throwsA(isA<SortieServiceException>()),
-      );
-    });
+        // Act & Assert
+        expect(
+          () => service.createValidated(
+            citerneId: citerneId,
+            produitId: produitId,
+            indexAvant: indexAvant,
+            indexApres: indexApres,
+            temperatureCAmb: temperatureCAmb,
+            densiteA15: densiteA15,
+            proprietaireType: 'PARTENAIRE',
+            clientId: null,
+            partenaireId:
+                '   ', // ❌ partenaireId avec uniquement des espaces (trim().isEmpty)
+          ),
+          throwsA(isA<SortieServiceException>()),
+        );
+      },
+    );
 
     // TODO: Le code normalise proprietaireType : tout ce qui n'est pas 'PARTENAIRE' devient 'MONALUXE'
     // Le else final (ligne 283-288) qui lève une exception pour proprietaireType inconnu
     // n'est jamais atteint dans l'implémentation actuelle car la normalisation transforme
     // toute valeur en 'MONALUXE' ou 'PARTENAIRE'. Si cette logique change à l'avenir,
     // ajouter un test pour ce cas.
-    // 
+    //
     // test('proprietaireType inconnu doit lever SortieServiceException', () async {
     //   // Ce test n'est pas possible actuellement car 'INCONNU' → 'MONALUXE' après normalisation
     // });
@@ -265,35 +282,38 @@ void main() {
       }
     });
 
-    test('vérifie que l\'exception PARTENAIRE contient le bon message', () async {
-      // Arrange
-      const citerneId = 'citerne-123';
-      const produitId = 'produit-456';
-      const indexAvant = 100.0;
-      const indexApres = 200.0;
-      const temperatureCAmb = 15.0;
-      const densiteA15 = 0.83;
+    test(
+      'vérifie que l\'exception PARTENAIRE contient le bon message',
+      () async {
+        // Arrange
+        const citerneId = 'citerne-123';
+        const produitId = 'produit-456';
+        const indexAvant = 100.0;
+        const indexApres = 200.0;
+        const temperatureCAmb = 15.0;
+        const densiteA15 = 0.83;
 
-      // Act & Assert
-      try {
-        await service.createValidated(
-          citerneId: citerneId,
-          produitId: produitId,
-          indexAvant: indexAvant,
-          indexApres: indexApres,
-          temperatureCAmb: temperatureCAmb,
-          densiteA15: densiteA15,
-          proprietaireType: 'PARTENAIRE',
-          clientId: null,
-          partenaireId: null,
-        );
-        fail('Devrait lever une exception');
-      } on SortieServiceException catch (e) {
-        expect(e.message, contains('partenaire est obligatoire'));
-        expect(e.message, contains('PARTENAIRE'));
-        expect(e.code, equals('PARTENAIRE_REQUIRED'));
-      }
-    });
+        // Act & Assert
+        try {
+          await service.createValidated(
+            citerneId: citerneId,
+            produitId: produitId,
+            indexAvant: indexAvant,
+            indexApres: indexApres,
+            temperatureCAmb: temperatureCAmb,
+            densiteA15: densiteA15,
+            proprietaireType: 'PARTENAIRE',
+            clientId: null,
+            partenaireId: null,
+          );
+          fail('Devrait lever une exception');
+        } on SortieServiceException catch (e) {
+          expect(e.message, contains('partenaire est obligatoire'));
+          expect(e.message, contains('PARTENAIRE'));
+          expect(e.code, equals('PARTENAIRE_REQUIRED'));
+        }
+      },
+    );
   });
 }
 

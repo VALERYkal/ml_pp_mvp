@@ -9,11 +9,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/models/profil.dart';
 
 /// Service de gestion des profils utilisateur
-/// 
+///
 /// Responsable de toutes les opérations CRUD sur la table `profils`
 /// via l'API Supabase. Utilise l'injection de dépendance pour
 /// le client Supabase.
-/// 
+///
 /// Ce service est utilisé par :
 /// - Les providers Riverpod pour la gestion d'état
 /// - Les écrans d'authentification et de profil
@@ -23,7 +23,7 @@ class ProfilService {
   final SupabaseClient _client;
 
   /// Constructeur avec injection de dépendance
-  /// 
+  ///
   /// [client] : Instance du client Supabase
   /// Utilisé pour permettre les tests unitaires
   const ProfilService.withClient(this._client);
@@ -32,38 +32,41 @@ class ProfilService {
   ProfilService() : _client = Supabase.instance.client;
 
   /// Récupère le profil utilisateur courant
-  /// 
+  ///
   /// [userId] : Identifiant de l'utilisateur Supabase Auth
-  /// 
+  ///
   /// Retourne :
   /// - `Profil?` : Le profil utilisateur si trouvé
   /// - `null` : Si aucun profil n'existe pour cet utilisateur
-  /// 
+  ///
   /// Exceptions possibles :
   /// - `PostgrestException` : Erreur de connexion ou requête
   /// - `AuthException` : Erreur d'authentification
   Future<Profil?> getCurrentProfil(String userId) async {
     try {
       debugPrint('🔍 ProfilService: Recherche du profil pour userId: $userId');
-      
+
       // Requête Supabase pour récupérer le profil
       final response = await _client
           .from('profils')
           .select()
           .eq('user_id', userId)
           .maybeSingle();
-      
+
       if (response == null) {
-        debugPrint('⚠️ ProfilService: Aucun profil trouvé pour userId: $userId');
+        debugPrint(
+          '⚠️ ProfilService: Aucun profil trouvé pour userId: $userId',
+        );
         return null;
       }
-      
+
       // Conversion des données Supabase vers le modèle Profil
       final profil = Profil.fromJson(response);
-      debugPrint('✅ ProfilService: Profil récupéré avec succès - Role: ${profil.role}');
-      
+      debugPrint(
+        '✅ ProfilService: Profil récupéré avec succès - Role: ${profil.role}',
+      );
+
       return profil;
-      
     } on PostgrestException catch (e) {
       debugPrint('❌ ProfilService: Erreur Supabase - ${e.message}');
       rethrow;
@@ -77,31 +80,26 @@ class ProfilService {
   }
 
   /// Crée un nouveau profil utilisateur
-  /// 
+  ///
   /// [profil] : Le profil à créer (sans id)
-  /// 
+  ///
   /// Retourne :
   /// - `Profil` : Le profil créé avec l'id généré
-  /// 
+  ///
   /// Utilisé lors de l'inscription d'un nouvel utilisateur
   Future<void> createProfil(Profil profil) async {
     try {
       debugPrint('➕ ProfilService: Création d\'un nouveau profil');
-      
+
       // Préparation des données pour Supabase
       final data = profil.toJson();
       data.remove('id'); // L'id sera généré automatiquement
       data.remove('created_at'); // Le timestamp sera généré automatiquement
-      
+
       // Insertion dans Supabase
-      await _client
-          .from('profils')
-          .insert(data)
-          .select()
-          .single();
-      
+      await _client.from('profils').insert(data).select().single();
+
       debugPrint('✅ ProfilService: Profil créé avec succès');
-      
     } on PostgrestException catch (e) {
       debugPrint('❌ ProfilService: Erreur lors de la création - ${e.message}');
       rethrow;
@@ -112,19 +110,21 @@ class ProfilService {
   }
 
   /// Met à jour un profil existant
-  /// 
+  ///
   /// [profil] : Le profil avec les nouvelles données
-  /// 
+  ///
   /// Utilisé pour modifier les informations du profil
   Future<void> updateProfil(Profil profil) async {
     try {
       debugPrint('🔄 ProfilService: Mise à jour du profil - ID: ${profil.id}');
-      
+
       // Préparation des données pour Supabase
       final data = profil.toJson();
       data.remove('id'); // L'id ne doit pas être modifié
-      data.remove('created_at'); // Le timestamp de création ne doit pas être modifié
-      
+      data.remove(
+        'created_at',
+      ); // Le timestamp de création ne doit pas être modifié
+
       // Mise à jour dans Supabase
       await _client
           .from('profils')
@@ -132,20 +132,23 @@ class ProfilService {
           .eq('id', profil.id)
           .select()
           .single();
-      
+
       debugPrint('✅ ProfilService: Profil mis à jour avec succès');
-      
     } on PostgrestException catch (e) {
-      debugPrint('❌ ProfilService: Erreur lors de la mise à jour - ${e.message}');
+      debugPrint(
+        '❌ ProfilService: Erreur lors de la mise à jour - ${e.message}',
+      );
       rethrow;
     } catch (e) {
-      debugPrint('❌ ProfilService: Erreur inattendue lors de la mise à jour - $e');
+      debugPrint(
+        '❌ ProfilService: Erreur inattendue lors de la mise à jour - $e',
+      );
       rethrow;
     }
   }
 
   /// Récupère le profil de l'utilisateur actuellement connecté
-  /// 
+  ///
   /// Retourne :
   /// - `Profil?` : Le profil utilisateur si trouvé
   /// - `null` : Si aucun profil n'existe ou si l'utilisateur n'est pas connecté
@@ -164,15 +167,15 @@ class ProfilService {
   }
 
   /// Crée un profil pour l'utilisateur actuellement connecté
-  /// 
+  ///
   /// [role] : Rôle par défaut (ex: 'directeur' ou 'lecture')
   /// [nomComplet] : Nom complet optionnel
   /// [email] : Email optionnel
   /// [depotId] : ID du dépôt optionnel
-  /// 
+  ///
   /// Retourne :
   /// - `Profil` : Le profil créé
-  /// 
+  ///
   /// Exceptions :
   /// - `StateError` : Si l'utilisateur n'est pas connecté
   Future<Profil> createForCurrentUser({
@@ -205,15 +208,15 @@ class ProfilService {
   }
 
   /// Récupère ou crée un profil pour l'utilisateur actuellement connecté
-  /// 
+  ///
   /// [defaultRole] : Rôle par défaut si création nécessaire
   /// [nomComplet] : Nom complet optionnel
   /// [email] : Email optionnel
   /// [depotId] : ID du dépôt optionnel
-  /// 
+  ///
   /// Retourne :
   /// - `Profil` : Le profil existant ou nouvellement créé
-  /// 
+  ///
   /// Cette méthode est idempotente et RLS-safe
   Future<Profil> getOrCreateByCurrentUser({
     String defaultRole = 'lecture',

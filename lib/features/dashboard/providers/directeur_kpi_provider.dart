@@ -9,7 +9,8 @@ class DirecteurKpiData {
   final int citernesSousSeuil;
   final int totalCiternes;
   final double ratioUtilisation; // 0..1
-  final double volumeTotalReceptions; // unité = ce que tu affiches (v15 si dispo, sinon ambiant)
+  final double
+  volumeTotalReceptions; // unité = ce que tu affiches (v15 si dispo, sinon ambiant)
   final double volumeTotalSorties;
   const DirecteurKpiData({
     required this.receptionsJour,
@@ -28,7 +29,7 @@ String _isoUtc(DateTime d) =>
     d.toUtc().toIso8601String().split('.').first + 'Z';
 
 /// Provider legacy pour les KPIs Directeur
-/// 
+///
 /// ⚠️ NOTE : Ce provider utilise DateTime.now().toUtc() pour calculer la date du jour.
 /// Pour les KPI "du jour" du dashboard principal, utiliser kpiProviderProvider qui utilise la date métier locale.
 final directeurKpiProvider = FutureProvider<DirecteurKpiData>((ref) async {

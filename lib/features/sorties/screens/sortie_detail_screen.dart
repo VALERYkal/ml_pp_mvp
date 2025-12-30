@@ -15,9 +15,7 @@ class SortieDetailScreen extends ConsumerWidget {
     final asyncRows = ref.watch(sortiesTableProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Détail de la sortie'),
-      ),
+      appBar: AppBar(title: const Text('Détail de la sortie')),
       body: asyncRows.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, st) => Center(
@@ -83,8 +81,8 @@ class SortieDetailScreen extends ConsumerWidget {
                     Text(
                       'La sortie demandée n\'existe pas ou a été supprimée.',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -110,9 +108,8 @@ class SortieDetailScreen extends ConsumerWidget {
                         Expanded(
                           child: Text(
                             'Détail de la sortie',
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                            style: Theme.of(context).textTheme.headlineSmall
+                                ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                         ),
                         _buildProprietaireBadge(context, row.propriete),
@@ -122,11 +119,11 @@ class SortieDetailScreen extends ConsumerWidget {
                     Text(
                       DateFormatter.formatDate(row.dateSortie),
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                     const SizedBox(height: 24),
-                    
+
                     // Section Informations principales
                     _buildSectionTitle(context, 'Informations principales'),
                     const SizedBox(height: 12),
@@ -148,9 +145,17 @@ class SortieDetailScreen extends ConsumerWidget {
                       context,
                       label: 'Bénéficiaire',
                       value: row.beneficiaireNom ?? 'Bénéficiaire inconnu',
-                      icon: row.propriete == 'MONALUXE' ? Icons.person : Icons.business,
-                      valueWidget: row.beneficiaireNom != null && row.beneficiaireNom!.isNotEmpty
-                          ? _buildBeneficiaireChip(context, row.beneficiaireNom!, row.propriete)
+                      icon: row.propriete == 'MONALUXE'
+                          ? Icons.person
+                          : Icons.business,
+                      valueWidget:
+                          row.beneficiaireNom != null &&
+                              row.beneficiaireNom!.isNotEmpty
+                          ? _buildBeneficiaireChip(
+                              context,
+                              row.beneficiaireNom!,
+                              row.propriete,
+                            )
                           : null,
                     ),
                     const SizedBox(height: 12),
@@ -158,13 +163,15 @@ class SortieDetailScreen extends ConsumerWidget {
                       context,
                       label: 'Statut',
                       value: row.statut == 'validee' ? 'Validée' : 'Brouillon',
-                      icon: row.statut == 'validee' ? Icons.check_circle : Icons.edit,
+                      icon: row.statut == 'validee'
+                          ? Icons.check_circle
+                          : Icons.edit,
                     ),
-                    
+
                     const SizedBox(height: 24),
                     const Divider(),
                     const SizedBox(height: 24),
-                    
+
                     // Section Volumes
                     _buildSectionTitle(context, 'Volumes'),
                     const SizedBox(height: 12),
@@ -214,14 +221,12 @@ class SortieDetailScreen extends ConsumerWidget {
               Text(
                 label,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
               const SizedBox(height: 4),
-              valueWidget ?? Text(
-                value,
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
+              valueWidget ??
+                  Text(value, style: Theme.of(context).textTheme.bodyLarge),
             ],
           ),
         ),
@@ -232,9 +237,9 @@ class SortieDetailScreen extends ConsumerWidget {
   Widget _buildSectionTitle(BuildContext context, String title) {
     return Text(
       title,
-      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+      style: Theme.of(
+        context,
+      ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
     );
   }
 
@@ -243,16 +248,13 @@ class SortieDetailScreen extends ConsumerWidget {
     final color = isMonaluxe
         ? Theme.of(context).colorScheme.primary
         : Theme.of(context).colorScheme.secondary;
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: color.withOpacity(0.3),
-          width: 1,
-        ),
+        border: Border.all(color: color.withOpacity(0.3), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -266,29 +268,30 @@ class SortieDetailScreen extends ConsumerWidget {
           Text(
             propriete,
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w600,
-                ),
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildBeneficiaireChip(BuildContext context, String nom, String propriete) {
+  Widget _buildBeneficiaireChip(
+    BuildContext context,
+    String nom,
+    String propriete,
+  ) {
     final color = propriete == 'MONALUXE'
         ? Theme.of(context).colorScheme.primary
         : Theme.of(context).colorScheme.secondary;
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: color.withOpacity(0.3),
-          width: 1,
-        ),
+        border: Border.all(color: color.withOpacity(0.3), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -302,13 +305,12 @@ class SortieDetailScreen extends ConsumerWidget {
           Text(
             nom,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w600,
-                ),
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),
     );
   }
 }
-

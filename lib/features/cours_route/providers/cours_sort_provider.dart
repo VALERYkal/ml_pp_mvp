@@ -20,20 +20,14 @@ enum CoursSortColumn {
 }
 
 /// Direction du tri
-enum SortDirection {
-  ascending,
-  descending,
-}
+enum SortDirection { ascending, descending }
 
 /// Configuration de tri
 class CoursSortConfig {
   final CoursSortColumn column;
   final SortDirection direction;
 
-  const CoursSortConfig({
-    required this.column,
-    required this.direction,
-  });
+  const CoursSortConfig({required this.column, required this.direction});
 
   CoursSortConfig copyWith({
     CoursSortColumn? column,
@@ -57,7 +51,8 @@ class CoursSortConfig {
   int get hashCode => column.hashCode ^ direction.hashCode;
 
   @override
-  String toString() => 'CoursSortConfig(column: $column, direction: $direction)';
+  String toString() =>
+      'CoursSortConfig(column: $column, direction: $direction)';
 }
 
 /// Provider pour la configuration de tri
@@ -71,10 +66,10 @@ final coursSortProvider = StateProvider<CoursSortConfig>((ref) {
 /// Fonction de tri des cours
 List<CoursDeRoute> sortCours(List<CoursDeRoute> cours, CoursSortConfig config) {
   final sorted = List<CoursDeRoute>.from(cours);
-  
+
   sorted.sort((a, b) {
     int comparison = 0;
-    
+
     switch (config.column) {
       case CoursSortColumn.fournisseur:
         comparison = (a.fournisseurId ?? '').compareTo(b.fournisseurId ?? '');
@@ -112,9 +107,11 @@ List<CoursDeRoute> sortCours(List<CoursDeRoute> cours, CoursSortConfig config) {
         comparison = a.statut.index.compareTo(b.statut.index);
         break;
     }
-    
-    return config.direction == SortDirection.ascending ? comparison : -comparison;
+
+    return config.direction == SortDirection.ascending
+        ? comparison
+        : -comparison;
   });
-  
+
   return sorted;
 }

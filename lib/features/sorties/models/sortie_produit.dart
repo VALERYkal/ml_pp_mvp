@@ -27,7 +27,9 @@ class SortieProduit with _$SortieProduit {
 
     // Statut & propriété
     @JsonKey(name: 'statut') @Default('brouillon') String statut,
-    @JsonKey(name: 'proprietaire_type') @Default('MONALUXE') String proprietaireType,
+    @JsonKey(name: 'proprietaire_type')
+    @Default('MONALUXE')
+    String proprietaireType,
 
     // Logistique
     @JsonKey(name: 'date_sortie') DateTime? dateSortie,
@@ -44,7 +46,6 @@ class SortieProduit with _$SortieProduit {
     String? note,
   }) = _SortieProduit;
 
-  factory SortieProduit.fromJson(Map<String, dynamic> json) => _$SortieProduitFromJson(json);
+  factory SortieProduit.fromJson(Map<String, dynamic> json) =>
+      _$SortieProduitFromJson(json);
 }
-
-

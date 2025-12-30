@@ -8,7 +8,8 @@ import 'package:go_router/go_router.dart';
 import 'package:ml_pp_mvp/features/dashboard/widgets/role_dashboard.dart';
 import 'package:ml_pp_mvp/features/kpi/providers/kpi_provider.dart';
 import 'package:ml_pp_mvp/features/kpi/models/kpi_models.dart';
-import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart' show currentProfilProvider, CurrentProfilNotifier;
+import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart'
+    show currentProfilProvider, CurrentProfilNotifier;
 import 'package:ml_pp_mvp/core/models/profil.dart';
 import 'package:ml_pp_mvp/core/models/user_role.dart';
 import 'package:ml_pp_mvp/shared/providers/session_provider.dart';
@@ -42,8 +43,9 @@ Widget _appWithRouter(Widget child, {String initialLocation = "/"}) {
 
 void main() {
   group('Dashboard KPI Sorties', () {
-    testWidgets('Dashboard affiche correctement la carte KPI Sorties du jour',
-        (WidgetTester tester) async {
+    testWidgets('Dashboard affiche correctement la carte KPI Sorties du jour', (
+      WidgetTester tester,
+    ) async {
       // 1. Construire un snapshot fake avec des données Sorties
       final fakeSnapshot = KpiSnapshot(
         receptionsToday: KpiNumberVolume.zero,
@@ -70,14 +72,15 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           // Override auth state pour simuler un utilisateur connecté
-          appAuthStateProvider.overrideWith((ref) => Stream.value(
-            AppAuthState(
-              session: null,
-              authStream: const Stream.empty(),
+          appAuthStateProvider.overrideWith(
+            (ref) => Stream.value(
+              AppAuthState(session: null, authStream: const Stream.empty()),
             ),
-          )),
+          ),
           // Override profil provider
-          currentProfilProvider.overrideWith(() => _FakeProfilNotifier(fakeProfil)),
+          currentProfilProvider.overrideWith(
+            () => _FakeProfilNotifier(fakeProfil),
+          ),
           // Override KPI provider
           kpiProviderProvider.overrideWith((ref) async => fakeSnapshot),
           // Override citernes sous seuil provider
@@ -122,36 +125,42 @@ void main() {
       // Vérifier que le volume 15°C est affiché (formaté via fmtL)
       // fmtL(1400.0) utilise NumberFormat qui peut formater avec espaces/virgules
       // On vérifie qu'au moins un des formats possibles est présent
-      final volume15cFound = find.textContaining('1 400').evaluate().isNotEmpty ||
+      final volume15cFound =
+          find.textContaining('1 400').evaluate().isNotEmpty ||
           find.textContaining('1,400').evaluate().isNotEmpty ||
           find.textContaining('1400').evaluate().isNotEmpty;
       expect(
         volume15cFound,
         isTrue,
-        reason: 'Le volume 15°C (1400) doit être affiché quelque part dans la carte (formaté comme "1 400 L", "1,400 L" ou "1400 L")',
+        reason:
+            'Le volume 15°C (1400) doit être affiché quelque part dans la carte (formaté comme "1 400 L", "1,400 L" ou "1400 L")',
       );
 
       // Vérifier que le volume ambiant est affiché
       // fmtL(1500.0) utilise NumberFormat qui peut formater avec espaces/virgules
-      final volumeAmbientFound = find.textContaining('1 500').evaluate().isNotEmpty ||
+      final volumeAmbientFound =
+          find.textContaining('1 500').evaluate().isNotEmpty ||
           find.textContaining('1,500').evaluate().isNotEmpty ||
           find.textContaining('1500').evaluate().isNotEmpty;
       expect(
         volumeAmbientFound,
         isTrue,
-        reason: 'Le volume ambiant (1500) doit être affiché quelque part dans la carte (formaté comme "1 500 L", "1,500 L" ou "1500 L")',
+        reason:
+            'Le volume ambiant (1500) doit être affiché quelque part dans la carte (formaté comme "1 500 L", "1,500 L" ou "1500 L")',
       );
 
       // Vérifier que l'icône est présente
       expect(
         find.byIcon(Icons.outbox_outlined),
         findsOneWidget,
-        reason: 'L\'icône outbox_outlined doit être présente dans la carte Sorties',
+        reason:
+            'L\'icône outbox_outlined doit être présente dans la carte Sorties',
       );
     });
 
-    testWidgets('Dashboard affiche zéro quand il n\'y a pas de sorties',
-        (WidgetTester tester) async {
+    testWidgets('Dashboard affiche zéro quand il n\'y a pas de sorties', (
+      WidgetTester tester,
+    ) async {
       // 1. Construire un snapshot avec sorties à zéro
       final fakeSnapshot = KpiSnapshot(
         receptionsToday: KpiNumberVolume.zero,
@@ -174,14 +183,15 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           // Override auth state pour simuler un utilisateur connecté
-          appAuthStateProvider.overrideWith((ref) => Stream.value(
-            AppAuthState(
-              session: null,
-              authStream: const Stream.empty(),
+          appAuthStateProvider.overrideWith(
+            (ref) => Stream.value(
+              AppAuthState(session: null, authStream: const Stream.empty()),
             ),
-          )),
+          ),
           // Override profil provider
-          currentProfilProvider.overrideWith(() => _FakeProfilNotifier(fakeProfil)),
+          currentProfilProvider.overrideWith(
+            () => _FakeProfilNotifier(fakeProfil),
+          ),
           // Override KPI provider
           kpiProviderProvider.overrideWith((ref) async => fakeSnapshot),
           // Override citernes sous seuil provider
@@ -204,7 +214,8 @@ void main() {
       expect(
         find.byKey(const Key('kpi_sorties_today_card')),
         findsOneWidget,
-        reason: 'La carte KPI Sorties doit être présente même avec des valeurs zéro',
+        reason:
+            'La carte KPI Sorties doit être présente même avec des valeurs zéro',
       );
 
       expect(
@@ -222,4 +233,3 @@ void main() {
     });
   });
 }
-

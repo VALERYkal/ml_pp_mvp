@@ -4,7 +4,7 @@ import '../../features/profil/providers/profil_provider.dart';
 import '../../core/models/profil.dart';
 
 /// Widget helper pour gérer les états de chargement du profil
-/// 
+///
 /// Affiche automatiquement :
 /// - Un indicateur de chargement pendant la récupération/création du profil
 /// - Le contenu une fois le profil disponible
@@ -12,13 +12,13 @@ import '../../core/models/profil.dart';
 class ProfilLoadingWidget extends ConsumerWidget {
   /// Le widget à afficher une fois le profil chargé
   final Widget Function(Profil profil) builder;
-  
+
   /// Le widget à afficher pendant le chargement (optionnel)
   final Widget? loadingWidget;
-  
+
   /// Le widget à afficher en cas d'erreur (optionnel)
   final Widget Function(Object error, StackTrace? stackTrace)? errorWidget;
-  
+
   /// Le widget à afficher si aucun profil n'est trouvé (optionnel)
   final Widget? noProfilWidget;
 

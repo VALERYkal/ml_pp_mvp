@@ -22,15 +22,14 @@ import 'package:ml_pp_mvp/shared/referentiels/referentiels.dart' as refs;
 /// Helper pour créer un fournisseur de test dans Supabase
 Future<String> _createTestFournisseur(SupabaseClient client) async {
   final payload = {
-    'nom': 'Fournisseur Test Integration ${DateTime.now().millisecondsSinceEpoch}',
+    'nom':
+        'Fournisseur Test Integration ${DateTime.now().millisecondsSinceEpoch}',
     'pays': 'RDC',
   };
 
-  final result = await client
-      .from('fournisseurs')
-      .insert(payload)
-      .select('id')
-      .single() as Map<String, dynamic>;
+  final result =
+      await client.from('fournisseurs').insert(payload).select('id').single()
+          as Map<String, dynamic>;
 
   return result['id'] as String;
 }
@@ -43,11 +42,9 @@ Future<String> _createTestProduit(SupabaseClient client) async {
     'actif': true,
   };
 
-  final result = await client
-      .from('produits')
-      .insert(payload)
-      .select('id')
-      .single() as Map<String, dynamic>;
+  final result =
+      await client.from('produits').insert(payload).select('id').single()
+          as Map<String, dynamic>;
 
   return result['id'] as String;
 }
@@ -59,11 +56,9 @@ Future<String> _createTestDepot(SupabaseClient client) async {
     'adresse': 'Adresse Test',
   };
 
-  final result = await client
-      .from('depots')
-      .insert(payload)
-      .select('id')
-      .single() as Map<String, dynamic>;
+  final result =
+      await client.from('depots').insert(payload).select('id').single()
+          as Map<String, dynamic>;
 
   return result['id'] as String;
 }
@@ -80,7 +75,8 @@ Future<String> _createTestCdr(
     'fournisseur_id': fournisseurId,
     'produit_id': produitId,
     'depot_destination_id': depotDestinationId,
-    'plaque_camion': 'TEST-INTEGRATION-${DateTime.now().millisecondsSinceEpoch}',
+    'plaque_camion':
+        'TEST-INTEGRATION-${DateTime.now().millisecondsSinceEpoch}',
     'chauffeur_nom': 'Chauffeur Test',
     'transporteur': 'Transport Test',
     'depart_pays': 'RDC',
@@ -89,11 +85,9 @@ Future<String> _createTestCdr(
     'date_chargement': DateTime.now().toIso8601String().substring(0, 10),
   };
 
-  final result = await client
-      .from('cours_de_route')
-      .insert(payload)
-      .select('id')
-      .single() as Map<String, dynamic>;
+  final result =
+      await client.from('cours_de_route').insert(payload).select('id').single()
+          as Map<String, dynamic>;
 
   return result['id'] as String;
 }
@@ -113,11 +107,9 @@ Future<String> _createTestCiterne(
     'statut': 'active',
   };
 
-  final result = await client
-      .from('citernes')
-      .insert(payload)
-      .select('id')
-      .single() as Map<String, dynamic>;
+  final result =
+      await client.from('citernes').insert(payload).select('id').single()
+          as Map<String, dynamic>;
 
   return result['id'] as String;
 }
@@ -166,11 +158,13 @@ Future<void> _cleanupTestData(
 
 /// Helper pour récupérer le statut d'un CDR
 Future<String?> _getCdrStatut(SupabaseClient client, String cdrId) async {
-  final result = await client
-      .from('cours_de_route')
-      .select('statut')
-      .eq('id', cdrId)
-      .maybeSingle() as Map<String, dynamic>?;
+  final result =
+      await client
+              .from('cours_de_route')
+              .select('statut')
+              .eq('id', cdrId)
+              .maybeSingle()
+          as Map<String, dynamic>?;
 
   return result?['statut'] as String?;
 }
@@ -184,16 +178,12 @@ class _FakeRefRepoForIntegration extends refs.ReferentielsRepo {
   final String produitCode;
 
   _FakeRefRepoForIntegration(this.produitId, this.produitCode)
-      : super(SupabaseClient('http://localhost', 'anon'));
+    : super(SupabaseClient('http://localhost', 'anon'));
 
   @override
   Future<List<refs.ProduitRef>> loadProduits() async {
     return [
-      refs.ProduitRef(
-        id: produitId,
-        code: produitCode,
-        nom: 'Essence Test',
-      ),
+      refs.ProduitRef(id: produitId, code: produitCode, nom: 'Essence Test'),
     ];
   }
 
@@ -214,7 +204,6 @@ class _FakeRefRepoForIntegration extends refs.ReferentielsRepo {
 // ════════════════════════════════════════════════════════════════════════════
 
 void main() {
-
   group('CDR → Réception → CDR.DECHARGE Integration Flow', () {
     // ⚠️ NOTE : Ces tests nécessitent un SupabaseClient configuré
     // Pour les tests unitaires, utilisez des fakes/mocks
@@ -238,7 +227,9 @@ void main() {
         } catch (e) {
           // Si pas de client configuré, skip le test
           // ignore: avoid_print
-          print('⚠️ SKIP: Supabase client non configuré pour les tests d\'intégration');
+          print(
+            '⚠️ SKIP: Supabase client non configuré pour les tests d\'intégration',
+          );
           return;
         }
 
@@ -303,8 +294,12 @@ void main() {
 
           // 6. Assert : Vérifier que le CDR est passé à DECHARGE
           final statutFinal = await _getCdrStatut(client, cdrId);
-          expect(statutFinal, equals('DECHARGE'),
-              reason: 'Le trigger DB devrait avoir mis à jour le statut du CDR de ARRIVE à DECHARGE');
+          expect(
+            statutFinal,
+            equals('DECHARGE'),
+            reason:
+                'Le trigger DB devrait avoir mis à jour le statut du CDR de ARRIVE à DECHARGE',
+          );
 
           // 7. Assert : Vérifier que la réception existe
           final receptionExists = await client
@@ -312,15 +307,20 @@ void main() {
               .select('id')
               .eq('id', receptionId)
               .maybeSingle();
-          expect(receptionExists, isNotNull,
-              reason: 'La réception devrait avoir été créée');
+          expect(
+            receptionExists,
+            isNotNull,
+            reason: 'La réception devrait avoir été créée',
+          );
 
           // 8. Assert : Vérifier que la réception est liée au CDR
-          final receptionData = await client
-              .from('receptions')
-              .select('cours_de_route_id, statut')
-              .eq('id', receptionId)
-              .single() as Map<String, dynamic>;
+          final receptionData =
+              await client
+                      .from('receptions')
+                      .select('cours_de_route_id, statut')
+                      .eq('id', receptionId)
+                      .single()
+                  as Map<String, dynamic>;
           expect(receptionData['cours_de_route_id'], equals(cdrId));
           expect(receptionData['statut'], equals('validee'));
         } finally {
@@ -396,11 +396,13 @@ void main() {
           );
 
           // Assert : La réception devrait être créée sans erreur
-          final receptionExists = await client
-              .from('receptions')
-              .select('id, cours_de_route_id')
-              .eq('id', receptionId)
-              .single() as Map<String, dynamic>;
+          final receptionExists =
+              await client
+                      .from('receptions')
+                      .select('id, cours_de_route_id')
+                      .eq('id', receptionId)
+                      .single()
+                  as Map<String, dynamic>;
           expect(receptionExists['cours_de_route_id'], isNull);
         } finally {
           await _cleanupTestData(
@@ -417,4 +419,3 @@ void main() {
     );
   });
 }
-

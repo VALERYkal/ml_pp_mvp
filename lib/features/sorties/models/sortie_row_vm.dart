@@ -6,7 +6,8 @@ class SortieRowVM {
   final String citerneNom;
   final double? vol15;
   final double? volAmb;
-  final String? beneficiaireNom; // client_nom ou partenaire_nom selon proprietaire_type
+  final String?
+  beneficiaireNom; // client_nom ou partenaire_nom selon proprietaire_type
   final String statut; // validee | brouillon
 
   SortieRowVM({
@@ -21,4 +22,3 @@ class SortieRowVM {
     required this.statut,
   });
 }
-

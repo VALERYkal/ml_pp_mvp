@@ -13,11 +13,11 @@ class KpiNumberVolume {
   final int count;
   final double volume15c;
   final double volumeAmbient;
-  
+
   const KpiNumberVolume({
-    required this.count, 
-    required this.volume15c, 
-    required this.volumeAmbient
+    required this.count,
+    required this.volume15c,
+    required this.volumeAmbient,
   });
 
   /// Constructeur factory pour valeurs nullable depuis Supabase
@@ -38,7 +38,7 @@ class KpiNumberVolume {
 }
 
 /// Modèle dédié pour les KPI Réceptions avec distinction propriétaires
-/// 
+///
 /// Étend KpiNumberVolume avec des compteurs par type de propriétaire
 /// (MONALUXE vs PARTENAIRE) pour permettre des analyses plus fines.
 @immutable
@@ -104,7 +104,7 @@ class KpiReceptions {
 }
 
 /// Modèle dédié pour les KPI Sorties avec distinction propriétaires
-/// 
+///
 /// Étend KpiNumberVolume avec des compteurs par type de propriétaire
 /// (MONALUXE vs PARTENAIRE) pour permettre des analyses plus fines.
 @immutable
@@ -175,11 +175,11 @@ class KpiStocks {
   final double totalAmbient;
   final double total15c;
   final double capacityTotal;
-  
+
   const KpiStocks({
-    required this.totalAmbient, 
-    required this.total15c, 
-    required this.capacityTotal
+    required this.totalAmbient,
+    required this.total15c,
+    required this.capacityTotal,
   });
 
   /// Constructeur factory pour valeurs nullable depuis Supabase
@@ -194,9 +194,10 @@ class KpiStocks {
       capacityTotal: _nz(capacityTotal),
     );
   }
-  
+
   /// Ratio d'utilisation (0.0 à 1.0)
-  double get utilizationRatio => capacityTotal == 0 ? 0 : (total15c / capacityTotal);
+  double get utilizationRatio =>
+      capacityTotal == 0 ? 0 : (total15c / capacityTotal);
 
   /// Instance vide pour les cas d'erreur
   static const zero = KpiStocks(totalAmbient: 0, total15c: 0, capacityTotal: 0);
@@ -209,9 +210,9 @@ class KpiBalanceToday {
   final double sorties15c;
   final double receptionsAmbient;
   final double sortiesAmbient;
-  
+
   const KpiBalanceToday({
-    required this.receptions15c, 
+    required this.receptions15c,
     required this.sorties15c,
     required this.receptionsAmbient,
     required this.sortiesAmbient,
@@ -231,19 +232,19 @@ class KpiBalanceToday {
       sortiesAmbient: _nz(sortiesAmbient),
     );
   }
-  
+
   /// Delta calculé (réceptions - sorties) à 15°C
   double get delta15c => receptions15c - sorties15c;
-  
+
   /// Delta calculé (réceptions - sorties) ambiant
   double get deltaAmbient => receptionsAmbient - sortiesAmbient;
 
   /// Instance vide pour les cas d'erreur
   static const zero = KpiBalanceToday(
-    receptions15c: 0, 
-    sorties15c: 0, 
-    receptionsAmbient: 0, 
-    sortiesAmbient: 0
+    receptions15c: 0,
+    sorties15c: 0,
+    receptionsAmbient: 0,
+    sortiesAmbient: 0,
   );
 }
 
@@ -254,12 +255,12 @@ class KpiCiterneAlerte {
   final String libelle;
   final double stock15c;
   final double capacity;
-  
+
   const KpiCiterneAlerte({
-    required this.citerneId, 
-    required this.libelle, 
-    required this.stock15c, 
-    required this.capacity
+    required this.citerneId,
+    required this.libelle,
+    required this.stock15c,
+    required this.capacity,
   });
 
   /// Constructeur factory pour valeurs nullable depuis Supabase
@@ -278,9 +279,8 @@ class KpiCiterneAlerte {
   }
 }
 
-
 /// Modèle unifié pour les camions à suivre
-/// 
+///
 /// RÈGLE MÉTIER CDR (Cours de Route) :
 /// - trucksLoading (Au chargement) = CHARGEMENT
 /// - trucksOnRoute (En route) = TRANSIT + FRONTIERE
@@ -290,21 +290,28 @@ class KpiCiterneAlerte {
 class KpiTrucksToFollow {
   /// Nombre total de camions à suivre (non déchargés)
   final int totalTrucks;
+
   /// Volume total prévu en litres
   final double totalPlannedVolume;
+
   /// Camions au chargement (chez le fournisseur)
   final int trucksLoading;
+
   /// Camions en route (TRANSIT + FRONTIERE)
   final int trucksOnRoute;
+
   /// Camions arrivés (au dépôt mais pas encore déchargés)
   final int trucksArrived;
+
   /// Volume des camions au chargement
   final double volumeLoading;
+
   /// Volume des camions en route
   final double volumeOnRoute;
+
   /// Volume des camions arrivés
   final double volumeArrived;
-  
+
   const KpiTrucksToFollow({
     required this.totalTrucks,
     required this.totalPlannedVolume,
@@ -360,7 +367,7 @@ class KpiSnapshot {
   final KpiStocks stocks;
   final KpiBalanceToday balanceToday;
   final KpiTrucksToFollow trucksToFollow;
-  
+
   const KpiSnapshot({
     required this.receptionsToday,
     required this.sortiesToday,
@@ -408,6 +415,7 @@ class CamionsASuivreData {
 class ReceptionsFilter {
   /// Jour en UTC (hh:mm:ss ignorés). Null => aujourd'hui (UTC).
   final DateTime? dayUtc;
+
   /// Filtre optionnel par dépôt (via citernes.depot_id)
   final String? depotId;
   const ReceptionsFilter({this.dayUtc, this.depotId});
@@ -421,9 +429,9 @@ class ReceptionsFilter {
 
 @immutable
 class ReceptionsStats {
-  final int nbCamions;           // nb réceptions validées
-  final double volAmbiant;       // Σ volume_ambiant
-  final double vol15c;           // Σ volume_corrige_15c (null => 0)
+  final int nbCamions; // nb réceptions validées
+  final double volAmbiant; // Σ volume_ambiant
+  final double vol15c; // Σ volume_corrige_15c (null => 0)
   const ReceptionsStats({
     required this.nbCamions,
     required this.volAmbiant,
@@ -433,10 +441,10 @@ class ReceptionsStats {
 
 @immutable
 class CoursCounts {
-  final int enRoute;             // CHARGEMENT + TRANSIT + FRONTIERE
-  final int attente;             // ARRIVE
-  final double enRouteLitres;    // somme(volume) pour enRoute
-  final double attenteLitres;    // somme(volume) pour attente
+  final int enRoute; // CHARGEMENT + TRANSIT + FRONTIERE
+  final int attente; // ARRIVE
+  final double enRouteLitres; // somme(volume) pour enRoute
+  final double attenteLitres; // somme(volume) pour attente
   const CoursCounts({
     required this.enRoute,
     required this.attente,

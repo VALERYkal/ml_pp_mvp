@@ -42,11 +42,13 @@ class ContextualActionsGenerator {
 
     // Action "Voir" toujours disponible
     if (onView != null) {
-      actions.add(ContextualAction(
-        label: 'Voir',
-        icon: Icons.visibility_outlined,
-        onPressed: onView,
-      ));
+      actions.add(
+        ContextualAction(
+          label: 'Voir',
+          icon: Icons.visibility_outlined,
+          onPressed: onView,
+        ),
+      );
     }
 
     // Actions selon le statut
@@ -54,100 +56,120 @@ class ContextualActionsGenerator {
       case StatutCours.chargement:
         // Cours en chargement
         if (onEdit != null) {
-          actions.add(ContextualAction(
-            label: 'Modifier',
-            icon: Icons.edit,
-            onPressed: onEdit,
-          ));
+          actions.add(
+            ContextualAction(
+              label: 'Modifier',
+              icon: Icons.edit,
+              onPressed: onEdit,
+            ),
+          );
         }
         if (onAdvanceStatus != null) {
-          actions.add(ContextualAction(
-            label: 'Marquer en transit',
-            icon: Icons.local_shipping,
-            onPressed: onAdvanceStatus,
-            isPrimary: true,
-            color: Colors.blue,
-          ));
+          actions.add(
+            ContextualAction(
+              label: 'Marquer en transit',
+              icon: Icons.local_shipping,
+              onPressed: onAdvanceStatus,
+              isPrimary: true,
+              color: Colors.blue,
+            ),
+          );
         }
         if (onDelete != null) {
-          actions.add(ContextualAction(
-            label: 'Supprimer',
-            icon: Icons.delete,
-            onPressed: onDelete,
-            isDanger: true,
-          ));
+          actions.add(
+            ContextualAction(
+              label: 'Supprimer',
+              icon: Icons.delete,
+              onPressed: onDelete,
+              isDanger: true,
+            ),
+          );
         }
         break;
 
       case StatutCours.transit:
         // Cours en transit
         if (onAdvanceStatus != null) {
-          actions.add(ContextualAction(
-            label: 'Arrivé à la frontière',
-            icon: Icons.flag,
-            onPressed: onAdvanceStatus,
-            isPrimary: true,
-            color: Colors.orange,
-          ));
+          actions.add(
+            ContextualAction(
+              label: 'Arrivé à la frontière',
+              icon: Icons.flag,
+              onPressed: onAdvanceStatus,
+              isPrimary: true,
+              color: Colors.orange,
+            ),
+          );
         }
         if (onEdit != null) {
-          actions.add(ContextualAction(
-            label: 'Modifier',
-            icon: Icons.edit,
-            onPressed: onEdit,
-          ));
+          actions.add(
+            ContextualAction(
+              label: 'Modifier',
+              icon: Icons.edit,
+              onPressed: onEdit,
+            ),
+          );
         }
         break;
 
       case StatutCours.frontiere:
         // Cours à la frontière
         if (onAdvanceStatus != null) {
-          actions.add(ContextualAction(
-            label: 'Marquer arrivé',
-            icon: Icons.location_on,
-            onPressed: onAdvanceStatus,
-            isPrimary: true,
-            color: Colors.teal,
-          ));
+          actions.add(
+            ContextualAction(
+              label: 'Marquer arrivé',
+              icon: Icons.location_on,
+              onPressed: onAdvanceStatus,
+              isPrimary: true,
+              color: Colors.teal,
+            ),
+          );
         }
         if (onEdit != null) {
-          actions.add(ContextualAction(
-            label: 'Modifier',
-            icon: Icons.edit,
-            onPressed: onEdit,
-          ));
+          actions.add(
+            ContextualAction(
+              label: 'Modifier',
+              icon: Icons.edit,
+              onPressed: onEdit,
+            ),
+          );
         }
         break;
 
       case StatutCours.arrive:
         // Cours arrivé - Action prioritaire : créer réception
         if (onCreateReception != null) {
-          actions.add(ContextualAction(
-            label: 'Créer réception',
-            icon: Icons.add_box,
-            onPressed: onCreateReception,
-            isPrimary: true,
-            color: Colors.green,
-          ));
+          actions.add(
+            ContextualAction(
+              label: 'Créer réception',
+              icon: Icons.add_box,
+              onPressed: onCreateReception,
+              isPrimary: true,
+              color: Colors.green,
+            ),
+          );
         }
         if (onEdit != null) {
-          actions.add(ContextualAction(
-            label: 'Modifier',
-            icon: Icons.edit,
-            onPressed: onEdit,
-          ));
+          actions.add(
+            ContextualAction(
+              label: 'Modifier',
+              icon: Icons.edit,
+              onPressed: onEdit,
+            ),
+          );
         }
         break;
 
       case StatutCours.decharge:
         // Cours déchargé - Actions limitées
         if (onDuplicate != null) {
-          actions.add(ContextualAction(
-            label: 'Dupliquer',
-            icon: Icons.copy,
-            onPressed: onDuplicate,
-            color: Colors.blue,
-          ));
+          actions.add(
+            ContextualAction(
+              label: 'Dupliquer',
+              icon: Icons.copy,
+              onPressed: onDuplicate,
+              color: Colors.blue,
+            ),
+          );
         }
         // Seuls les admins peuvent modifier/supprimer les cours déchargés
         // Cette logique sera gérée dans l'interface utilisateur
@@ -156,11 +178,13 @@ class ContextualActionsGenerator {
 
     // Action "Dupliquer" toujours disponible (sauf pour les cours déchargés où elle est déjà ajoutée)
     if (cours.statut != StatutCours.decharge && onDuplicate != null) {
-      actions.add(ContextualAction(
-        label: 'Dupliquer',
-        icon: Icons.copy,
-        onPressed: onDuplicate,
-      ));
+      actions.add(
+        ContextualAction(
+          label: 'Dupliquer',
+          icon: Icons.copy,
+          onPressed: onDuplicate,
+        ),
+      );
     }
 
     return actions;
@@ -178,11 +202,13 @@ class ContextualActionsGenerator {
 
     // Action "Voir" toujours en premier
     if (onView != null) {
-      actions.add(ContextualAction(
-        label: 'Voir',
-        icon: Icons.visibility_outlined,
-        onPressed: onView,
-      ));
+      actions.add(
+        ContextualAction(
+          label: 'Voir',
+          icon: Icons.visibility_outlined,
+          onPressed: onView,
+        ),
+      );
     }
 
     // Action principale selon le statut
@@ -191,25 +217,29 @@ class ContextualActionsGenerator {
       case StatutCours.transit:
       case StatutCours.frontiere:
         if (onAdvanceStatus != null) {
-          actions.add(ContextualAction(
-            label: _getNextStatusLabel(cours.statut),
-            icon: _getNextStatusIcon(cours.statut),
-            onPressed: onAdvanceStatus,
-            isPrimary: true,
-            color: _getNextStatusColor(cours.statut),
-          ));
+          actions.add(
+            ContextualAction(
+              label: _getNextStatusLabel(cours.statut),
+              icon: _getNextStatusIcon(cours.statut),
+              onPressed: onAdvanceStatus,
+              isPrimary: true,
+              color: _getNextStatusColor(cours.statut),
+            ),
+          );
         }
         break;
 
       case StatutCours.arrive:
         if (onCreateReception != null) {
-          actions.add(ContextualAction(
-            label: 'Créer réception',
-            icon: Icons.add_box,
-            onPressed: onCreateReception,
-            isPrimary: true,
-            color: Colors.green,
-          ));
+          actions.add(
+            ContextualAction(
+              label: 'Créer réception',
+              icon: Icons.add_box,
+              onPressed: onCreateReception,
+              isPrimary: true,
+              color: Colors.green,
+            ),
+          );
         }
         break;
 
@@ -288,7 +318,10 @@ class ContextualActionsWidget extends StatelessWidget {
     if (isCompact) {
       return Row(
         mainAxisSize: MainAxisSize.min,
-        children: actions.take(2).map((action) => _buildCompactButton(action)).toList(),
+        children: actions
+            .take(2)
+            .map((action) => _buildCompactButton(action))
+            .toList(),
       );
     }
 
@@ -305,9 +338,7 @@ class ContextualActionsWidget extends StatelessWidget {
         onPressed: action.onPressed,
         icon: Icon(action.icon),
         label: Text(action.label),
-        style: FilledButton.styleFrom(
-          backgroundColor: action.color,
-        ),
+        style: FilledButton.styleFrom(backgroundColor: action.color),
       );
     }
 
@@ -316,9 +347,7 @@ class ContextualActionsWidget extends StatelessWidget {
         onPressed: action.onPressed,
         icon: Icon(action.icon),
         label: Text(action.label),
-        style: OutlinedButton.styleFrom(
-          foregroundColor: Colors.red,
-        ),
+        style: OutlinedButton.styleFrom(foregroundColor: Colors.red),
       );
     }
 
@@ -326,9 +355,7 @@ class ContextualActionsWidget extends StatelessWidget {
       onPressed: action.onPressed,
       icon: Icon(action.icon),
       label: Text(action.label),
-      style: OutlinedButton.styleFrom(
-        foregroundColor: action.color,
-      ),
+      style: OutlinedButton.styleFrom(foregroundColor: action.color),
     );
   }
 

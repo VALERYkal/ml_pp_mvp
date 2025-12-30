@@ -117,5 +117,3 @@ final coursArrivesProvider = FutureProvider<List<CoursArriveItem>>((ref) async {
     );
   }).toList();
 });
-
-

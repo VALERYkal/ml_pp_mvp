@@ -6,19 +6,15 @@ class CiterneAlerteTile extends StatelessWidget {
   final CiterneSousSeuil citerne;
   final VoidCallback? onTap;
 
-  const CiterneAlerteTile({
-    super.key,
-    required this.citerne,
-    this.onTap,
-  });
+  const CiterneAlerteTile({super.key, required this.citerne, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final ratio = citerne.seuil > 0 
+    final ratio = citerne.seuil > 0
         ? (citerne.stock / citerne.seuil).clamp(0.0, 1.0)
         : 0.0;
-    
+
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: theme.colorScheme.error.withValues(alpha: 0.1),
@@ -51,8 +47,8 @@ class CiterneAlerteTile extends StatelessWidget {
                   value: ratio,
                   backgroundColor: theme.colorScheme.surfaceContainerHighest,
                   valueColor: AlwaysStoppedAnimation<Color>(
-                    ratio < 0.2 
-                        ? theme.colorScheme.error 
+                    ratio < 0.2
+                        ? theme.colorScheme.error
                         : theme.colorScheme.tertiary,
                   ),
                 ),
@@ -62,8 +58,8 @@ class CiterneAlerteTile extends StatelessWidget {
                 '${(ratio * 100).toStringAsFixed(0)}%',
                 style: theme.textTheme.bodySmall?.copyWith(
                   fontWeight: FontWeight.w500,
-                  color: ratio < 0.2 
-                      ? theme.colorScheme.error 
+                  color: ratio < 0.2
+                      ? theme.colorScheme.error
                       : theme.colorScheme.tertiary,
                 ),
               ),
@@ -101,7 +97,7 @@ class CiternesAlertesList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Card(
       elevation: 1,
       child: Column(
@@ -172,7 +168,9 @@ class CiternesAlertesList extends StatelessWidget {
                 final citerne = citernes[index];
                 return CiterneAlerteTile(
                   citerne: citerne,
-                  onTap: onCiterneTap != null ? () => onCiterneTap!(citerne) : null,
+                  onTap: onCiterneTap != null
+                      ? () => onCiterneTap!(citerne)
+                      : null,
                 );
               },
             ),

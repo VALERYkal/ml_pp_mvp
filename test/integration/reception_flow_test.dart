@@ -47,5 +47,3 @@ void main() {
     //   et doivent être réécrits dans un contexte E2E approprié
   });
 }
-
-

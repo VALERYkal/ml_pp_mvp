@@ -6,7 +6,9 @@ import '../domain/citerne_stock_snapshot.dart';
 
 // Fonctions de formatage modernisées avec chiffres tabulaires
 final _n0 = NumberFormat.decimalPattern();
-final _n1 = NumberFormat.decimalPattern()..minimumFractionDigits = 1..maximumFractionDigits = 1;
+final _n1 = NumberFormat.decimalPattern()
+  ..minimumFractionDigits = 1
+  ..maximumFractionDigits = 1;
 
 String _fmtL(double? v, {int fixed = 1}) {
   final x = (v == null || v.isNaN || v.isInfinite) ? 0.0 : v;
@@ -15,13 +17,13 @@ String _fmtL(double? v, {int fixed = 1}) {
 
 String _formatVolume(double? volume) {
   if (volume == null || volume.isNaN || volume.isInfinite) return '0 L';
-  
+
   // Format français avec espaces pour les milliers
   final formatted = volume.toStringAsFixed(1);
   final parts = formatted.split('.');
   final integerPart = parts[0];
   final decimalPart = parts.length > 1 ? '.${parts[1]}' : '';
-  
+
   // Ajouter des espaces pour les milliers (format français)
   String spacedInteger = '';
   for (int i = 0; i < integerPart.length; i++) {
@@ -30,7 +32,7 @@ String _formatVolume(double? volume) {
     }
     spacedInteger += integerPart[i];
   }
-  
+
   return '$spacedInteger$decimalPart L';
 }
 
@@ -45,12 +47,12 @@ String _formatPercentage(double ratio) {
 
 // Couleurs modernes pour les niveaux de remplissage
 class _TankColors {
-  static const Color empty = Color(0xFF94A3B8);      // Gris slate
-  static const Color low = Color(0xFF10B981);        // Vert emerald
-  static const Color medium = Color(0xFF3B82F6);     // Bleu
-  static const Color high = Color(0xFFF59E0B);       // Orange amber
-  static const Color critical = Color(0xFFEF4444);   // Rouge
-  
+  static const Color empty = Color(0xFF94A3B8); // Gris slate
+  static const Color low = Color(0xFF10B981); // Vert emerald
+  static const Color medium = Color(0xFF3B82F6); // Bleu
+  static const Color high = Color(0xFFF59E0B); // Orange amber
+  static const Color critical = Color(0xFFEF4444); // Rouge
+
   static Color getColorForLevel(double pct) {
     if (pct <= 0) return empty;
     if (pct < 25) return low;
@@ -58,7 +60,7 @@ class _TankColors {
     if (pct < 90) return high;
     return critical;
   }
-  
+
   static Color getBackgroundTint(double pct) {
     return getColorForLevel(pct).withOpacity(0.04);
   }
@@ -99,7 +101,7 @@ class CiterneListScreen extends ConsumerWidget {
 
   PreferredSizeWidget _buildModernAppBar(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    
+
     return AppBar(
       elevation: 0,
       scrolledUnderElevation: 1,
@@ -160,10 +162,7 @@ class CiterneListScreen extends ConsumerWidget {
       actions: [
         IconButton(
           onPressed: () => ref.invalidate(citerneStockSnapshotProvider),
-          icon: const Icon(
-            Icons.refresh_rounded,
-            color: Color(0xFF64748B),
-          ),
+          icon: const Icon(Icons.refresh_rounded, color: Color(0xFF64748B)),
           tooltip: 'Actualiser',
         ),
         const SizedBox(width: 8),
@@ -207,7 +206,12 @@ class CiterneListScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildErrorState(BuildContext context, Object error, ThemeData theme, WidgetRef ref) {
+  Widget _buildErrorState(
+    BuildContext context,
+    Object error,
+    ThemeData theme,
+    WidgetRef ref,
+  ) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -250,7 +254,10 @@ class CiterneListScreen extends ConsumerWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: theme.colorScheme.primary,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 28,
+                  vertical: 14,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -304,14 +311,27 @@ class CiterneListScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildCiterneGrid(BuildContext context, List<CiterneRow> citernes, ThemeData theme) {
+  Widget _buildCiterneGrid(
+    BuildContext context,
+    List<CiterneRow> citernes,
+    ThemeData theme,
+  ) {
     // Calculer les statistiques
     final totalCiternes = citernes.length;
     final alertesCiternes = citernes.where((c) => c.belowSecurity).length;
-    final capaciteTotale = citernes.fold<double>(0, (sum, c) => sum + (c.capaciteTotale ?? 0));
+    final capaciteTotale = citernes.fold<double>(
+      0,
+      (sum, c) => sum + (c.capaciteTotale ?? 0),
+    );
     // RÈGLE MÉTIER : Stock ambiant = source de vérité opérationnelle
-    final stockTotalAmbiant = citernes.fold<double>(0, (sum, c) => sum + (c.stockAmbiant ?? 0));
-    final stockTotal15c = citernes.fold<double>(0, (sum, c) => sum + (c.stock15c ?? 0));
+    final stockTotalAmbiant = citernes.fold<double>(
+      0,
+      (sum, c) => sum + (c.stockAmbiant ?? 0),
+    );
+    final stockTotal15c = citernes.fold<double>(
+      0,
+      (sum, c) => sum + (c.stock15c ?? 0),
+    );
 
     return CustomScrollView(
       slivers: [
@@ -344,7 +364,9 @@ class CiterneListScreen extends ConsumerWidget {
                       'Alertes',
                       alertesCiternes.toString(),
                       Icons.warning_amber_rounded,
-                      alertesCiternes > 0 ? const Color(0xFFEF4444) : const Color(0xFF94A3B8),
+                      alertesCiternes > 0
+                          ? const Color(0xFFEF4444)
+                          : const Color(0xFF94A3B8),
                       theme,
                     ),
                     _buildStatCard(
@@ -386,7 +408,10 @@ class CiterneListScreen extends ConsumerWidget {
                     ),
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: theme.colorScheme.primary.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
@@ -406,7 +431,7 @@ class CiterneListScreen extends ConsumerWidget {
             ),
           ),
         ),
-        
+
         // Grille des citernes
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -418,12 +443,13 @@ class CiterneListScreen extends ConsumerWidget {
               childAspectRatio: 1.35,
             ),
             delegate: SliverChildBuilderDelegate(
-              (context, index) => _buildCiterneCard(context, citernes[index], theme),
+              (context, index) =>
+                  _buildCiterneCard(context, citernes[index], theme),
               childCount: citernes.length,
             ),
           ),
         ),
-        
+
         const SliverToBoxAdapter(child: SizedBox(height: 80)),
       ],
     );
@@ -487,7 +513,9 @@ class CiterneListScreen extends ConsumerWidget {
                       'Alertes',
                       alertesCiternes.toString(),
                       Icons.warning_amber_rounded,
-                      alertesCiternes > 0 ? const Color(0xFFEF4444) : const Color(0xFF94A3B8),
+                      alertesCiternes > 0
+                          ? const Color(0xFFEF4444)
+                          : const Color(0xFF94A3B8),
                       theme,
                     ),
                     _buildStatCard(
@@ -529,7 +557,10 @@ class CiterneListScreen extends ConsumerWidget {
                     ),
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: theme.colorScheme.primary.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
@@ -549,25 +580,26 @@ class CiterneListScreen extends ConsumerWidget {
             ),
           ),
         ),
-        
+
         // Grille des citernes
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           sliver: Builder(
             builder: (context) {
               // Tri des citernes par ordre naturel (TANK1, TANK2, TANK3, ...)
-              final sortedCiternes = [...citernes]..sort((a, b) {
-                int extractNum(String name) {
-                  final m = RegExp(r'(\d+)').firstMatch(name);
-                  return m == null ? 0 : int.parse(m.group(1)!);
-                }
+              final sortedCiternes = [...citernes]
+                ..sort((a, b) {
+                  int extractNum(String name) {
+                    final m = RegExp(r'(\d+)').firstMatch(name);
+                    return m == null ? 0 : int.parse(m.group(1)!);
+                  }
 
-                final an = extractNum(a.citerneNom);
-                final bn = extractNum(b.citerneNom);
+                  final an = extractNum(a.citerneNom);
+                  final bn = extractNum(b.citerneNom);
 
-                if (an != bn) return an.compareTo(bn);
-                return a.citerneNom.compareTo(b.citerneNom);
-              });
+                  if (an != bn) return an.compareTo(bn);
+                  return a.citerneNom.compareTo(b.citerneNom);
+                });
 
               return SliverGrid(
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -588,7 +620,7 @@ class CiterneListScreen extends ConsumerWidget {
             },
           ),
         ),
-        
+
         const SliverToBoxAdapter(child: SizedBox(height: 80)),
       ],
     );
@@ -608,10 +640,7 @@ class CiterneListScreen extends ConsumerWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: color.withOpacity(0.15),
-          width: 1.5,
-        ),
+        border: Border.all(color: color.withOpacity(0.15), width: 1.5),
         boxShadow: [
           BoxShadow(
             color: color.withOpacity(0.08),
@@ -630,18 +659,11 @@ class CiterneListScreen extends ConsumerWidget {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [
-                  color.withOpacity(0.15),
-                  color.withOpacity(0.05),
-                ],
+                colors: [color.withOpacity(0.15), color.withOpacity(0.05)],
               ),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(
-              Icons.inventory_2_rounded,
-              size: 18,
-              color: color,
-            ),
+            child: Icon(Icons.inventory_2_rounded, size: 18, color: color),
           ),
           const Spacer(),
           // Valeur principale : Stock ambiant
@@ -695,10 +717,7 @@ class CiterneListScreen extends ConsumerWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: color.withOpacity(0.15),
-          width: 1.5,
-        ),
+        border: Border.all(color: color.withOpacity(0.15), width: 1.5),
         boxShadow: [
           BoxShadow(
             color: color.withOpacity(0.08),
@@ -717,18 +736,11 @@ class CiterneListScreen extends ConsumerWidget {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [
-                  color.withOpacity(0.15),
-                  color.withOpacity(0.05),
-                ],
+                colors: [color.withOpacity(0.15), color.withOpacity(0.05)],
               ),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(
-              icon,
-              size: 18,
-              color: color,
-            ),
+            child: Icon(icon, size: 18, color: color),
           ),
           const Spacer(),
           Text(
@@ -756,12 +768,16 @@ class CiterneListScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildCiterneCard(BuildContext context, CiterneRow citerne, ThemeData theme) {
+  Widget _buildCiterneCard(
+    BuildContext context,
+    CiterneRow citerne,
+    ThemeData theme,
+  ) {
     final stock15c = citerne.stock15c ?? citerne.stockAmbiant ?? 0;
     final stockAmbiant = citerne.stockAmbiant ?? 0;
     final capacite = citerne.capaciteTotale ?? 0;
     final utilPct = capacite > 0 ? (100 * stockAmbiant / capacite) : 0.0;
-    
+
     return TankCard(
       name: citerne.nom,
       stock15c: stock15c,
@@ -783,7 +799,7 @@ class CiterneListScreen extends ConsumerWidget {
     final stockAmbiant = citerne.stockAmbiantTotal;
     final capacite = citerne.capaciteTotale;
     final utilPct = capacite > 0 ? (100 * stockAmbiant / capacite) : 0.0;
-    
+
     return TankCard(
       name: citerne.citerneNom,
       stock15c: stock15c,
@@ -794,14 +810,15 @@ class CiterneListScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value, ThemeData theme) {
+  Widget _buildInfoRow(
+    IconData icon,
+    String label,
+    String value,
+    ThemeData theme,
+  ) {
     return Row(
       children: [
-        Icon(
-          icon,
-          size: 11,
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
+        Icon(icon, size: 11, color: theme.colorScheme.onSurfaceVariant),
         const SizedBox(width: 3),
         Expanded(
           child: Text(
@@ -832,7 +849,7 @@ class TankCard extends StatelessWidget {
   final double capacity;
   final DateTime? lastUpdated;
   final double utilPct; // 0..100
-  
+
   const TankCard({
     super.key,
     required this.name,
@@ -842,26 +859,26 @@ class TankCard extends StatelessWidget {
     required this.utilPct,
     this.lastUpdated,
   });
-  
+
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
     final levelColor = _TankColors.getColorForLevel(utilPct);
     final isEmpty = utilPct <= 0;
-    
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: isEmpty 
-              ? const Color(0xFFE2E8F0) 
+          color: isEmpty
+              ? const Color(0xFFE2E8F0)
               : levelColor.withOpacity(0.25),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: isEmpty 
+            color: isEmpty
                 ? Colors.black.withOpacity(0.03)
                 : levelColor.withOpacity(0.1),
             blurRadius: 16,
@@ -881,7 +898,7 @@ class TankCard extends StatelessWidget {
                   end: Alignment.bottomRight,
                   colors: [
                     Colors.white,
-                    isEmpty 
+                    isEmpty
                         ? const Color(0xFFF8FAFC)
                         : levelColor.withOpacity(0.03),
                   ],
@@ -889,7 +906,7 @@ class TankCard extends StatelessWidget {
               ),
             ),
           ),
-          
+
           // Contenu principal
           Padding(
             padding: const EdgeInsets.all(14),
@@ -908,13 +925,15 @@ class TankCard extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: isEmpty ? const Color(0xFFCBD5E1) : levelColor,
                         shape: BoxShape.circle,
-                        boxShadow: isEmpty ? null : [
-                          BoxShadow(
-                            color: levelColor.withOpacity(0.5),
-                            blurRadius: 6,
-                            spreadRadius: 1,
-                          ),
-                        ],
+                        boxShadow: isEmpty
+                            ? null
+                            : [
+                                BoxShadow(
+                                  color: levelColor.withOpacity(0.5),
+                                  blurRadius: 6,
+                                  spreadRadius: 1,
+                                ),
+                              ],
                       ),
                     ),
                     Expanded(
@@ -933,9 +952,12 @@ class TankCard extends StatelessWidget {
                     const SizedBox(width: 6),
                     // Badge pourcentage
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
-                        color: isEmpty 
+                        color: isEmpty
                             ? const Color(0xFFF1F5F9)
                             : levelColor.withOpacity(0.12),
                         borderRadius: BorderRadius.circular(8),
@@ -951,9 +973,9 @@ class TankCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 10),
-                
+
                 // Barre de progression
                 ClipRRect(
                   borderRadius: BorderRadius.circular(4),
@@ -966,9 +988,9 @@ class TankCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 12),
-                
+
                 // Métriques
                 Expanded(
                   child: Row(
@@ -1000,9 +1022,9 @@ class TankCard extends StatelessWidget {
                           ],
                         ),
                       ),
-                      
+
                       const SizedBox(width: 8),
-                      
+
                       // Colonne droite : Capacité + MAJ
                       SizedBox(
                         width: 115,
@@ -1024,7 +1046,9 @@ class TankCard extends StatelessWidget {
                                 context,
                                 icon: Icons.schedule_rounded,
                                 label: 'MAJ',
-                                value: DateFormat('dd/MM/yy').format(lastUpdated!),
+                                value: DateFormat(
+                                  'dd/MM/yy',
+                                ).format(lastUpdated!),
                                 alignEnd: true,
                                 color: const Color(0xFF64748B),
                               ),
@@ -1042,7 +1066,7 @@ class TankCard extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildMetricRow(
     BuildContext context, {
     required IconData icon,
@@ -1052,13 +1076,9 @@ class TankCard extends StatelessWidget {
     bool alignEnd = false,
   }) {
     final t = Theme.of(context);
-    
-    final iconWidget = Icon(
-      icon,
-      size: 13,
-      color: color.withOpacity(0.7),
-    );
-    
+
+    final iconWidget = Icon(icon, size: 13, color: color.withOpacity(0.7));
+
     final labelWidget = Text(
       label,
       style: t.textTheme.bodySmall?.copyWith(
@@ -1067,7 +1087,7 @@ class TankCard extends StatelessWidget {
         fontWeight: FontWeight.w600,
       ),
     );
-    
+
     final valueWidget = Text(
       value,
       maxLines: 1,
@@ -1078,7 +1098,7 @@ class TankCard extends StatelessWidget {
         fontSize: 11,
       ),
     );
-    
+
     if (alignEnd) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.end,
@@ -1091,7 +1111,7 @@ class TankCard extends StatelessWidget {
         ],
       );
     }
-    
+
     return Row(
       children: [
         iconWidget,
@@ -1105,14 +1125,50 @@ class TankCard extends StatelessWidget {
 }
 
 // Fonction helper globale pour le formatage (conservée pour compatibilité)
-Widget _metricLine(BuildContext context, {required IconData icon, required String label, required String value, bool alignEnd = false}) {
+Widget _metricLine(
+  BuildContext context, {
+  required IconData icon,
+  required String label,
+  required String value,
+  bool alignEnd = false,
+}) {
   final t = Theme.of(context);
-  final ic = Icon(icon, size: 14, color: t.colorScheme.onSurfaceVariant.withOpacity(0.8));
-  final lab = Text(label, style: t.textTheme.bodySmall?.copyWith(color: t.colorScheme.onSurfaceVariant));
-  final val = Text(value, maxLines: 1, overflow: TextOverflow.ellipsis,
-      style: t.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700));
+  final ic = Icon(
+    icon,
+    size: 14,
+    color: t.colorScheme.onSurfaceVariant.withOpacity(0.8),
+  );
+  final lab = Text(
+    label,
+    style: t.textTheme.bodySmall?.copyWith(
+      color: t.colorScheme.onSurfaceVariant,
+    ),
+  );
+  final val = Text(
+    value,
+    maxLines: 1,
+    overflow: TextOverflow.ellipsis,
+    style: t.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+  );
   if (alignEnd) {
-    return Row(mainAxisAlignment: MainAxisAlignment.end, children: [lab, const SizedBox(width: 6), Flexible(child: val), const SizedBox(width: 4), ic]);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        lab,
+        const SizedBox(width: 6),
+        Flexible(child: val),
+        const SizedBox(width: 4),
+        ic,
+      ],
+    );
   }
-  return Row(children: [ic, const SizedBox(width: 6), lab, const SizedBox(width: 8), Flexible(child: val)]);
+  return Row(
+    children: [
+      ic,
+      const SizedBox(width: 6),
+      lab,
+      const SizedBox(width: 8),
+      Flexible(child: val),
+    ],
+  );
 }

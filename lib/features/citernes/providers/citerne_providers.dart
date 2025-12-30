@@ -31,12 +31,12 @@ class CiterneRow {
     this.dateStock,
   });
 
-  bool get belowSecurity => 
-      capaciteSecurite != null && (stock15c ?? stockAmbiant ?? 0.0) < capaciteSecurite!;
-  double get ratioFill => 
-      capaciteTotale != null && capaciteTotale! > 0 
-          ? ((stock15c ?? stockAmbiant ?? 0.0) / capaciteTotale!).clamp(0.0, 1.0) 
-          : 0.0;
+  bool get belowSecurity =>
+      capaciteSecurite != null &&
+      (stock15c ?? stockAmbiant ?? 0.0) < capaciteSecurite!;
+  double get ratioFill => capaciteTotale != null && capaciteTotale! > 0
+      ? ((stock15c ?? stockAmbiant ?? 0.0) / capaciteTotale!).clamp(0.0, 1.0)
+      : 0.0;
 }
 
 /// Provider pour le service CiterneService
@@ -50,55 +50,66 @@ final citerneRepositoryProvider = Riverpod.Provider<CiterneRepository>((ref) {
 });
 
 /// Provider pour récupérer les snapshots de stock agrégés pour les citernes
-/// 
+///
 /// LEGACY: Utilise v_stock_actuel_snapshot comme source de vérité pour le stock actuel des citernes.
-/// 
+///
 /// ⚠️ DEPRECATED: Ne pas utiliser dans le module Citernes UI.
 /// Utiliser `citerneStockSnapshotProvider` (v_citerne_stock_snapshot_agg) à la place.
-/// 
+///
 /// Conservé temporairement pour compatibilité avec `lib/shared/refresh/refresh_helpers.dart`.
 /// Do not use in Citernes UI.
-@Deprecated('Use citerneStockSnapshotProvider (v_citerne_stock_snapshot_agg) instead. Kept for refresh_helpers compatibility.')
-final citerneStocksSnapshotProvider = Riverpod.FutureProvider.autoDispose<DepotStocksSnapshot>((ref) async {
+@Deprecated(
+  'Use citerneStockSnapshotProvider (v_citerne_stock_snapshot_agg) instead. Kept for refresh_helpers compatibility.',
+)
+final citerneStocksSnapshotProvider = Riverpod.FutureProvider.autoDispose<DepotStocksSnapshot>((
+  ref,
+) async {
   // 1) Récupérer le depotId depuis le profil
   final profil = ref.watch(profilProvider).valueOrNull;
   final depotId = profil?.depotId;
-  
+
   if (depotId == null || depotId.isEmpty) {
     if (kDebugMode) {
       debugPrint('⚠️ citerneStocksSnapshotProvider: depotId null → skip');
     }
     throw StateError('DepotId manquant pour chargement des citernes');
   }
-  
+
   // 2) Utiliser la date actuelle normalisée (snapshots sont toujours à jour)
   final now = DateTime.now();
   final dateJour = DateTime(now.year, now.month, now.day);
-  
+
   if (kDebugMode) {
     debugPrint(
       '🔄 citerneStocksSnapshotProvider: start '
       'depotId=$depotId dateJour=$dateJour',
     );
   }
-  
+
   // Guard de régression : vérifier que dateJour est bien normalisé (debug only)
   if (kDebugMode) {
     assert(
-      dateJour.hour == 0 && dateJour.minute == 0 && dateJour.second == 0 && dateJour.millisecond == 0,
+      dateJour.hour == 0 &&
+          dateJour.minute == 0 &&
+          dateJour.second == 0 &&
+          dateJour.millisecond == 0,
       '⚠️ citerneStocksSnapshotProvider: dateJour doit être normalisé (YYYY-MM-DD 00:00:00.000)',
     );
   }
-  
+
   // 3) Récupérer toutes les citernes actives du dépôt
   final sb = Supabase.instance.client;
-  final citernes = await sb
-      .from('citernes')
-      .select('id, nom, capacite_totale, capacite_securite, produit_id, depot_id')
-      .eq('depot_id', depotId)
-      .eq('statut', 'active')
-      .order('nom', ascending: true) as List;
-  
+  final citernes =
+      await sb
+              .from('citernes')
+              .select(
+                'id, nom, capacite_totale, capacite_securite, produit_id, depot_id',
+              )
+              .eq('depot_id', depotId)
+              .eq('statut', 'active')
+              .order('nom', ascending: true)
+          as List;
+
   if (citernes.isEmpty) {
     return DepotStocksSnapshot(
       dateJour: dateJour,
@@ -115,13 +126,11 @@ final citerneStocksSnapshotProvider = Riverpod.FutureProvider.autoDispose<DepotS
       citerneRows: const [],
     );
   }
-  
+
   // 4) Récupérer les stocks depuis v_stock_actuel_snapshot
   final repo = ref.read(stocksKpiRepositoryProvider);
-  final stockRows = await repo.fetchCiterneStocksFromSnapshot(
-    depotId: depotId,
-  );
-  
+  final stockRows = await repo.fetchCiterneStocksFromSnapshot(depotId: depotId);
+
   // Helper pour conversion sécurisée
   double _safeDouble(dynamic v) {
     if (v == null) return 0.0;
@@ -132,7 +141,7 @@ final citerneStocksSnapshotProvider = Riverpod.FutureProvider.autoDispose<DepotS
     }
     return 0.0;
   }
-  
+
   // Helper pour conversion date sécurisée
   String _safeDateString(dynamic v) {
     if (v == null) return dateJour.toIso8601String().split('T').first;
@@ -148,21 +157,25 @@ final citerneStocksSnapshotProvider = Riverpod.FutureProvider.autoDispose<DepotS
     }
     return dateJour.toIso8601String().split('T').first;
   }
-  
+
   // Mapper les Map vers CiterneGlobalStockSnapshot
   final stockSnapshots = <CiterneGlobalStockSnapshot>[];
   for (final m in stockRows) {
     try {
       final map = Map<String, dynamic>.from(m);
-      
+
       // Adapter les clés de v_stock_actuel_snapshot vers le format attendu par CiterneGlobalStockSnapshot
       // La vue retourne stock_ambiant et stock_15c (sans _total)
-      map['stock_ambiant_total'] = _safeDouble(map['stock_ambiant_total'] ?? map['stock_ambiant']);
-      map['stock_15c_total'] = _safeDouble(map['stock_15c_total'] ?? map['stock_15c']);
-      
+      map['stock_ambiant_total'] = _safeDouble(
+        map['stock_ambiant_total'] ?? map['stock_ambiant'],
+      );
+      map['stock_15c_total'] = _safeDouble(
+        map['stock_15c_total'] ?? map['stock_15c'],
+      );
+
       // Convertir updated_at en date_jour si nécessaire
       map['date_jour'] = _safeDateString(map['date_jour'] ?? map['updated_at']);
-      
+
       // S'assurer que les champs requis existent avec valeurs par défaut
       map['citerne_id'] ??= '';
       map['citerne_nom'] ??= 'Citerne';
@@ -170,12 +183,14 @@ final citerneStocksSnapshotProvider = Riverpod.FutureProvider.autoDispose<DepotS
       map['produit_nom'] ??= '';
       map['capacite_totale'] = _safeDouble(map['capacite_totale']);
       map['capacite_securite'] = _safeDouble(map['capacite_securite']);
-      
+
       stockSnapshots.add(CiterneGlobalStockSnapshot.fromMap(map));
     } catch (e, stack) {
       // Ignorer les rows incomplètes en mode debug, log en production
       if (kDebugMode) {
-        debugPrint('⚠️ citerneStocksSnapshotProvider: Ignoré une row invalide: $e');
+        debugPrint(
+          '⚠️ citerneStocksSnapshotProvider: Ignoré une row invalide: $e',
+        );
         debugPrint('Map: $m');
         debugPrint('Stack: $stack');
       }
@@ -183,28 +198,27 @@ final citerneStocksSnapshotProvider = Riverpod.FutureProvider.autoDispose<DepotS
       continue;
     }
   }
-  
+
   // 5) Créer un index des stocks par (citerneId, produitId)
   final stockByKey = <String, CiterneGlobalStockSnapshot>{};
   for (final stockRow in stockSnapshots) {
     final key = '${stockRow.citerneId}::${stockRow.produitId}';
     stockByKey[key] = stockRow;
   }
-  
+
   // 6) Récupérer les noms des produits pour les citernes vides
   final produitIds = citernes
       .map((c) => c['produit_id'] as String?)
       .whereType<String>()
       .toSet()
       .toList();
-  
+
   final produitsMap = <String, String>{};
   if (produitIds.isNotEmpty) {
-    final produits = await sb
-        .from('produits')
-        .select('id, nom')
-        .in_('id', produitIds) as List;
-    
+    final produits =
+        await sb.from('produits').select('id, nom').in_('id', produitIds)
+            as List;
+
     for (final p in produits) {
       final id = p['id'] as String?;
       final nom = p['nom'] as String?;
@@ -213,20 +227,21 @@ final citerneStocksSnapshotProvider = Riverpod.FutureProvider.autoDispose<DepotS
       }
     }
   }
-  
+
   // 7) Combiner toutes les citernes avec leurs stocks (ou 0 si pas de stock)
   final citerneRows = <CiterneGlobalStockSnapshot>[];
   for (final c in citernes) {
     final citerneId = c['id'] as String;
     final produitId = c['produit_id'] as String?;
     final capaciteTotale = (c['capacite_totale'] as num?)?.toDouble() ?? 0.0;
-    final capaciteSecurite = (c['capacite_securite'] as num?)?.toDouble() ?? 0.0;
+    final capaciteSecurite =
+        (c['capacite_securite'] as num?)?.toDouble() ?? 0.0;
     final citerneNom = (c['nom'] as String?) ?? 'Citerne';
-    
+
     if (produitId != null && produitId.isNotEmpty) {
       final key = '$citerneId::$produitId';
       final stockRow = stockByKey[key];
-      
+
       if (stockRow != null) {
         // Citerne avec stock : utiliser les données de v_stock_actuel_snapshot
         citerneRows.add(stockRow);
@@ -248,19 +263,23 @@ final citerneStocksSnapshotProvider = Riverpod.FutureProvider.autoDispose<DepotS
       }
     }
   }
-  
+
   // 8) Calculer les totaux depuis les stocks snapshot
-  final totalAmbiant = stockSnapshots.fold<double>(0.0, (sum, s) => sum + s.stockAmbiantTotal);
-  final total15c = stockSnapshots.fold<double>(0.0, (sum, s) => sum + s.stock15cTotal);
-  
+  final totalAmbiant = stockSnapshots.fold<double>(
+    0.0,
+    (sum, s) => sum + s.stockAmbiantTotal,
+  );
+  final total15c = stockSnapshots.fold<double>(
+    0.0,
+    (sum, s) => sum + s.stock15cTotal,
+  );
+
   // Récupérer le nom du dépôt
-  final depotRow = await sb
-      .from('depots')
-      .select('id, nom')
-      .eq('id', depotId)
-      .maybeSingle() as Map<String, dynamic>?;
+  final depotRow =
+      await sb.from('depots').select('id, nom').eq('id', depotId).maybeSingle()
+          as Map<String, dynamic>?;
   final depotNom = depotRow?['nom'] as String? ?? '';
-  
+
   final totals = DepotGlobalStockKpi(
     depotId: depotId,
     depotNom: depotNom,
@@ -269,20 +288,24 @@ final citerneStocksSnapshotProvider = Riverpod.FutureProvider.autoDispose<DepotS
     stockAmbiantTotal: totalAmbiant,
     stock15cTotal: total15c,
   );
-  
+
   // Pour les owners, utiliser une méthode du repository si disponible, sinon liste vide temporairement
-  final owners = <DepotOwnerStockKpi>[]; // TODO: calculer depuis snapshot ou utiliser repo.fetchDepotOwnerTotals()
-  
+  final owners =
+      <
+        DepotOwnerStockKpi
+      >[]; // TODO: calculer depuis snapshot ou utiliser repo.fetchDepotOwnerTotals()
+
   if (kDebugMode) {
     debugPrint(
       '✅ citerneStocksSnapshotProvider: success '
       'citernes=${citerneRows.length}',
     );
   }
-  
+
   return DepotStocksSnapshot(
     dateJour: dateJour,
-    isFallback: false, // v_stock_actuel_snapshot retourne toujours l'état actuel
+    isFallback:
+        false, // v_stock_actuel_snapshot retourne toujours l'état actuel
     totals: totals,
     owners: owners,
     citerneRows: citerneRows,
@@ -290,36 +313,50 @@ final citerneStocksSnapshotProvider = Riverpod.FutureProvider.autoDispose<DepotS
 });
 
 /// Provider legacy pour compatibilité (utilise stock_actuel)
-/// 
+///
 /// LEGACY: Utilise la vue SQL `stock_actuel` (ancienne source de vérité).
-/// 
+///
 /// ⚠️ DEPRECATED: Ne pas utiliser dans le module Citernes UI.
 /// Utiliser `citerneStockSnapshotProvider` (v_citerne_stock_snapshot_agg) à la place.
-/// 
+///
 /// Conservé temporairement pour compatibilité avec `lib/features/receptions/screens/reception_form_screen.dart`.
 /// Do not use in Citernes UI.
-@Deprecated('Use citerneStockSnapshotProvider (v_citerne_stock_snapshot_agg) instead. Kept for reception_form_screen compatibility.')
-final citernesWithStockProvider = Riverpod.FutureProvider<List<CiterneRow>>((ref) async {
+@Deprecated(
+  'Use citerneStockSnapshotProvider (v_citerne_stock_snapshot_agg) instead. Kept for reception_form_screen compatibility.',
+)
+final citernesWithStockProvider = Riverpod.FutureProvider<List<CiterneRow>>((
+  ref,
+) async {
   final sb = Supabase.instance.client;
 
   // 1) Citernes (toutes) — adapte si tu filtres par dépôt/produit/actif
-  final citernes = await sb
-      .from('citernes')
-      .select('id, nom, capacite_totale, capacite_securite, produit_id')
-      .eq('statut', 'active')
-      .order('nom', ascending: true) as List;
+  final citernes =
+      await sb
+              .from('citernes')
+              .select('id, nom, capacite_totale, capacite_securite, produit_id')
+              .eq('statut', 'active')
+              .order('nom', ascending: true)
+          as List;
 
   if (citernes.isEmpty) return [];
 
   final ids = citernes.map((e) => e['id'] as String).toList();
-  final prodIds = citernes.map((e) => e['produit_id'] as String?).whereType<String>().toSet().toList();
+  final prodIds = citernes
+      .map((e) => e['produit_id'] as String?)
+      .whereType<String>()
+      .toSet()
+      .toList();
 
   // 2) Dernier stock par citerne/produit depuis la vue `stock_actuel`
-  final stocks = await sb
-      .from('stock_actuel')
-      .select('citerne_id, produit_id, stock_ambiant, stock_15c, date_jour')
-      .in_('citerne_id', ids)
-      .in_('produit_id', prodIds) as List;
+  final stocks =
+      await sb
+              .from('stock_actuel')
+              .select(
+                'citerne_id, produit_id, stock_ambiant, stock_15c, date_jour',
+              )
+              .in_('citerne_id', ids)
+              .in_('produit_id', prodIds)
+          as List;
 
   // Indexer par (citerne_id, produit_id)
   final stockByKey = <String, Map<String, dynamic>>{};
@@ -330,7 +367,11 @@ final citernesWithStockProvider = Riverpod.FutureProvider<List<CiterneRow>>((ref
 
   DateTime? _parseDate(d) {
     if (d == null) return null;
-    try { return DateTime.parse(d.toString()); } catch (_) { return null; }
+    try {
+      return DateTime.parse(d.toString());
+    } catch (_) {
+      return null;
+    }
   }
 
   // 3) Assemblage
@@ -360,32 +401,32 @@ final citernesWithStockProvider = Riverpod.FutureProvider<List<CiterneRow>>((ref
 ///
 /// Ne pas réutiliser `depotStocksSnapshotProvider` - ce provider est isolé pour le module Citernes.
 final citerneStockSnapshotProvider =
-    Riverpod.FutureProvider.autoDispose<List<CiterneStockSnapshot>>((ref) async {
-  final profil = ref.watch(profilProvider).valueOrNull;
-  final depotId = profil?.depotId;
+    Riverpod.FutureProvider.autoDispose<List<CiterneStockSnapshot>>((
+      ref,
+    ) async {
+      final profil = ref.watch(profilProvider).valueOrNull;
+      final depotId = profil?.depotId;
 
-  if (depotId == null || depotId.isEmpty) {
-    if (kDebugMode) {
-      debugPrint('⚠️ citerneStockSnapshotProvider: depotId null → skip');
-    }
-    throw StateError('DepotId manquant pour les citernes');
-  }
+      if (depotId == null || depotId.isEmpty) {
+        if (kDebugMode) {
+          debugPrint('⚠️ citerneStockSnapshotProvider: depotId null → skip');
+        }
+        throw StateError('DepotId manquant pour les citernes');
+      }
 
-  final repo = ref.watch(citerneRepositoryProvider);
+      final repo = ref.watch(citerneRepositoryProvider);
 
-  if (kDebugMode) {
-    debugPrint(
-      '🔄 citerneStockSnapshotProvider (SQL agg): depotId=$depotId',
-    );
-  }
+      if (kDebugMode) {
+        debugPrint(
+          '🔄 citerneStockSnapshotProvider (SQL agg): depotId=$depotId',
+        );
+      }
 
-  final data = await repo.fetchCiterneStockSnapshots(depotId: depotId);
+      final data = await repo.fetchCiterneStockSnapshots(depotId: depotId);
 
-  if (kDebugMode) {
-    debugPrint(
-      '✅ citerneStockSnapshotProvider: ${data.length} citernes',
-    );
-  }
+      if (kDebugMode) {
+        debugPrint('✅ citerneStockSnapshotProvider: ${data.length} citernes');
+      }
 
-  return data;
-});
+      return data;
+    });

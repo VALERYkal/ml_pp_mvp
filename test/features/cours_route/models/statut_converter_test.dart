@@ -34,14 +34,17 @@ void main() {
       expect(StatutCoursConverter.fromDb(null), StatutCours.chargement);
     });
 
-    test('toDb retourne les formes majuscules sans accents pour tous les statuts', () {
-      // Arrange & Act & Assert
-      expect(StatutCoursConverter.toDb(StatutCours.chargement), 'CHARGEMENT');
-      expect(StatutCoursConverter.toDb(StatutCours.transit), 'TRANSIT');
-      expect(StatutCoursConverter.toDb(StatutCours.frontiere), 'FRONTIERE');
-      expect(StatutCoursConverter.toDb(StatutCours.arrive), 'ARRIVE');
-      expect(StatutCoursConverter.toDb(StatutCours.decharge), 'DECHARGE');
-    });
+    test(
+      'toDb retourne les formes majuscules sans accents pour tous les statuts',
+      () {
+        // Arrange & Act & Assert
+        expect(StatutCoursConverter.toDb(StatutCours.chargement), 'CHARGEMENT');
+        expect(StatutCoursConverter.toDb(StatutCours.transit), 'TRANSIT');
+        expect(StatutCoursConverter.toDb(StatutCours.frontiere), 'FRONTIERE');
+        expect(StatutCoursConverter.toDb(StatutCours.arrive), 'ARRIVE');
+        expect(StatutCoursConverter.toDb(StatutCours.decharge), 'DECHARGE');
+      },
+    );
 
     test('round-trip: toDb -> fromDb retourne le même statut', () {
       // Arrange: Tous les statuts
@@ -57,8 +60,11 @@ void main() {
       for (final statut in allStatuts) {
         final dbValue = StatutCoursConverter.toDb(statut);
         final parsed = StatutCoursConverter.fromDb(dbValue);
-        expect(parsed, equals(statut),
-            reason: 'Round-trip échoué pour $statut (db=$dbValue)');
+        expect(
+          parsed,
+          equals(statut),
+          reason: 'Round-trip échoué pour $statut (db=$dbValue)',
+        );
       }
     });
   });
@@ -73,7 +79,7 @@ void main() {
       expect(converter.fromJson('FRONTIERE'), StatutCours.frontiere);
       expect(converter.fromJson('ARRIVE'), StatutCours.arrive);
       expect(converter.fromJson('DECHARGE'), StatutCours.decharge);
-      
+
       // Variantes legacy
       expect(converter.fromJson('chargement'), StatutCours.chargement);
       expect(converter.fromJson('frontière'), StatutCours.frontiere);
@@ -104,11 +110,12 @@ void main() {
       for (final statut in allStatuts) {
         final jsonValue = converter.toJson(statut);
         final parsed = converter.fromJson(jsonValue);
-        expect(parsed, equals(statut),
-            reason: 'Round-trip JSON échoué pour $statut (json=$jsonValue)');
+        expect(
+          parsed,
+          equals(statut),
+          reason: 'Round-trip JSON échoué pour $statut (json=$jsonValue)',
+        );
       }
     });
   });
 }
-
-

@@ -7,4 +7,3 @@ final kpiRefreshSignalProvider = StateProvider<int>((ref) => 0);
 void triggerKpiRefresh(WidgetRef ref) {
   ref.read(kpiRefreshSignalProvider.notifier).state++;
 }
-

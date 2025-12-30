@@ -9,43 +9,46 @@ import 'package:ml_pp_mvp/shared/referentiels/referentiels.dart' as refs;
 // Si cette structure est modifiée, mettre à jour:
 // - Tests UI (sortie_list_screen_test.dart si applicable)
 // - Documentation UX
-final sortiesTableProvider = FutureProvider.autoDispose<List<SortieRowVM>>((ref) async {
+final sortiesTableProvider = FutureProvider.autoDispose<List<SortieRowVM>>((
+  ref,
+) async {
   final supa = Supabase.instance.client;
 
   // 1) Sorties (noyau)
   final sortiesRows = await supa
       .from('sorties_produit')
-      .select('id, date_sortie, proprietaire_type, produit_id, citerne_id, volume_corrige_15c, volume_ambiant, statut, client_id, partenaire_id, created_at')
+      .select(
+        'id, date_sortie, proprietaire_type, produit_id, citerne_id, volume_corrige_15c, volume_ambiant, statut, client_id, partenaire_id, created_at',
+      )
       .order('date_sortie', ascending: false);
 
   final sortiesList = (sortiesRows as List).cast<Map<String, dynamic>>();
 
   // 2) Référentiels (produits, citernes)
   final prods = await ref.watch(refs.produitsRefProvider.future);
-  final cits  = await ref.watch(refs.citernesActivesProvider.future);
-  
+  final cits = await ref.watch(refs.citernesActivesProvider.future);
+
   // Récupérer les clients et partenaires depuis Supabase
-  final clientsRows = await supa
-      .from('clients')
-      .select('id, nom');
-  
-  final clientsMap = { 
-    for (final c in (clientsRows as List).cast<Map<String, dynamic>>()) 
-      c['id'] as String : (c['nom'] as String?) ?? 'Client inconnu'
+  final clientsRows = await supa.from('clients').select('id, nom');
+
+  final clientsMap = {
+    for (final c in (clientsRows as List).cast<Map<String, dynamic>>())
+      c['id'] as String: (c['nom'] as String?) ?? 'Client inconnu',
   };
 
-  final partenairesRows = await supa
-      .from('partenaires')
-      .select('id, nom');
-  
-  final partenairesMap = { 
-    for (final p in (partenairesRows as List).cast<Map<String, dynamic>>()) 
-      p['id'] as String : (p['nom'] as String?) ?? 'Partenaire inconnu'
+  final partenairesRows = await supa.from('partenaires').select('id, nom');
+
+  final partenairesMap = {
+    for (final p in (partenairesRows as List).cast<Map<String, dynamic>>())
+      p['id'] as String: (p['nom'] as String?) ?? 'Partenaire inconnu',
   };
 
-  final pCode = { for (final p in prods) p.id : (p.code) };
-  final pNom  = { for (final p in prods) p.id : p.nom };
-  final cNom  = { for (final c in cits)  c.id : (c.nom.isNotEmpty ? c.nom : c.id.substring(0,8)) };
+  final pCode = {for (final p in prods) p.id: (p.code)};
+  final pNom = {for (final p in prods) p.id: p.nom};
+  final cNom = {
+    for (final c in cits)
+      c.id: (c.nom.isNotEmpty ? c.nom : c.id.substring(0, 8)),
+  };
 
   // 3) Construire les VM
   final out = <SortieRowVM>[];
@@ -54,11 +57,12 @@ final sortiesTableProvider = FutureProvider.autoDispose<List<SortieRowVM>>((ref)
     final cid = s['citerne_id'] as String?;
     final clientId = s['client_id'] as String?;
     final partenaireId = s['partenaire_id'] as String?;
-    final proprietaireType = (s['proprietaire_type'] as String? ?? 'MONALUXE').toUpperCase();
+    final proprietaireType = (s['proprietaire_type'] as String? ?? 'MONALUXE')
+        .toUpperCase();
 
     final prodLabel = [
       if (pid != null && (pCode[pid] ?? '').isNotEmpty) pCode[pid],
-      if (pid != null && (pNom[pid]  ?? '').isNotEmpty) pNom[pid],
+      if (pid != null && (pNom[pid] ?? '').isNotEmpty) pNom[pid],
     ].join(' · ');
 
     // Déterminer le bénéficiaire selon le type de propriétaire
@@ -87,18 +91,19 @@ final sortiesTableProvider = FutureProvider.autoDispose<List<SortieRowVM>>((ref)
       return DateTime.now();
     }();
 
-    out.add(SortieRowVM(
-      id: s['id'] as String,
-      dateSortie: dateSortie,
-      propriete: proprietaireType,
-      produitLabel: prodLabel.isEmpty ? '—' : prodLabel,
-      citerneNom: cid != null ? (cNom[cid] ?? cid.substring(0, 8)) : '—',
-      vol15: (s['volume_corrige_15c'] as num?)?.toDouble(),
-      volAmb: (s['volume_ambiant']     as num?)?.toDouble(),
-      beneficiaireNom: beneficiaireNom,
-      statut: (s['statut'] as String? ?? 'brouillon'),
-    ));
+    out.add(
+      SortieRowVM(
+        id: s['id'] as String,
+        dateSortie: dateSortie,
+        propriete: proprietaireType,
+        produitLabel: prodLabel.isEmpty ? '—' : prodLabel,
+        citerneNom: cid != null ? (cNom[cid] ?? cid.substring(0, 8)) : '—',
+        vol15: (s['volume_corrige_15c'] as num?)?.toDouble(),
+        volAmb: (s['volume_ambiant'] as num?)?.toDouble(),
+        beneficiaireNom: beneficiaireNom,
+        statut: (s['statut'] as String? ?? 'brouillon'),
+      ),
+    );
   }
   return out;
 });
-

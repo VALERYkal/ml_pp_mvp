@@ -45,4 +45,3 @@ class ReceptionRowVM {
     return '—';
   }
 }
-

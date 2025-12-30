@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 class ShimmerRow extends StatelessWidget {
   final int count;
-  
+
   const ShimmerRow({super.key, this.count = 3});
-  
+
   @override
   Widget build(BuildContext context) => Wrap(
     spacing: 16,
@@ -26,9 +26,9 @@ class ShimmerRow extends StatelessWidget {
 class ErrorTile extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
-  
+
   const ErrorTile(this.message, {super.key, required this.onRetry});
-  
+
   @override
   Widget build(BuildContext context) => ListTile(
     leading: const Icon(Icons.error_outline),

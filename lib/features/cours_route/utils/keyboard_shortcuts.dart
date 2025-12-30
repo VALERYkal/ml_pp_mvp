@@ -28,17 +28,20 @@ class CoursRouteKeyboardShortcuts extends StatelessWidget {
     return Shortcuts(
       shortcuts: <LogicalKeySet, Intent>{
         // Ctrl+N : Nouveau cours
-        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyN): const _NewCoursIntent(),
-        
+        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyN):
+            const _NewCoursIntent(),
+
         // Ctrl+R : Rafraîchir
-        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyR): const _RefreshIntent(),
-        
+        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyR):
+            const _RefreshIntent(),
+
         // Ctrl+F : Focus recherche
-        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyF): const _SearchIntent(),
-        
+        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyF):
+            const _SearchIntent(),
+
         // Escape : Fermer modales/annuler
         LogicalKeySet(LogicalKeyboardKey.escape): const _EscapeIntent(),
-        
+
         // F5 : Rafraîchir (alternative)
         LogicalKeySet(LogicalKeyboardKey.f5): const _RefreshIntent(),
       },
@@ -139,6 +142,7 @@ mixin CoursRouteKeyboardShortcutsMixin<T extends StatefulWidget> on State<T> {
     // Focus par défaut sur le champ de recherche
     searchFocusNode.requestFocus();
   }
+
   void onEscape() {
     // Défocus par défaut
     FocusScope.of(context).unfocus();
@@ -171,9 +175,9 @@ class KeyboardShortcutsHelp extends StatelessWidget {
           children: [
             Text(
               'Raccourcis clavier',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             _buildShortcut('Ctrl+N', 'Nouveau cours'),

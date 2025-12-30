@@ -26,8 +26,7 @@ class DepotGlobalStockKpi {
   });
 
   factory DepotGlobalStockKpi.fromMap(Map<String, dynamic> map) {
-    double _toDouble(dynamic v) =>
-        v == null ? 0.0 : (v as num).toDouble();
+    double _toDouble(dynamic v) => v == null ? 0.0 : (v as num).toDouble();
 
     return DepotGlobalStockKpi(
       depotId: map['depot_id'] as String,
@@ -36,14 +35,10 @@ class DepotGlobalStockKpi {
       produitNom: map['produit_nom'] as String,
       stockAmbiant: _toDouble(map['stock_ambiant']),
       stock15C: _toDouble(map['stock_15c']),
-      volumeReceptionAmbiant:
-          _toDouble(map['volume_reception_ambiant']),
-      volumeReception15C:
-          _toDouble(map['volume_reception_15c']),
-      volumeSortieAmbiant:
-          _toDouble(map['volume_sortie_ambiant']),
-      volumeSortie15C:
-          _toDouble(map['volume_sortie_15c']),
+      volumeReceptionAmbiant: _toDouble(map['volume_reception_ambiant']),
+      volumeReception15C: _toDouble(map['volume_reception_15c']),
+      volumeSortieAmbiant: _toDouble(map['volume_sortie_ambiant']),
+      volumeSortie15C: _toDouble(map['volume_sortie_15c']),
     );
   }
 }
@@ -64,8 +59,7 @@ class DepotOwnerStockKpi {
   });
 
   factory DepotOwnerStockKpi.fromMap(Map<String, dynamic> map) {
-    double _toDouble(dynamic v) =>
-        v == null ? 0.0 : (v as num).toDouble();
+    double _toDouble(dynamic v) => v == null ? 0.0 : (v as num).toDouble();
 
     return DepotOwnerStockKpi(
       depotId: map['depot_id'] as String,
@@ -111,8 +105,7 @@ class CiterneOwnerStockSnapshot {
   });
 
   factory CiterneOwnerStockSnapshot.fromMap(Map<String, dynamic> map) {
-    double _toDouble(dynamic v) =>
-        v == null ? 0.0 : (v as num).toDouble();
+    double _toDouble(dynamic v) => v == null ? 0.0 : (v as num).toDouble();
 
     DateTime _toDate(dynamic v) {
       if (v is DateTime) return v;
@@ -130,14 +123,10 @@ class CiterneOwnerStockSnapshot {
       proprietaireType: map['proprietaire_type'] as String,
       stockAmbiant: _toDouble(map['stock_ambiant']),
       stock15C: _toDouble(map['stock_15c']),
-      volumeReceptionAmbiant:
-          _toDouble(map['volume_reception_ambiant']),
-      volumeReception15C:
-          _toDouble(map['volume_reception_15c']),
-      volumeSortieAmbiant:
-          _toDouble(map['volume_sortie_ambiant']),
-      volumeSortie15C:
-          _toDouble(map['volume_sortie_15c']),
+      volumeReceptionAmbiant: _toDouble(map['volume_reception_ambiant']),
+      volumeReception15C: _toDouble(map['volume_reception_15c']),
+      volumeSortieAmbiant: _toDouble(map['volume_sortie_ambiant']),
+      volumeSortie15C: _toDouble(map['volume_sortie_15c']),
       dateJour: _toDate(map['date_jour']),
     );
   }
@@ -175,8 +164,7 @@ class CiterneGlobalStockSnapshot {
   });
 
   factory CiterneGlobalStockSnapshot.fromMap(Map<String, dynamic> map) {
-    double _toDouble(dynamic v) =>
-        v == null ? 0.0 : (v as num).toDouble();
+    double _toDouble(dynamic v) => v == null ? 0.0 : (v as num).toDouble();
 
     DateTime _toDate(dynamic v) {
       if (v == null) return DateTime.now();
@@ -194,16 +182,11 @@ class CiterneGlobalStockSnapshot {
       produitNom: map['produit_nom'] as String,
       stockAmbiant: _toDouble(map['stock_ambiant']),
       stock15C: _toDouble(map['stock_15c']),
-      volumeReceptionAmbiant:
-          _toDouble(map['volume_reception_ambiant']),
-      volumeReception15C:
-          _toDouble(map['volume_reception_15c']),
-      volumeSortieAmbiant:
-          _toDouble(map['volume_sortie_ambiant']),
-      volumeSortie15C:
-          _toDouble(map['volume_sortie_15c']),
-      dateDernierMouvement:
-          _toDate(map['date_dernier_mouvement']),
+      volumeReceptionAmbiant: _toDouble(map['volume_reception_ambiant']),
+      volumeReception15C: _toDouble(map['volume_reception_15c']),
+      volumeSortieAmbiant: _toDouble(map['volume_sortie_ambiant']),
+      volumeSortie15C: _toDouble(map['volume_sortie_15c']),
+      dateDernierMouvement: _toDate(map['date_dernier_mouvement']),
     );
   }
 }

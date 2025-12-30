@@ -13,7 +13,7 @@ import '../../../shared/providers/auth_service_provider.dart';
 import '../../profil/providers/profil_provider.dart';
 
 /// Écran de connexion avec formulaire et gestion des rôles
-/// 
+///
 /// Fonctionnalités :
 /// - Formulaire de connexion (email + mot de passe)
 /// - Validation des champs
@@ -31,14 +31,14 @@ class LoginScreen extends ConsumerStatefulWidget {
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   // Clé pour la validation du formulaire
   final _formKey = GlobalKey<FormState>();
-  
+
   // Contrôleurs pour les champs de texte
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  
+
   // État de chargement
   bool _isLoading = false;
-  
+
   // État pour afficher/masquer le mot de passe
   bool _obscurePassword = true;
 
@@ -97,7 +97,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           behavior: SnackBarBehavior.floating,
           backgroundColor: bg,
           elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           content: Row(
             children: [
               Icon(icon, color: Colors.white),
@@ -133,7 +135,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     try {
       // Récupération du service d'authentification
       final authService = ref.read(authServiceProvider);
-      
+
       // Tentative de connexion
       await authService.signIn(
         _emailController.text.trim(),
@@ -142,10 +144,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
       // Succès de connexion
       _showSuccess('Connexion réussie');
-      
+
       // La redirection sera gérée par le router
       // qui attendra que le profil soit créé/récupéré
-
     } on AuthException catch (e) {
       // Gestion des erreurs d'authentification
       _showError(_mapAuthError(e.message));
@@ -164,14 +165,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
-
   /// Erreurs d'authentification (AuthException)
   String _mapAuthError(String? message) {
     final s = (message ?? '').toLowerCase();
     if (s.contains('invalid')) return 'Identifiants invalides';
     if (s.contains('email not confirmed')) return 'Email non confirmé';
     if (s.contains('network')) return 'Problème réseau';
-    if (s.contains('too many requests')) return 'Trop de tentatives. Réessayez plus tard.';
+    if (s.contains('too many requests'))
+      return 'Trop de tentatives. Réessayez plus tard.';
     return 'Impossible de se connecter';
   }
 
@@ -200,7 +201,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
         centerTitle: true,
       ),
-      
+
       // Corps de l'écran
       body: Center(
         child: SingleChildScrollView(
@@ -249,9 +250,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   const SizedBox(height: 6),
                   Text(
                     'Connectez-vous à votre compte',
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: _hint,
-                    ),
+                    style: theme.textTheme.bodyLarge?.copyWith(color: _hint),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
@@ -283,7 +282,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       fillColor: _fieldFill,
                       hintStyle: TextStyle(color: _hint),
                       labelStyle: TextStyle(color: _hint),
-                     // helperText: 'Entrez votre adresse email',
+                      // helperText: 'Entrez votre adresse email',
                     ),
                     validator: _validateEmail,
                     enabled: !_isLoading,
@@ -303,7 +302,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       prefixIcon: const Icon(Icons.lock_rounded, color: _hint),
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _obscurePassword ? Icons.visibility_rounded : Icons.visibility_off_rounded,
+                          _obscurePassword
+                              ? Icons.visibility_rounded
+                              : Icons.visibility_off_rounded,
                           color: _hint,
                         ),
                         onPressed: () {
@@ -328,7 +329,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       fillColor: _fieldFill,
                       hintStyle: TextStyle(color: _hint),
                       labelStyle: TextStyle(color: _hint),
-                     // helperText: 'Appuyez sur Entrée pour vous connecter'.
+                      // helperText: 'Appuyez sur Entrée pour vous connecter'.
                     ),
                     validator: _validatePassword,
                     enabled: !_isLoading,
@@ -341,26 +342,34 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     child: ElevatedButton(
                       key: const Key('login_button'),
                       onPressed: _isLoading ? null : _submitIfValid,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _primary,
-                        foregroundColor: Colors.white,
-                        elevation: 1.5,
-                        shape: const StadiumBorder(),
-                      ).copyWith(
-                        overlayColor: MaterialStateProperty.all(_primaryDark.withOpacity(.12)),
-                      ),
+                      style:
+                          ElevatedButton.styleFrom(
+                            backgroundColor: _primary,
+                            foregroundColor: Colors.white,
+                            elevation: 1.5,
+                            shape: const StadiumBorder(),
+                          ).copyWith(
+                            overlayColor: MaterialStateProperty.all(
+                              _primaryDark.withOpacity(.12),
+                            ),
+                          ),
                       child: _isLoading
                           ? const SizedBox(
                               height: 20,
                               width: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
                               ),
                             )
                           : const Text(
                               'Se connecter',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                     ),
                   ),
@@ -369,9 +378,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   // Message d'aide
                   Text(
                     'Utilisez vos identifiants fournis par votre administrateur',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: _hint,
-                    ),
+                    style: theme.textTheme.bodySmall?.copyWith(color: _hint),
                     textAlign: TextAlign.center,
                   ),
                 ],

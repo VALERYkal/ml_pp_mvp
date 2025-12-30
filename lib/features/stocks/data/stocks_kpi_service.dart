@@ -19,7 +19,7 @@ class StocksDashboardKpis {
   });
 
   /// Factory pour créer un snapshot vide (mode dégradé)
-  /// 
+  ///
   /// Utilisé lorsque le chargement des KPI stocks échoue,
   /// pour éviter de faire planter tout le dashboard.
   factory StocksDashboardKpis.empty() {
@@ -86,4 +86,3 @@ class StocksKpiService {
     return loadDashboardKpis(depotId: depotId);
   }
 }
-

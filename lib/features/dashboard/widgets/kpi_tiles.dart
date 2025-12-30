@@ -11,7 +11,7 @@ class KpiCard extends StatelessWidget {
   final num? value;
   final bool warning;
   final IconData? icon;
-  
+
   const KpiCard({
     super.key,
     required this.title,
@@ -24,7 +24,7 @@ class KpiCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final v = value ?? 0;
     final defaultIcon = warning ? Icons.warning_amber : Icons.trending_up;
-    
+
     return SizedBox(
       width: 260,
       child: Card(
@@ -36,7 +36,7 @@ class KpiCard extends StatelessWidget {
             children: [
               Icon(
                 icon ?? defaultIcon,
-                color: warning 
+                color: warning
                     ? Theme.of(context).colorScheme.error
                     : Theme.of(context).colorScheme.primary,
                 size: 24,
@@ -55,12 +55,13 @@ class KpiCard extends StatelessWidget {
                     const SizedBox(height: 6),
                     Text(
                       v.toStringAsFixed(0),
-                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: warning 
-                            ? Theme.of(context).colorScheme.error
-                            : Theme.of(context).colorScheme.onSurface,
-                      ),
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: warning
+                                ? Theme.of(context).colorScheme.error
+                                : Theme.of(context).colorScheme.onSurface,
+                          ),
                     ),
                   ],
                 ),
@@ -76,7 +77,7 @@ class KpiCard extends StatelessWidget {
 /// Placeholder shimmer pour le chargement
 class ShimmerRow extends StatelessWidget {
   final int count;
-  
+
   const ShimmerRow({super.key, this.count = 3});
 
   @override
@@ -108,7 +109,7 @@ class ShimmerRow extends StatelessWidget {
 class ErrorTile extends StatelessWidget {
   final String message;
   final VoidCallback retry;
-  
+
   const ErrorTile(this.message, {super.key, required this.retry});
 
   @override
@@ -138,7 +139,7 @@ class KpiTiles extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // TODO: Remplacer par le vrai provider de KPIs
     // final kpis = ref.watch(kpiProvider);
-    
+
     // Pour l'instant, on simule des données
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -151,11 +152,7 @@ class KpiTiles extends ConsumerWidget {
             value: 12,
             icon: Icons.call_received,
           ),
-          KpiCard(
-            title: 'Sorties (jour)',
-            value: 8,
-            icon: Icons.call_made,
-          ),
+          KpiCard(title: 'Sorties (jour)', value: 8, icon: Icons.call_made),
           KpiCard(
             title: 'Citernes sous seuil',
             value: 3,
@@ -181,7 +178,7 @@ class KpiTilesWithStates extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // TODO: Remplacer par le vrai provider de KPIs
     // final kpis = ref.watch(kpiProvider);
-    
+
     // Simulation d'un état de chargement
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -204,7 +201,7 @@ class CdrKpiTiles extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final kpisAsync = ref.watch(cdrKpiCountsByCategorieProvider);
-    
+
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
@@ -239,9 +236,7 @@ class CdrKpiTiles extends ConsumerWidget {
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: const Center(
-        child: CircularProgressIndicator(strokeWidth: 2),
-      ),
+      child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
     );
   }
 
@@ -269,9 +264,9 @@ class CdrKpiTiles extends ConsumerWidget {
             const SizedBox(height: 4),
             Text(
               error.toString(),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.red.shade700,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: Colors.red.shade700),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
@@ -282,7 +277,10 @@ class CdrKpiTiles extends ConsumerWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
               ),
             ),
           ],
@@ -296,29 +294,35 @@ class CdrKpiTiles extends ConsumerWidget {
       padding: const EdgeInsets.all(20),
       child: Row(
         children: [
-          Expanded(child: _buildModernKpiCard(
-            context,
-            'En route',
-            '${kpis['enRoute'] ?? 0}',
-            Icons.local_shipping_outlined,
-            Colors.blue,
-          )),
+          Expanded(
+            child: _buildModernKpiCard(
+              context,
+              'En route',
+              '${kpis['enRoute'] ?? 0}',
+              Icons.local_shipping_outlined,
+              Colors.blue,
+            ),
+          ),
           const SizedBox(width: 16),
-          Expanded(child: _buildModernKpiCard(
-            context,
-            'En attente',
-            '${kpis['enAttente'] ?? 0}',
-            Icons.hourglass_empty_outlined,
-            Colors.orange,
-          )),
+          Expanded(
+            child: _buildModernKpiCard(
+              context,
+              'En attente',
+              '${kpis['enAttente'] ?? 0}',
+              Icons.hourglass_empty_outlined,
+              Colors.orange,
+            ),
+          ),
           const SizedBox(width: 16),
-          Expanded(child: _buildModernKpiCard(
-            context,
-            'Terminés',
-            '${kpis['termines'] ?? 0}',
-            Icons.check_circle_outline,
-            Colors.green,
-          )),
+          Expanded(
+            child: _buildModernKpiCard(
+              context,
+              'Terminés',
+              '${kpis['termines'] ?? 0}',
+              Icons.check_circle_outline,
+              Colors.green,
+            ),
+          ),
         ],
       ),
     );
@@ -337,16 +341,10 @@ class CdrKpiTiles extends ConsumerWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            color.withOpacity(0.1),
-            color.withOpacity(0.05),
-          ],
+          colors: [color.withOpacity(0.1), color.withOpacity(0.05)],
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: color.withOpacity(0.2),
-          width: 1,
-        ),
+        border: Border.all(color: color.withOpacity(0.2), width: 1),
       ),
       child: Column(
         children: [
@@ -356,11 +354,7 @@ class CdrKpiTiles extends ConsumerWidget {
               color: color.withOpacity(0.2),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(
-              icon,
-              color: color,
-              size: 24,
-            ),
+            child: Icon(icon, color: color, size: 24),
           ),
           const SizedBox(height: 12),
           Text(
@@ -392,7 +386,7 @@ class CdrKpiTilesDetail extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final kpisAsync = ref.watch(cdrKpiCountsByStatutProvider);
-    
+
     return kpisAsync.when(
       loading: () => const Padding(
         padding: EdgeInsets.all(16),
@@ -448,9 +442,15 @@ class StockTotalTile extends ConsumerWidget {
   const StockTotalTile({super.key});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final total15c = ref.watch(kpiStocksProvider.select((s) => s.total15c ?? 0.0));
-    final totalAmb = ref.watch(kpiStocksProvider.select((s) => s.totalAmbient ?? 0.0));
-    final capacity = ref.watch(kpiStocksProvider.select((s) => s.capacityTotal ?? 0.0));
+    final total15c = ref.watch(
+      kpiStocksProvider.select((s) => s.total15c ?? 0.0),
+    );
+    final totalAmb = ref.watch(
+      kpiStocksProvider.select((s) => s.totalAmbient ?? 0.0),
+    );
+    final capacity = ref.watch(
+      kpiStocksProvider.select((s) => s.capacityTotal ?? 0.0),
+    );
     final usagePct = capacity <= 0 ? 0 : (totalAmb / capacity * 100);
     return KpiCard(
       title: 'Stock total',
@@ -459,4 +459,3 @@ class StockTotalTile extends ConsumerWidget {
     );
   }
 }
-

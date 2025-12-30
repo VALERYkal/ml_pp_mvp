@@ -27,16 +27,10 @@ final appAuthStateProvider = StreamProvider<AppAuthState>((ref) async* {
   final stream = auth.onAuthStateChange;
 
   // Emit une première valeur immédiate pour initialiser le router
-  yield AppAuthState(
-    session: auth.currentSession,
-    authStream: stream,
-  );
+  yield AppAuthState(session: auth.currentSession, authStream: stream);
 
   await for (final e in stream) {
-    yield AppAuthState(
-      session: e.session,
-      authStream: stream,
-    );
+    yield AppAuthState(session: e.session, authStream: stream);
   }
 });
 
@@ -52,17 +46,21 @@ final isAuthenticatedProvider = Provider<bool>((ref) {
     loading: () {
       // Pendant le chargement, vérifier l'état instantané
       final fallback = Supabase.instance.client.auth.currentSession != null;
-      debugPrint('🔐 isAuthenticatedProvider: loading state -> fallback=$fallback');
+      debugPrint(
+        '🔐 isAuthenticatedProvider: loading state -> fallback=$fallback',
+      );
       return fallback;
     },
     error: (_, __) {
       // En cas d'erreur, vérifier l'état instantané
       final fallback = Supabase.instance.client.auth.currentSession != null;
-      debugPrint('🔐 isAuthenticatedProvider: error state -> fallback=$fallback');
+      debugPrint(
+        '🔐 isAuthenticatedProvider: error state -> fallback=$fallback',
+      );
       return fallback;
     },
   );
-  
+
   debugPrint('🔐 isAuthenticatedProvider: final result=$result');
   return result;
 });

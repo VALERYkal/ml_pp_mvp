@@ -341,7 +341,9 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
       }
     } on ReceptionInsertException catch (e) {
       // Erreur d'insertion Postgres mappée en message utilisateur
-      debugPrint('[ReceptionForm] ReceptionInsertException: ${e.toLogString()}');
+      debugPrint(
+        '[ReceptionForm] ReceptionInsertException: ${e.toLogString()}',
+      );
       if (mounted) {
         showAppToast(
           context,

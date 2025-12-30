@@ -21,7 +21,9 @@ class ActiviteRecente {
   factory ActiviteRecente.fromMap(Map<String, dynamic> map) {
     return ActiviteRecente(
       id: map['id']?.toString() ?? '',
-      createdAt: DateTime.tryParse(map['created_at']?.toString() ?? '') ?? DateTime.now(),
+      createdAt:
+          DateTime.tryParse(map['created_at']?.toString() ?? '') ??
+          DateTime.now(),
       module: map['module']?.toString() ?? '',
       action: map['action']?.toString() ?? '',
       niveau: map['niveau']?.toString() ?? '',
@@ -46,7 +48,7 @@ class ActiviteRecente {
   String get createdAtFmt {
     final now = DateTime.now();
     final diff = now.difference(createdAt);
-    
+
     if (diff.inMinutes < 1) {
       return 'À l\'instant';
     } else if (diff.inMinutes < 60) {

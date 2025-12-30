@@ -17,17 +17,14 @@
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  group(
-    'ReceptionsKpiProvider (deprecated)',
-    () {
-      test(
-        'Deprecated – replaced by test/features/kpi/receptions_kpi_provider_test.dart',
-        () {},
-        skip: 'Deprecated: cette suite est remplacée par test/features/kpi/receptions_kpi_provider_test.dart, '
-            'qui utilise receptionsRawTodayProvider + computeKpiReceptions sans Supabase.instance. '
-            'Voir aussi test/features/kpi/kpi_receptions_compute_test.dart pour les tests unitaires de la fonction pure.',
-      );
-    },
-  );
+  group('ReceptionsKpiProvider (deprecated)', () {
+    test(
+      'Deprecated – replaced by test/features/kpi/receptions_kpi_provider_test.dart',
+      () {},
+      skip:
+          'Deprecated: cette suite est remplacée par test/features/kpi/receptions_kpi_provider_test.dart, '
+          'qui utilise receptionsRawTodayProvider + computeKpiReceptions sans Supabase.instance. '
+          'Voir aussi test/features/kpi/kpi_receptions_compute_test.dart pour les tests unitaires de la fonction pure.',
+    );
+  });
 }
-

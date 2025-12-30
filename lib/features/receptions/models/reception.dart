@@ -34,7 +34,6 @@ class Reception with _$Reception {
     @JsonKey(name: 'validated_by') String? validatedBy,
   }) = _Reception;
 
-  factory Reception.fromJson(Map<String, dynamic> json) => _$ReceptionFromJson(json);
+  factory Reception.fromJson(Map<String, dynamic> json) =>
+      _$ReceptionFromJson(json);
 }
-
-

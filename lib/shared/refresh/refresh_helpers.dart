@@ -10,7 +10,7 @@ import 'package:ml_pp_mvp/features/citernes/providers/citerne_providers.dart';
 ///
 /// - Invalide le snapshot KPI principal (`kpiProviderProvider`)
 /// - Invalide le provider agrégé stocks du dashboard (`stocksDashboardKpisProvider`)
-/// - Invalide les providers snapshot de stock actuel (depotGlobalStockFromSnapshotProvider, 
+/// - Invalide les providers snapshot de stock actuel (depotGlobalStockFromSnapshotProvider,
 ///   depotOwnerStockFromSnapshotProvider, citerneStocksSnapshotProvider)
 ///   si `depotId` est fourni, sinon invalide toute la family
 ///
@@ -18,7 +18,10 @@ import 'package:ml_pp_mvp/features/citernes/providers/citerne_providers.dart';
 /// - [ref]: La référence Riverpod (peut être `Ref` ou `WidgetRef`)
 /// - [depotId]: Optionnel, l'ID du dépôt concerné. Si fourni, invalide uniquement
 ///   l'instance des providers pour ce dépôt. Sinon, invalide toute la family.
-void invalidateDashboardKpisAfterStockMovement(WidgetRef ref, {String? depotId}) {
+void invalidateDashboardKpisAfterStockMovement(
+  WidgetRef ref, {
+  String? depotId,
+}) {
   // 1) Invalider le provider KPI dashboard (snapshot global)
   ref.invalidate(kpiProviderProvider);
 

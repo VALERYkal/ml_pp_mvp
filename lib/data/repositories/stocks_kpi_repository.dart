@@ -264,24 +264,26 @@ class StocksKpiRepository {
     final rows = await query;
     // Cast sûr : rows peut être List<dynamic> avec items Map<String, dynamic>
     final list = (rows as List).cast<Map<String, dynamic>>();
-    
+
     final result = list.map(DepotOwnerStockKpi.fromMap).toList();
-    
+
     // Fallback safe : si résultat vide, retourner MONALUXE et PARTENAIRE avec 0.0
     if (result.isEmpty && depotId != null) {
       // Récupérer le nom du dépôt pour le fallback
       String depotNom = '';
       try {
-        final depotRow = await _client
-            .from('depots')
-            .select('id, nom')
-            .eq('id', depotId)
-            .maybeSingle() as Map<String, dynamic>?;
+        final depotRow =
+            await _client
+                    .from('depots')
+                    .select('id, nom')
+                    .eq('id', depotId)
+                    .maybeSingle()
+                as Map<String, dynamic>?;
         depotNom = (depotRow?['nom'] as String?) ?? '';
       } catch (_) {
         // Ignorer si erreur récupération dépôt
       }
-      
+
       return [
         DepotOwnerStockKpi(
           depotId: depotId,
@@ -303,19 +305,19 @@ class StocksKpiRepository {
         ),
       ];
     }
-    
+
     return result;
   }
 
   /// Récupère les stocks actuels par citerne depuis la vue snapshot.
-  /// 
+  ///
   /// Cette méthode lit depuis v_stock_actuel_snapshot qui représente
   /// le dernier état connu de chaque citerne (tous propriétaires confondus).
-  /// 
+  ///
   /// [depotId] : Optionnel, filtre par dépôt
   /// [citerneId] : Optionnel, filtre par citerne
   /// [produitId] : Optionnel, filtre par produit
-  /// 
+  ///
   /// Retourne : Liste de Map contenant les données brutes de la vue SQL
   Future<List<Map<String, dynamic>>> fetchCiterneStocksFromSnapshot({
     String? depotId,
@@ -338,7 +340,7 @@ class StocksKpiRepository {
   }
 
   /// Récupère les stocks actuels par dépôt et propriétaire depuis la vue snapshot.
-  /// 
+  ///
   /// Vue SQL : v_stock_actuel_owner_snapshot
   /// Colonnes attendues :
   ///   - depot_id, depot_nom
@@ -346,10 +348,10 @@ class StocksKpiRepository {
   ///   - proprietaire_type (MONALUXE ou PARTENAIRE)
   ///   - stock_ambiant_total (NUMERIC)
   ///   - stock_15c_total (NUMERIC)
-  /// 
+  ///
   /// [depotId] : Identifiant du dépôt (requis)
   /// [produitId] : Optionnel, filtre par produit
-  /// 
+  ///
   /// Retourne : Liste de Map contenant les données brutes de la vue SQL
   Future<List<Map<String, dynamic>>> fetchDepotOwnerStocksFromSnapshot({
     required String depotId,
@@ -358,7 +360,7 @@ class StocksKpiRepository {
     if (kDebugMode) {
       debugPrint(
         '🔍 StocksKpiRepository.fetchDepotOwnerStocksFromSnapshot: '
-        'depotId=$depotId, produitId=$produitId'
+        'depotId=$depotId, produitId=$produitId',
       );
     }
 
@@ -367,7 +369,7 @@ class StocksKpiRepository {
         .select<List<Map<String, dynamic>>>();
 
     query.eq('depot_id', depotId);
-    
+
     if (produitId != null) {
       query.eq('produit_id', produitId);
     }
@@ -377,17 +379,15 @@ class StocksKpiRepository {
 
     final rows = await query;
     final result = (rows as List).cast<Map<String, dynamic>>();
-    
+
     if (kDebugMode) {
       debugPrint(
         '🔍 StocksKpiRepository.fetchDepotOwnerStocksFromSnapshot: '
-        'Retourné ${result.length} lignes pour depotId=$depotId'
+        'Retourné ${result.length} lignes pour depotId=$depotId',
       );
       if (result.isNotEmpty) {
         final sample = result.first;
-        debugPrint(
-          '🔍 Colonnes disponibles: ${sample.keys.toList()}'
-        );
+        debugPrint('🔍 Colonnes disponibles: ${sample.keys.toList()}');
       }
     }
 
@@ -395,17 +395,19 @@ class StocksKpiRepository {
   }
 
   /// [DEPRECATED] Alias de compatibilité pour fetchCiterneGlobalSnapshots.
-  /// 
+  ///
   /// ⚠️ Cette méthode est maintenue uniquement pour compatibilité avec le code existant.
   /// Utilise v_stock_actuel_snapshot comme source de vérité (ignore dateJour car snapshot = état actuel).
-  /// 
+  ///
   /// [depotId] : Optionnel, filtre par dépôt
   /// [citerneId] : Optionnel, filtre par citerne
   /// [produitId] : Optionnel, filtre par produit
   /// [dateJour] : Ignoré (snapshot = toujours état actuel)
-  /// 
+  ///
   /// Retourne : Liste de CiterneGlobalStockSnapshot mappée depuis v_stock_actuel_snapshot
-  @Deprecated('Utiliser fetchCiterneStocksFromSnapshot() directement. Cette méthode est maintenue pour compatibilité.')
+  @Deprecated(
+    'Utiliser fetchCiterneStocksFromSnapshot() directement. Cette méthode est maintenue pour compatibilité.',
+  )
   Future<List<CiterneGlobalStockSnapshot>> fetchCiterneGlobalSnapshots({
     String? depotId,
     String? citerneId,
@@ -425,14 +427,16 @@ class StocksKpiRepository {
         .whereType<String>()
         .toSet()
         .toList();
-    
+
     final citernesMap = <String, Map<String, dynamic>>{};
     if (citerneIds.isNotEmpty) {
       final citernesQuery = _client
           .from('citernes')
-          .select<List<Map<String, dynamic>>>('id, nom, capacite_totale, capacite_securite, produit_id')
+          .select<List<Map<String, dynamic>>>(
+            'id, nom, capacite_totale, capacite_securite, produit_id',
+          )
           .in_('id', citerneIds);
-      
+
       final citernesRows = await citernesQuery;
       for (final c in citernesRows) {
         final id = c['id'] as String?;
@@ -448,13 +452,12 @@ class StocksKpiRepository {
         .whereType<String>()
         .toSet()
         .toList();
-    
+
     final produitsMap = <String, String>{};
     if (produitIds.isNotEmpty) {
-      final produits = await _client
-          .from('produits')
-          .select('id, nom')
-          .in_('id', produitIds) as List;
+      final produits =
+          await _client.from('produits').select('id, nom').in_('id', produitIds)
+              as List;
       for (final p in produits) {
         final id = p['id'] as String?;
         final nom = p['nom'] as String?;
@@ -471,42 +474,46 @@ class StocksKpiRepository {
       final citerneId = map['citerne_id'] as String?;
       final produitId = map['produit_id'] as String?;
       final citerneData = citernesMap[citerneId ?? ''];
-      
+
       // Adapter les clés et enrichir avec les capacités
       // v_stock_actuel_snapshot peut retourner stock_ambiant/stock_15c ou stock_ambiant_total/stock_15c_total
       map['stock_ambiant_total'] ??= map['stock_ambiant'] ?? 0.0;
       map['stock_15c_total'] ??= map['stock_15c'] ?? 0.0;
       // Utiliser updated_at si disponible, sinon date actuelle
       final dateStr = map['updated_at'] ?? map['date_jour'];
-      map['date_jour'] = dateStr is String 
-          ? dateStr 
-          : (dateStr is DateTime 
-              ? dateStr.toIso8601String().split('T').first 
-              : now.toIso8601String().split('T').first);
-      map['capacite_totale'] ??= (citerneData?['capacite_totale'] as num?)?.toDouble() ?? 0.0;
-      map['capacite_securite'] ??= (citerneData?['capacite_securite'] as num?)?.toDouble() ?? 0.0;
-      
+      map['date_jour'] = dateStr is String
+          ? dateStr
+          : (dateStr is DateTime
+                ? dateStr.toIso8601String().split('T').first
+                : now.toIso8601String().split('T').first);
+      map['capacite_totale'] ??=
+          (citerneData?['capacite_totale'] as num?)?.toDouble() ?? 0.0;
+      map['capacite_securite'] ??=
+          (citerneData?['capacite_securite'] as num?)?.toDouble() ?? 0.0;
+
       // S'assurer que citerne_nom et produit_nom sont présents
       map['citerne_nom'] ??= (citerneData?['nom'] as String?) ?? 'Citerne';
       map['produit_nom'] ??= produitsMap[produitId ?? ''] ?? '';
-      
+
       return CiterneGlobalStockSnapshot.fromMap(map);
     }).toList();
   }
 
   /// [DEPRECATED] Alias de compatibilité pour fetchCiterneOwnerSnapshots.
-  /// 
+  ///
   /// ⚠️ Cette méthode est maintenue uniquement pour compatibilité avec le code existant.
   /// Lit depuis stocks_journaliers pour obtenir les snapshots par citerne et propriétaire.
-  /// 
+  ///
   /// [depotId] : Optionnel, filtre par dépôt
   /// [citerneId] : Optionnel, filtre par citerne
   /// [produitId] : Optionnel, filtre par produit
   /// [proprietaireType] : Optionnel, filtre par propriétaire
   /// [dateJour] : Ignoré (snapshot = toujours état actuel, utilise MAX(date_jour))
-  /// 
+  ///
   /// Retourne : Liste de CiterneOwnerStockSnapshot avec le dernier état connu par (citerne, produit, propriétaire)
-  @Deprecated('Utiliser les providers snapshot directement. Cette méthode est maintenue pour compatibilité.')
+  @Deprecated(
+    'Utiliser les providers snapshot directement. Cette méthode est maintenue pour compatibilité.',
+  )
   Future<List<CiterneOwnerStockSnapshot>> fetchCiterneOwnerSnapshots({
     String? depotId,
     String? citerneId,
@@ -523,7 +530,8 @@ class StocksKpiRepository {
     if (depotId != null) query.eq('depot_id', depotId);
     if (citerneId != null) query.eq('citerne_id', citerneId);
     if (produitId != null) query.eq('produit_id', produitId);
-    if (proprietaireType != null) query.eq('proprietaire_type', proprietaireType);
+    if (proprietaireType != null)
+      query.eq('proprietaire_type', proprietaireType);
 
     // Trier par date_jour DESC pour obtenir les plus récents en premier
     query.order('date_jour', ascending: false);
@@ -534,7 +542,8 @@ class StocksKpiRepository {
     // Grouper par (citerne_id, produit_id, proprietaire_type) et prendre le premier (plus récent)
     final grouped = <String, Map<String, dynamic>>{};
     for (final row in rows) {
-      final key = '${row['citerne_id']}::${row['produit_id']}::${row['proprietaire_type']}';
+      final key =
+          '${row['citerne_id']}::${row['produit_id']}::${row['proprietaire_type']}';
       if (!grouped.containsKey(key)) {
         grouped[key] = row;
       }
@@ -554,10 +563,9 @@ class StocksKpiRepository {
 
     final citernesMap = <String, String>{};
     if (citerneIds.isNotEmpty) {
-      final citernes = await _client
-          .from('citernes')
-          .select('id, nom')
-          .in_('id', citerneIds) as List;
+      final citernes =
+          await _client.from('citernes').select('id, nom').in_('id', citerneIds)
+              as List;
       for (final c in citernes) {
         final id = c['id'] as String?;
         final nom = c['nom'] as String?;
@@ -569,10 +577,9 @@ class StocksKpiRepository {
 
     final produitsMap = <String, String>{};
     if (produitIds.isNotEmpty) {
-      final produits = await _client
-          .from('produits')
-          .select('id, nom')
-          .in_('id', produitIds) as List;
+      final produits =
+          await _client.from('produits').select('id, nom').in_('id', produitIds)
+              as List;
       for (final p in produits) {
         final id = p['id'] as String?;
         final nom = p['nom'] as String?;
@@ -587,12 +594,12 @@ class StocksKpiRepository {
       final map = Map<String, dynamic>.from(row);
       final citerneId = map['citerne_id'] as String? ?? '';
       final produitId = map['produit_id'] as String? ?? '';
-      
+
       map['citerne_nom'] = citernesMap[citerneId] ?? 'Citerne';
       map['produit_nom'] = produitsMap[produitId] ?? '';
       map['stock_ambiant_total'] = map['stock_ambiant'] ?? 0.0;
       map['stock_15c_total'] = map['stock_15c'] ?? 0.0;
-      
+
       return CiterneOwnerStockSnapshot.fromMap(map);
     }).toList();
   }

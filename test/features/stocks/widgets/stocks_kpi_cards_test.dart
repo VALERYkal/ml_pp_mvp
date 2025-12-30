@@ -100,9 +100,7 @@ void main() {
             overrides: [
               stocksKpiRepositoryProvider.overrideWithValue(fakeRepo),
             ],
-            child: const OwnerStockBreakdownCard(
-              depotId: 'depot-1',
-            ),
+            child: const OwnerStockBreakdownCard(depotId: 'depot-1'),
           ),
         ),
       );
@@ -118,4 +116,3 @@ void main() {
     // la logique métier de construction du snapshot.
   });
 }
-

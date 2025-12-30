@@ -12,17 +12,17 @@ class SortiesKpiRepository {
 
   /// 🚨 PROD-LOCK: Structure KPI Sorties du jour - DO NOT MODIFY
   /// Retourne les KPI "sorties du jour" sous forme de KpiNumberVolume
-  /// 
+  ///
   /// Filtre par :
   /// - date_sortie dans le jour donné (format TIMESTAMPTZ, comparaison >= jour 00:00 et < jour+1 00:00)
   /// - statut == 'validee' (OBLIGATOIRE - ne pas accepter 'brouillon')
   /// - depotId (optionnel) : filtre par dépôt via citernes
-  /// 
+  ///
   /// Agrège :
   /// - count : nombre de sorties
   /// - volume15c : somme de volume_corrige_15c
   /// - volumeAmbient : somme de volume_ambiant
-  /// 
+  ///
   /// Si cette structure est modifiée, mettre à jour:
   /// - Tests KPI (sorties_kpi_repository_test.dart, sorties_kpi_provider_test.dart)
   /// - Dashboard (affichage KPI)
@@ -40,12 +40,14 @@ class SortiesKpiRepository {
     try {
       // 2. Requête Supabase avec filtres
       List result;
-      
+
       if (depotId != null && depotId.isNotEmpty) {
         // Filtrage par dépôt via citernes (inner join)
         result = await client
             .from('sorties_produit')
-            .select('volume_corrige_15c, volume_ambiant, citernes!inner(depot_id)')
+            .select(
+              'volume_corrige_15c, volume_ambiant, citernes!inner(depot_id)',
+            )
             .eq('statut', 'validee')
             .gte('date_sortie', dayStartIso)
             .lt('date_sortie', dayEndIso)
@@ -69,7 +71,7 @@ class SortiesKpiRepository {
       double volumeAmbient = 0.0;
 
       final rows = response as List<Map<String, dynamic>>;
-      
+
       for (final row in rows) {
         count += 1;
 
@@ -94,10 +96,11 @@ class SortiesKpiRepository {
       // - Tests KPI (sorties_kpi_repository_test.dart, sorties_kpi_provider_test.dart)
       // - Dashboard (affichage KPI)
       // - Documentation KPI
-      
-      debugPrint('[SortiesKpiRepository] Erreur lors de la récupération des KPI: $e');
+
+      debugPrint(
+        '[SortiesKpiRepository] Erreur lors de la récupération des KPI: $e',
+      );
       return KpiNumberVolume.zero;
     }
   }
 }
-

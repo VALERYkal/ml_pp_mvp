@@ -1,5 +1,5 @@
 // 📊 Dashboard Modernization Summary
-// 
+//
 // Ce fichier documente les améliorations apportées au système de dashboard
 // pour rendre l'interface plus moderne, professionnelle et élégante.
 
@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 
 /// Résumé des améliorations apportées au dashboard
 class DashboardModernizationSummary {
-  
   /// 🎨 Améliorations visuelles principales
   static const List<String> visualImprovements = [
     'Grille responsive avec animations échelonnées',
@@ -34,21 +33,21 @@ class DashboardModernizationSummary {
 
   /// 📱 Responsive design
   static const Map<String, int> responsiveBreakpoints = {
-    'Mobile': 1,      // < 900px
-    'Tablet': 2,      // 900px - 1199px
-    'Desktop': 3,     // 1200px - 1599px
-    'Large': 4,       // >= 1600px
+    'Mobile': 1, // < 900px
+    'Tablet': 2, // 900px - 1199px
+    'Desktop': 3, // 1200px - 1599px
+    'Large': 4, // >= 1600px
   };
 
   /// 🎯 Couleurs professionnelles
   static const Map<String, Color> professionalColors = {
-    'Primary': Color(0xFF2563EB),      // Bleu professionnel
-    'Success': Color(0xFF059669),      // Vert succès
-    'Warning': Color(0xFFD97706),      // Orange attention
-    'Danger': Color(0xFFDC2626),       // Rouge danger
-    'Info': Color(0xFF0891B2),         // Cyan info
-    'Purple': Color(0xFF7C3AED),       // Violet premium
-    'Teal': Color(0xFF0D9488),         // Teal élégant
+    'Primary': Color(0xFF2563EB), // Bleu professionnel
+    'Success': Color(0xFF059669), // Vert succès
+    'Warning': Color(0xFFD97706), // Orange attention
+    'Danger': Color(0xFFDC2626), // Rouge danger
+    'Info': Color(0xFF0891B2), // Cyan info
+    'Purple': Color(0xFF7C3AED), // Violet premium
+    'Teal': Color(0xFF0D9488), // Teal élégant
   };
 
   /// ✨ Animations et interactions
@@ -74,14 +73,14 @@ class DashboardModernizationSummary {
 
   /// 🎨 Design system
   static const Map<String, double> designTokens = {
-    'BorderRadius': 28.0,           // Rayon des cartes
-    'Padding': 24.0,                // Espacement interne
-    'Spacing': 20.0,                // Espacement entre éléments
-    'IconSize': 28.0,               // Taille des icônes
-    'FontSizePrimary': 32.0,        // Taille police principale
-    'FontSizeSecondary': 20.0,      // Taille police secondaire
-    'FontWeightPrimary': 900,       // Poids police principale
-    'FontWeightSecondary': 800,     // Poids police secondaire
+    'BorderRadius': 28.0, // Rayon des cartes
+    'Padding': 24.0, // Espacement interne
+    'Spacing': 20.0, // Espacement entre éléments
+    'IconSize': 28.0, // Taille des icônes
+    'FontSizePrimary': 32.0, // Taille police principale
+    'FontSizeSecondary': 20.0, // Taille police secondaire
+    'FontWeightPrimary': 900, // Poids police principale
+    'FontWeightSecondary': 800, // Poids police secondaire
   };
 
   /// 🔧 Composants modernisés
@@ -175,26 +174,28 @@ class DashboardModernizationDemo extends StatelessWidget {
         children: [
           Text(
             title,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 16),
-          ...items.map((item) => Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('• ', style: TextStyle(fontSize: 16)),
-                Expanded(
-                  child: Text(
-                    item,
-                    style: Theme.of(context).textTheme.bodyMedium,
+          ...items.map(
+            (item) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('• ', style: TextStyle(fontSize: 16)),
+                  Expanded(
+                    child: Text(
+                      item,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          )),
+          ),
         ],
       ),
     );

@@ -87,7 +87,7 @@ void main() {
         'produit_id': 'produit-1',
         'depot_destination_id': 'depot-1',
         'chauffeur_nom': 'Jean Dupont', // Legacy field
-        'depart_pays': 'RDC',           // Legacy field
+        'depart_pays': 'RDC', // Legacy field
         'statut': 'CHARGEMENT',
       };
 
@@ -126,8 +126,8 @@ void main() {
         statut: StatutCours.decharge,
       );
 
-          expect(CoursDeRouteUtils.isActif(coursActif), true);
-    expect(CoursDeRouteUtils.isActif(coursTermine), false);
+      expect(CoursDeRouteUtils.isActif(coursActif), true);
+      expect(CoursDeRouteUtils.isActif(coursTermine), false);
     });
 
     test('should get next statut', () {
@@ -164,16 +164,34 @@ void main() {
         depotDestinationId: 'depot',
         statut: StatutCours.chargement,
       );
-      
-      final coursTransit = coursChargement.copyWith(statut: StatutCours.transit);
-      final coursFrontiere = coursChargement.copyWith(statut: StatutCours.frontiere);
+
+      final coursTransit = coursChargement.copyWith(
+        statut: StatutCours.transit,
+      );
+      final coursFrontiere = coursChargement.copyWith(
+        statut: StatutCours.frontiere,
+      );
       final coursArrive = coursChargement.copyWith(statut: StatutCours.arrive);
-      final coursDecharge = coursChargement.copyWith(statut: StatutCours.decharge);
-      
-      expect(CoursDeRouteUtils.getStatutSuivant(coursChargement), StatutCours.transit);
-      expect(CoursDeRouteUtils.getStatutSuivant(coursTransit), StatutCours.frontiere);
-      expect(CoursDeRouteUtils.getStatutSuivant(coursFrontiere), StatutCours.arrive);
-      expect(CoursDeRouteUtils.getStatutSuivant(coursArrive), StatutCours.decharge);
+      final coursDecharge = coursChargement.copyWith(
+        statut: StatutCours.decharge,
+      );
+
+      expect(
+        CoursDeRouteUtils.getStatutSuivant(coursChargement),
+        StatutCours.transit,
+      );
+      expect(
+        CoursDeRouteUtils.getStatutSuivant(coursTransit),
+        StatutCours.frontiere,
+      );
+      expect(
+        CoursDeRouteUtils.getStatutSuivant(coursFrontiere),
+        StatutCours.arrive,
+      );
+      expect(
+        CoursDeRouteUtils.getStatutSuivant(coursArrive),
+        StatutCours.decharge,
+      );
       expect(CoursDeRouteUtils.getStatutSuivant(coursDecharge), null);
     });
 
@@ -183,7 +201,7 @@ void main() {
       expect(StatutCoursDb.parseDb('FRONTIERE'), StatutCours.frontiere);
       expect(StatutCoursDb.parseDb('ARRIVE'), StatutCours.arrive);
       expect(StatutCoursDb.parseDb('DECHARGE'), StatutCours.decharge);
-      
+
       // Test fallback pour valeurs invalides
       expect(StatutCoursDb.parseDb('INVALID'), StatutCours.chargement);
       expect(StatutCoursDb.parseDb(''), StatutCours.chargement);
@@ -227,12 +245,15 @@ void main() {
     });
 
     test('should validate required fields', () {
-      expect(() => CoursDeRoute(
-        id: '',
-        fournisseurId: '', // Empty - should be valid for empty constructor
-        produitId: '',
-        depotDestinationId: '',
-      ), returnsNormally);
+      expect(
+        () => CoursDeRoute(
+          id: '',
+          fournisseurId: '', // Empty - should be valid for empty constructor
+          produitId: '',
+          depotDestinationId: '',
+        ),
+        returnsNormally,
+      );
     });
 
     test('should handle null optional fields', () {

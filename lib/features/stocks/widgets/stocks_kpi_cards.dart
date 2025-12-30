@@ -12,7 +12,8 @@ import 'package:ml_pp_mvp/shared/formatters.dart';
 /// Affiche deux lignes : une pour MONALUXE, une pour PARTENAIRE avec volumes ambiant/15°C.
 class OwnerStockBreakdownCard extends ConsumerWidget {
   final String depotId;
-  final DateTime? dateJour; // Gardé pour compatibilité mais non utilisé (snapshot = toujours actuel)
+  final DateTime?
+  dateJour; // Gardé pour compatibilité mais non utilisé (snapshot = toujours actuel)
   final VoidCallback? onTap;
 
   const OwnerStockBreakdownCard({
@@ -24,9 +25,7 @@ class OwnerStockBreakdownCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final ownersAsync = ref.watch(
-      depotOwnerStockFromSnapshotProvider(depotId),
-    );
+    final ownersAsync = ref.watch(depotOwnerStockFromSnapshotProvider(depotId));
 
     return ownersAsync.when(
       loading: () {
@@ -131,7 +130,7 @@ class OwnerStockBreakdownCard extends ConsumerWidget {
       (o) => o.proprietaireType.toUpperCase() == 'MONALUXE',
       orElse: () => _emptyOwner('MONALUXE'),
     );
-    
+
     final partenaire = owners.firstWhere(
       (o) => o.proprietaireType.toUpperCase() == 'PARTENAIRE',
       orElse: () => _emptyOwner('PARTENAIRE'),

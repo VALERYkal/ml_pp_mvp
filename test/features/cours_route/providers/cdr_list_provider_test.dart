@@ -25,9 +25,9 @@ import 'package:ml_pp_mvp/features/cours_route/models/cdr_etat.dart';
 /// Stocke les données en mémoire sans dépendance Supabase
 class FakeCoursDeRouteService implements CoursDeRouteService {
   final List<CoursDeRoute> _seedData;
-  
+
   FakeCoursDeRouteService({List<CoursDeRoute>? seedData})
-      : _seedData = seedData ?? [];
+    : _seedData = seedData ?? [];
 
   @override
   Future<List<CoursDeRoute>> getAll() async {
@@ -111,11 +111,7 @@ class FakeCoursDeRouteService implements CoursDeRouteService {
 
   @override
   Future<Map<String, int>> countByCategorie() async {
-    final counts = <String, int>{
-      'en_route': 0,
-      'en_attente': 0,
-      'termines': 0,
-    };
+    final counts = <String, int>{'en_route': 0, 'en_attente': 0, 'termines': 0};
     for (final cdr in _seedData) {
       switch (cdr.statut) {
         case StatutCours.chargement:
@@ -161,14 +157,10 @@ class FakeCoursDeRouteService implements CoursDeRouteService {
 // ════════════════════════════════════════════════════════════════════════════
 
 /// Crée un ProviderContainer configuré avec le FakeService
-ProviderContainer createTestContainer({
-  required List<CoursDeRoute> seedData,
-}) {
+ProviderContainer createTestContainer({required List<CoursDeRoute> seedData}) {
   final fakeService = FakeCoursDeRouteService(seedData: seedData);
   return ProviderContainer(
-    overrides: [
-      coursDeRouteServiceProvider.overrideWithValue(fakeService),
-    ],
+    overrides: [coursDeRouteServiceProvider.overrideWithValue(fakeService)],
   );
 }
 
@@ -284,12 +276,7 @@ void main() {
     test('retourne tous les CDR incluant les DECHARGE', () async {
       // Arrange
       final container = createTestContainer(
-        seedData: [
-          cdrChargement1,
-          cdrTransit,
-          cdrArrive,
-          cdrDecharge,
-        ],
+        seedData: [cdrChargement1, cdrTransit, cdrArrive, cdrDecharge],
       );
 
       // Act
@@ -395,117 +382,127 @@ void main() {
       container.dispose();
     });
 
-    test('inclut tous les statuts actifs: CHARGEMENT, TRANSIT, FRONTIERE, ARRIVE', () async {
-      // Arrange
-      final container = createTestContainer(
-        seedData: [
-          cdrChargement1,
-          cdrTransit,
-          cdrFrontiere,
-          cdrArrive,
-        ],
-      );
+    test(
+      'inclut tous les statuts actifs: CHARGEMENT, TRANSIT, FRONTIERE, ARRIVE',
+      () async {
+        // Arrange
+        final container = createTestContainer(
+          seedData: [cdrChargement1, cdrTransit, cdrFrontiere, cdrArrive],
+        );
 
-      // Act
-      final result = await container.read(coursDeRouteActifsProvider.future);
+        // Act
+        final result = await container.read(coursDeRouteActifsProvider.future);
 
-      // Assert
-      expect(result, hasLength(4));
-      
-      final statuts = result.map((cdr) => cdr.statut).toSet();
-      expect(statuts, containsAll([
-        StatutCours.chargement,
-        StatutCours.transit,
-        StatutCours.frontiere,
-        StatutCours.arrive,
-      ]));
+        // Assert
+        expect(result, hasLength(4));
 
-      container.dispose();
-    });
+        final statuts = result.map((cdr) => cdr.statut).toSet();
+        expect(
+          statuts,
+          containsAll([
+            StatutCours.chargement,
+            StatutCours.transit,
+            StatutCours.frontiere,
+            StatutCours.arrive,
+          ]),
+        );
+
+        container.dispose();
+      },
+    );
   });
 
   // ══════════════════════════════════════════════════════════════════════════
   // TESTS: coursDeRouteByStatutProvider (Filtrage par statut)
   // ══════════════════════════════════════════════════════════════════════════
 
-  group('CDR List Provider - Filtrage par statut (coursDeRouteByStatutProvider)', () {
-    late ProviderContainer container;
+  group(
+    'CDR List Provider - Filtrage par statut (coursDeRouteByStatutProvider)',
+    () {
+      late ProviderContainer container;
 
-    setUp(() {
-      container = createTestContainer(
-        seedData: [
-          cdrChargement1,
-          cdrChargement2,
-          cdrTransit,
-          cdrFrontiere,
-          cdrArrive,
-          cdrDecharge,
-        ],
-      );
-    });
+      setUp(() {
+        container = createTestContainer(
+          seedData: [
+            cdrChargement1,
+            cdrChargement2,
+            cdrTransit,
+            cdrFrontiere,
+            cdrArrive,
+            cdrDecharge,
+          ],
+        );
+      });
 
-    tearDown(() {
-      container.dispose();
-    });
+      tearDown(() {
+        container.dispose();
+      });
 
-    test('filtre CHARGEMENT: ne retourne que les CDR au chargement', () async {
-      // Act
-      final result = await container.read(
-        coursDeRouteByStatutProvider(StatutCours.chargement).future,
-      );
+      test(
+        'filtre CHARGEMENT: ne retourne que les CDR au chargement',
+        () async {
+          // Act
+          final result = await container.read(
+            coursDeRouteByStatutProvider(StatutCours.chargement).future,
+          );
 
-      // Assert
-      expect(result, hasLength(2));
-      expect(
-        result.every((cdr) => cdr.statut == StatutCours.chargement),
-        isTrue,
-      );
-    });
-
-    test('filtre TRANSIT: ne retourne que les CDR en transit', () async {
-      // Act
-      final result = await container.read(
-        coursDeRouteByStatutProvider(StatutCours.transit).future,
-      );
-
-      // Assert
-      expect(result, hasLength(1));
-      expect(result.single.statut, equals(StatutCours.transit));
-    });
-
-    test('filtre FRONTIERE: ne retourne que les CDR à la frontière', () async {
-      // Act
-      final result = await container.read(
-        coursDeRouteByStatutProvider(StatutCours.frontiere).future,
+          // Assert
+          expect(result, hasLength(2));
+          expect(
+            result.every((cdr) => cdr.statut == StatutCours.chargement),
+            isTrue,
+          );
+        },
       );
 
-      // Assert
-      expect(result, hasLength(1));
-      expect(result.single.statut, equals(StatutCours.frontiere));
-    });
+      test('filtre TRANSIT: ne retourne que les CDR en transit', () async {
+        // Act
+        final result = await container.read(
+          coursDeRouteByStatutProvider(StatutCours.transit).future,
+        );
 
-    test('filtre ARRIVE: ne retourne que les CDR arrivés', () async {
-      // Act
-      final result = await container.read(
-        coursDeRouteByStatutProvider(StatutCours.arrive).future,
+        // Assert
+        expect(result, hasLength(1));
+        expect(result.single.statut, equals(StatutCours.transit));
+      });
+
+      test(
+        'filtre FRONTIERE: ne retourne que les CDR à la frontière',
+        () async {
+          // Act
+          final result = await container.read(
+            coursDeRouteByStatutProvider(StatutCours.frontiere).future,
+          );
+
+          // Assert
+          expect(result, hasLength(1));
+          expect(result.single.statut, equals(StatutCours.frontiere));
+        },
       );
 
-      // Assert
-      expect(result, hasLength(1));
-      expect(result.single.statut, equals(StatutCours.arrive));
-    });
+      test('filtre ARRIVE: ne retourne que les CDR arrivés', () async {
+        // Act
+        final result = await container.read(
+          coursDeRouteByStatutProvider(StatutCours.arrive).future,
+        );
 
-    test('filtre DECHARGE: ne retourne que les CDR déchargés', () async {
-      // Act
-      final result = await container.read(
-        coursDeRouteByStatutProvider(StatutCours.decharge).future,
-      );
+        // Assert
+        expect(result, hasLength(1));
+        expect(result.single.statut, equals(StatutCours.arrive));
+      });
 
-      // Assert
-      expect(result, hasLength(1));
-      expect(result.single.statut, equals(StatutCours.decharge));
-    });
-  });
+      test('filtre DECHARGE: ne retourne que les CDR déchargés', () async {
+        // Act
+        final result = await container.read(
+          coursDeRouteByStatutProvider(StatutCours.decharge).future,
+        );
+
+        // Assert
+        expect(result, hasLength(1));
+        expect(result.single.statut, equals(StatutCours.decharge));
+      });
+    },
+  );
 
   // ══════════════════════════════════════════════════════════════════════════
   // TESTS: coursDeRouteArrivesProvider (CDR au statut ARRIVE)
@@ -535,10 +532,7 @@ void main() {
 
       // Assert
       expect(result, hasLength(2));
-      expect(
-        result.every((cdr) => cdr.statut == StatutCours.arrive),
-        isTrue,
-      );
+      expect(result.every((cdr) => cdr.statut == StatutCours.arrive), isTrue);
 
       container.dispose();
     });
@@ -546,11 +540,7 @@ void main() {
     test('retourne une liste vide si aucun CDR arrivé', () async {
       // Arrange
       final container = createTestContainer(
-        seedData: [
-          cdrChargement1,
-          cdrTransit,
-          cdrDecharge,
-        ],
+        seedData: [cdrChargement1, cdrTransit, cdrDecharge],
       );
 
       // Act
@@ -595,45 +585,54 @@ void main() {
       container.dispose();
     });
 
-    test('"En route": contient TRANSIT et FRONTIERE, mais pas CHARGEMENT ni ARRIVE ni DECHARGE', () async {
-      // Arrange
-      final container = createTestContainer(
-        seedData: [
-          cdrChargement1,
-          cdrTransit,
-          cdrFrontiere,
-          cdrArrive,
-          cdrDecharge,
-        ],
-      );
+    test(
+      '"En route": contient TRANSIT et FRONTIERE, mais pas CHARGEMENT ni ARRIVE ni DECHARGE',
+      () async {
+        // Arrange
+        final container = createTestContainer(
+          seedData: [
+            cdrChargement1,
+            cdrTransit,
+            cdrFrontiere,
+            cdrArrive,
+            cdrDecharge,
+          ],
+        );
 
-      // Act: Récupérer TRANSIT + FRONTIERE séparément et combiner
-      final transitList = await container.read(
-        coursDeRouteByStatutProvider(StatutCours.transit).future,
-      );
-      final frontiereList = await container.read(
-        coursDeRouteByStatutProvider(StatutCours.frontiere).future,
-      );
-      
-      final enRouteList = [...transitList, ...frontiereList];
+        // Act: Récupérer TRANSIT + FRONTIERE séparément et combiner
+        final transitList = await container.read(
+          coursDeRouteByStatutProvider(StatutCours.transit).future,
+        );
+        final frontiereList = await container.read(
+          coursDeRouteByStatutProvider(StatutCours.frontiere).future,
+        );
 
-      // Assert
-      expect(enRouteList, hasLength(2), reason: '"En route" = TRANSIT + FRONTIERE');
-      expect(
-        enRouteList.map((cdr) => cdr.statut).toSet(),
-        containsAll([StatutCours.transit, StatutCours.frontiere]),
-      );
-      expect(
-        enRouteList.any((cdr) =>
-            cdr.statut == StatutCours.chargement ||
-            cdr.statut == StatutCours.arrive ||
-            cdr.statut == StatutCours.decharge),
-        isFalse,
-        reason: 'CHARGEMENT, ARRIVE, DECHARGE exclus de "En route"',
-      );
+        final enRouteList = [...transitList, ...frontiereList];
 
-      container.dispose();
-    });
+        // Assert
+        expect(
+          enRouteList,
+          hasLength(2),
+          reason: '"En route" = TRANSIT + FRONTIERE',
+        );
+        expect(
+          enRouteList.map((cdr) => cdr.statut).toSet(),
+          containsAll([StatutCours.transit, StatutCours.frontiere]),
+        );
+        expect(
+          enRouteList.any(
+            (cdr) =>
+                cdr.statut == StatutCours.chargement ||
+                cdr.statut == StatutCours.arrive ||
+                cdr.statut == StatutCours.decharge,
+          ),
+          isFalse,
+          reason: 'CHARGEMENT, ARRIVE, DECHARGE exclus de "En route"',
+        );
+
+        container.dispose();
+      },
+    );
 
     test('"Arrivés": uniquement les CDR en statut ARRIVE', () async {
       // Arrange
@@ -690,43 +689,46 @@ void main() {
   // TESTS: coursDeRouteByIdProvider
   // ══════════════════════════════════════════════════════════════════════════
 
-  group('CDR List Provider - Récupération par ID (coursDeRouteByIdProvider)', () {
-    test('retourne le CDR correspondant à l\'ID', () async {
-      // Arrange
-      final container = createTestContainer(
-        seedData: [cdrChargement1, cdrTransit, cdrArrive],
-      );
+  group(
+    'CDR List Provider - Récupération par ID (coursDeRouteByIdProvider)',
+    () {
+      test('retourne le CDR correspondant à l\'ID', () async {
+        // Arrange
+        final container = createTestContainer(
+          seedData: [cdrChargement1, cdrTransit, cdrArrive],
+        );
 
-      // Act
-      final result = await container.read(
-        coursDeRouteByIdProvider(cdrTransit.id).future,
-      );
+        // Act
+        final result = await container.read(
+          coursDeRouteByIdProvider(cdrTransit.id).future,
+        );
 
-      // Assert
-      expect(result, isNotNull);
-      expect(result!.id, equals(cdrTransit.id));
-      expect(result.statut, equals(StatutCours.transit));
+        // Assert
+        expect(result, isNotNull);
+        expect(result!.id, equals(cdrTransit.id));
+        expect(result.statut, equals(StatutCours.transit));
 
-      container.dispose();
-    });
+        container.dispose();
+      });
 
-    test('retourne null si l\'ID n\'existe pas', () async {
-      // Arrange
-      final container = createTestContainer(
-        seedData: [cdrChargement1, cdrTransit],
-      );
+      test('retourne null si l\'ID n\'existe pas', () async {
+        // Arrange
+        final container = createTestContainer(
+          seedData: [cdrChargement1, cdrTransit],
+        );
 
-      // Act
-      final result = await container.read(
-        coursDeRouteByIdProvider('id-inexistant').future,
-      );
+        // Act
+        final result = await container.read(
+          coursDeRouteByIdProvider('id-inexistant').future,
+        );
 
-      // Assert
-      expect(result, isNull);
+        // Assert
+        expect(result, isNull);
 
-      container.dispose();
-    });
-  });
+        container.dispose();
+      });
+    },
+  );
 
   // ══════════════════════════════════════════════════════════════════════════
   // TESTS: Tri et stabilité
@@ -751,9 +753,7 @@ void main() {
         createdAt: DateTime(2025, 2, 15),
       );
 
-      final container = createTestContainer(
-        seedData: [cdrJan, cdrFeb, cdrMar],
-      );
+      final container = createTestContainer(seedData: [cdrJan, cdrFeb, cdrMar]);
 
       // Act
       final result = await container.read(coursDeRouteListProvider.future);
@@ -782,9 +782,7 @@ void main() {
         createdAt: null,
       );
 
-      final container = createTestContainer(
-        seedData: [cdrNoDate, cdrWithDate],
-      );
+      final container = createTestContainer(seedData: [cdrNoDate, cdrWithDate]);
 
       // Act
       final result = await container.read(coursDeRouteListProvider.future);
@@ -803,89 +801,105 @@ void main() {
   // ══════════════════════════════════════════════════════════════════════════
 
   group('CDR List Provider - Scénario de référence complet', () {
-    test('scénario: 2 CHARGEMENT, 1 TRANSIT, 1 FRONTIERE, 1 ARRIVE, 1 DECHARGE', () async {
-      // Arrange: Jeu de données de référence
-      final container = createTestContainer(
-        seedData: [
-          cdrChargement1,  // CHARGEMENT
-          cdrChargement2,  // CHARGEMENT
-          cdrTransit,      // TRANSIT
-          cdrFrontiere,    // FRONTIERE
-          cdrArrive,       // ARRIVE
-          cdrDecharge,     // DECHARGE (exclu des actifs)
-        ],
-      );
+    test(
+      'scénario: 2 CHARGEMENT, 1 TRANSIT, 1 FRONTIERE, 1 ARRIVE, 1 DECHARGE',
+      () async {
+        // Arrange: Jeu de données de référence
+        final container = createTestContainer(
+          seedData: [
+            cdrChargement1, // CHARGEMENT
+            cdrChargement2, // CHARGEMENT
+            cdrTransit, // TRANSIT
+            cdrFrontiere, // FRONTIERE
+            cdrArrive, // ARRIVE
+            cdrDecharge, // DECHARGE (exclu des actifs)
+          ],
+        );
 
-      // Act
-      final allCdr = await container.read(coursDeRouteListProvider.future);
-      final actifsCdr = await container.read(coursDeRouteActifsProvider.future);
-      final chargementCdr = await container.read(
-        coursDeRouteByStatutProvider(StatutCours.chargement).future,
-      );
-      final arriveCdr = await container.read(
-        coursDeRouteByStatutProvider(StatutCours.arrive).future,
-      );
-      final dechargeCdr = await container.read(
-        coursDeRouteByStatutProvider(StatutCours.decharge).future,
-      );
+        // Act
+        final allCdr = await container.read(coursDeRouteListProvider.future);
+        final actifsCdr = await container.read(
+          coursDeRouteActifsProvider.future,
+        );
+        final chargementCdr = await container.read(
+          coursDeRouteByStatutProvider(StatutCours.chargement).future,
+        );
+        final arriveCdr = await container.read(
+          coursDeRouteByStatutProvider(StatutCours.arrive).future,
+        );
+        final dechargeCdr = await container.read(
+          coursDeRouteByStatutProvider(StatutCours.decharge).future,
+        );
 
-      // Assert
-      expect(allCdr, hasLength(6), reason: 'Total = 6');
-      expect(actifsCdr, hasLength(5), reason: 'Actifs = 5 (sans DECHARGE)');
-      expect(chargementCdr, hasLength(2), reason: 'Au chargement = 2');
-      expect(arriveCdr, hasLength(1), reason: 'Arrivés = 1');
-      expect(dechargeCdr, hasLength(1), reason: 'Déchargés = 1');
+        // Assert
+        expect(allCdr, hasLength(6), reason: 'Total = 6');
+        expect(actifsCdr, hasLength(5), reason: 'Actifs = 5 (sans DECHARGE)');
+        expect(chargementCdr, hasLength(2), reason: 'Au chargement = 2');
+        expect(arriveCdr, hasLength(1), reason: 'Arrivés = 1');
+        expect(dechargeCdr, hasLength(1), reason: 'Déchargés = 1');
 
-      // Vérifier que DECHARGE n'est pas dans les actifs
-      expect(
-        actifsCdr.any((cdr) => cdr.id == cdrDecharge.id),
-        isFalse,
-        reason: 'DECHARGE exclu des actifs',
-      );
+        // Vérifier que DECHARGE n'est pas dans les actifs
+        expect(
+          actifsCdr.any((cdr) => cdr.id == cdrDecharge.id),
+          isFalse,
+          reason: 'DECHARGE exclu des actifs',
+        );
 
-      container.dispose();
-    });
+        container.dispose();
+      },
+    );
 
-    test('calcul des compteurs métier correspond à la règle business', () async {
-      // Arrange
-      final container = createTestContainer(
-        seedData: [
-          cdrChargement1,  // Au chargement
-          cdrChargement2,  // Au chargement
-          cdrTransit,      // En route
-          cdrFrontiere,    // En route
-          cdrArrive,       // Arrivés
-          cdrDecharge,     // EXCLU
-        ],
-      );
+    test(
+      'calcul des compteurs métier correspond à la règle business',
+      () async {
+        // Arrange
+        final container = createTestContainer(
+          seedData: [
+            cdrChargement1, // Au chargement
+            cdrChargement2, // Au chargement
+            cdrTransit, // En route
+            cdrFrontiere, // En route
+            cdrArrive, // Arrivés
+            cdrDecharge, // EXCLU
+          ],
+        );
 
-      // Act: Simuler le calcul des compteurs métier
-      final chargement = await container.read(
-        coursDeRouteByStatutProvider(StatutCours.chargement).future,
-      );
-      final transit = await container.read(
-        coursDeRouteByStatutProvider(StatutCours.transit).future,
-      );
-      final frontiere = await container.read(
-        coursDeRouteByStatutProvider(StatutCours.frontiere).future,
-      );
-      final arrive = await container.read(
-        coursDeRouteByStatutProvider(StatutCours.arrive).future,
-      );
-      
-      final auChargementCount = chargement.length;
-      final enRouteCount = transit.length + frontiere.length;
-      final arrivesCount = arrive.length;
-      final totalActifs = auChargementCount + enRouteCount + arrivesCount;
+        // Act: Simuler le calcul des compteurs métier
+        final chargement = await container.read(
+          coursDeRouteByStatutProvider(StatutCours.chargement).future,
+        );
+        final transit = await container.read(
+          coursDeRouteByStatutProvider(StatutCours.transit).future,
+        );
+        final frontiere = await container.read(
+          coursDeRouteByStatutProvider(StatutCours.frontiere).future,
+        );
+        final arrive = await container.read(
+          coursDeRouteByStatutProvider(StatutCours.arrive).future,
+        );
 
-      // Assert
-      expect(auChargementCount, equals(2), reason: 'Au chargement = 2');
-      expect(enRouteCount, equals(2), reason: 'En route = TRANSIT(1) + FRONTIERE(1) = 2');
-      expect(arrivesCount, equals(1), reason: 'Arrivés = 1');
-      expect(totalActifs, equals(5), reason: 'Total actifs = 5 (DECHARGE exclu)');
+        final auChargementCount = chargement.length;
+        final enRouteCount = transit.length + frontiere.length;
+        final arrivesCount = arrive.length;
+        final totalActifs = auChargementCount + enRouteCount + arrivesCount;
 
-      container.dispose();
-    });
+        // Assert
+        expect(auChargementCount, equals(2), reason: 'Au chargement = 2');
+        expect(
+          enRouteCount,
+          equals(2),
+          reason: 'En route = TRANSIT(1) + FRONTIERE(1) = 2',
+        );
+        expect(arrivesCount, equals(1), reason: 'Arrivés = 1');
+        expect(
+          totalActifs,
+          equals(5),
+          reason: 'Total actifs = 5 (DECHARGE exclu)',
+        );
+
+        container.dispose();
+      },
+    );
   });
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -896,19 +910,16 @@ void main() {
     test('les providers peuvent être utilisés simultanément', () async {
       // Arrange
       final container = createTestContainer(
-        seedData: [
-          cdrChargement1,
-          cdrTransit,
-          cdrArrive,
-          cdrDecharge,
-        ],
+        seedData: [cdrChargement1, cdrTransit, cdrArrive, cdrDecharge],
       );
 
       // Act: Lire plusieurs providers en parallèle
       final results = await Future.wait([
         container.read(coursDeRouteListProvider.future),
         container.read(coursDeRouteActifsProvider.future),
-        container.read(coursDeRouteByStatutProvider(StatutCours.chargement).future),
+        container.read(
+          coursDeRouteByStatutProvider(StatutCours.chargement).future,
+        ),
       ]);
 
       // Assert
@@ -960,7 +971,8 @@ void main() {
       final container = ProviderContainer();
 
       // Act
-      container.read(coursDeRouteFilterProvider.notifier)
+      container
+          .read(coursDeRouteFilterProvider.notifier)
           .filterByStatut(StatutCours.transit);
 
       // Assert
@@ -973,12 +985,12 @@ void main() {
     test('filterByStatut avec null supprime le filtre statut', () {
       // Arrange
       final container = ProviderContainer();
-      container.read(coursDeRouteFilterProvider.notifier)
+      container
+          .read(coursDeRouteFilterProvider.notifier)
           .filterByStatut(StatutCours.transit);
 
       // Act
-      container.read(coursDeRouteFilterProvider.notifier)
-          .filterByStatut(null);
+      container.read(coursDeRouteFilterProvider.notifier).filterByStatut(null);
 
       // Assert
       final filters = container.read(coursDeRouteFilterProvider);
@@ -990,9 +1002,11 @@ void main() {
     test('clearFilters efface tous les filtres', () {
       // Arrange
       final container = ProviderContainer();
-      container.read(coursDeRouteFilterProvider.notifier)
+      container
+          .read(coursDeRouteFilterProvider.notifier)
           .filterByStatut(StatutCours.transit);
-      container.read(coursDeRouteFilterProvider.notifier)
+      container
+          .read(coursDeRouteFilterProvider.notifier)
           .filterByFournisseur('fournisseur-123');
 
       // Act
@@ -1017,7 +1031,7 @@ void main() {
         seedData: [
           cdrChargement1, // 12000 L
           cdrChargement2, // 15000 L
-          cdrTransit,     // 18000 L
+          cdrTransit, // 18000 L
         ],
       );
 
@@ -1054,11 +1068,12 @@ void main() {
 
       // Assert
       expect(result, hasLength(2));
-      final cdrWithNullVolume = result.firstWhere((c) => c.id == 'cdr-no-volume');
+      final cdrWithNullVolume = result.firstWhere(
+        (c) => c.id == 'cdr-no-volume',
+      );
       expect(cdrWithNullVolume.volume, isNull);
 
       container.dispose();
     });
   });
 }
-

@@ -22,5 +22,3 @@ final userRoleProvider = FutureProvider<String?>((ref) async {
 
 bool canValidate(String? role) =>
     role == 'admin' || role == 'directeur' || role == 'gerant';
-
-

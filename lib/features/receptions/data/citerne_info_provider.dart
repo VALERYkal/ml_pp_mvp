@@ -12,7 +12,8 @@ class CiterneQuickInfo {
   final double capaciteTotale;
   final double capaciteSecurite;
   final double stockEstime;
-  double get disponible => (capaciteTotale - capaciteSecurite - stockEstime).clamp(0, double.infinity);
+  double get disponible => (capaciteTotale - capaciteSecurite - stockEstime)
+      .clamp(0, double.infinity);
   CiterneQuickInfo({
     required this.id,
     required this.nom,
@@ -22,30 +23,34 @@ class CiterneQuickInfo {
   });
 }
 
-final citerneQuickInfoProvider = FutureProvider.family<CiterneQuickInfo?, ({String citerneId, String produitId})>((ref, args) async {
-  final client = Supabase.instance.client;
+final citerneQuickInfoProvider =
+    FutureProvider.family<
+      CiterneQuickInfo?,
+      ({String citerneId, String produitId})
+    >((ref, args) async {
+      final client = Supabase.instance.client;
 
-  final row = await client
-      .from('citernes')
-      .select('id, nom, capacite_totale, capacite_securite, statut, produit_id')
-      .eq('id', args.citerneId)
-      .single();
+      final row = await client
+          .from('citernes')
+          .select(
+            'id, nom, capacite_totale, capacite_securite, statut, produit_id',
+          )
+          .eq('id', args.citerneId)
+          .single();
 
-  if (row['statut'] != 'active') return null;
-  if (row['produit_id'] != args.produitId) return null;
+      if (row['statut'] != 'active') return null;
+      if (row['produit_id'] != args.produitId) return null;
 
-  final stock = await client.rpc('get_last_stock_ambiant', params: {
-    'p_citerne': args.citerneId,
-    'p_produit': args.produitId,
-  });
+      final stock = await client.rpc(
+        'get_last_stock_ambiant',
+        params: {'p_citerne': args.citerneId, 'p_produit': args.produitId},
+      );
 
-  return CiterneQuickInfo(
-    id: row['id'] as String,
-    nom: row['nom'] as String,
-    capaciteTotale: (row['capacite_totale'] as num).toDouble(),
-    capaciteSecurite: (row['capacite_securite'] as num).toDouble(),
-    stockEstime: (stock as num?)?.toDouble() ?? 0.0,
-  );
-});
-
-
+      return CiterneQuickInfo(
+        id: row['id'] as String,
+        nom: row['nom'] as String,
+        capaciteTotale: (row['capacite_totale'] as num).toDouble(),
+        capaciteSecurite: (row['capacite_securite'] as num).toDouble(),
+        stockEstime: (stock as num?)?.toDouble() ?? 0.0,
+      );
+    });

@@ -94,13 +94,11 @@ class FakeRefRepoWithProduits extends refs.ReferentielsRepo {
 // TESTS
 // ============================================================
 
-@GenerateMocks([
-  SupabaseClient,
-])
+@GenerateMocks([SupabaseClient])
 void main() {
   group('ReceptionService.createValidated - Validations métier', () {
     late MockSupabaseClient mockClient;
-    
+
     setUp(() {
       mockClient = MockSupabaseClient();
     });
@@ -454,11 +452,7 @@ void main() {
           ),
           throwsA(
             isA<ReceptionValidationException>()
-                .having(
-                  (e) => e.message,
-                  'message',
-                  contains('température'),
-                )
+                .having((e) => e.message, 'message', contains('température'))
                 .having(
                   (e) => e.field,
                   'field',
@@ -486,16 +480,8 @@ void main() {
           ),
           throwsA(
             isA<ReceptionValidationException>()
-                .having(
-                  (e) => e.message,
-                  'message',
-                  contains('densité'),
-                )
-                .having(
-                  (e) => e.field,
-                  'field',
-                  equals('densite_a_15'),
-                ),
+                .having((e) => e.message, 'message', contains('densité'))
+                .having((e) => e.field, 'field', equals('densite_a_15')),
           ),
         );
       });

@@ -36,35 +36,41 @@ void main() {
       expect(r.sourceLabel, 'falcon test');
     });
 
-    test('sourceLabel returns dash when neither fournisseur nor partenaire', () {
-      final r = ReceptionRowVM(
-        id: 'rec-3',
-        dateReception: DateTime.now(),
-        propriete: 'MONALUXE',
-        produitLabel: 'Essence',
-        citerneNom: 'Citerne C',
-        vol15: 3000.0,
-        volAmb: 3000.0,
-        fournisseurNom: null,
-        partenaireNom: null,
-      );
-      expect(r.sourceLabel, '—');
-    });
+    test(
+      'sourceLabel returns dash when neither fournisseur nor partenaire',
+      () {
+        final r = ReceptionRowVM(
+          id: 'rec-3',
+          dateReception: DateTime.now(),
+          propriete: 'MONALUXE',
+          produitLabel: 'Essence',
+          citerneNom: 'Citerne C',
+          vol15: 3000.0,
+          volAmb: 3000.0,
+          fournisseurNom: null,
+          partenaireNom: null,
+        );
+        expect(r.sourceLabel, '—');
+      },
+    );
 
-    test('sourceLabel prioritizes fournisseur even when partenaire is present', () {
-      final r = ReceptionRowVM(
-        id: 'rec-4',
-        dateReception: DateTime.now(),
-        propriete: 'MONALUXE',
-        produitLabel: 'Essence',
-        citerneNom: 'Citerne D',
-        vol15: 4000.0,
-        volAmb: 4000.0,
-        fournisseurNom: 'kemexon',
-        partenaireNom: 'falcon test',
-      );
-      expect(r.sourceLabel, 'kemexon');
-    });
+    test(
+      'sourceLabel prioritizes fournisseur even when partenaire is present',
+      () {
+        final r = ReceptionRowVM(
+          id: 'rec-4',
+          dateReception: DateTime.now(),
+          propriete: 'MONALUXE',
+          produitLabel: 'Essence',
+          citerneNom: 'Citerne D',
+          vol15: 4000.0,
+          volAmb: 4000.0,
+          fournisseurNom: 'kemexon',
+          partenaireNom: 'falcon test',
+        );
+        expect(r.sourceLabel, 'kemexon');
+      },
+    );
 
     test('sourceLabel handles empty strings as null', () {
       final r = ReceptionRowVM(
@@ -97,4 +103,3 @@ void main() {
     });
   });
 }
-

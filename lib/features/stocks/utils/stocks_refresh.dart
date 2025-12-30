@@ -9,13 +9,13 @@ import '../data/stocks_kpi_providers.dart';
 DateTime _normalizeDay(DateTime d) => DateTime(d.year, d.month, d.day);
 
 /// Invalide tous les providers liés aux stocks après un mouvement (sortie/réception).
-/// 
+///
 /// À appeler après création réussie d'une sortie ou réception pour rafraîchir :
 /// - Dashboard KPIs (kpiProviderProvider)
 /// - Snapshots de stocks par dépôt (depotStocksSnapshotProvider)
 /// - Capacité totale du dépôt (depotTotalCapacityProvider)
 /// - KPIs dashboard stocks (stocksDashboardKpisProvider)
-/// 
+///
 /// Paramètres :
 /// - [ref] : Riverpod WidgetRef (depuis ConsumerWidget/ConsumerStatefulWidget)
 /// - [depotId] : ID du dépôt concerné (obligatoire)

@@ -13,7 +13,8 @@ class HotReloadInvalidator extends ConsumerStatefulWidget {
     this.showDebugRefreshButton = true,
   });
   @override
-  ConsumerState<HotReloadInvalidator> createState() => _HotReloadInvalidatorState();
+  ConsumerState<HotReloadInvalidator> createState() =>
+      _HotReloadInvalidatorState();
 }
 
 class _HotReloadInvalidatorState extends ConsumerState<HotReloadInvalidator> {
@@ -23,7 +24,9 @@ class _HotReloadInvalidatorState extends ConsumerState<HotReloadInvalidator> {
       for (final p in widget.providersToInvalidate) {
         ref.invalidate(p);
       }
-      debugPrint('🔄 [HotReloadInvalidator] Providers invalidated after hot reload.');
+      debugPrint(
+        '🔄 [HotReloadInvalidator] Providers invalidated after hot reload.',
+      );
     }
     super.reassemble();
   }
@@ -44,9 +47,11 @@ class _HotReloadInvalidatorState extends ConsumerState<HotReloadInvalidator> {
       children: [
         widget.child,
         Positioned(
-          right: 12, bottom: 12,
+          right: 12,
+          bottom: 12,
           child: Material(
-            elevation: 3, borderRadius: BorderRadius.circular(24),
+            elevation: 3,
+            borderRadius: BorderRadius.circular(24),
             color: Theme.of(context).colorScheme.surface,
             child: IconButton(
               tooltip: 'Debug refresh',

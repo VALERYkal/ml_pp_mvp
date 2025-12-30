@@ -22,16 +22,15 @@ import 'package:ml_pp_mvp/shared/referentiels/referentiels.dart' as refs;
 /// Helper pour créer un produit de test dans Supabase
 Future<String> _createTestProduit(SupabaseClient client) async {
   final payload = {
-    'nom': 'Essence Test Stocks Integration ${DateTime.now().millisecondsSinceEpoch}',
+    'nom':
+        'Essence Test Stocks Integration ${DateTime.now().millisecondsSinceEpoch}',
     'code': 'ESS',
     'actif': true,
   };
 
-  final result = await client
-      .from('produits')
-      .insert(payload)
-      .select('id')
-      .single() as Map<String, dynamic>;
+  final result =
+      await client.from('produits').insert(payload).select('id').single()
+          as Map<String, dynamic>;
 
   return result['id'] as String;
 }
@@ -39,15 +38,14 @@ Future<String> _createTestProduit(SupabaseClient client) async {
 /// Helper pour créer un dépôt de test dans Supabase
 Future<String> _createTestDepot(SupabaseClient client) async {
   final payload = {
-    'nom': 'Dépôt Test Stocks Integration ${DateTime.now().millisecondsSinceEpoch}',
+    'nom':
+        'Dépôt Test Stocks Integration ${DateTime.now().millisecondsSinceEpoch}',
     'adresse': 'Adresse Test',
   };
 
-  final result = await client
-      .from('depots')
-      .insert(payload)
-      .select('id')
-      .single() as Map<String, dynamic>;
+  final result =
+      await client.from('depots').insert(payload).select('id').single()
+          as Map<String, dynamic>;
 
   return result['id'] as String;
 }
@@ -67,11 +65,9 @@ Future<String> _createTestCiterne(
     'statut': 'active',
   };
 
-  final result = await client
-      .from('citernes')
-      .insert(payload)
-      .select('id')
-      .single() as Map<String, dynamic>;
+  final result =
+      await client.from('citernes').insert(payload).select('id').single()
+          as Map<String, dynamic>;
 
   return result['id'] as String;
 }
@@ -94,7 +90,8 @@ Future<void> _cleanupTestData(
   // Nettoyer les stocks journaliers pour la date de test
   if (citerneId != null && produitId != null && dateJour != null) {
     try {
-      final dateStr = '${dateJour.year.toString().padLeft(4, '0')}-'
+      final dateStr =
+          '${dateJour.year.toString().padLeft(4, '0')}-'
           '${dateJour.month.toString().padLeft(2, '0')}-'
           '${dateJour.day.toString().padLeft(2, '0')}';
       await client
@@ -130,17 +127,20 @@ Future<Map<String, dynamic>?> _getStockJournalier(
   required String produitId,
   required DateTime dateJour,
 }) async {
-  final dateStr = '${dateJour.year.toString().padLeft(4, '0')}-'
+  final dateStr =
+      '${dateJour.year.toString().padLeft(4, '0')}-'
       '${dateJour.month.toString().padLeft(2, '0')}-'
       '${dateJour.day.toString().padLeft(2, '0')}';
 
-  final result = await client
-      .from('stocks_journaliers')
-      .select('*')
-      .eq('citerne_id', citerneId)
-      .eq('produit_id', produitId)
-      .eq('date_jour', dateStr)
-      .maybeSingle() as Map<String, dynamic>?;
+  final result =
+      await client
+              .from('stocks_journaliers')
+              .select('*')
+              .eq('citerne_id', citerneId)
+              .eq('produit_id', produitId)
+              .eq('date_jour', dateStr)
+              .maybeSingle()
+          as Map<String, dynamic>?;
 
   return result;
 }
@@ -154,16 +154,12 @@ class _FakeRefRepoForStocksIntegration extends refs.ReferentielsRepo {
   final String produitCode;
 
   _FakeRefRepoForStocksIntegration(this.produitId, this.produitCode)
-      : super(SupabaseClient('http://localhost', 'anon'));
+    : super(SupabaseClient('http://localhost', 'anon'));
 
   @override
   Future<List<refs.ProduitRef>> loadProduits() async {
     return [
-      refs.ProduitRef(
-        id: produitId,
-        code: produitCode,
-        nom: 'Essence Test',
-      ),
+      refs.ProduitRef(id: produitId, code: produitCode, nom: 'Essence Test'),
     ];
   }
 
@@ -184,7 +180,6 @@ class _FakeRefRepoForStocksIntegration extends refs.ReferentielsRepo {
 // ════════════════════════════════════════════════════════════════════════════
 
 void main() {
-
   group('Réception → Stocks journaliers Integration Flow', () {
     // ⚠️ NOTE : Ces tests nécessitent un SupabaseClient configuré
     // Pour les tests unitaires, utilisez des fakes/mocks
@@ -201,7 +196,9 @@ void main() {
           await testClient.from('stocks_journaliers').select('id').limit(1);
         } catch (e) {
           // ignore: avoid_print
-          print('⚠️ SKIP: Supabase client non configuré pour les tests d\'intégration');
+          print(
+            '⚠️ SKIP: Supabase client non configuré pour les tests d\'intégration',
+          );
           return;
         }
 
@@ -269,18 +266,24 @@ void main() {
           await Future.delayed(const Duration(milliseconds: 500));
 
           // 6. Assert : Vérifier que la réception existe
-          final receptionExists = await client
-              .from('receptions')
-              .select('volume_ambiant, volume_corrige_15c')
-              .eq('id', receptionId)
-              .single() as Map<String, dynamic>;
-          expect(receptionExists, isNotNull,
-              reason: 'La réception devrait avoir été créée');
+          final receptionExists =
+              await client
+                      .from('receptions')
+                      .select('volume_ambiant, volume_corrige_15c')
+                      .eq('id', receptionId)
+                      .single()
+                  as Map<String, dynamic>;
+          expect(
+            receptionExists,
+            isNotNull,
+            reason: 'La réception devrait avoir été créée',
+          );
 
           final volumeAmbiantReception =
               (receptionExists['volume_ambiant'] as num?)?.toDouble() ?? 0.0;
           final volume15cReception =
-              (receptionExists['volume_corrige_15c'] as num?)?.toDouble() ?? 0.0;
+              (receptionExists['volume_corrige_15c'] as num?)?.toDouble() ??
+              0.0;
 
           // 7. Assert : Vérifier que stocks_journaliers a été mis à jour
           final stockFinal = await _getStockJournalier(
@@ -290,8 +293,12 @@ void main() {
             dateJour: dateReception,
           );
 
-          expect(stockFinal, isNotNull,
-              reason: 'La ligne stocks_journaliers devrait exister pour la date de réception');
+          expect(
+            stockFinal,
+            isNotNull,
+            reason:
+                'La ligne stocks_journaliers devrait exister pour la date de réception',
+          );
 
           final stockAmbiantFinal =
               (stockFinal!['stock_ambiant'] as num?)?.toDouble() ?? 0.0;
@@ -315,10 +322,16 @@ void main() {
           );
 
           // Vérifier que les valeurs sont cohérentes
-          expect(stockAmbiantFinal, greaterThan(0),
-              reason: 'Le stock ambiant devrait être > 0');
-          expect(stock15cFinal, greaterThan(0),
-              reason: 'Le stock 15°C devrait être > 0');
+          expect(
+            stockAmbiantFinal,
+            greaterThan(0),
+            reason: 'Le stock ambiant devrait être > 0',
+          );
+          expect(
+            stock15cFinal,
+            greaterThan(0),
+            reason: 'Le stock 15°C devrait être > 0',
+          );
         } finally {
           // Nettoyer les données de test
           await _cleanupTestData(
@@ -423,10 +436,16 @@ void main() {
               (stockFinal['stock_15c'] as num?)?.toDouble() ?? 0.0;
 
           // Les deux réceptions de 100L chacune devraient donner ~200L au total
-          expect(stockAmbiantFinal, greaterThanOrEqualTo(200.0),
-              reason: 'Le stock ambiant devrait cumuler les deux réceptions');
-          expect(stock15cFinal, greaterThan(0),
-              reason: 'Le stock 15°C devrait être > 0');
+          expect(
+            stockAmbiantFinal,
+            greaterThanOrEqualTo(200.0),
+            reason: 'Le stock ambiant devrait cumuler les deux réceptions',
+          );
+          expect(
+            stock15cFinal,
+            greaterThan(0),
+            reason: 'Le stock 15°C devrait être > 0',
+          );
         } finally {
           for (final id in receptionIds) {
             await _cleanupTestData(
@@ -445,4 +464,3 @@ void main() {
     );
   });
 }
-

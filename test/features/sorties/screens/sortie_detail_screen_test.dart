@@ -7,17 +7,17 @@ import 'package:ml_pp_mvp/features/sorties/screens/sortie_detail_screen.dart';
 
 void main() {
   group('SortieDetailScreen', () {
-    testWidgets('Affiche un loader quand l\'état est en chargement', (tester) async {
+    testWidgets('Affiche un loader quand l\'état est en chargement', (
+      tester,
+    ) async {
       // Arrange
       final container = ProviderContainer(
         overrides: [
-          sortiesTableProvider.overrideWith(
-            (ref) async {
-              // Simuler un chargement en cours
-              await Future.delayed(const Duration(milliseconds: 100));
-              return <SortieRowVM>[];
-            },
-          ),
+          sortiesTableProvider.overrideWith((ref) async {
+            // Simuler un chargement en cours
+            await Future.delayed(const Duration(milliseconds: 100));
+            return <SortieRowVM>[];
+          }),
         ],
       );
 
@@ -25,9 +25,7 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
-            home: SortieDetailScreen(sortieId: 'test-id'),
-          ),
+          child: MaterialApp(home: SortieDetailScreen(sortieId: 'test-id')),
         ),
       );
       await tester.pump(); // Premier pump pour afficher le loading
@@ -39,37 +37,38 @@ void main() {
       await tester.pump(const Duration(milliseconds: 200));
     });
 
-    testWidgets('Affiche un message d\'erreur quand le provider est en erreur', (tester) async {
-      // Arrange
-      final error = Exception('Erreur de test');
-      final container = ProviderContainer(
-        overrides: [
-          sortiesTableProvider.overrideWith(
-            (ref) async {
+    testWidgets(
+      'Affiche un message d\'erreur quand le provider est en erreur',
+      (tester) async {
+        // Arrange
+        final error = Exception('Erreur de test');
+        final container = ProviderContainer(
+          overrides: [
+            sortiesTableProvider.overrideWith((ref) async {
               throw error;
-            },
+            }),
+          ],
+        );
+
+        // Act
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: MaterialApp(home: SortieDetailScreen(sortieId: 'test-id')),
           ),
-        ],
-      );
+        );
+        await tester.pumpAndSettle();
 
-      // Act
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: MaterialApp(
-            home: SortieDetailScreen(sortieId: 'test-id'),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
+        // Assert
+        expect(find.text('Erreur lors du chargement'), findsOneWidget);
+        expect(find.text('Réessayer'), findsOneWidget);
+        expect(find.byIcon(Icons.error_outline), findsOneWidget);
+      },
+    );
 
-      // Assert
-      expect(find.text('Erreur lors du chargement'), findsOneWidget);
-      expect(find.text('Réessayer'), findsOneWidget);
-      expect(find.byIcon(Icons.error_outline), findsOneWidget);
-    });
-
-    testWidgets('Affiche "Sortie introuvable" quand la sortie n\'existe pas', (tester) async {
+    testWidgets('Affiche "Sortie introuvable" quand la sortie n\'existe pas', (
+      tester,
+    ) async {
       // Arrange
       final container = ProviderContainer(
         overrides: [
@@ -94,19 +93,22 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
-            home: SortieDetailScreen(sortieId: 'test-id'),
-          ),
+          child: MaterialApp(home: SortieDetailScreen(sortieId: 'test-id')),
         ),
       );
       await tester.pumpAndSettle();
 
       // Assert
       expect(find.text('Sortie introuvable'), findsOneWidget);
-      expect(find.text('La sortie demandée n\'existe pas ou a été supprimée.'), findsOneWidget);
+      expect(
+        find.text('La sortie demandée n\'existe pas ou a été supprimée.'),
+        findsOneWidget,
+      );
     });
 
-    testWidgets('Affiche les détails d\'une sortie MONALUXE avec badge', (tester) async {
+    testWidgets('Affiche les détails d\'une sortie MONALUXE avec badge', (
+      tester,
+    ) async {
       // Arrange
       final sortie = SortieRowVM(
         id: 'test-id',
@@ -122,9 +124,7 @@ void main() {
 
       final container = ProviderContainer(
         overrides: [
-          sortiesTableProvider.overrideWith(
-            (ref) async => [sortie],
-          ),
+          sortiesTableProvider.overrideWith((ref) async => [sortie]),
         ],
       );
 
@@ -132,15 +132,16 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
-            home: SortieDetailScreen(sortieId: 'test-id'),
-          ),
+          child: MaterialApp(home: SortieDetailScreen(sortieId: 'test-id')),
         ),
       );
       await tester.pumpAndSettle();
 
       // Assert
-      expect(find.text('Détail de la sortie'), findsAtLeastNWidgets(1)); // AppBar + contenu
+      expect(
+        find.text('Détail de la sortie'),
+        findsAtLeastNWidgets(1),
+      ); // AppBar + contenu
       expect(find.text('MONALUXE'), findsOneWidget);
       expect(find.text('ESS · Essence'), findsOneWidget);
       expect(find.text('Citerne 1'), findsOneWidget);
@@ -148,7 +149,9 @@ void main() {
       expect(find.byIcon(Icons.person), findsWidgets); // Badge MONALUXE
     });
 
-    testWidgets('Affiche les détails d\'une sortie PARTENAIRE avec badge', (tester) async {
+    testWidgets('Affiche les détails d\'une sortie PARTENAIRE avec badge', (
+      tester,
+    ) async {
       // Arrange
       final sortie = SortieRowVM(
         id: 'test-id',
@@ -164,9 +167,7 @@ void main() {
 
       final container = ProviderContainer(
         overrides: [
-          sortiesTableProvider.overrideWith(
-            (ref) async => [sortie],
-          ),
+          sortiesTableProvider.overrideWith((ref) async => [sortie]),
         ],
       );
 
@@ -174,9 +175,7 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
-            home: SortieDetailScreen(sortieId: 'test-id'),
-          ),
+          child: MaterialApp(home: SortieDetailScreen(sortieId: 'test-id')),
         ),
       );
       await tester.pumpAndSettle();
@@ -188,42 +187,41 @@ void main() {
       expect(find.byIcon(Icons.business), findsWidgets); // Badge PARTENAIRE
     });
 
-    testWidgets('Affiche "Bénéficiaire inconnu" quand beneficiaireNom est null', (tester) async {
-      // Arrange
-      final sortie = SortieRowVM(
-        id: 'test-id',
-        dateSortie: DateTime(2025, 1, 15),
-        propriete: 'MONALUXE',
-        produitLabel: 'ESS · Essence',
-        citerneNom: 'Citerne 1',
-        vol15: 1000.0,
-        volAmb: 1000.0,
-        beneficiaireNom: null,
-        statut: 'validee',
-      );
+    testWidgets(
+      'Affiche "Bénéficiaire inconnu" quand beneficiaireNom est null',
+      (tester) async {
+        // Arrange
+        final sortie = SortieRowVM(
+          id: 'test-id',
+          dateSortie: DateTime(2025, 1, 15),
+          propriete: 'MONALUXE',
+          produitLabel: 'ESS · Essence',
+          citerneNom: 'Citerne 1',
+          vol15: 1000.0,
+          volAmb: 1000.0,
+          beneficiaireNom: null,
+          statut: 'validee',
+        );
 
-      final container = ProviderContainer(
-        overrides: [
-          sortiesTableProvider.overrideWith(
-            (ref) async => [sortie],
+        final container = ProviderContainer(
+          overrides: [
+            sortiesTableProvider.overrideWith((ref) async => [sortie]),
+          ],
+        );
+
+        // Act
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: MaterialApp(home: SortieDetailScreen(sortieId: 'test-id')),
           ),
-        ],
-      );
+        );
+        await tester.pumpAndSettle();
 
-      // Act
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: MaterialApp(
-            home: SortieDetailScreen(sortieId: 'test-id'),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      // Assert
-      expect(find.text('Bénéficiaire inconnu'), findsOneWidget);
-    });
+        // Assert
+        expect(find.text('Bénéficiaire inconnu'), findsOneWidget);
+      },
+    );
 
     testWidgets('Affiche les volumes formatés', (tester) async {
       // Arrange
@@ -240,9 +238,7 @@ void main() {
 
       final container = ProviderContainer(
         overrides: [
-          sortiesTableProvider.overrideWith(
-            (ref) async => [sortie],
-          ),
+          sortiesTableProvider.overrideWith((ref) async => [sortie]),
         ],
       );
 
@@ -250,9 +246,7 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
-            home: SortieDetailScreen(sortieId: 'test-id'),
-          ),
+          child: MaterialApp(home: SortieDetailScreen(sortieId: 'test-id')),
         ),
       );
       await tester.pumpAndSettle();
@@ -263,16 +257,16 @@ void main() {
       // Les volumes sont formatés, on vérifie juste que les labels sont présents
     });
 
-    testWidgets('Le bouton Réessayer est présent en cas d\'erreur', (tester) async {
+    testWidgets('Le bouton Réessayer est présent en cas d\'erreur', (
+      tester,
+    ) async {
       // Arrange
       final error = Exception('Erreur de test');
       final container = ProviderContainer(
         overrides: [
-          sortiesTableProvider.overrideWith(
-            (ref) async {
-              throw error;
-            },
-          ),
+          sortiesTableProvider.overrideWith((ref) async {
+            throw error;
+          }),
         ],
       );
 
@@ -280,9 +274,7 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
-            home: SortieDetailScreen(sortieId: 'test-id'),
-          ),
+          child: MaterialApp(home: SortieDetailScreen(sortieId: 'test-id')),
         ),
       );
       await tester.pumpAndSettle();
@@ -290,7 +282,7 @@ void main() {
       // Trouver le bouton Réessayer
       final retryButton = find.text('Réessayer');
       expect(retryButton, findsOneWidget);
-      
+
       // Vérifier que le bouton est cliquable
       await tester.tap(retryButton);
       await tester.pump();

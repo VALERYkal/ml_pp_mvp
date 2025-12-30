@@ -35,11 +35,14 @@ class CiterneWithStockForSortie {
   String get stock15cFormatted => '${stock15c.toStringAsFixed(1)} L';
 
   /// Formate la capacité avec 1 décimale
-  String get capaciteTotaleFormatted => '${capaciteTotale.toStringAsFixed(1)} L';
+  String get capaciteTotaleFormatted =>
+      '${capaciteTotale.toStringAsFixed(1)} L';
 
   /// Retourne le texte pour l'affichage dans le subtitle
-  String get stockDisplayText => 'Stock: $stockAmbiantFormatted • $stock15cFormatted (15°C)';
+  String get stockDisplayText =>
+      'Stock: $stockAmbiantFormatted • $stock15cFormatted (15°C)';
 
   /// Retourne le texte complet avec capacité
-  String get fullDisplayText => '$stockDisplayText — Capacité: $capaciteTotaleFormatted';
+  String get fullDisplayText =>
+      '$stockDisplayText — Capacité: $capaciteTotaleFormatted';
 }

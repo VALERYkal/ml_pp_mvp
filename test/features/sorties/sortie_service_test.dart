@@ -60,7 +60,9 @@ class _FakeSupabaseQueryBuilder implements SupabaseQueryBuilder {
     if (invocation.isGetter || invocation.isMethod) {
       return this;
     }
-    throw UnimplementedError('Méthode non implémentée: ${invocation.memberName}');
+    throw UnimplementedError(
+      'Méthode non implémentée: ${invocation.memberName}',
+    );
   }
 }
 
@@ -78,14 +80,18 @@ class _FakeFilterBuilder implements PostgrestFilterBuilder {
     if (invocation.isGetter || invocation.isMethod) {
       return this;
     }
-    throw UnimplementedError('Méthode non implémentée: ${invocation.memberName}');
+    throw UnimplementedError(
+      'Méthode non implémentée: ${invocation.memberName}',
+    );
   }
 }
 
 /// Fake transform builder qui retourne un Future sur single()
 /// Note: PostgrestTransformBuilder est un Future, donc single() retourne this
 class _FakeTransformBuilder implements PostgrestTransformBuilder {
-  final Future<Map<String, dynamic>> _future = Future.value({'id': 'fake-sortie-id'});
+  final Future<Map<String, dynamic>> _future = Future.value({
+    'id': 'fake-sortie-id',
+  });
 
   @override
   dynamic noSuchMethod(Invocation invocation) {
@@ -97,16 +103,16 @@ class _FakeTransformBuilder implements PostgrestTransformBuilder {
     if (invocation.isMethod && invocation.memberName == #then) {
       return _future.then(
         invocation.positionalArguments[0] as dynamic,
-        onError: invocation.positionalArguments.length > 1 
-            ? invocation.positionalArguments[1] as dynamic 
+        onError: invocation.positionalArguments.length > 1
+            ? invocation.positionalArguments[1] as dynamic
             : null,
       );
     }
     if (invocation.isMethod && invocation.memberName == #catchError) {
       return _future.catchError(
         invocation.positionalArguments[0] as dynamic,
-        test: invocation.positionalArguments.length > 1 
-            ? invocation.positionalArguments[1] as dynamic 
+        test: invocation.positionalArguments.length > 1
+            ? invocation.positionalArguments[1] as dynamic
             : null,
       );
     }
@@ -116,8 +122,8 @@ class _FakeTransformBuilder implements PostgrestTransformBuilder {
     if (invocation.isMethod && invocation.memberName == #timeout) {
       return _future.timeout(
         invocation.positionalArguments[0] as Duration,
-        onTimeout: invocation.positionalArguments.length > 1 
-            ? invocation.positionalArguments[1] as dynamic 
+        onTimeout: invocation.positionalArguments.length > 1
+            ? invocation.positionalArguments[1] as dynamic
             : null,
       );
     }
@@ -125,7 +131,9 @@ class _FakeTransformBuilder implements PostgrestTransformBuilder {
     if (invocation.isGetter || invocation.isMethod) {
       return this;
     }
-    throw UnimplementedError('Méthode non implémentée: ${invocation.memberName}');
+    throw UnimplementedError(
+      'Méthode non implémentée: ${invocation.memberName}',
+    );
   }
 }
 
@@ -171,94 +179,115 @@ void main() {
       );
 
       // Assert
-      expect(fakeClient.capture.insertCallCount, equals(1),
-          reason: 'insert doit être appelé exactement une fois');
+      expect(
+        fakeClient.capture.insertCallCount,
+        equals(1),
+        reason: 'insert doit être appelé exactement une fois',
+      );
 
       final payload = fakeClient.capture.insertedPayloads.first;
-      
+
       // Vérifier les champs obligatoires
       expect(payload['citerne_id'], equals(citerneId));
       expect(payload['produit_id'], equals(produitId));
       expect(payload['proprietaire_type'], equals('MONALUXE'));
       expect(payload['client_id'], equals(clientId));
-      expect(payload['partenaire_id'], isNull,
-          reason: 'partenaire_id doit être null pour MONALUXE');
-      
+      expect(
+        payload['partenaire_id'],
+        isNull,
+        reason: 'partenaire_id doit être null pour MONALUXE',
+      );
+
       // Vérifier les indices
       expect(payload['index_avant'], equals(indexAvant));
       expect(payload['index_apres'], equals(indexApres));
-      
+
       // Vérifier les mesures
       expect(payload['temperature_ambiante_c'], equals(temperatureCAmb));
       expect(payload['densite_a_15'], equals(densiteA15));
-      
+
       // Vérifier les volumes
-      expect(payload['volume_ambiant'], equals(100.0),
-          reason: 'volume_ambiant = indexApres - indexAvant = 100 - 0');
-      expect(payload['volume_corrige_15c'], equals(100.0),
-          reason: 'volumeCorrige15C null → utilise volumeAmbiant');
+      expect(
+        payload['volume_ambiant'],
+        equals(100.0),
+        reason: 'volume_ambiant = indexApres - indexAvant = 100 - 0',
+      );
+      expect(
+        payload['volume_corrige_15c'],
+        equals(100.0),
+        reason: 'volumeCorrige15C null → utilise volumeAmbiant',
+      );
       expect(payload['volume_corrige_15c'], greaterThan(0));
-      
+
       // Vérifier le statut
       expect(payload['statut'], equals('validee'));
-      
+
       // Vérifier les champs optionnels
       expect(payload['chauffeur_nom'], equals('Jean Chauffeur'));
       expect(payload['plaque_camion'], equals('ABC-123'));
       expect(payload['transporteur'], equals('Transports TEST'));
       expect(payload['note'], equals('Note de test'));
-      expect(payload['date_sortie'], equals(dateSortie.toUtc().toIso8601String()));
-    });
-
-    test('insère une sortie PARTENAIRE avec partenaireId et sans clientId', () async {
-      // Arrange
-      const citerneId = 'citerne-2';
-      const produitId = 'produit-ess';
-      const indexAvant = 50.0;
-      const indexApres = 150.0;
-      const temperatureCAmb = 25.0;
-      const densiteA15 = 0.75;
-      const partenaireId = 'partenaire-42';
-      const proprietaireType = 'PARTENAIRE';
-
-      // Act
-      await service.createValidated(
-        citerneId: citerneId,
-        produitId: produitId,
-        indexAvant: indexAvant,
-        indexApres: indexApres,
-        temperatureCAmb: temperatureCAmb,
-        densiteA15: densiteA15,
-        volumeCorrige15C: null,
-        proprietaireType: proprietaireType,
-        clientId: null,
-        partenaireId: partenaireId,
-        note: 'Sortie partenaire',
+      expect(
+        payload['date_sortie'],
+        equals(dateSortie.toUtc().toIso8601String()),
       );
-
-      // Assert
-      expect(fakeClient.capture.insertCallCount, equals(1));
-
-      final payload = fakeClient.capture.insertedPayloads.first;
-      
-      // Vérifier le propriétaire
-      expect(payload['proprietaire_type'], equals('PARTENAIRE'));
-      expect(payload['partenaire_id'], equals(partenaireId));
-      expect(payload['client_id'], isNull,
-          reason: 'client_id doit être null pour PARTENAIRE');
-      
-      // Vérifier les autres champs
-      expect(payload['citerne_id'], equals(citerneId));
-      expect(payload['produit_id'], equals(produitId));
-      expect(payload['index_avant'], equals(indexAvant));
-      expect(payload['index_apres'], equals(indexApres));
-      expect(payload['temperature_ambiante_c'], equals(temperatureCAmb));
-      expect(payload['densite_a_15'], equals(densiteA15));
-      expect(payload['volume_ambiant'], equals(100.0)); // 150 - 50
-      expect(payload['volume_corrige_15c'], equals(100.0));
-      expect(payload['statut'], equals('validee'));
-      expect(payload['note'], equals('Sortie partenaire'));
     });
+
+    test(
+      'insère une sortie PARTENAIRE avec partenaireId et sans clientId',
+      () async {
+        // Arrange
+        const citerneId = 'citerne-2';
+        const produitId = 'produit-ess';
+        const indexAvant = 50.0;
+        const indexApres = 150.0;
+        const temperatureCAmb = 25.0;
+        const densiteA15 = 0.75;
+        const partenaireId = 'partenaire-42';
+        const proprietaireType = 'PARTENAIRE';
+
+        // Act
+        await service.createValidated(
+          citerneId: citerneId,
+          produitId: produitId,
+          indexAvant: indexAvant,
+          indexApres: indexApres,
+          temperatureCAmb: temperatureCAmb,
+          densiteA15: densiteA15,
+          volumeCorrige15C: null,
+          proprietaireType: proprietaireType,
+          clientId: null,
+          partenaireId: partenaireId,
+          note: 'Sortie partenaire',
+        );
+
+        // Assert
+        expect(fakeClient.capture.insertCallCount, equals(1));
+
+        final payload = fakeClient.capture.insertedPayloads.first;
+
+        // Vérifier le propriétaire
+        expect(payload['proprietaire_type'], equals('PARTENAIRE'));
+        expect(payload['partenaire_id'], equals(partenaireId));
+        expect(
+          payload['client_id'],
+          isNull,
+          reason: 'client_id doit être null pour PARTENAIRE',
+        );
+
+        // Vérifier les autres champs
+        expect(payload['citerne_id'], equals(citerneId));
+        expect(payload['produit_id'], equals(produitId));
+        expect(payload['index_avant'], equals(indexAvant));
+        expect(payload['index_apres'], equals(indexApres));
+        expect(payload['temperature_ambiante_c'], equals(temperatureCAmb));
+        expect(payload['densite_a_15'], equals(densiteA15));
+        expect(payload['volume_ambiant'], equals(100.0)); // 150 - 50
+        expect(payload['volume_corrige_15c'], equals(100.0));
+        expect(payload['statut'], equals('validee'));
+        expect(payload['note'], equals('Sortie partenaire'));
+      },
+    );
 
     test('utilise directement volumeCorrige15C si fourni', () async {
       // Arrange
@@ -286,11 +315,15 @@ void main() {
 
       // Assert
       final payload = fakeClient.capture.insertedPayloads.first;
-      
+
       // Vérifier que le volume fourni est utilisé tel quel
-      expect(payload['volume_corrige_15c'], equals(volumeCorrige15C),
-          reason: 'Le volumeCorrige15C fourni doit être utilisé tel quel, sans recalcul');
-      
+      expect(
+        payload['volume_corrige_15c'],
+        equals(volumeCorrige15C),
+        reason:
+            'Le volumeCorrige15C fourni doit être utilisé tel quel, sans recalcul',
+      );
+
       // Vérifier que volume_ambiant est toujours calculé depuis les indices
       expect(payload['volume_ambiant'], equals(100.0));
     });
@@ -313,35 +346,50 @@ void main() {
           clientId: null, // ❌ Manquant
           partenaireId: null,
         ),
-        throwsA(isA<SortieServiceException>()
-            .having((e) => e.message, 'message', contains('client est obligatoire'))
-            .having((e) => e.code, 'code', equals('CLIENT_REQUIRED'))),
-      );
-    });
-
-    test('lance une exception si partenaireId manquant pour PARTENAIRE', () async {
-      // Arrange
-      const citerneId = 'citerne-1';
-      const produitId = 'produit-go';
-
-      // Act & Assert
-      expect(
-        () => service.createValidated(
-          citerneId: citerneId,
-          produitId: produitId,
-          indexAvant: 0.0,
-          indexApres: 100.0,
-          temperatureCAmb: 20.0,
-          densiteA15: 0.83,
-          proprietaireType: 'PARTENAIRE',
-          clientId: null,
-          partenaireId: null, // ❌ Manquant
+        throwsA(
+          isA<SortieServiceException>()
+              .having(
+                (e) => e.message,
+                'message',
+                contains('client est obligatoire'),
+              )
+              .having((e) => e.code, 'code', equals('CLIENT_REQUIRED')),
         ),
-        throwsA(isA<SortieServiceException>()
-            .having((e) => e.message, 'message', contains('partenaire est obligatoire'))
-            .having((e) => e.code, 'code', equals('PARTENAIRE_REQUIRED'))),
       );
     });
+
+    test(
+      'lance une exception si partenaireId manquant pour PARTENAIRE',
+      () async {
+        // Arrange
+        const citerneId = 'citerne-1';
+        const produitId = 'produit-go';
+
+        // Act & Assert
+        expect(
+          () => service.createValidated(
+            citerneId: citerneId,
+            produitId: produitId,
+            indexAvant: 0.0,
+            indexApres: 100.0,
+            temperatureCAmb: 20.0,
+            densiteA15: 0.83,
+            proprietaireType: 'PARTENAIRE',
+            clientId: null,
+            partenaireId: null, // ❌ Manquant
+          ),
+          throwsA(
+            isA<SortieServiceException>()
+                .having(
+                  (e) => e.message,
+                  'message',
+                  contains('partenaire est obligatoire'),
+                )
+                .having((e) => e.code, 'code', equals('PARTENAIRE_REQUIRED')),
+          ),
+        );
+      },
+    );
 
     test('normalise proprietaireType (monaluxe → MONALUXE)', () async {
       // Arrange
@@ -363,8 +411,11 @@ void main() {
 
       // Assert
       final payload = fakeClient.capture.insertedPayloads.first;
-      expect(payload['proprietaire_type'], equals('MONALUXE'),
-          reason: 'proprietaireType doit être normalisé en majuscules');
+      expect(
+        payload['proprietaire_type'],
+        equals('MONALUXE'),
+        reason: 'proprietaireType doit être normalisé en majuscules',
+      );
     });
 
     test('trim les champs texte optionnels', () async {
@@ -389,10 +440,16 @@ void main() {
 
       // Assert
       final payload = fakeClient.capture.insertedPayloads.first;
-      expect(payload['chauffeur_nom'], equals('Jean Chauffeur'),
-          reason: 'chauffeurNom doit être trimé');
-      expect(payload['note'], equals('Note avec espaces'),
-          reason: 'note doit être trimée');
+      expect(
+        payload['chauffeur_nom'],
+        equals('Jean Chauffeur'),
+        reason: 'chauffeurNom doit être trimé',
+      );
+      expect(
+        payload['note'],
+        equals('Note avec espaces'),
+        reason: 'note doit être trimée',
+      );
     });
 
     test('n\'inclut pas les champs optionnels vides dans le payload', () async {
@@ -418,14 +475,23 @@ void main() {
 
       // Assert
       final payload = fakeClient.capture.insertedPayloads.first;
-      
+
       // Les champs vides/null ne doivent pas être présents
-      expect(payload.containsKey('chauffeur_nom'), isFalse,
-          reason: 'chauffeurNom vide ne doit pas être dans le payload');
-      expect(payload.containsKey('note'), isFalse,
-          reason: 'note vide ne doit pas être dans le payload');
-      expect(payload.containsKey('plaque_camion'), isFalse,
-          reason: 'plaqueCamion null ne doit pas être dans le payload');
+      expect(
+        payload.containsKey('chauffeur_nom'),
+        isFalse,
+        reason: 'chauffeurNom vide ne doit pas être dans le payload',
+      );
+      expect(
+        payload.containsKey('note'),
+        isFalse,
+        reason: 'note vide ne doit pas être dans le payload',
+      );
+      expect(
+        payload.containsKey('plaque_camion'),
+        isFalse,
+        reason: 'plaqueCamion null ne doit pas être dans le payload',
+      );
     });
   });
 }

@@ -1,6 +1,6 @@
 // 📌 Module : Réceptions - Tests Repository KPI
 // 🧭 Description : Tests unitaires pour ReceptionsKpiRepository
-// 
+//
 // Note : Ces tests se concentrent sur la logique d'agrégation.
 // Les tests d'intégration avec Supabase sont couverts par les tests du provider.
 
@@ -45,18 +45,9 @@ void main() {
     test('agrégation - plusieurs réceptions agrège correctement', () {
       // Arrange
       final mockData = <Map<String, dynamic>>[
-        {
-          'volume_corrige_15c': 1000.0,
-          'volume_ambiant': 980.0,
-        },
-        {
-          'volume_corrige_15c': 2000.0,
-          'volume_ambiant': 1950.0,
-        },
-        {
-          'volume_corrige_15c': 1500.0,
-          'volume_ambiant': 1470.0,
-        },
+        {'volume_corrige_15c': 1000.0, 'volume_ambiant': 980.0},
+        {'volume_corrige_15c': 2000.0, 'volume_ambiant': 1950.0},
+        {'volume_corrige_15c': 1500.0, 'volume_ambiant': 1470.0},
       ];
 
       // Act & Assert
@@ -66,14 +57,8 @@ void main() {
     test('agrégation - valeurs null traitées comme 0', () {
       // Arrange
       final mockData = <Map<String, dynamic>>[
-        {
-          'volume_corrige_15c': null,
-          'volume_ambiant': 980.0,
-        },
-        {
-          'volume_corrige_15c': 2000.0,
-          'volume_ambiant': null,
-        },
+        {'volume_corrige_15c': null, 'volume_ambiant': 980.0},
+        {'volume_corrige_15c': 2000.0, 'volume_ambiant': null},
       ];
 
       // Act & Assert
@@ -86,7 +71,8 @@ void main() {
       final expectedDateStr = '2025-11-29';
 
       // Act
-      final dateStr = '${day.year.toString().padLeft(4, '0')}-'
+      final dateStr =
+          '${day.year.toString().padLeft(4, '0')}-'
           '${day.month.toString().padLeft(2, '0')}-'
           '${day.day.toString().padLeft(2, '0')}';
 

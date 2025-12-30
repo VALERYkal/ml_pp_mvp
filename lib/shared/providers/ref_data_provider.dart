@@ -17,8 +17,6 @@ class RefDataCache {
   });
 }
 
-
-
 final refDataProvider = Riverpod.FutureProvider<RefDataCache>((ref) async {
   final client = Supabase.instance.client;
   try {
@@ -39,23 +37,23 @@ final refDataProvider = Riverpod.FutureProvider<RefDataCache>((ref) async {
       for (final e in fournisseursRes)
         (e['id'] as String): _bestLabel([
           e['nom']?.toString(),
-        ], fallback: 'Fournisseur')
+        ], fallback: 'Fournisseur'),
     };
     final produits = <String, String>{
       for (final e in produitsRes)
         (e['id'] as String): _bestLabel([
           e['nom']?.toString(),
-        ], fallback: 'Produit')
+        ], fallback: 'Produit'),
     };
     final produitCodes = <String, String>{
       for (final e in produitsRes)
-        (e['id'] as String): (e['code']?.toString() ?? '').trim()
+        (e['id'] as String): (e['code']?.toString() ?? '').trim(),
     };
     final depots = <String, String>{
       for (final e in depotsRes)
         (e['id'] as String): _bestLabel([
           e['nom']?.toString(),
-        ], fallback: 'Dépôt')
+        ], fallback: 'Dépôt'),
     };
     return RefDataCache(
       fournisseurs: fournisseurs,
@@ -75,12 +73,15 @@ String resolveName(RefDataCache cache, String id, String type) {
   final key = id.trim();
   switch (type) {
     case 'fournisseur':
-      return cache.fournisseurs[key] ?? _findByPrefix(cache.fournisseurs, key) ?? _shortId(key);
+      return cache.fournisseurs[key] ??
+          _findByPrefix(cache.fournisseurs, key) ??
+          _shortId(key);
     case 'produit':
       final byId = cache.produits[key] ?? _findByPrefix(cache.produits, key);
       if (byId != null) return byId;
       // Fallback via code connu si l'id existe dans le mapping des codes
-      final code = cache.produitCodes[key] ?? _findCodeByPrefix(cache.produitCodes, key);
+      final code =
+          cache.produitCodes[key] ?? _findCodeByPrefix(cache.produitCodes, key);
       if (code != null && code.isNotEmpty) {
         switch (code.toUpperCase()) {
           case 'ESS':
@@ -93,8 +94,10 @@ String resolveName(RefDataCache cache, String id, String type) {
         }
       }
       // Fallback ultime: deux produits connus par UUID/prefixe
-      if (_matchesIdOrPrefix(key, '640cf7ec-1616-4503-a484-0a61afb20005')) return 'Essence';
-      if (_matchesIdOrPrefix(key, '452b557c-e974-4315-b6c2-cda8487db428')) return 'Gasoil / AGO';
+      if (_matchesIdOrPrefix(key, '640cf7ec-1616-4503-a484-0a61afb20005'))
+        return 'Essence';
+      if (_matchesIdOrPrefix(key, '452b557c-e974-4315-b6c2-cda8487db428'))
+        return 'Gasoil / AGO';
       return _shortId(key);
     default:
       return '—';
@@ -104,13 +107,18 @@ String resolveName(RefDataCache cache, String id, String type) {
 /// Extension pour accès map des produits par ID (non cassant)
 extension RefDataLookups on RefDataCache {
   Map<String, String> get produitsById => produits;
-  
+
   Map<String, String> get produitsByCode => produitCodes;
 }
 
-Iterable<MapEntry<String, String>> searchFournisseurs(RefDataCache cache, String query) {
+Iterable<MapEntry<String, String>> searchFournisseurs(
+  RefDataCache cache,
+  String query,
+) {
   final q = _normalize(query);
-  return cache.fournisseurs.entries.where((e) => _normalize(e.value).contains(q));
+  return cache.fournisseurs.entries.where(
+    (e) => _normalize(e.value).contains(q),
+  );
 }
 
 String _normalize(String s) => s.toLowerCase();
@@ -163,5 +171,3 @@ bool _matchesIdOrPrefix(String key, String fullId) {
   final fids = fid.length >= 6 ? fid.substring(0, 6) : fid;
   return ks == fids;
 }
-
-

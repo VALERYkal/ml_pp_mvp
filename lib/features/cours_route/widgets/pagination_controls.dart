@@ -14,7 +14,7 @@ class PaginationControls extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final paginationInfo = ref.watch(paginationInfoProvider);
-    
+
     final currentPage = paginationInfo['currentPage'] as int;
     final totalPages = paginationInfo['totalPages'] as int;
     final totalItems = paginationInfo['totalItems'] as int;
@@ -38,7 +38,7 @@ class PaginationControls extends ConsumerWidget {
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
-          
+
           // Contrôles de navigation
           Row(
             children: [
@@ -50,10 +50,13 @@ class PaginationControls extends ConsumerWidget {
                 icon: const Icon(Icons.chevron_left),
                 tooltip: 'Page précédente',
               ),
-              
+
               // Numéro de page actuel
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.primaryContainer,
                   borderRadius: BorderRadius.circular(8),
@@ -66,7 +69,7 @@ class PaginationControls extends ConsumerWidget {
                   ),
                 ),
               ),
-              
+
               // Page suivante
               IconButton(
                 onPressed: hasMore
@@ -83,8 +86,9 @@ class PaginationControls extends ConsumerWidget {
   }
 
   void _goToPage(WidgetRef ref, int page) {
-    ref.read(coursPaginationProvider.notifier).state = 
-        ref.read(coursPaginationProvider).copyWith(currentPage: page);
+    ref.read(coursPaginationProvider.notifier).state = ref
+        .read(coursPaginationProvider)
+        .copyWith(currentPage: page);
   }
 }
 
@@ -95,7 +99,7 @@ class CompactPaginationControls extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final paginationInfo = ref.watch(paginationInfoProvider);
-    
+
     final currentPage = paginationInfo['currentPage'] as int;
     final totalPages = paginationInfo['totalPages'] as int;
     final totalItems = paginationInfo['totalItems'] as int;
@@ -117,7 +121,7 @@ class CompactPaginationControls extends ConsumerWidget {
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
-          
+
           // Contrôles compacts
           Row(
             children: [
@@ -131,15 +135,15 @@ class CompactPaginationControls extends ConsumerWidget {
                   visualDensity: VisualDensity.compact,
                 ),
               ),
-              
+
               // Numéro de page
               Text(
                 '$currentPage/$totalPages',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
               ),
-              
+
               // Page suivante
               IconButton(
                 onPressed: hasMore
@@ -158,8 +162,9 @@ class CompactPaginationControls extends ConsumerWidget {
   }
 
   void _goToPage(WidgetRef ref, int page) {
-    ref.read(coursPaginationProvider.notifier).state = 
-        ref.read(coursPaginationProvider).copyWith(currentPage: page);
+    ref.read(coursPaginationProvider.notifier).state = ref
+        .read(coursPaginationProvider)
+        .copyWith(currentPage: page);
   }
 }
 
@@ -170,27 +175,25 @@ class PageSizeSelector extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final pagination = ref.watch(coursPaginationProvider);
-    
+
     const pageSizes = [10, 20, 50, 100];
-    
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          'Par page:',
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
+        Text('Par page:', style: Theme.of(context).textTheme.bodySmall),
         const SizedBox(width: 8),
         DropdownButton<int>(
           value: pagination.pageSize,
-          items: pageSizes.map((size) => DropdownMenuItem(
-            value: size,
-            child: Text('$size'),
-          )).toList(),
+          items: pageSizes
+              .map(
+                (size) => DropdownMenuItem(value: size, child: Text('$size')),
+              )
+              .toList(),
           onChanged: (size) {
             if (size != null) {
-              ref.read(coursPaginationProvider.notifier).state = 
-                  pagination.copyWith(pageSize: size, currentPage: 1);
+              ref.read(coursPaginationProvider.notifier).state = pagination
+                  .copyWith(pageSize: size, currentPage: 1);
             }
           },
           isDense: true,

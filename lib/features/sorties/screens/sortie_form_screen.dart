@@ -227,13 +227,20 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
       'volume_corrige_15c': vol15,
       'temperature_ambiante_c': temp,
       'densite_a_15': dens,
-      'proprietaire_type': _owner == OwnerType.monaluxe ? 'MONALUXE' : 'PARTENAIRE',
+      'proprietaire_type': _owner == OwnerType.monaluxe
+          ? 'MONALUXE'
+          : 'PARTENAIRE',
       'statut': 'validee',
-      if (_selectedDate != null) 'date_sortie': _selectedDate!.toUtc().toIso8601String(),
-      if (ctrlChauffeur.text.trim().isNotEmpty) 'chauffeur_nom': ctrlChauffeur.text.trim(),
-      if (ctrlPlaqueCamion.text.trim().isNotEmpty) 'plaque_camion': ctrlPlaqueCamion.text.trim(),
-      if (ctrlPlaqueRemorque.text.trim().isNotEmpty) 'plaque_remorque': ctrlPlaqueRemorque.text.trim(),
-      if (ctrlTransporteur.text.trim().isNotEmpty) 'transporteur': ctrlTransporteur.text.trim(),
+      if (_selectedDate != null)
+        'date_sortie': _selectedDate!.toUtc().toIso8601String(),
+      if (ctrlChauffeur.text.trim().isNotEmpty)
+        'chauffeur_nom': ctrlChauffeur.text.trim(),
+      if (ctrlPlaqueCamion.text.trim().isNotEmpty)
+        'plaque_camion': ctrlPlaqueCamion.text.trim(),
+      if (ctrlPlaqueRemorque.text.trim().isNotEmpty)
+        'plaque_remorque': ctrlPlaqueRemorque.text.trim(),
+      if (ctrlTransporteur.text.trim().isNotEmpty)
+        'transporteur': ctrlTransporteur.text.trim(),
       if (ctrlNote.text.trim().isNotEmpty) 'note': ctrlNote.text.trim(),
     };
 
@@ -299,8 +306,8 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
         );
 
         // Invalidate impacted providers
-      try {
-        ref.invalidate(sortiesListProvider);
+        try {
+          ref.invalidate(sortiesListProvider);
           ref.invalidate(sortiesTableProvider);
           ref.invalidate(sortiesKpiTodayProvider);
         } catch (_) {}
@@ -326,7 +333,9 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
     } on SortieServiceException catch (e) {
       // Erreur SQL/DB du trigger
       if (kDebugMode) {
-        debugPrint('[SORTIE][ERROR] code=${e.code} message=${e.message} details=${e.details ?? 'N/A'} hint=${e.hint ?? 'N/A'}');
+        debugPrint(
+          '[SORTIE][ERROR] code=${e.code} message=${e.message} details=${e.details ?? 'N/A'} hint=${e.hint ?? 'N/A'}',
+        );
       }
       if (mounted) {
         final errorMessage = e.message.toLowerCase();
@@ -427,45 +436,45 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
           : Form(
               key: _formKey,
               child: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-                  // Contexte
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                padding: const EdgeInsets.all(16),
                 children: [
+                  // Contexte
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           const Text('Contexte'),
-                  const SizedBox(height: 8),
+                          const SizedBox(height: 8),
                           Wrap(
                             spacing: 12,
                             children: [
-                    ChoiceChip(
-                      label: const Text('MONALUXE'),
-                      selected: _owner == OwnerType.monaluxe,
+                              ChoiceChip(
+                                label: const Text('MONALUXE'),
+                                selected: _owner == OwnerType.monaluxe,
                                 onSelected: (_) =>
                                     _onOwnerChange(OwnerType.monaluxe),
-                    ),
-                    ChoiceChip(
-                      label: const Text('PARTENAIRE'),
-                      selected: _owner == OwnerType.partenaire,
+                              ),
+                              ChoiceChip(
+                                label: const Text('PARTENAIRE'),
+                                selected: _owner == OwnerType.partenaire,
                                 onSelected: (_) =>
                                     _onOwnerChange(OwnerType.partenaire),
                               ),
                             ],
                           ),
-                  const SizedBox(height: 12),
+                          const SizedBox(height: 12),
                           if (_owner == OwnerType.monaluxe) ...[
                             const Text('Client *'),
-                  const SizedBox(height: 8),
+                            const SizedBox(height: 8),
                             ref
                                 .watch(clientsListProvider)
                                 .when(
-                      data: (list) => DropdownButton<String>(
-                        isExpanded: true,
+                                  data: (list) => DropdownButton<String>(
+                                    isExpanded: true,
                                     value: clientId,
-                        hint: const Text('Sélectionner un client'),
+                                    hint: const Text('Sélectionner un client'),
                                     items: list
                                         .map<DropdownMenuItem<String>>(
                                           (c) => DropdownMenuItem(
@@ -495,8 +504,8 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
                             ref
                                 .watch(partenairesListProvider)
                                 .when(
-                      data: (list) => DropdownButton<String>(
-                        isExpanded: true,
+                                  data: (list) => DropdownButton<String>(
+                                    isExpanded: true,
                                     value: partenaireId,
                                     hint: const Text(
                                       'Sélectionner un partenaire',
@@ -730,11 +739,11 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
     double? dens,
   ) {
     return Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
             const Text('Mesures & Calculs'),
             const SizedBox(height: 8),
             Row(
@@ -787,7 +796,7 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
               ],
             ),
             Row(
-                        children: [
+              children: [
                 Expanded(
                   child: TextFormField(
                     controller: ctrlTemp,
@@ -857,11 +866,11 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
 
   Widget _buildLogistiqueCard() {
     return Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
             const Text('Logistique'),
             const SizedBox(height: 8),
             TextField(
@@ -873,7 +882,7 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
             const SizedBox(height: 8),
             Row(
               children: [
-                    Expanded(
+                Expanded(
                   child: TextField(
                     controller: ctrlPlaqueCamion,
                     decoration: const InputDecoration(
@@ -882,7 +891,7 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                    Expanded(
+                Expanded(
                   child: TextField(
                     controller: ctrlPlaqueRemorque,
                     decoration: const InputDecoration(

@@ -33,17 +33,19 @@ class _RoleDashboardState extends ConsumerState<RoleDashboard> {
     final route = ModalRoute.of(context);
     final isCurrent = route?.isCurrent ?? false;
     final currentLocation = GoRouterState.of(context).uri.toString();
-    
+
     // Détecter si on vient de revenir sur le dashboard
     final isDashboardRoute = currentLocation.startsWith('/dashboard/');
-    
+
     if (isCurrent && isDashboardRoute) {
       // Si on était sur une autre route et qu'on revient sur dashboard
-      if (_previousLocation != null && 
+      if (_previousLocation != null &&
           !_previousLocation!.startsWith('/dashboard/') &&
           _previousLocation != currentLocation) {
         ref.invalidate(kpiProviderProvider);
-        debugPrint('🔄 Dashboard: route became active -> invalidate kpiProviderProvider');
+        debugPrint(
+          '🔄 Dashboard: route became active -> invalidate kpiProviderProvider',
+        );
       }
       _previousLocation = currentLocation;
     }
@@ -56,7 +58,9 @@ class _RoleDashboardState extends ConsumerState<RoleDashboard> {
     // Écouter le signal de refresh KPI et invalider le provider quand il change
     ref.listen<int>(kpiRefreshSignalProvider, (prev, next) {
       if (prev == next) return;
-      debugPrint('🔄 KPI Refresh Signal received ($prev -> $next) -> invalidate(kpiProviderProvider)');
+      debugPrint(
+        '🔄 KPI Refresh Signal received ($prev -> $next) -> invalidate(kpiProviderProvider)',
+      );
       ref.invalidate(kpiProviderProvider);
     });
 
@@ -70,7 +74,7 @@ class _RoleDashboardState extends ConsumerState<RoleDashboard> {
             children: [
               // Header avec salutation
               const DashboardHeader(),
-              
+
               // Section principale - KPIs unifiés
               DashboardSection(
                 title: 'Vue d\'ensemble',
@@ -81,60 +85,60 @@ class _RoleDashboardState extends ConsumerState<RoleDashboard> {
                     key: Key('role_dashboard_loading_state'),
                     child: CircularProgressIndicator(),
                   ),
-                       error: (e, st) => Center(
+                  error: (e, st) => Center(
                     key: const Key('role_dashboard_error_state'),
-                         child: Column(
-                           mainAxisAlignment: MainAxisAlignment.center,
-                           children: [
-                             Icon(
-                               Icons.error_outline,
-                               size: 48,
-                               color: Theme.of(context).colorScheme.error,
-                             ),
-                             const SizedBox(height: 16),
-                             Text(
-                               'Erreur de chargement des KPIs',
-                               style: Theme.of(context).textTheme.titleMedium,
-                             ),
-                             const SizedBox(height: 8),
-                             Text(
-                               'Veuillez réessayer plus tard',
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 48,
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Erreur de chargement des KPIs',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Veuillez réessayer plus tard',
                           style: Theme.of(context).textTheme.bodyMedium
                               ?.copyWith(
                                 color: Theme.of(
                                   context,
                                 ).colorScheme.onSurfaceVariant,
-                               ),
-                             ),
-                           ],
-                         ),
-                       ),
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
                   data: (KpiSnapshot data) {
                     // Obtenir le depotId depuis le profil pour le breakdown par propriétaire
                     final profil = ref.watch(profilProvider).valueOrNull;
                     final depotId = profil?.depotId;
 
                     return DashboardGrid(
-                           children: [
-                             // 1. Camions à suivre (priorité logistique)
-                             TrucksToFollowCard(
-                               data: data.trucksToFollow,
+                      children: [
+                        // 1. Camions à suivre (priorité logistique)
+                        TrucksToFollowCard(
+                          data: data.trucksToFollow,
                           onTap: () => context.go('/cours'),
-                             ),
-                             // 2. Réceptions du jour
+                        ),
+                        // 2. Réceptions du jour
                         // RÈGLE MÉTIER : Stock ambiant = source de vérité opérationnelle
-                             Builder(
-                               builder: (context) {
-                                 return KpiCard(
+                        Builder(
+                          builder: (context) {
+                            return KpiCard(
                               cardKey: const Key('kpi_receptions_today_card'),
-                                   icon: Icons.move_to_inbox_outlined,
-                                   title: 'Réceptions du jour',
-                                   tintColor: const Color(0xFF4CAF50),
+                              icon: Icons.move_to_inbox_outlined,
+                              title: 'Réceptions du jour',
+                              tintColor: const Color(0xFF4CAF50),
                               primaryValue: fmtL(
                                 data.receptionsToday.volumeAmbient,
                               ), // Volume ambiant = source de vérité opérationnelle
                               primaryLabel: 'Volume ambiant',
-                                   subLeftLabel: 'Nombre de camions',
+                              subLeftLabel: 'Nombre de camions',
                               subLeftValue: fmtCount(
                                 data.receptionsToday.count,
                               ),
@@ -142,36 +146,36 @@ class _RoleDashboardState extends ConsumerState<RoleDashboard> {
                               subRightValue: fmtL(
                                 data.receptionsToday.volume15c,
                               ), // Valeur dérivée, analytique
-                                   onTap: () => context.go('/receptions'),
-                                 );
-                               },
-                             ),
-                             // 3. Sorties du jour
+                              onTap: () => context.go('/receptions'),
+                            );
+                          },
+                        ),
+                        // 3. Sorties du jour
                         // RÈGLE MÉTIER : Stock ambiant = source de vérité opérationnelle
-                             Builder(
-                               builder: (context) {
-                                 return KpiCard(
+                        Builder(
+                          builder: (context) {
+                            return KpiCard(
                               cardKey: const Key('kpi_sorties_today_card'),
-                                   icon: Icons.outbox_outlined,
-                                   title: 'Sorties du jour',
-                                   tintColor: const Color(0xFFF44336),
+                              icon: Icons.outbox_outlined,
+                              title: 'Sorties du jour',
+                              tintColor: const Color(0xFFF44336),
                               primaryValue: fmtL(
                                 data.sortiesToday.volumeAmbient,
                               ), // Volume ambiant = source de vérité opérationnelle
                               primaryLabel: 'Volume ambiant',
-                                   subLeftLabel: 'Nombre de camions',
-                                   subLeftValue: fmtCount(data.sortiesToday.count),
+                              subLeftLabel: 'Nombre de camions',
+                              subLeftValue: fmtCount(data.sortiesToday.count),
                               subRightLabel: '≈ Volume 15°C',
                               subRightValue: fmtL(
                                 data.sortiesToday.volume15c,
                               ), // Valeur dérivée, analytique
-                                   onTap: () => context.go('/sorties'),
-                                 );
-                               },
-                             ),
-                             // 4. Stock total
-                             Builder(
-                               builder: (context) {
+                              onTap: () => context.go('/sorties'),
+                            );
+                          },
+                        ),
+                        // 4. Stock total
+                        Builder(
+                          builder: (context) {
                             final depotId = ref
                                 .watch(profilProvider)
                                 .valueOrNull
@@ -197,14 +201,19 @@ class _RoleDashboardState extends ConsumerState<RoleDashboard> {
                             // Utilise la même date normalisée pour stock total ET breakdown par propriétaire
                             // Normaliser la date une seule fois de manière stable pour éviter rebuild loops
                             final today = DateTime.now();
-                            final normalizedToday = DateTime(today.year, today.month, today.day);
-                            
+                            final normalizedToday = DateTime(
+                              today.year,
+                              today.month,
+                              today.day,
+                            );
+
                             final snapshotAsync = depotId != null
                                 ? ref.watch(
                                     depotStocksSnapshotProvider(
                                       DepotStocksSnapshotParams(
                                         depotId: depotId,
-                                        dateJour: normalizedToday, // Date normalisée stable
+                                        dateJour:
+                                            normalizedToday, // Date normalisée stable
                                       ),
                                     ),
                                   )
@@ -220,258 +229,327 @@ class _RoleDashboardState extends ConsumerState<RoleDashboard> {
                                 Builder(
                                   builder: (context) {
                                     final snapAsync = depotId != null
-                                        ? ref.watch(depotGlobalStockFromSnapshotProvider(depotId))
+                                        ? ref.watch(
+                                            depotGlobalStockFromSnapshotProvider(
+                                              depotId,
+                                            ),
+                                          )
                                         : null;
 
                                     return snapAsync?.when(
-                                      data: (s) {
-                                        final displayAmbient = s.amb;
-                                        final display15c = s.v15;
-                                        
-                                        return KpiCard(
-                                          cardKey: const Key('kpi_stock_total_card'),
+                                          data: (s) {
+                                            final displayAmbient = s.amb;
+                                            final display15c = s.v15;
+
+                                            return KpiCard(
+                                              cardKey: const Key(
+                                                'kpi_stock_total_card',
+                                              ),
+                                              icon: Icons.inventory_2_outlined,
+                                              title: 'Stock total',
+                                              tintColor: const Color(
+                                                0xFFFF9800,
+                                              ),
+                                              primaryValue: fmtL(
+                                                displayAmbient,
+                                              ), // Stock ambiant = source de vérité opérationnelle
+                                              primaryLabel: 'Volume ambiant',
+                                              subLeftLabel: '≈ Volume 15°C',
+                                              subLeftValue: fmtL(
+                                                display15c,
+                                              ), // Valeur dérivée, analytique
+                                              subRightLabel:
+                                                  '${usagePct.toStringAsFixed(0)}% utilisation',
+                                              subRightValue:
+                                                  'Capacité ${fmtL(capacityTotal, fixed: 0)}', // Utilise la nouvelle capacité
+                                              onTap: () =>
+                                                  context.go('/stocks'),
+                                            );
+                                          },
+                                          loading: () => KpiCard(
+                                            cardKey: const Key(
+                                              'kpi_stock_total_card',
+                                            ),
+                                            icon: Icons.inventory_2_outlined,
+                                            title: 'Stock total',
+                                            tintColor: const Color(0xFFFF9800),
+                                            primaryValue: fmtL(0.0),
+                                            primaryLabel: 'Volume ambiant',
+                                            subLeftLabel: '≈ Volume 15°C',
+                                            subLeftValue: fmtL(0.0),
+                                            subRightLabel: '...',
+                                            subRightValue: 'Chargement...',
+                                            onTap: () => context.go('/stocks'),
+                                          ),
+                                          error: (e, st) => KpiCard(
+                                            cardKey: const Key(
+                                              'kpi_stock_total_card',
+                                            ),
+                                            icon: Icons.inventory_2_outlined,
+                                            title: 'Stock total',
+                                            tintColor: const Color(0xFFFF9800),
+                                            primaryValue: fmtL(0.0),
+                                            primaryLabel: 'Volume ambiant',
+                                            subLeftLabel: '≈ Volume 15°C',
+                                            subLeftValue: fmtL(0.0),
+                                            subRightLabel: 'Erreur',
+                                            subRightValue: 'Recharger',
+                                            onTap: () => context.go('/stocks'),
+                                          ),
+                                        ) ??
+                                        KpiCard(
+                                          cardKey: const Key(
+                                            'kpi_stock_total_card',
+                                          ),
                                           icon: Icons.inventory_2_outlined,
                                           title: 'Stock total',
                                           tintColor: const Color(0xFFFF9800),
                                           primaryValue: fmtL(
-                                            displayAmbient,
-                                          ), // Stock ambiant = source de vérité opérationnelle
+                                            data.stocks.totalAmbient,
+                                          ),
                                           primaryLabel: 'Volume ambiant',
                                           subLeftLabel: '≈ Volume 15°C',
                                           subLeftValue: fmtL(
-                                            display15c,
-                                          ), // Valeur dérivée, analytique
+                                            data.stocks.total15c,
+                                          ),
                                           subRightLabel:
                                               '${usagePct.toStringAsFixed(0)}% utilisation',
                                           subRightValue:
-                                              'Capacité ${fmtL(capacityTotal, fixed: 0)}', // Utilise la nouvelle capacité
+                                              'Capacité ${fmtL(capacityTotal, fixed: 0)}',
                                           onTap: () => context.go('/stocks'),
                                         );
-                                      },
-                                      loading: () => KpiCard(
-                                        cardKey: const Key('kpi_stock_total_card'),
-                                        icon: Icons.inventory_2_outlined,
-                                        title: 'Stock total',
-                                        tintColor: const Color(0xFFFF9800),
-                                        primaryValue: fmtL(0.0),
-                                        primaryLabel: 'Volume ambiant',
-                                        subLeftLabel: '≈ Volume 15°C',
-                                        subLeftValue: fmtL(0.0),
-                                        subRightLabel: '...',
-                                        subRightValue: 'Chargement...',
-                                        onTap: () => context.go('/stocks'),
-                                      ),
-                                      error: (e, st) => KpiCard(
-                                        cardKey: const Key('kpi_stock_total_card'),
-                                        icon: Icons.inventory_2_outlined,
-                                        title: 'Stock total',
-                                        tintColor: const Color(0xFFFF9800),
-                                        primaryValue: fmtL(0.0),
-                                        primaryLabel: 'Volume ambiant',
-                                        subLeftLabel: '≈ Volume 15°C',
-                                        subLeftValue: fmtL(0.0),
-                                        subRightLabel: 'Erreur',
-                                        subRightValue: 'Recharger',
-                                        onTap: () => context.go('/stocks'),
-                                      ),
-                                    ) ?? KpiCard(
-                                      cardKey: const Key('kpi_stock_total_card'),
-                                      icon: Icons.inventory_2_outlined,
-                                      title: 'Stock total',
-                                      tintColor: const Color(0xFFFF9800),
-                                      primaryValue: fmtL(data.stocks.totalAmbient),
-                                      primaryLabel: 'Volume ambiant',
-                                      subLeftLabel: '≈ Volume 15°C',
-                                      subLeftValue: fmtL(data.stocks.total15c),
-                                      subRightLabel:
-                                          '${usagePct.toStringAsFixed(0)}% utilisation',
-                                      subRightValue:
-                                          'Capacité ${fmtL(capacityTotal, fixed: 0)}',
-                                      onTap: () => context.go('/stocks'),
-                                    );
                                   },
                                 ),
                                 // Détail par propriétaire depuis v_stock_actuel_owner_snapshot
                                 Builder(
                                   builder: (context) {
                                     final ownersAsync = depotId != null
-                                        ? ref.watch(depotOwnerStockFromSnapshotProvider(depotId))
+                                        ? ref.watch(
+                                            depotOwnerStockFromSnapshotProvider(
+                                              depotId,
+                                            ),
+                                          )
                                         : null;
 
                                     return ownersAsync?.when(
-                                      data: (owners) {
-                                        // Trouver MONALUXE et PARTENAIRE (ou utiliser 0.0 si absent)
-                                        final monaluxe = owners.firstWhere(
-                                          (o) => o.proprietaireType.toUpperCase() == 'MONALUXE',
-                                          orElse: () => DepotOwnerStockKpi(
-                                            depotId: depotId ?? '',
-                                            depotNom: '',
-                                            proprietaireType: 'MONALUXE',
-                                            produitId: '',
-                                            produitNom: '',
-                                            stockAmbiantTotal: 0.0,
-                                            stock15cTotal: 0.0,
-                                          ),
-                                        );
-                                        
-                                        final partenaire = owners.firstWhere(
-                                          (o) => o.proprietaireType.toUpperCase() == 'PARTENAIRE',
-                                          orElse: () => DepotOwnerStockKpi(
-                                            depotId: depotId ?? '',
-                                            depotNom: '',
-                                            proprietaireType: 'PARTENAIRE',
-                                            produitId: '',
-                                            produitNom: '',
-                                            stockAmbiantTotal: 0.0,
-                                            stock15cTotal: 0.0,
-                                          ),
-                                        );
+                                          data: (owners) {
+                                            // Trouver MONALUXE et PARTENAIRE (ou utiliser 0.0 si absent)
+                                            final monaluxe = owners.firstWhere(
+                                              (o) =>
+                                                  o.proprietaireType
+                                                      .toUpperCase() ==
+                                                  'MONALUXE',
+                                              orElse: () => DepotOwnerStockKpi(
+                                                depotId: depotId ?? '',
+                                                depotNom: '',
+                                                proprietaireType: 'MONALUXE',
+                                                produitId: '',
+                                                produitNom: '',
+                                                stockAmbiantTotal: 0.0,
+                                                stock15cTotal: 0.0,
+                                              ),
+                                            );
 
-                                        final monAmb = monaluxe.stockAmbiantTotal;
-                                        final mon15c = monaluxe.stock15cTotal;
-                                        final partAmb = partenaire.stockAmbiantTotal;
-                                        final part15c = partenaire.stock15cTotal;
+                                            final partenaire = owners
+                                                .firstWhere(
+                                                  (o) =>
+                                                      o.proprietaireType
+                                                          .toUpperCase() ==
+                                                      'PARTENAIRE',
+                                                  orElse: () =>
+                                                      DepotOwnerStockKpi(
+                                                        depotId: depotId ?? '',
+                                                        depotNom: '',
+                                                        proprietaireType:
+                                                            'PARTENAIRE',
+                                                        produitId: '',
+                                                        produitNom: '',
+                                                        stockAmbiantTotal: 0.0,
+                                                        stock15cTotal: 0.0,
+                                                      ),
+                                                );
 
-                                        return Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            const SizedBox(height: 16),
-                                            Text(
-                                              'Détail par propriétaire',
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .titleSmall
-                                                  ?.copyWith(
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
-                                            ),
-                                            const SizedBox(height: 12),
-                                            // Layout responsive : Row sur grand écran, Column sur mobile
-                                            LayoutBuilder(
-                                              builder: (context, constraints) {
-                                                final isWide = constraints.maxWidth > 400;
-                                                if (isWide) {
-                                                  // Desktop : côte à côte
-                                                  return Row(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    children: [
-                                                      Expanded(
-                                                        child: _buildOwnerDetailColumn(
-                                                          context,
-                                                          'MONALUXE',
-                                                          monAmb,
-                                                          mon15c,
-                                                        ),
+                                            final monAmb =
+                                                monaluxe.stockAmbiantTotal;
+                                            final mon15c =
+                                                monaluxe.stock15cTotal;
+                                            final partAmb =
+                                                partenaire.stockAmbiantTotal;
+                                            final part15c =
+                                                partenaire.stock15cTotal;
+
+                                            return Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                const SizedBox(height: 16),
+                                                Text(
+                                                  'Détail par propriétaire',
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .titleSmall
+                                                      ?.copyWith(
+                                                        fontWeight:
+                                                            FontWeight.w600,
                                                       ),
-                                                      const SizedBox(width: 16),
-                                                      Expanded(
-                                                        child: _buildOwnerDetailColumn(
-                                                          context,
-                                                          'PARTENAIRE',
-                                                          partAmb,
-                                                          part15c,
-                                                        ),
+                                                ),
+                                                const SizedBox(height: 12),
+                                                // Layout responsive : Row sur grand écran, Column sur mobile
+                                                LayoutBuilder(
+                                                  builder: (context, constraints) {
+                                                    final isWide =
+                                                        constraints.maxWidth >
+                                                        400;
+                                                    if (isWide) {
+                                                      // Desktop : côte à côte
+                                                      return Row(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Expanded(
+                                                            child:
+                                                                _buildOwnerDetailColumn(
+                                                                  context,
+                                                                  'MONALUXE',
+                                                                  monAmb,
+                                                                  mon15c,
+                                                                ),
+                                                          ),
+                                                          const SizedBox(
+                                                            width: 16,
+                                                          ),
+                                                          Expanded(
+                                                            child:
+                                                                _buildOwnerDetailColumn(
+                                                                  context,
+                                                                  'PARTENAIRE',
+                                                                  partAmb,
+                                                                  part15c,
+                                                                ),
+                                                          ),
+                                                        ],
+                                                      );
+                                                    } else {
+                                                      // Mobile : empilé
+                                                      return Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .stretch,
+                                                        children: [
+                                                          _buildOwnerDetailColumn(
+                                                            context,
+                                                            'MONALUXE',
+                                                            monAmb,
+                                                            mon15c,
+                                                          ),
+                                                          const SizedBox(
+                                                            height: 12,
+                                                          ),
+                                                          _buildOwnerDetailColumn(
+                                                            context,
+                                                            'PARTENAIRE',
+                                                            partAmb,
+                                                            part15c,
+                                                          ),
+                                                        ],
+                                                      );
+                                                    }
+                                                  },
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                          loading: () =>
+                                              const SizedBox.shrink(),
+                                          error: (error, stack) {
+                                            // Fallback : afficher 0.0 plutôt que de masquer complètement
+                                            if (kDebugMode) {
+                                              debugPrint(
+                                                '⚠️ Dashboard Stock par propriétaire: Erreur $error',
+                                              );
+                                            }
+                                            return Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                const SizedBox(height: 16),
+                                                Text(
+                                                  'Détail par propriétaire',
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .titleSmall
+                                                      ?.copyWith(
+                                                        fontWeight:
+                                                            FontWeight.w600,
                                                       ),
-                                                    ],
-                                                  );
-                                                } else {
-                                                  // Mobile : empilé
-                                                  return Column(
-                                                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                                                    children: [
-                                                      _buildOwnerDetailColumn(
-                                                        context,
-                                                        'MONALUXE',
-                                                        monAmb,
-                                                        mon15c,
-                                                      ),
-                                                      const SizedBox(height: 12),
-                                                      _buildOwnerDetailColumn(
-                                                        context,
-                                                        'PARTENAIRE',
-                                                        partAmb,
-                                                        part15c,
-                                                      ),
-                                                    ],
-                                                  );
-                                                }
-                                              },
-                                            ),
-                                          ],
-                                        );
-                                      },
-                                      loading: () => const SizedBox.shrink(),
-                                      error: (error, stack) {
-                                        // Fallback : afficher 0.0 plutôt que de masquer complètement
-                                        if (kDebugMode) {
-                                          debugPrint('⚠️ Dashboard Stock par propriétaire: Erreur $error');
-                                        }
-                                        return Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            const SizedBox(height: 16),
-                                            Text(
-                                              'Détail par propriétaire',
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .titleSmall
-                                                  ?.copyWith(
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
-                                            ),
-                                            const SizedBox(height: 12),
-                                            LayoutBuilder(
-                                              builder: (context, constraints) {
-                                                final isWide = constraints.maxWidth > 400;
-                                                if (isWide) {
-                                                  return Row(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    children: [
-                                                      Expanded(
-                                                        child: _buildOwnerDetailColumn(
-                                                          context,
-                                                          'MONALUXE',
-                                                          0.0,
-                                                          0.0,
-                                                        ),
-                                                      ),
-                                                      const SizedBox(width: 16),
-                                                      Expanded(
-                                                        child: _buildOwnerDetailColumn(
-                                                          context,
-                                                          'PARTENAIRE',
-                                                          0.0,
-                                                          0.0,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  );
-                                                } else {
-                                                  return Column(
-                                                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                                                    children: [
-                                                      _buildOwnerDetailColumn(
-                                                        context,
-                                                        'MONALUXE',
-                                                        0.0,
-                                                        0.0,
-                                                      ),
-                                                      const SizedBox(height: 12),
-                                                      _buildOwnerDetailColumn(
-                                                        context,
-                                                        'PARTENAIRE',
-                                                        0.0,
-                                                        0.0,
-                                                      ),
-                                                    ],
-                                                  );
-                                                }
-                                              },
-                                            ),
-                                          ],
-                                        );
-                                      },
-                                    ) ?? const SizedBox.shrink();
+                                                ),
+                                                const SizedBox(height: 12),
+                                                LayoutBuilder(
+                                                  builder: (context, constraints) {
+                                                    final isWide =
+                                                        constraints.maxWidth >
+                                                        400;
+                                                    if (isWide) {
+                                                      return Row(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Expanded(
+                                                            child:
+                                                                _buildOwnerDetailColumn(
+                                                                  context,
+                                                                  'MONALUXE',
+                                                                  0.0,
+                                                                  0.0,
+                                                                ),
+                                                          ),
+                                                          const SizedBox(
+                                                            width: 16,
+                                                          ),
+                                                          Expanded(
+                                                            child:
+                                                                _buildOwnerDetailColumn(
+                                                                  context,
+                                                                  'PARTENAIRE',
+                                                                  0.0,
+                                                                  0.0,
+                                                                ),
+                                                          ),
+                                                        ],
+                                                      );
+                                                    } else {
+                                                      return Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .stretch,
+                                                        children: [
+                                                          _buildOwnerDetailColumn(
+                                                            context,
+                                                            'MONALUXE',
+                                                            0.0,
+                                                            0.0,
+                                                          ),
+                                                          const SizedBox(
+                                                            height: 12,
+                                                          ),
+                                                          _buildOwnerDetailColumn(
+                                                            context,
+                                                            'PARTENAIRE',
+                                                            0.0,
+                                                            0.0,
+                                                          ),
+                                                        ],
+                                                      );
+                                                    }
+                                                  },
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        ) ??
+                                        const SizedBox.shrink();
                                   },
                                 ),
                               ],
@@ -483,18 +561,18 @@ class _RoleDashboardState extends ConsumerState<RoleDashboard> {
                           OwnerStockBreakdownCard(
                             depotId: depotId,
                             onTap: () => context.go('/stocks'),
-                             ),
-                             // 5. Balance du jour
+                          ),
+                        // 5. Balance du jour
                         // RÈGLE MÉTIER : Stock ambiant = source de vérité opérationnelle
-                             Builder(
-                               builder: (context) {
+                        Builder(
+                          builder: (context) {
                             // Calcul du delta ambiant (réceptions - sorties)
                             final deltaAmbient = data.balanceToday.deltaAmbient;
                             final delta15c = data.balanceToday.delta15c;
-                                 return KpiCard(
+                            return KpiCard(
                               cardKey: const Key('kpi_balance_today_card'),
-                                   icon: Icons.compare_arrows_outlined,
-                                   title: 'Balance du jour',
+                              icon: Icons.compare_arrows_outlined,
+                              title: 'Balance du jour',
                               tintColor: deltaAmbient >= 0
                                   ? const Color(0xFF009688)
                                   : const Color(0xFFF44336),
@@ -511,14 +589,16 @@ class _RoleDashboardState extends ConsumerState<RoleDashboard> {
                                 data.stocks.capacityTotal,
                                 fixed: 0,
                               ),
-                                   onTap: () => context.go('/stocks'),
-                                 );
-                               },
-                             ),
+                              onTap: () => context.go('/stocks'),
+                            );
+                          },
+                        ),
                         // 6. Alertes Citernes
-                             Builder(
-                               builder: (context) {
-                            final alertesAsync = ref.watch(citernesSousSeuilProvider);
+                        Builder(
+                          builder: (context) {
+                            final alertesAsync = ref.watch(
+                              citernesSousSeuilProvider,
+                            );
                             return alertesAsync.when(
                               loading: () => KpiCard(
                                 cardKey: const Key('kpi_alertes_citernes_card'),
@@ -549,44 +629,52 @@ class _RoleDashboardState extends ConsumerState<RoleDashboard> {
                               data: (alertes) {
                                 final count = alertes.length;
                                 final criticalCount = alertes.where((a) {
-                                  final ratio = a.seuil > 0 ? (a.stock / a.seuil) : 0.0;
+                                  final ratio = a.seuil > 0
+                                      ? (a.stock / a.seuil)
+                                      : 0.0;
                                   return ratio < 0.2;
                                 }).length;
-                                
+
                                 // Top 2 citernes les plus critiques pour l'affichage
                                 final topAlertes = alertes.take(2).toList();
-                                final topNames = topAlertes.isEmpty 
+                                final topNames = topAlertes.isEmpty
                                     ? 'Aucune'
                                     : topAlertes.map((a) => a.nom).join(', ');
-                                
-                                 return KpiCard(
-                                  cardKey: const Key('kpi_alertes_citernes_card'),
+
+                                return KpiCard(
+                                  cardKey: const Key(
+                                    'kpi_alertes_citernes_card',
+                                  ),
                                   icon: Icons.warning_amber_rounded,
                                   title: 'Alertes Citernes',
-                                  tintColor: count > 0 
-                                      ? (criticalCount > 0 
-                                          ? const Color(0xFFEF4444) 
-                                          : const Color(0xFFF59E0B))
+                                  tintColor: count > 0
+                                      ? (criticalCount > 0
+                                            ? const Color(0xFFEF4444)
+                                            : const Color(0xFFF59E0B))
                                       : const Color(0xFF10B981),
                                   primaryValue: count > 0 ? '$count' : '0',
-                                  primaryLabel: count > 0 
+                                  primaryLabel: count > 0
                                       ? '${count > 1 ? 'citernes' : 'citerne'} sous seuil'
                                       : 'Toutes les citernes sont OK',
                                   subLeftLabel: 'Citernes critiques',
-                                  subLeftValue: criticalCount > 0 ? '$criticalCount' : '0',
-                                  subRightLabel: count > 0 ? 'Exemples' : 'État',
-                                  subRightValue: count > 0 
-                                      ? (topNames.length > 15 
-                                          ? '${topNames.substring(0, 15)}...' 
-                                          : topNames)
+                                  subLeftValue: criticalCount > 0
+                                      ? '$criticalCount'
+                                      : '0',
+                                  subRightLabel: count > 0
+                                      ? 'Exemples'
+                                      : 'État',
+                                  subRightValue: count > 0
+                                      ? (topNames.length > 15
+                                            ? '${topNames.substring(0, 15)}...'
+                                            : topNames)
                                       : 'Normal',
                                   onTap: () => context.go('/citernes'),
                                 );
                               },
-                                 );
-                               },
-                             ),
-                           ],
+                            );
+                          },
+                        ),
+                      ],
                     );
                   },
                 ),

@@ -17,16 +17,18 @@ class PerformanceIndicator extends ConsumerWidget {
     final paginationInfo = ref.watch(paginationInfoProvider);
     final cache = ref.watch(coursCacheProvider);
     final performanceStats = ref.watch(performanceStatsProvider);
-    
+
     final totalItems = paginationInfo['totalItems'] as int;
     final currentPage = paginationInfo['currentPage'] as int;
     final totalPages = paginationInfo['totalPages'] as int;
     final pageSize = paginationInfo['pageSize'] as int;
-    
+
     final cacheHits = performanceStats['cacheHits'] as int;
     final totalRequests = performanceStats['totalRequests'] as int;
-    
-    final cacheHitRate = totalRequests > 0 ? (cacheHits / totalRequests * 100).round() : 0;
+
+    final cacheHitRate = totalRequests > 0
+        ? (cacheHits / totalRequests * 100).round()
+        : 0;
     final isCacheValid = cache?.isValid ?? false;
     final lastRefresh = performanceStats['lastRefresh'] as DateTime;
     final timeSinceRefresh = DateTime.now().difference(lastRefresh);
@@ -43,12 +45,12 @@ class PerformanceIndicator extends ConsumerWidget {
           Icon(
             isCacheValid ? Icons.cached : Icons.cached_outlined,
             size: 16,
-            color: isCacheValid 
-                ? Colors.green 
+            color: isCacheValid
+                ? Colors.green
                 : Theme.of(context).colorScheme.onSurfaceVariant,
           ),
           const SizedBox(width: 8),
-          
+
           // Statistiques de cache
           Text(
             'Cache: ${cacheHitRate}%',
@@ -57,7 +59,7 @@ class PerformanceIndicator extends ConsumerWidget {
             ),
           ),
           const SizedBox(width: 16),
-          
+
           // Informations de pagination
           Text(
             '$totalItems cours • Page $currentPage/$totalPages',
@@ -66,7 +68,7 @@ class PerformanceIndicator extends ConsumerWidget {
             ),
           ),
           const Spacer(),
-          
+
           // Temps depuis le dernier rafraîchissement
           Text(
             _formatTimeSince(timeSinceRefresh),
@@ -102,18 +104,20 @@ class DetailedPerformanceIndicator extends ConsumerWidget {
     final paginationInfo = ref.watch(paginationInfoProvider);
     final cache = ref.watch(coursCacheProvider);
     final performanceStats = ref.watch(performanceStatsProvider);
-    
+
     final totalItems = paginationInfo['totalItems'] as int;
     final currentPage = paginationInfo['currentPage'] as int;
     final totalPages = paginationInfo['totalPages'] as int;
     final pageSize = paginationInfo['pageSize'] as int;
     final startItem = paginationInfo['startItem'] as int;
     final endItem = paginationInfo['endItem'] as int;
-    
+
     final cacheHits = performanceStats['cacheHits'] as int;
     final totalRequests = performanceStats['totalRequests'] as int;
-    
-    final cacheHitRate = totalRequests > 0 ? (cacheHits / totalRequests * 100).round() : 0;
+
+    final cacheHitRate = totalRequests > 0
+        ? (cacheHits / totalRequests * 100).round()
+        : 0;
     final isCacheValid = cache?.isValid ?? false;
     final lastRefresh = performanceStats['lastRefresh'] as DateTime;
     final timeSinceRefresh = DateTime.now().difference(lastRefresh);
@@ -126,12 +130,12 @@ class DetailedPerformanceIndicator extends ConsumerWidget {
           children: [
             Text(
               'Indicateurs de Performance',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 16),
-            
+
             // Cache
             _PerformanceRow(
               label: 'Cache',
@@ -139,40 +143,40 @@ class DetailedPerformanceIndicator extends ConsumerWidget {
               icon: isCacheValid ? Icons.cached : Icons.cached_outlined,
               color: isCacheValid ? Colors.green : Colors.orange,
             ),
-            
+
             _PerformanceRow(
               label: 'Taux de cache',
               value: '$cacheHitRate% ($cacheHits/$totalRequests)',
               icon: Icons.analytics_outlined,
             ),
-            
+
             _PerformanceRow(
               label: 'Dernier rafraîchissement',
               value: _formatTimeSince(timeSinceRefresh),
               icon: Icons.refresh,
             ),
-            
+
             const Divider(),
-            
+
             // Pagination
             _PerformanceRow(
               label: 'Total d\'éléments',
               value: '$totalItems',
               icon: Icons.list,
             ),
-            
+
             _PerformanceRow(
               label: 'Page actuelle',
               value: '$currentPage / $totalPages',
               icon: Icons.pages,
             ),
-            
+
             _PerformanceRow(
               label: 'Taille de page',
               value: '$pageSize',
               icon: Icons.view_list,
             ),
-            
+
             _PerformanceRow(
               label: 'Éléments affichés',
               value: '$startItem - $endItem',
@@ -225,9 +229,9 @@ class _PerformanceRow extends StatelessWidget {
           const SizedBox(width: 8),
           Text(
             '$label:',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              fontWeight: FontWeight.w500,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
           ),
           const SizedBox(width: 8),
           Text(

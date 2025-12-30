@@ -6,7 +6,8 @@ class LogsService {
       d.toUtc().toIso8601String().split('.').first + 'Z';
 
   String _escapeCsv(String input) {
-    final needs = input.contains(',') || input.contains('"') || input.contains('\n');
+    final needs =
+        input.contains(',') || input.contains('"') || input.contains('\n');
     if (!needs) return input;
     return '"${input.replaceAll('"', '""')}"';
   }
@@ -21,7 +22,7 @@ class LogsService {
     int limit = 200,
   }) async {
     final supa = Supabase.instance.client;
-    
+
     // Construire la requête de base
     final query = supa
         .from('logs') // vue de compatibilité créée côté DB
@@ -33,28 +34,37 @@ class LogsService {
 
     final rows = await query;
     final allRows = (rows as List).cast<Map<String, dynamic>>();
-    
+
     // Appliquer les filtres côté client (plus simple et fiable)
     var filteredRows = allRows;
-    
+
     if (module != null && module.isNotEmpty) {
-      filteredRows = filteredRows.where((row) => 
-        row['module']?.toString().toLowerCase().contains(module.toLowerCase()) ?? false
-      ).toList();
+      filteredRows = filteredRows
+          .where(
+            (row) =>
+                row['module']?.toString().toLowerCase().contains(
+                  module.toLowerCase(),
+                ) ??
+                false,
+          )
+          .toList();
     }
-    
+
     if (level != null && level.isNotEmpty) {
-      filteredRows = filteredRows.where((row) => 
-        row['niveau']?.toString().toLowerCase() == level.toLowerCase()
-      ).toList();
+      filteredRows = filteredRows
+          .where(
+            (row) =>
+                row['niveau']?.toString().toLowerCase() == level.toLowerCase(),
+          )
+          .toList();
     }
-    
+
     if (userId != null && userId.isNotEmpty) {
-      filteredRows = filteredRows.where((row) => 
-        row['user_id']?.toString() == userId
-      ).toList();
+      filteredRows = filteredRows
+          .where((row) => row['user_id']?.toString() == userId)
+          .toList();
     }
-    
+
     if (search != null && search.isNotEmpty) {
       final searchLower = search.toLowerCase();
       filteredRows = filteredRows.where((row) {
@@ -63,7 +73,7 @@ class LogsService {
         return action.contains(searchLower) || module.contains(searchLower);
       }).toList();
     }
-    
+
     return filteredRows;
   }
 
@@ -92,11 +102,15 @@ class LogsService {
       final action = _escapeCsv((m['action'] ?? '').toString());
       final niveau = (m['niveau'] ?? '').toString();
       final user = (m['user_id'] ?? '').toString();
-      final details = m['details'] == null ? '' : _escapeCsv(m['details'].toString());
+      final details = m['details'] == null
+          ? ''
+          : _escapeCsv(m['details'].toString());
       b.writeln('$createdAt,$module,$action,$niveau,$user,$details');
     }
     return b.toString();
   }
 }
 
-final logsServiceProvider = Riverpod.Provider<LogsService>((ref) => LogsService());
+final logsServiceProvider = Riverpod.Provider<LogsService>(
+  (ref) => LogsService(),
+);

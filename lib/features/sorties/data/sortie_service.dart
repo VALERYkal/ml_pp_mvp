@@ -1,6 +1,6 @@
 // 📌 Module : Sorties - Service
 // 🧭 Description : Service Supabase pour créer des sorties
-// 
+//
 // Architecture simplifiée : Les validations métier sont gérées par le trigger SQL
 // `fn_sorties_after_insert()`. Ce service fait uniquement l'insert et gère les erreurs SQL.
 
@@ -15,12 +15,12 @@ class SortieService {
   SortieService(this.client);
 
   /// Crée une sortie MONALUXE validée.
-  /// 
+  ///
   /// Le trigger SQL `fn_sorties_after_insert()` gère :
   /// - Les validations métier (citerne active, produit compatible, stock suffisant, etc.)
   /// - Le débit du stock journalier
   /// - La journalisation dans log_actions
-  /// 
+  ///
   /// Cette méthode fait uniquement l'insert et gère les erreurs SQL.
   Future<void> createSortieMonaluxe({
     required String citerneId,
@@ -48,7 +48,8 @@ class SortieService {
       'densite_a_15': densite15,
       'proprietaire_type': 'MONALUXE',
       'statut': 'validee', // Le MVP valide directement
-      if (dateSortie != null) 'date_sortie': dateSortie.toUtc().toIso8601String(),
+      if (dateSortie != null)
+        'date_sortie': dateSortie.toUtc().toIso8601String(),
       if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
       // created_by sera géré par le trigger ou la DB
     };
@@ -64,20 +65,27 @@ class SortieService {
           .insert(payload)
           .select('id')
           .single();
-      
+
       if (kDebugMode) {
         debugPrint('[SORTIE] OK - Sortie MONALUXE créée');
       }
     } on PostgrestException catch (e, st) {
       if (kDebugMode) {
-        debugPrint('[SORTIE][ERROR] code=${e.code} message=${e.message ?? 'N/A'} details=${e.details ?? 'N/A'} hint=${e.hint ?? 'N/A'}');
+        debugPrint(
+          '[SORTIE][ERROR] code=${e.code} message=${e.message ?? 'N/A'} details=${e.details ?? 'N/A'} hint=${e.hint ?? 'N/A'}',
+        );
         debugPrint('[SORTIE][ERROR] stackTrace: $st');
       }
-      
+
       // Mapper les erreurs du trigger vers des messages utilisateur lisibles
       final userMessage = _mapErrorToUserMessage(e.message);
-      
-      throw SortieServiceException(userMessage, code: e.code, hint: e.hint, details: e.details);
+
+      throw SortieServiceException(
+        userMessage,
+        code: e.code,
+        hint: e.hint,
+        details: e.details,
+      );
     } catch (e, st) {
       if (kDebugMode) {
         debugPrint('[SORTIE][ERROR] Unknown exception: $e');
@@ -88,12 +96,12 @@ class SortieService {
   }
 
   /// Crée une sortie PARTENAIRE validée.
-  /// 
+  ///
   /// Le trigger SQL `fn_sorties_after_insert()` gère :
   /// - Les validations métier (citerne active, produit compatible, stock suffisant, etc.)
   /// - Le débit du stock journalier
   /// - La journalisation dans log_actions
-  /// 
+  ///
   /// Cette méthode fait uniquement l'insert et gère les erreurs SQL.
   Future<void> createSortiePartenaire({
     required String citerneId,
@@ -121,7 +129,8 @@ class SortieService {
       'densite_a_15': densite15,
       'proprietaire_type': 'PARTENAIRE',
       'statut': 'validee', // Le MVP valide directement
-      if (dateSortie != null) 'date_sortie': dateSortie.toUtc().toIso8601String(),
+      if (dateSortie != null)
+        'date_sortie': dateSortie.toUtc().toIso8601String(),
       if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
       // created_by sera géré par le trigger ou la DB
     };
@@ -137,20 +146,27 @@ class SortieService {
           .insert(payload)
           .select('id')
           .single();
-      
+
       if (kDebugMode) {
         debugPrint('[SORTIE] OK - Sortie PARTENAIRE créée');
       }
     } on PostgrestException catch (e, st) {
       if (kDebugMode) {
-        debugPrint('[SORTIE][ERROR] code=${e.code} message=${e.message ?? 'N/A'} details=${e.details ?? 'N/A'} hint=${e.hint ?? 'N/A'}');
+        debugPrint(
+          '[SORTIE][ERROR] code=${e.code} message=${e.message ?? 'N/A'} details=${e.details ?? 'N/A'} hint=${e.hint ?? 'N/A'}',
+        );
         debugPrint('[SORTIE][ERROR] stackTrace: $st');
       }
-      
+
       // Mapper les erreurs du trigger vers des messages utilisateur lisibles
       final userMessage = _mapErrorToUserMessage(e.message);
-      
-      throw SortieServiceException(userMessage, code: e.code, hint: e.hint, details: e.details);
+
+      throw SortieServiceException(
+        userMessage,
+        code: e.code,
+        hint: e.hint,
+        details: e.details,
+      );
     } catch (e, st) {
       if (kDebugMode) {
         debugPrint('[SORTIE][ERROR] Unknown exception: $e');
@@ -163,9 +179,9 @@ class SortieService {
   /// 🔁 Méthode de compatibilité pour l'UI existante.
   /// Elle route vers createSortieMonaluxe ou createSortiePartenaire
   /// en fonction de [proprietaireType].
-  /// 
+  ///
   /// Cette méthode adapte les noms de paramètres de l'UI vers les méthodes spécialisées.
-  /// 
+  ///
   /// Règles métier :
   /// - [proprietaireType] est obligatoire (MONALUXE ou PARTENAIRE)
   /// - [volumeCorrige15C] est optionnel (calculé dans le service si non fourni)
@@ -189,16 +205,18 @@ class SortieService {
   }) async {
     // Calculer volumeAmbiant depuis les indices
     final volumeAmbiant = indexApres - indexAvant;
-    
+
     // Utiliser volumeCorrige15C si fourni, sinon calculer depuis volumeAmbiant
     // (normalement l'UI fournit toujours volumeCorrige15C)
     final volume15c = volumeCorrige15C ?? volumeAmbiant;
 
     // Normaliser proprietaireType
     final proprietaireTypeNormalized = proprietaireType.toUpperCase().trim();
-    final proprietaireTypeFinal = proprietaireTypeNormalized.isEmpty 
-        ? 'MONALUXE' 
-        : (proprietaireTypeNormalized == 'PARTENAIRE' ? 'PARTENAIRE' : 'MONALUXE');
+    final proprietaireTypeFinal = proprietaireTypeNormalized.isEmpty
+        ? 'MONALUXE'
+        : (proprietaireTypeNormalized == 'PARTENAIRE'
+              ? 'PARTENAIRE'
+              : 'MONALUXE');
 
     if (proprietaireTypeFinal == 'MONALUXE') {
       if (clientId == null || clientId.trim().isEmpty) {
@@ -210,8 +228,8 @@ class SortieService {
 
       // Construire le payload avec les champs optionnels
       final payload = {
-      'citerne_id': citerneId,
-      'produit_id': produitId,
+        'citerne_id': citerneId,
+        'produit_id': produitId,
         'client_id': clientId.trim(),
         'partenaire_id': null,
         'index_avant': indexAvant,
@@ -222,12 +240,17 @@ class SortieService {
         'densite_a_15': densiteA15,
         'proprietaire_type': 'MONALUXE',
         'statut': 'validee',
-        if (dateSortie != null) 'date_sortie': dateSortie.toUtc().toIso8601String(),
-      if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
-      if (chauffeurNom != null && chauffeurNom.trim().isNotEmpty) 'chauffeur_nom': chauffeurNom.trim(),
-      if (plaqueCamion != null && plaqueCamion.trim().isNotEmpty) 'plaque_camion': plaqueCamion.trim(),
-      if (plaqueRemorque != null && plaqueRemorque.trim().isNotEmpty) 'plaque_remorque': plaqueRemorque.trim(),
-      if (transporteur != null && transporteur.trim().isNotEmpty) 'transporteur': transporteur.trim(),
+        if (dateSortie != null)
+          'date_sortie': dateSortie.toUtc().toIso8601String(),
+        if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
+        if (chauffeurNom != null && chauffeurNom.trim().isNotEmpty)
+          'chauffeur_nom': chauffeurNom.trim(),
+        if (plaqueCamion != null && plaqueCamion.trim().isNotEmpty)
+          'plaque_camion': plaqueCamion.trim(),
+        if (plaqueRemorque != null && plaqueRemorque.trim().isNotEmpty)
+          'plaque_remorque': plaqueRemorque.trim(),
+        if (transporteur != null && transporteur.trim().isNotEmpty)
+          'transporteur': transporteur.trim(),
       };
 
       if (kDebugMode) {
@@ -235,24 +258,31 @@ class SortieService {
         debugPrint('[SORTIE][PAYLOAD] $payload');
       }
 
-    try {
+      try {
         await client
-          .from('sorties_produit')
-          .insert(payload)
-          .select('id')
-          .single();
+            .from('sorties_produit')
+            .insert(payload)
+            .select('id')
+            .single();
 
         if (kDebugMode) {
           debugPrint('[SORTIE] OK - Sortie MONALUXE créée');
         }
-    } on PostgrestException catch (e, st) {
-      if (kDebugMode) {
-        debugPrint('[SORTIE][ERROR] code=${e.code} message=${e.message ?? 'N/A'} details=${e.details ?? 'N/A'} hint=${e.hint ?? 'N/A'}');
-        debugPrint('[SORTIE][ERROR] stackTrace: $st');
-      }
-        
+      } on PostgrestException catch (e, st) {
+        if (kDebugMode) {
+          debugPrint(
+            '[SORTIE][ERROR] code=${e.code} message=${e.message ?? 'N/A'} details=${e.details ?? 'N/A'} hint=${e.hint ?? 'N/A'}',
+          );
+          debugPrint('[SORTIE][ERROR] stackTrace: $st');
+        }
+
         final userMessage = _mapErrorToUserMessage(e.message);
-        throw SortieServiceException(userMessage, code: e.code, hint: e.hint, details: e.details);
+        throw SortieServiceException(
+          userMessage,
+          code: e.code,
+          hint: e.hint,
+          details: e.details,
+        );
       } catch (e, st) {
         if (kDebugMode) {
           debugPrint('[SORTIE][ERROR] Unknown exception: $e');
@@ -282,12 +312,17 @@ class SortieService {
         'densite_a_15': densiteA15,
         'proprietaire_type': 'PARTENAIRE',
         'statut': 'validee',
-        if (dateSortie != null) 'date_sortie': dateSortie.toUtc().toIso8601String(),
+        if (dateSortie != null)
+          'date_sortie': dateSortie.toUtc().toIso8601String(),
         if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
-        if (chauffeurNom != null && chauffeurNom.trim().isNotEmpty) 'chauffeur_nom': chauffeurNom.trim(),
-        if (plaqueCamion != null && plaqueCamion.trim().isNotEmpty) 'plaque_camion': plaqueCamion.trim(),
-        if (plaqueRemorque != null && plaqueRemorque.trim().isNotEmpty) 'plaque_remorque': plaqueRemorque.trim(),
-        if (transporteur != null && transporteur.trim().isNotEmpty) 'transporteur': transporteur.trim(),
+        if (chauffeurNom != null && chauffeurNom.trim().isNotEmpty)
+          'chauffeur_nom': chauffeurNom.trim(),
+        if (plaqueCamion != null && plaqueCamion.trim().isNotEmpty)
+          'plaque_camion': plaqueCamion.trim(),
+        if (plaqueRemorque != null && plaqueRemorque.trim().isNotEmpty)
+          'plaque_remorque': plaqueRemorque.trim(),
+        if (transporteur != null && transporteur.trim().isNotEmpty)
+          'transporteur': transporteur.trim(),
       };
 
       if (kDebugMode) {
@@ -301,24 +336,31 @@ class SortieService {
             .insert(payload)
             .select('id')
             .single();
-        
+
         if (kDebugMode) {
           debugPrint('[SORTIE] OK - Sortie PARTENAIRE créée');
         }
       } on PostgrestException catch (e, st) {
         if (kDebugMode) {
-          debugPrint('[SORTIE][ERROR] code=${e.code} message=${e.message ?? 'N/A'} details=${e.details ?? 'N/A'} hint=${e.hint ?? 'N/A'}');
+          debugPrint(
+            '[SORTIE][ERROR] code=${e.code} message=${e.message ?? 'N/A'} details=${e.details ?? 'N/A'} hint=${e.hint ?? 'N/A'}',
+          );
           debugPrint('[SORTIE][ERROR] stackTrace: $st');
         }
-        
+
         final userMessage = _mapErrorToUserMessage(e.message);
-        throw SortieServiceException(userMessage, code: e.code, hint: e.hint, details: e.details);
-    } catch (e, st) {
-      if (kDebugMode) {
-        debugPrint('[SORTIE][ERROR] Unknown exception: $e');
-        debugPrint('[SORTIE][ERROR] stackTrace: $st');
-      }
-      rethrow;
+        throw SortieServiceException(
+          userMessage,
+          code: e.code,
+          hint: e.hint,
+          details: e.details,
+        );
+      } catch (e, st) {
+        if (kDebugMode) {
+          debugPrint('[SORTIE][ERROR] Unknown exception: $e');
+          debugPrint('[SORTIE][ERROR] stackTrace: $st');
+        }
+        rethrow;
       }
     } else {
       throw SortieServiceException(
@@ -336,13 +378,14 @@ class SortieService {
 
     if (errorMessage.contains('Citerne introuvable')) {
       return 'La citerne sélectionnée n\'existe pas';
-    } else if (errorMessage.contains('inactive') || errorMessage.contains('maintenance')) {
+    } else if (errorMessage.contains('inactive') ||
+        errorMessage.contains('maintenance')) {
       return 'La citerne est inactive ou en maintenance';
     } else if (errorMessage.contains('Produit incompatible')) {
       return 'Le produit ne correspond pas à la citerne sélectionnée';
-    } else if (errorMessage.contains('capacité de sécurité') || 
-               errorMessage.contains('stock disponible') ||
-               errorMessage.contains('Sortie dépasserait')) {
+    } else if (errorMessage.contains('capacité de sécurité') ||
+        errorMessage.contains('stock disponible') ||
+        errorMessage.contains('Sortie dépasserait')) {
       return 'Le stock disponible est insuffisant pour cette sortie';
     } else if (errorMessage.contains('Aucun stock journalier')) {
       return 'Aucun stock disponible pour cette citerne';

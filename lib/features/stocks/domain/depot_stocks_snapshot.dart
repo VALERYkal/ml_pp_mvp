@@ -32,4 +32,3 @@ class DepotStocksSnapshot {
     required this.citerneRows,
   });
 }
-

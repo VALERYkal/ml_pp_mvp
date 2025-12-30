@@ -52,7 +52,8 @@ class FakeCoursDeRouteServiceForDetail implements CoursDeRouteService {
   Future<CoursDeRoute?> getById(String id) async => _cours;
 
   @override
-  Future<List<CoursDeRoute>> getByStatut(StatutCours statut) async => throw UnimplementedError();
+  Future<List<CoursDeRoute>> getByStatut(StatutCours statut) async =>
+      throw UnimplementedError();
 
   @override
   Future<void> create(CoursDeRoute cours) async => throw UnimplementedError();
@@ -76,7 +77,8 @@ class FakeCoursDeRouteServiceForDetail implements CoursDeRouteService {
   Future<Map<String, int>> countByStatut() async => throw UnimplementedError();
 
   @override
-  Future<Map<String, int>> countByCategorie() async => throw UnimplementedError();
+  Future<Map<String, int>> countByCategorie() async =>
+      throw UnimplementedError();
 
   @override
   Future<bool> canTransition({
@@ -121,19 +123,25 @@ CoursDeRoute createTestCdrDetail({
 
 void main() {
   group('CDR Detail Screen - Affichage des statuts', () {
-    testWidgets('CDR Detail - CHARGEMENT affiche le label "Chargement"', (tester) async {
+    testWidgets('CDR Detail - CHARGEMENT affiche le label "Chargement"', (
+      tester,
+    ) async {
       // Arrange
       final cdrChargement = createTestCdrDetail(
         id: 'cdr-1',
         statut: StatutCours.chargement,
       );
-      final fakeService = FakeCoursDeRouteServiceForDetail(cours: cdrChargement);
+      final fakeService = FakeCoursDeRouteServiceForDetail(
+        cours: cdrChargement,
+      );
 
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
             coursDeRouteServiceProvider.overrideWithValue(fakeService),
-            coursDeRouteByIdProvider(cdrChargement.id).overrideWith((ref) async => cdrChargement),
+            coursDeRouteByIdProvider(
+              cdrChargement.id,
+            ).overrideWith((ref) async => cdrChargement),
             userRoleProvider.overrideWith((ref) => UserRole.operateur),
             refDataProvider.overrideWith((ref) async => createFakeRefData()),
           ],
@@ -147,11 +155,17 @@ void main() {
       await tester.pumpAndSettle();
 
       // Assert: Le label "Chargement" doit être visible
-      expect(find.text('Chargement'), findsWidgets,
-          reason: 'Le label "Chargement" doit être affiché pour un CDR en CHARGEMENT');
+      expect(
+        find.text('Chargement'),
+        findsWidgets,
+        reason:
+            'Le label "Chargement" doit être affiché pour un CDR en CHARGEMENT',
+      );
     });
 
-    testWidgets('CDR Detail - TRANSIT affiche le label "Transit"', (tester) async {
+    testWidgets('CDR Detail - TRANSIT affiche le label "Transit"', (
+      tester,
+    ) async {
       // Arrange
       final cdrTransit = createTestCdrDetail(
         id: 'cdr-2',
@@ -163,7 +177,9 @@ void main() {
         ProviderScope(
           overrides: [
             coursDeRouteServiceProvider.overrideWithValue(fakeService),
-            coursDeRouteByIdProvider(cdrTransit.id).overrideWith((ref) async => cdrTransit),
+            coursDeRouteByIdProvider(
+              cdrTransit.id,
+            ).overrideWith((ref) async => cdrTransit),
             userRoleProvider.overrideWith((ref) => UserRole.operateur),
             refDataProvider.overrideWith((ref) async => createFakeRefData()),
           ],
@@ -176,11 +192,16 @@ void main() {
       await tester.pumpAndSettle();
 
       // Assert
-      expect(find.text('Transit'), findsWidgets,
-          reason: 'Le label "Transit" doit être affiché pour un CDR en TRANSIT');
+      expect(
+        find.text('Transit'),
+        findsWidgets,
+        reason: 'Le label "Transit" doit être affiché pour un CDR en TRANSIT',
+      );
     });
 
-    testWidgets('CDR Detail - FRONTIERE affiche le label "Frontière"', (tester) async {
+    testWidgets('CDR Detail - FRONTIERE affiche le label "Frontière"', (
+      tester,
+    ) async {
       // Arrange
       final cdrFrontiere = createTestCdrDetail(
         id: 'cdr-3',
@@ -192,7 +213,9 @@ void main() {
         ProviderScope(
           overrides: [
             coursDeRouteServiceProvider.overrideWithValue(fakeService),
-            coursDeRouteByIdProvider(cdrFrontiere.id).overrideWith((ref) async => cdrFrontiere),
+            coursDeRouteByIdProvider(
+              cdrFrontiere.id,
+            ).overrideWith((ref) async => cdrFrontiere),
             userRoleProvider.overrideWith((ref) => UserRole.operateur),
             refDataProvider.overrideWith((ref) async => createFakeRefData()),
           ],
@@ -205,11 +228,17 @@ void main() {
       await tester.pumpAndSettle();
 
       // Assert
-      expect(find.text('Frontière'), findsWidgets,
-          reason: 'Le label "Frontière" doit être affiché pour un CDR en FRONTIERE');
+      expect(
+        find.text('Frontière'),
+        findsWidgets,
+        reason:
+            'Le label "Frontière" doit être affiché pour un CDR en FRONTIERE',
+      );
     });
 
-    testWidgets('CDR Detail - ARRIVE affiche le label "Arrivé"', (tester) async {
+    testWidgets('CDR Detail - ARRIVE affiche le label "Arrivé"', (
+      tester,
+    ) async {
       // Arrange
       final cdrArrive = createTestCdrDetail(
         id: 'cdr-4',
@@ -221,7 +250,9 @@ void main() {
         ProviderScope(
           overrides: [
             coursDeRouteServiceProvider.overrideWithValue(fakeService),
-            coursDeRouteByIdProvider(cdrArrive.id).overrideWith((ref) async => cdrArrive),
+            coursDeRouteByIdProvider(
+              cdrArrive.id,
+            ).overrideWith((ref) async => cdrArrive),
             userRoleProvider.overrideWith((ref) => UserRole.operateur),
             refDataProvider.overrideWith((ref) async => createFakeRefData()),
           ],
@@ -234,11 +265,16 @@ void main() {
       await tester.pumpAndSettle();
 
       // Assert
-      expect(find.text('Arrivé'), findsWidgets,
-          reason: 'Le label "Arrivé" doit être affiché pour un CDR en ARRIVE');
+      expect(
+        find.text('Arrivé'),
+        findsWidgets,
+        reason: 'Le label "Arrivé" doit être affiché pour un CDR en ARRIVE',
+      );
     });
 
-    testWidgets('CDR Detail - DECHARGE affiche le label "Déchargé"', (tester) async {
+    testWidgets('CDR Detail - DECHARGE affiche le label "Déchargé"', (
+      tester,
+    ) async {
       // Arrange
       final cdrDecharge = createTestCdrDetail(
         id: 'cdr-5',
@@ -250,7 +286,9 @@ void main() {
         ProviderScope(
           overrides: [
             coursDeRouteServiceProvider.overrideWithValue(fakeService),
-            coursDeRouteByIdProvider(cdrDecharge.id).overrideWith((ref) async => cdrDecharge),
+            coursDeRouteByIdProvider(
+              cdrDecharge.id,
+            ).overrideWith((ref) async => cdrDecharge),
             userRoleProvider.overrideWith((ref) => UserRole.operateur),
             refDataProvider.overrideWith((ref) async => createFakeRefData()),
           ],
@@ -263,13 +301,18 @@ void main() {
       await tester.pumpAndSettle();
 
       // Assert
-      expect(find.text('Déchargé'), findsWidgets,
-          reason: 'Le label "Déchargé" doit être affiché pour un CDR en DECHARGE');
+      expect(
+        find.text('Déchargé'),
+        findsWidgets,
+        reason: 'Le label "Déchargé" doit être affiché pour un CDR en DECHARGE',
+      );
     });
   });
 
   group('CDR Detail Screen - Timeline des statuts', () {
-    testWidgets('CDR Detail - Timeline affiche tous les statuts dans l\'ordre', (tester) async {
+    testWidgets('CDR Detail - Timeline affiche tous les statuts dans l\'ordre', (
+      tester,
+    ) async {
       // Arrange
       final cdrTransit = createTestCdrDetail(
         id: 'cdr-2',
@@ -281,7 +324,9 @@ void main() {
         ProviderScope(
           overrides: [
             coursDeRouteServiceProvider.overrideWithValue(fakeService),
-            coursDeRouteByIdProvider(cdrTransit.id).overrideWith((ref) async => cdrTransit),
+            coursDeRouteByIdProvider(
+              cdrTransit.id,
+            ).overrideWith((ref) async => cdrTransit),
             userRoleProvider.overrideWith((ref) => UserRole.operateur),
             refDataProvider.overrideWith((ref) async => createFakeRefData()),
           ],
@@ -296,13 +341,18 @@ void main() {
       // Assert: La timeline doit afficher tous les statuts
       // (ModernStatusTimeline affiche les 5 statuts)
       // Note: La timeline peut utiliser des widgets personnalisés, donc on vérifie juste que l'écran se charge
-      expect(find.byType(CoursRouteDetailScreen), findsOneWidget,
-          reason: 'L\'écran de détail doit être affiché');
-      
+      expect(
+        find.byType(CoursRouteDetailScreen),
+        findsOneWidget,
+        reason: 'L\'écran de détail doit être affiché',
+      );
+
       // Vérifier que le statut actuel est bien affiché
-      expect(find.text('Transit'), findsWidgets,
-          reason: 'Le statut actuel "Transit" doit être affiché');
+      expect(
+        find.text('Transit'),
+        findsWidgets,
+        reason: 'Le statut actuel "Transit" doit être affiché',
+      );
     });
   });
 }
-

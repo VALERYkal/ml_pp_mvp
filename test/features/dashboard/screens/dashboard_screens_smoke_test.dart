@@ -20,7 +20,8 @@ import 'package:ml_pp_mvp/core/models/profil.dart';
 import 'package:ml_pp_mvp/core/models/user_role.dart';
 import 'package:ml_pp_mvp/shared/providers/session_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' as Riverpod;
-import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart' show CurrentProfilNotifier;
+import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart'
+    show CurrentProfilNotifier;
 import 'package:ml_pp_mvp/features/dashboard/providers/citernes_sous_seuil_provider.dart';
 
 /// Fake notifier pour currentProfilProvider dans les tests
@@ -40,10 +41,8 @@ Widget _appWithRouter(Widget child, {String initialLocation = "/"}) {
     routes: [
       GoRoute(
         path: "/",
-        pageBuilder: (context, state) => MaterialPage(
-          key: state.pageKey,
-          child: child,
-        ),
+        pageBuilder: (context, state) =>
+            MaterialPage(key: state.pageKey, child: child),
       ),
     ],
   );
@@ -69,7 +68,8 @@ void main() {
       KpiSnapshot? kpiData,
     }) {
       final profil = _createTestProfil(role);
-      final kpiSnapshot = kpiData ??
+      final kpiSnapshot =
+          kpiData ??
           const KpiSnapshot(
             receptionsToday: KpiNumberVolume(
               count: 3,
@@ -99,12 +99,15 @@ void main() {
         overrides: [
           // Override auth state pour simuler un utilisateur connecté
           // Utilise un Stream qui émet immédiatement une valeur puis se termine
-          appAuthStateProvider.overrideWith((ref) => Stream.value(
-            AppAuthState(
-              session: null, // On n'a pas besoin d'une vraie session pour les tests
-              authStream: const Stream.empty(),
+          appAuthStateProvider.overrideWith(
+            (ref) => Stream.value(
+              AppAuthState(
+                session:
+                    null, // On n'a pas besoin d'une vraie session pour les tests
+                authStream: const Stream.empty(),
+              ),
             ),
-          )),
+          ),
           // Override profil provider pour retourner le profil de test
           currentProfilProvider.overrideWith(() => _FakeProfilNotifier(profil)),
           // Override KPI provider avec les données de test
@@ -117,7 +120,10 @@ void main() {
 
     // Helper pour construire un widget de dashboard avec les providers
     // Retourne le container pour pouvoir le disposer dans les tests
-    (Widget, ProviderContainer) _buildDashboardForRole(Widget screen, UserRole role) {
+    (Widget, ProviderContainer) _buildDashboardForRole(
+      Widget screen,
+      UserRole role,
+    ) {
       final container = _createTestContainer(role: role);
       final widget = UncontrolledProviderScope(
         container: container,
@@ -126,93 +132,143 @@ void main() {
       return (widget, container);
     }
 
-    testWidgets('DashboardAdminScreen should build without errors', (WidgetTester tester) async {
+    testWidgets('DashboardAdminScreen should build without errors', (
+      WidgetTester tester,
+    ) async {
       // Act
-      final (widget, container) = _buildDashboardForRole(const DashboardAdminScreen(), UserRole.admin);
+      final (widget, container) = _buildDashboardForRole(
+        const DashboardAdminScreen(),
+        UserRole.admin,
+      );
       await tester.pumpWidget(widget);
       await tester.pumpAndSettle();
 
       // Assert
       expect(find.byType(DashboardAdminScreen), findsOneWidget);
       // Vérifier que la carte KPI Réceptions est présente via sa Key stable
-      expect(find.byKey(const Key('kpi_receptions_today_card')), findsOneWidget);
+      expect(
+        find.byKey(const Key('kpi_receptions_today_card')),
+        findsOneWidget,
+      );
       // Vérifier que la section "Vue d'ensemble" est présente
       expect(find.textContaining('Vue d\'ensemble'), findsOneWidget);
-      
+
       container.dispose();
     });
 
-    testWidgets('DashboardOperateurScreen should build without errors', (WidgetTester tester) async {
+    testWidgets('DashboardOperateurScreen should build without errors', (
+      WidgetTester tester,
+    ) async {
       // Act
-      final (widget, container) = _buildDashboardForRole(const DashboardOperateurScreen(), UserRole.operateur);
+      final (widget, container) = _buildDashboardForRole(
+        const DashboardOperateurScreen(),
+        UserRole.operateur,
+      );
       await tester.pumpWidget(widget);
       await tester.pumpAndSettle();
 
       // Assert
       expect(find.byType(DashboardOperateurScreen), findsOneWidget);
-      expect(find.byKey(const Key('kpi_receptions_today_card')), findsOneWidget);
+      expect(
+        find.byKey(const Key('kpi_receptions_today_card')),
+        findsOneWidget,
+      );
       expect(find.textContaining('Vue d\'ensemble'), findsOneWidget);
-      
+
       container.dispose();
     });
 
-    testWidgets('DashboardDirecteurScreen should build without errors', (WidgetTester tester) async {
+    testWidgets('DashboardDirecteurScreen should build without errors', (
+      WidgetTester tester,
+    ) async {
       // Act
-      final (widget, container) = _buildDashboardForRole(const DashboardDirecteurScreen(), UserRole.directeur);
+      final (widget, container) = _buildDashboardForRole(
+        const DashboardDirecteurScreen(),
+        UserRole.directeur,
+      );
       await tester.pumpWidget(widget);
       await tester.pumpAndSettle();
 
       // Assert
       expect(find.byType(DashboardDirecteurScreen), findsOneWidget);
-      expect(find.byKey(const Key('kpi_receptions_today_card')), findsOneWidget);
+      expect(
+        find.byKey(const Key('kpi_receptions_today_card')),
+        findsOneWidget,
+      );
       expect(find.textContaining('Vue d\'ensemble'), findsOneWidget);
-      
+
       container.dispose();
     });
 
-    testWidgets('DashboardGerantScreen should build without errors', (WidgetTester tester) async {
+    testWidgets('DashboardGerantScreen should build without errors', (
+      WidgetTester tester,
+    ) async {
       // Act
-      final (widget, container) = _buildDashboardForRole(const DashboardGerantScreen(), UserRole.gerant);
+      final (widget, container) = _buildDashboardForRole(
+        const DashboardGerantScreen(),
+        UserRole.gerant,
+      );
       await tester.pumpWidget(widget);
       await tester.pumpAndSettle();
 
       // Assert
       expect(find.byType(DashboardGerantScreen), findsOneWidget);
-      expect(find.byKey(const Key('kpi_receptions_today_card')), findsOneWidget);
+      expect(
+        find.byKey(const Key('kpi_receptions_today_card')),
+        findsOneWidget,
+      );
       expect(find.textContaining('Vue d\'ensemble'), findsOneWidget);
-      
+
       container.dispose();
     });
 
-    testWidgets('DashboardPcaScreen should build without errors', (WidgetTester tester) async {
+    testWidgets('DashboardPcaScreen should build without errors', (
+      WidgetTester tester,
+    ) async {
       // Act
-      final (widget, container) = _buildDashboardForRole(const DashboardPcaScreen(), UserRole.pca);
+      final (widget, container) = _buildDashboardForRole(
+        const DashboardPcaScreen(),
+        UserRole.pca,
+      );
       await tester.pumpWidget(widget);
       await tester.pumpAndSettle();
 
       // Assert
       expect(find.byType(DashboardPcaScreen), findsOneWidget);
-      expect(find.byKey(const Key('kpi_receptions_today_card')), findsOneWidget);
+      expect(
+        find.byKey(const Key('kpi_receptions_today_card')),
+        findsOneWidget,
+      );
       expect(find.textContaining('Vue d\'ensemble'), findsOneWidget);
-      
+
       container.dispose();
     });
 
-    testWidgets('DashboardLectureScreen should build without errors', (WidgetTester tester) async {
+    testWidgets('DashboardLectureScreen should build without errors', (
+      WidgetTester tester,
+    ) async {
       // Act
-      final (widget, container) = _buildDashboardForRole(const DashboardLectureScreen(), UserRole.lecture);
+      final (widget, container) = _buildDashboardForRole(
+        const DashboardLectureScreen(),
+        UserRole.lecture,
+      );
       await tester.pumpWidget(widget);
       await tester.pumpAndSettle();
 
       // Assert
       expect(find.byType(DashboardLectureScreen), findsOneWidget);
-      expect(find.byKey(const Key('kpi_receptions_today_card')), findsOneWidget);
+      expect(
+        find.byKey(const Key('kpi_receptions_today_card')),
+        findsOneWidget,
+      );
       expect(find.textContaining('Vue d\'ensemble'), findsOneWidget);
-      
+
       container.dispose();
     });
 
-    testWidgets('All dashboard screens should render KPI section correctly', (WidgetTester tester) async {
+    testWidgets('All dashboard screens should render KPI section correctly', (
+      WidgetTester tester,
+    ) async {
       // Arrange - Liste de tous les écrans de dashboard avec leurs rôles
       final screens = [
         (const DashboardAdminScreen(), UserRole.admin),
@@ -231,21 +287,23 @@ void main() {
 
         // Vérifier que l'écran est présent
         expect(find.byType(screen.runtimeType), findsOneWidget);
-        
+
         // Vérifier que la carte KPI Réceptions est présente (via Key stable)
         expect(
           find.byKey(const Key('kpi_receptions_today_card')),
           findsOneWidget,
-          reason: 'La carte KPI Réceptions doit être présente pour le rôle ${role.name}',
+          reason:
+              'La carte KPI Réceptions doit être présente pour le rôle ${role.name}',
         );
-        
+
         // Vérifier que la section "Vue d'ensemble" est présente
         expect(
           find.textContaining('Vue d\'ensemble'),
           findsOneWidget,
-          reason: 'La section "Vue d\'ensemble" doit être présente pour le rôle ${role.name}',
+          reason:
+              'La section "Vue d\'ensemble" doit être présente pour le rôle ${role.name}',
         );
-        
+
         // Dispose le container pour éviter les timers pendants
         container.dispose();
       }

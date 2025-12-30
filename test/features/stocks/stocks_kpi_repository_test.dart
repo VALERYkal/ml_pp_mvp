@@ -6,7 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:postgrest/postgrest.dart';
 
 /// Fake filter builder générique qui implémente PostgrestFilterBuilder<T>
-/// 
+///
 /// Permet de résoudre le problème de typage générique strict de Supabase.
 /// eq(), lte(), order() retournent this (même builder chainable).
 /// Permet `await query` car implémente then().
@@ -27,8 +27,7 @@ class _FakeFilterBuilder<T> implements PostgrestFilterBuilder<T> {
     bool ascending = true,
     bool? nullsFirst,
     String? foreignTable,
-  }) =>
-      this;
+  }) => this;
 
   // Match supabase_flutter/postgrest signature variations in tests.
   _FakeFilterBuilder<T> in_(String column, List values) {
@@ -65,8 +64,9 @@ class _FakeSupabaseTableBuilder implements SupabaseQueryBuilder {
         // Vérifier que le type est bien List<Map<String, dynamic>>
         // On utilise un cast dynamique pour contourner les limitations du typage
         return _FakeFilterBuilder<List<Map<String, dynamic>>>(
-          rowsToReturn as dynamic,
-        ) as dynamic;
+              rowsToReturn as dynamic,
+            )
+            as dynamic;
       }
       // Si pas de type générique, utiliser le type par défaut
       return _FakeFilterBuilder<List<Map<String, dynamic>>>(
@@ -77,7 +77,9 @@ class _FakeSupabaseTableBuilder implements SupabaseQueryBuilder {
     if (invocation.isGetter || invocation.isMethod) {
       return this;
     }
-    throw UnimplementedError('Méthode non implémentée: ${invocation.memberName}');
+    throw UnimplementedError(
+      'Méthode non implémentée: ${invocation.memberName}',
+    );
   }
 }
 
@@ -123,10 +125,7 @@ void main() {
       test('method exists and signature is correct', () {
         expect(repository.fetchDepotProductTotals, isNotNull);
         // Vérifier que la méthode accepte les bons paramètres
-        expect(
-          () => repository.fetchDepotProductTotals(),
-          returnsNormally,
-        );
+        expect(() => repository.fetchDepotProductTotals(), returnsNormally);
         expect(
           () => repository.fetchDepotProductTotals(
             depotId: 'depot-1',
@@ -142,10 +141,7 @@ void main() {
       test('method exists and signature is correct', () {
         expect(repository.fetchDepotOwnerTotals, isNotNull);
         // Vérifier que la méthode accepte les bons paramètres
-        expect(
-          () => repository.fetchDepotOwnerTotals(),
-          returnsNormally,
-        );
+        expect(() => repository.fetchDepotOwnerTotals(), returnsNormally);
         expect(
           () => repository.fetchDepotOwnerTotals(
             depotId: 'depot-1',
@@ -157,77 +153,71 @@ void main() {
         );
       });
 
-      test(
-        'reads from v_stock_actuel_owner_snapshot and returns owner totals',
-        () async {
-          // Arrange: créer un fake client avec des données snapshot (une ligne par propriétaire)
-          final fakeClient = _FakeSupabaseClient();
-          final rowsToReturn = [
-            {
-              'depot_id': 'depot-1',
-              'depot_nom': 'Depot A',
-              'proprietaire_type': 'MONALUXE',
-              'produit_id': 'prod-1',
-              'produit_nom': 'Gasoil',
-              'stock_ambiant_total': 1010.0,
-              'stock_15c_total': 1000.0,
-              // date_jour supprimé : la vue snapshot ne l'utilise pas pour le filtrage
-            },
-            {
-              'depot_id': 'depot-1',
-              'depot_nom': 'Depot A',
-              'proprietaire_type': 'PARTENAIRE',
-              'produit_id': 'prod-1',
-              'produit_nom': 'Gasoil',
-              'stock_ambiant_total': 500.0,
-              'stock_15c_total': 475.0,
-              // date_jour supprimé : la vue snapshot ne l'utilise pas pour le filtrage
-            },
-          ];
-          fakeClient.setViewData('v_stock_actuel_owner_snapshot', rowsToReturn);
+      test('reads from v_stock_actuel_owner_snapshot and returns owner totals', () async {
+        // Arrange: créer un fake client avec des données snapshot (une ligne par propriétaire)
+        final fakeClient = _FakeSupabaseClient();
+        final rowsToReturn = [
+          {
+            'depot_id': 'depot-1',
+            'depot_nom': 'Depot A',
+            'proprietaire_type': 'MONALUXE',
+            'produit_id': 'prod-1',
+            'produit_nom': 'Gasoil',
+            'stock_ambiant_total': 1010.0,
+            'stock_15c_total': 1000.0,
+            // date_jour supprimé : la vue snapshot ne l'utilise pas pour le filtrage
+          },
+          {
+            'depot_id': 'depot-1',
+            'depot_nom': 'Depot A',
+            'proprietaire_type': 'PARTENAIRE',
+            'produit_id': 'prod-1',
+            'produit_nom': 'Gasoil',
+            'stock_ambiant_total': 500.0,
+            'stock_15c_total': 475.0,
+            // date_jour supprimé : la vue snapshot ne l'utilise pas pour le filtrage
+          },
+        ];
+        fakeClient.setViewData('v_stock_actuel_owner_snapshot', rowsToReturn);
 
-          final repo = StocksKpiRepository(fakeClient);
+        final repo = StocksKpiRepository(fakeClient);
 
-          // Act
-          final result = await repo.fetchDepotOwnerTotals(
-            dateJour: DateTime(2025, 12, 10), // Ignored by snapshot view
-            depotId: 'depot-1',
-          );
+        // Act
+        final result = await repo.fetchDepotOwnerTotals(
+          dateJour: DateTime(2025, 12, 10), // Ignored by snapshot view
+          depotId: 'depot-1',
+        );
 
-          // Assert
-          expect(result, isNotEmpty);
-          
-          // Vérifier que la vue correcte a été utilisée (critique : on teste la bonne source SQL)
-          expect(fakeClient.capturedViewName, 'v_stock_actuel_owner_snapshot');
-          
-          // Note: v_stock_actuel_owner_snapshot ignore dateJour (snapshot = toujours état actuel)
-          // Le test vérifie que la vue correcte est utilisée et que les données sont retournées
-          expect(result.length, 2);
-          
-          // Vérifier que les stocks correspondent aux données mockées (valeurs directement depuis la vue)
-          final monaluxeResult = result.firstWhere(
-            (kpi) => kpi.proprietaireType == 'MONALUXE',
-          );
-          expect(monaluxeResult.stockAmbiantTotal, 1010.0);
-          expect(monaluxeResult.stock15cTotal, 1000.0);
-          
-          final partenaireResult = result.firstWhere(
-            (kpi) => kpi.proprietaireType == 'PARTENAIRE',
-          );
-          expect(partenaireResult.stockAmbiantTotal, 500.0);
-          expect(partenaireResult.stock15cTotal, 475.0);
-        },
-      );
+        // Assert
+        expect(result, isNotEmpty);
+
+        // Vérifier que la vue correcte a été utilisée (critique : on teste la bonne source SQL)
+        expect(fakeClient.capturedViewName, 'v_stock_actuel_owner_snapshot');
+
+        // Note: v_stock_actuel_owner_snapshot ignore dateJour (snapshot = toujours état actuel)
+        // Le test vérifie que la vue correcte est utilisée et que les données sont retournées
+        expect(result.length, 2);
+
+        // Vérifier que les stocks correspondent aux données mockées (valeurs directement depuis la vue)
+        final monaluxeResult = result.firstWhere(
+          (kpi) => kpi.proprietaireType == 'MONALUXE',
+        );
+        expect(monaluxeResult.stockAmbiantTotal, 1010.0);
+        expect(monaluxeResult.stock15cTotal, 1000.0);
+
+        final partenaireResult = result.firstWhere(
+          (kpi) => kpi.proprietaireType == 'PARTENAIRE',
+        );
+        expect(partenaireResult.stockAmbiantTotal, 500.0);
+        expect(partenaireResult.stock15cTotal, 475.0);
+      });
     });
 
     group('fetchCiterneOwnerSnapshots', () {
       test('method exists and signature is correct', () {
         expect(repository.fetchCiterneOwnerSnapshots, isNotNull);
         // Vérifier que la méthode accepte les bons paramètres
-        expect(
-          () => repository.fetchCiterneOwnerSnapshots(),
-          returnsNormally,
-        );
+        expect(() => repository.fetchCiterneOwnerSnapshots(), returnsNormally);
         expect(
           () => repository.fetchCiterneOwnerSnapshots(
             depotId: 'depot-1',
@@ -244,10 +234,7 @@ void main() {
       test('method exists and signature is correct', () {
         expect(repository.fetchCiterneGlobalSnapshots, isNotNull);
         // Vérifier que la méthode accepte les bons paramètres
-        expect(
-          () => repository.fetchCiterneGlobalSnapshots(),
-          returnsNormally,
-        );
+        expect(() => repository.fetchCiterneGlobalSnapshots(), returnsNormally);
         expect(
           () => repository.fetchCiterneGlobalSnapshots(
             depotId: 'depot-1',
@@ -269,88 +256,88 @@ void main() {
         );
       });
 
-      test(
-        'filters to latest date_jour when multiple dates returned',
-        () async {
-          // Arrange: créer un fake client avec des données contenant plusieurs dates
-          final fakeClient = _FakeSupabaseClient();
-          final rowsToReturn = [
-            {
-              'citerne_id': 'citerne-1',
-              'citerne_nom': 'Tank A',
-              'produit_id': 'prod-1',
-              'produit_nom': 'Gasoil',
-              'date_jour': '2025-12-09', // Date la plus récente
-              'stock_ambiant_total': 1000.0,
-              'stock_15c_total': 950.0,
-              'capacite_totale': 5000.0,
-              'capacite_securite': 500.0,
-            },
-            {
-              'citerne_id': 'citerne-2',
-              'citerne_nom': 'Tank B',
-              'produit_id': 'prod-1',
-              'produit_nom': 'Gasoil',
-              'date_jour': '2025-12-09', // Même date (devrait être inclus)
-              'stock_ambiant_total': 2000.0,
-              'stock_15c_total': 1900.0,
-              'capacite_totale': 10000.0,
-              'capacite_securite': 1000.0,
-            },
-            {
-              'citerne_id': 'citerne-1',
-              'citerne_nom': 'Tank A',
-              'produit_id': 'prod-1',
-              'produit_nom': 'Gasoil',
-              'date_jour': '2025-12-08', // Date plus ancienne (devrait être exclue)
-              'stock_ambiant_total': 900.0,
-              'stock_15c_total': 855.0,
-              'capacite_totale': 5000.0,
-              'capacite_securite': 500.0,
-            },
-          ];
-          fakeClient.setViewData('v_stock_actuel_snapshot', rowsToReturn);
+      test('filters to latest date_jour when multiple dates returned', () async {
+        // Arrange: créer un fake client avec des données contenant plusieurs dates
+        final fakeClient = _FakeSupabaseClient();
+        final rowsToReturn = [
+          {
+            'citerne_id': 'citerne-1',
+            'citerne_nom': 'Tank A',
+            'produit_id': 'prod-1',
+            'produit_nom': 'Gasoil',
+            'date_jour': '2025-12-09', // Date la plus récente
+            'stock_ambiant_total': 1000.0,
+            'stock_15c_total': 950.0,
+            'capacite_totale': 5000.0,
+            'capacite_securite': 500.0,
+          },
+          {
+            'citerne_id': 'citerne-2',
+            'citerne_nom': 'Tank B',
+            'produit_id': 'prod-1',
+            'produit_nom': 'Gasoil',
+            'date_jour': '2025-12-09', // Même date (devrait être inclus)
+            'stock_ambiant_total': 2000.0,
+            'stock_15c_total': 1900.0,
+            'capacite_totale': 10000.0,
+            'capacite_securite': 1000.0,
+          },
+          {
+            'citerne_id': 'citerne-1',
+            'citerne_nom': 'Tank A',
+            'produit_id': 'prod-1',
+            'produit_nom': 'Gasoil',
+            'date_jour':
+                '2025-12-08', // Date plus ancienne (devrait être exclue)
+            'stock_ambiant_total': 900.0,
+            'stock_15c_total': 855.0,
+            'capacite_totale': 5000.0,
+            'capacite_securite': 500.0,
+          },
+        ];
+        fakeClient.setViewData('v_stock_actuel_snapshot', rowsToReturn);
 
-          final repo = StocksKpiRepository(fakeClient);
+        final repo = StocksKpiRepository(fakeClient);
 
-          // Act
-          final result = await repo.fetchCiterneGlobalSnapshots(
-            dateJour: DateTime(2025, 12, 10),
-            depotId: 'depot-1',
-          );
+        // Act
+        final result = await repo.fetchCiterneGlobalSnapshots(
+          dateJour: DateTime(2025, 12, 10),
+          depotId: 'depot-1',
+        );
 
-          // Assert
-          expect(result, isNotEmpty);
-          
-          // Vérifier que la vue correcte a été utilisée (au moins une fois)
-          // Le repository peut aussi appeler d'autres tables (ex: produits pour enrichissement)
-          // donc on vérifie que la vue snapshot a été appelée, pas qu'elle soit la dernière
-          expect(fakeClient.fromCalls, contains('v_stock_actuel_snapshot'));
-          
-          // Note: v_stock_actuel_snapshot ignore dateJour (snapshot = toujours état actuel)
-          // Le test vérifie que la vue correcte est utilisée et que les données sont retournées
-          // Vérifier l'intention : on doit avoir les données de la date la plus récente (2025-12-09)
-          // Le nombre exact de résultats peut varier si le repository enrichit avec d'autres tables
-          
-          // Vérifier que les données correspondent aux lignes de la date la plus récente
-          // On vérifie que citerne-1 a les valeurs de la date la plus récente (1000.0, 950.0)
-          // et pas celles de la date ancienne (900.0, 855.0)
-          final tankA = result.firstWhere(
-            (snapshot) => snapshot.citerneId == 'citerne-1',
-            orElse: () => throw StateError('Citerne-1 non trouvée dans les résultats'),
-          );
-          expect(tankA.stockAmbiantTotal, 1000.0);
-          expect(tankA.stock15cTotal, 950.0);
-          
-          // Vérifier aussi que citerne-2 est présente avec ses valeurs de la date la plus récente
-          final tankB = result.firstWhere(
-            (snapshot) => snapshot.citerneId == 'citerne-2',
-            orElse: () => throw StateError('Citerne-2 non trouvée dans les résultats'),
-          );
-          expect(tankB.stockAmbiantTotal, 2000.0);
-          expect(tankB.stock15cTotal, 1900.0);
-        },
-      );
+        // Assert
+        expect(result, isNotEmpty);
+
+        // Vérifier que la vue correcte a été utilisée (au moins une fois)
+        // Le repository peut aussi appeler d'autres tables (ex: produits pour enrichissement)
+        // donc on vérifie que la vue snapshot a été appelée, pas qu'elle soit la dernière
+        expect(fakeClient.fromCalls, contains('v_stock_actuel_snapshot'));
+
+        // Note: v_stock_actuel_snapshot ignore dateJour (snapshot = toujours état actuel)
+        // Le test vérifie que la vue correcte est utilisée et que les données sont retournées
+        // Vérifier l'intention : on doit avoir les données de la date la plus récente (2025-12-09)
+        // Le nombre exact de résultats peut varier si le repository enrichit avec d'autres tables
+
+        // Vérifier que les données correspondent aux lignes de la date la plus récente
+        // On vérifie que citerne-1 a les valeurs de la date la plus récente (1000.0, 950.0)
+        // et pas celles de la date ancienne (900.0, 855.0)
+        final tankA = result.firstWhere(
+          (snapshot) => snapshot.citerneId == 'citerne-1',
+          orElse: () =>
+              throw StateError('Citerne-1 non trouvée dans les résultats'),
+        );
+        expect(tankA.stockAmbiantTotal, 1000.0);
+        expect(tankA.stock15cTotal, 950.0);
+
+        // Vérifier aussi que citerne-2 est présente avec ses valeurs de la date la plus récente
+        final tankB = result.firstWhere(
+          (snapshot) => snapshot.citerneId == 'citerne-2',
+          orElse: () =>
+              throw StateError('Citerne-2 non trouvée dans les résultats'),
+        );
+        expect(tankB.stockAmbiantTotal, 2000.0);
+        expect(tankB.stock15cTotal, 1900.0);
+      });
     });
 
     group('fetchDepotTotalCapacity', () {

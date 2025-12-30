@@ -31,8 +31,18 @@ class FakeDbPort implements DbPort {
   // Fixtures référentiels
   // Produits ESS / AGO
   final _produits = <Map<String, dynamic>>[
-    {'id': '11111111-1111-1111-1111-111111111111', 'code': 'ESS', 'nom': 'Essence', 'actif': true},
-    {'id': '22222222-2222-2222-2222-222222222222', 'code': 'AGO', 'nom': 'Gasoil', 'actif': true},
+    {
+      'id': '11111111-1111-1111-1111-111111111111',
+      'code': 'ESS',
+      'nom': 'Essence',
+      'actif': true,
+    },
+    {
+      'id': '22222222-2222-2222-2222-222222222222',
+      'code': 'AGO',
+      'nom': 'Gasoil',
+      'actif': true,
+    },
   ];
 
   // Une citerne active compatible ESS (adapter si besoin)
@@ -43,17 +53,21 @@ class FakeDbPort implements DbPort {
       'capacite_totale': 100000.0,
       'capacite_securite': 5000.0,
       'statut': 'active',
-    }
+    },
   ];
 
   @override
-  Future<Map<String, dynamic>> insertReception(Map<String, dynamic> payload) async {
+  Future<Map<String, dynamic>> insertReception(
+    Map<String, dynamic> payload,
+  ) async {
     // Simuler calc volume_ambiant >= 0 (déjà fait côté client, mais on vérifie)
     final before = (payload['index_avant'] as double?) ?? 0;
-    final after  = (payload['index_apres'] as double?) ?? 0;
+    final after = (payload['index_apres'] as double?) ?? 0;
     final volAmb = (after - before);
     if (before < 0 || after < 0 || !(after > before)) {
-      throw Exception('Indices invalides: index_apres doit être > index_avant et >= 0');
+      throw Exception(
+        'Indices invalides: index_apres doit être > index_avant et >= 0',
+      );
     }
     if (volAmb <= 0) {
       throw Exception('Volume ambiant invalide (<=0)');
@@ -77,7 +91,9 @@ class FakeDbPort implements DbPort {
       throw Exception('Réception introuvable');
     }
     if (rec['statut'] != 'brouillon') {
-      throw Exception('Seules les réceptions en brouillon peuvent être validées (statut=${rec['statut']})');
+      throw Exception(
+        'Seules les réceptions en brouillon peuvent être validées (statut=${rec['statut']})',
+      );
     }
 
     // Contrôles "serveur"
@@ -88,7 +104,10 @@ class FakeDbPort implements DbPort {
 
     // 2) Compatibilité stricte: produit de la citerne == produit_id de la réception
     final prodIdRec = rec['produit_id'];
-    final citerne = _citernes.firstWhere((c) => c['id'] == rec['citerne_id'], orElse: () => {});
+    final citerne = _citernes.firstWhere(
+      (c) => c['id'] == rec['citerne_id'],
+      orElse: () => {},
+    );
     if (citerne.isEmpty || citerne['produit_id'] != prodIdRec) {
       throw Exception('Produit incompatible avec la citerne');
     }
@@ -103,7 +122,9 @@ class FakeDbPort implements DbPort {
       throw Exception('Volume ambiant invalide (<=0)');
     }
     if (volAmb > dispo) {
-      throw Exception('Capacité insuffisante (disponible=$dispo, demandé=$volAmb)');
+      throw Exception(
+        'Capacité insuffisante (disponible=$dispo, demandé=$volAmb)',
+      );
     }
 
     // 4) Cours de route (si lié) doit être "arrivé"
@@ -112,13 +133,18 @@ class FakeDbPort implements DbPort {
     }
 
     // 5) Propriété partenaire: partenaire_id requis
-    if (rec['proprietaire_type'] == 'PARTENAIRE' && rec['partenaire_id'] == null) {
+    if (rec['proprietaire_type'] == 'PARTENAIRE' &&
+        rec['partenaire_id'] == null) {
       throw Exception('partenaire_id requis pour PARTENAIRE');
     }
 
     // Si tout va bien -> valider
     rec['statut'] = 'validee';
-    logs.add({'action': 'RECEPTION_VALIDEE', 'id': receptionId, 'vol_amb': volAmb});
+    logs.add({
+      'action': 'RECEPTION_VALIDEE',
+      'id': receptionId,
+      'vol_amb': volAmb,
+    });
   }
 
   @override
@@ -136,5 +162,3 @@ class FakeDbPort implements DbPort {
     return list;
   }
 }
-
-

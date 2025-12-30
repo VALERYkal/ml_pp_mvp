@@ -24,7 +24,7 @@ String _isoUtc(DateTime d) =>
     d.toUtc().toIso8601String().split('.').first + 'Z';
 
 /// Provider legacy pour les KPIs Admin
-/// 
+///
 /// ⚠️ NOTE : Ce provider utilise DateTime.now().toUtc() pour calculer la date du jour.
 /// Pour les KPI "du jour" du dashboard principal, utiliser kpiProviderProvider qui utilise la date métier locale.
 final adminKpiProvider = FutureProvider<AdminKpis>((ref) async {
@@ -57,9 +57,7 @@ final adminKpiProvider = FutureProvider<AdminKpis>((ref) async {
       .lt('date_sortie', _isoUtc(dayEnd));
 
   // 4) citernes sous seuil
-  final citernes = await supa
-      .from('citernes')
-      .select('id,capacite_securite');
+  final citernes = await supa.from('citernes').select('id,capacite_securite');
 
   final latest = await supa
       .from('v_citerne_stock_actuel')

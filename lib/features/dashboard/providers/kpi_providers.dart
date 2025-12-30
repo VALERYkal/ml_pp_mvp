@@ -19,7 +19,7 @@ class KpiData {
 final kpiProvider = FutureProvider<KpiData>((ref) async {
   // Simuler un délai de chargement
   await Future.delayed(const Duration(milliseconds: 800));
-  
+
   // Simuler des données aléatoires
   return KpiData(
     receptionsJour: 12 + (DateTime.now().millisecond % 10),
@@ -33,4 +33,3 @@ final kpiProvider = FutureProvider<KpiData>((ref) async {
 final kpiProviderForRole = FutureProvider<KpiData>((ref) async {
   return ref.watch(kpiProvider.future);
 });
-

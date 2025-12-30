@@ -10,7 +10,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase/supabase.dart';
 
 import 'package:ml_pp_mvp/features/receptions/screens/reception_form_screen.dart';
-import 'package:ml_pp_mvp/features/receptions/providers/reception_providers.dart' as RP;
+import 'package:ml_pp_mvp/features/receptions/providers/reception_providers.dart'
+    as RP;
 import 'package:ml_pp_mvp/features/receptions/data/reception_service.dart';
 import 'package:ml_pp_mvp/shared/referentiels/referentiels.dart' as refs;
 import 'package:ml_pp_mvp/core/models/user_role.dart';
@@ -26,40 +27,50 @@ void main() {
 
   // PAS de Supabase.initialize ici - on utilise uniquement des fake services
 
-  testWidgets('happy path: enregistrement reception affiche snackbar success', (tester) async {
+  testWidgets('happy path: enregistrement reception affiche snackbar success', (
+    tester,
+  ) async {
     // Arrange - Créer les fakes nécessaires
-    final fakeRefRepo = refs.ReferentielsRepo(SupabaseClient('http://localhost', 'anon'));
+    final fakeRefRepo = refs.ReferentielsRepo(
+      SupabaseClient('http://localhost', 'anon'),
+    );
     final fakeService = _FakeReceptionService(fakeRefRepo);
-    
+
     // Overrides similaires au test E2E pour un setup cohérent
     final overrides = <Override>[
       // Service de réception (il y a deux providers : un dans reception_providers.dart et un dans reception_service.dart)
       // On override les deux car reception_form_screen.dart utilise celui de reception_service.dart
       RP.receptionServiceProvider.overrideWith((ref) => fakeService),
       receptionServiceProvider.overrideWith((ref) => fakeService),
-      
+
       // Référentiels
       refs.referentielsRepoProvider.overrideWith((ref) => fakeRefRepo),
-      refs.produitsRefProvider.overrideWith((ref) => Future.value([
-        refs.ProduitRef(id: 'prod-1', code: 'ESS', nom: 'Essence'),
-      ])),
-      refs.citernesActivesProvider.overrideWith((ref) => Future.value([
-        refs.CiterneRef(
-          id: 'cit-1',
-          nom: 'Citerne A',
-          produitId: 'prod-1',
-          statut: 'active',
-          capaciteTotale: 50000.0,
-          capaciteSecurite: 5000.0,
-        ),
-      ])),
-      
+      refs.produitsRefProvider.overrideWith(
+        (ref) => Future.value([
+          refs.ProduitRef(id: 'prod-1', code: 'ESS', nom: 'Essence'),
+        ]),
+      ),
+      refs.citernesActivesProvider.overrideWith(
+        (ref) => Future.value([
+          refs.CiterneRef(
+            id: 'cit-1',
+            nom: 'Citerne A',
+            produitId: 'prod-1',
+            statut: 'active',
+            capaciteTotale: 50000.0,
+            capaciteSecurite: 5000.0,
+          ),
+        ]),
+      ),
+
       // Partenaires
       RP.partenairesListProvider.overrideWith((ref) async => const []),
-      partenairesProvider.overrideWith((ref) => Future.value([
-        const PartenaireItem(id: 'partenaire-1', nom: 'Partenaire Test'),
-      ])),
-      
+      partenairesProvider.overrideWith(
+        (ref) => Future.value([
+          const PartenaireItem(id: 'partenaire-1', nom: 'Partenaire Test'),
+        ]),
+      ),
+
       // Profil utilisateur (gerant pour avoir les permissions)
       currentProfilProvider.overrideWith(
         () => _FakeProfilNotifier(
@@ -71,17 +82,14 @@ void main() {
           ),
         ),
       ),
-      
+
       // Auth state
       appAuthStateProvider.overrideWith(
         (ref) => Stream.value(
-          AppAuthState(
-            session: null,
-            authStream: const Stream.empty(),
-          ),
+          AppAuthState(session: null, authStream: const Stream.empty()),
         ),
       ),
-      
+
       // Citerne info provider (pour éviter les appels Supabase)
       citerneQuickInfoProvider.overrideWith(
         (ref, args) => Future.value(
@@ -100,9 +108,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: overrides,
-        child: const MaterialApp(
-          home: ReceptionFormScreen(),
-        ),
+        child: const MaterialApp(home: ReceptionFormScreen()),
       ),
     );
 
@@ -120,30 +126,30 @@ void main() {
     expect(partenaireChip, findsOneWidget);
     await tester.tap(partenaireChip);
     await tester.pumpAndSettle();
-    
+
     // En mode PARTENAIRE, un champ PartenaireAutocomplete apparaît
     await tester.pumpAndSettle(const Duration(seconds: 1));
-    
+
     // Sélectionner un partenaire
     final partenaireField = find.text('Partenaire');
     expect(partenaireField, findsOneWidget);
-    
+
     final partenaireTextField = find.ancestor(
       of: partenaireField.first,
       matching: find.byType(TextField),
     );
     expect(partenaireTextField, findsOneWidget);
-    
+
     await tester.enterText(partenaireTextField.first, 'Partenaire Test');
     await tester.pumpAndSettle();
-    
+
     // Sélectionner le premier résultat de l'autocomplete
     // (Stratégie identique au test E2E qui fonctionne)
     // L'autocomplete affiche les résultats dans une ListView avec des ListTile
     // Chaque ListTile a un onTap qui appelle onSelect(o) qui appelle onSelected(p)
     // On cherche d'abord les ListTile qui sont les résultats de l'autocomplete
     await tester.pumpAndSettle(const Duration(milliseconds: 500));
-    
+
     // Chercher les ListTile qui contiennent "Partenaire Test"
     // L'autocomplete affiche les résultats dans une Material avec une ListView
     final listTiles = find.byType(ListTile);
@@ -181,18 +187,18 @@ void main() {
         }
       }
     }
-    
+
     // Attendre que le callback onSelected soit appelé et que setState mette à jour partenaireId
     // Le callback fait : setState(() => partenaireId = p.id)
     // Il faut attendre que le setState soit appliqué et que le widget soit reconstruit
     await tester.pumpAndSettle(const Duration(milliseconds: 500));
-    
+
     // Act 4 : Sélectionner le produit
     await tester.pumpAndSettle(const Duration(seconds: 1));
-    
+
     final produitChip = find.textContaining('ESS');
     expect(produitChip, findsOneWidget);
-    
+
     final chip = find.ancestor(
       of: produitChip.first,
       matching: find.byType(ChoiceChip),
@@ -203,7 +209,7 @@ void main() {
 
     // Act 5 : Sélectionner la citerne
     await tester.pumpAndSettle(const Duration(seconds: 1));
-    
+
     final citerneRadio = find.byType(RadioListTile<String>);
     expect(citerneRadio, findsOneWidget);
     await tester.tap(citerneRadio.first);
@@ -213,7 +219,7 @@ void main() {
     // (Stratégie identique au test E2E)
     var textFields = find.byType(TextField);
     var textFieldCount = textFields.evaluate().length;
-    
+
     if (textFieldCount < 4) {
       // Scroller vers le bas pour voir la Card "Mesures & Calculs"
       final listView = find.byType(ListView);
@@ -233,15 +239,15 @@ void main() {
       // Index avant
       await tester.enterText(textFields.at(0), '0');
       await tester.pump();
-      
+
       // Index après
       await tester.enterText(textFields.at(1), '1000');
       await tester.pump();
-      
+
       // Température
       await tester.enterText(textFields.at(2), '25');
       await tester.pump();
-      
+
       // Densité
       await tester.enterText(textFields.at(3), '0.85');
       await tester.pumpAndSettle();
@@ -258,7 +264,7 @@ void main() {
           await tester.pump();
         }
       }
-      
+
       final indexApres = find.text('Index après *');
       if (indexApres.evaluate().isNotEmpty) {
         final field = find.ancestor(
@@ -270,7 +276,7 @@ void main() {
           await tester.pump();
         }
       }
-      
+
       final temperature = find.text('Température (°C) *');
       if (temperature.evaluate().isNotEmpty) {
         final field = find.ancestor(
@@ -282,7 +288,7 @@ void main() {
           await tester.pump();
         }
       }
-      
+
       final densite = find.text('Densité @15°C *');
       if (densite.evaluate().isNotEmpty) {
         final field = find.ancestor(
@@ -306,10 +312,10 @@ void main() {
     // Act 9 : Vérifier que le bouton de soumission est présent et actif
     final submitButton = find.text('Enregistrer la réception');
     expect(submitButton, findsOneWidget);
-    
+
     // Attendre un peu pour s'assurer que tous les champs sont bien remplis et que l'état est à jour
     await tester.pumpAndSettle(const Duration(milliseconds: 500));
-    
+
     // Vérifier que le bouton est actif (pas désactivé)
     // On cherche un bouton Material générique (ButtonStyleButton) autour du texte
     final submitButtonWidget = find.ancestor(
@@ -319,11 +325,12 @@ void main() {
     expect(
       submitButtonWidget,
       findsOneWidget,
-      reason: 'Un bouton Material (ButtonStyleButton) doit entourer le texte "Enregistrer la réception"',
+      reason:
+          'Un bouton Material (ButtonStyleButton) doit entourer le texte "Enregistrer la réception"',
     );
-    
+
     final button = tester.widget<ButtonStyleButton>(submitButtonWidget.first);
-    
+
     // Le bouton est actif si onPressed n'est pas null
     if (button.onPressed == null) {
       // Le bouton est désactivé, ce qui signifie que _canSubmit retourne false
@@ -337,32 +344,42 @@ void main() {
         'température',
         'densité',
       ];
-      
+
       for (final errorMsg in errorMessages) {
         final error = find.textContaining(errorMsg, findRichText: true);
         if (error.evaluate().isNotEmpty) {
-          fail('Le bouton est désactivé. Validation UI échouée: "$errorMsg" trouvé. Le formulaire n\'est pas dans un état valide pour la soumission.');
+          fail(
+            'Le bouton est désactivé. Validation UI échouée: "$errorMsg" trouvé. Le formulaire n\'est pas dans un état valide pour la soumission.',
+          );
         }
       }
-      
+
       // Debug : vérifier l'état des champs
       debugPrint('⚠️  DEBUG: Le bouton est désactivé. État des champs:');
-      debugPrint('   - Produit sélectionné: ${find.textContaining("ESS").evaluate().isNotEmpty}');
-      debugPrint('   - Citerne sélectionnée: ${find.byType(RadioListTile<String>).evaluate().isNotEmpty}');
-      debugPrint('   - Partenaire sélectionné: ${find.text("Partenaire Test").evaluate().isNotEmpty}');
+      debugPrint(
+        '   - Produit sélectionné: ${find.textContaining("ESS").evaluate().isNotEmpty}',
+      );
+      debugPrint(
+        '   - Citerne sélectionnée: ${find.byType(RadioListTile<String>).evaluate().isNotEmpty}',
+      );
+      debugPrint(
+        '   - Partenaire sélectionné: ${find.text("Partenaire Test").evaluate().isNotEmpty}',
+      );
       debugPrint('   - TextField remplis: ${textFieldCount}');
-      
-      fail('Le bouton de soumission est désactivé (_canSubmit retourne false). '
-          'Vérifiez que tous les champs requis sont remplis: produit, citerne, partenaire (en mode PARTENAIRE), indices, température, densité.');
+
+      fail(
+        'Le bouton de soumission est désactivé (_canSubmit retourne false). '
+        'Vérifiez que tous les champs requis sont remplis: produit, citerne, partenaire (en mode PARTENAIRE), indices, température, densité.',
+      );
     }
-    
+
     // Le bouton est actif, on peut continuer
     debugPrint('✅ DEBUG: Le bouton est actif, prêt à soumettre');
 
     // Act 10 : Soumettre le formulaire
     debugPrint('✅ DEBUG: Tapping sur le bouton de soumission');
     await tester.tap(submitButton);
-    
+
     // Attendre que la soumission soit traitée (createValidated est async)
     // On utilise pumpAndSettle pour attendre que toutes les animations et futures se terminent
     await tester.pumpAndSettle();
@@ -378,58 +395,73 @@ void main() {
       'température',
       'densité',
     ];
-    
+
     for (final errorMsg in errorMessages) {
       // Chercher dans les SnackBar (les validations dans _submitReception utilisent SnackBar)
       final snackBarError = find.textContaining(errorMsg, findRichText: true);
       if (snackBarError.evaluate().isNotEmpty) {
-        fail('Validation UI échouée dans _submitReception: "$errorMsg" trouvé dans un SnackBar. '
-            'Le formulaire n\'est pas dans un état valide pour la soumission. '
-            'Si c\'est "Choisissez un partenaire", le callback onSelected du PartenaireAutocomplete n\'a probablement pas été appelé correctement.');
+        fail(
+          'Validation UI échouée dans _submitReception: "$errorMsg" trouvé dans un SnackBar. '
+          'Le formulaire n\'est pas dans un état valide pour la soumission. '
+          'Si c\'est "Choisissez un partenaire", le callback onSelected du PartenaireAutocomplete n\'a probablement pas été appelé correctement.',
+        );
       }
     }
-    
+
     // Assert 1 : Vérifier que le service a été appelé
     // Si le service n'est pas appelé, c'est qu'une validation UI a échoué dans _submitReception
     if (!fakeService.wasCalled) {
       // Si aucune erreur n'est affichée, le problème vient probablement d'une validation silencieuse
       // Le plus probable est que partenaireId est null en mode PARTENAIRE
-      debugPrint('⚠️  DEBUG: Le service n\'a pas été appelé, mais aucune erreur visible. ');
+      debugPrint(
+        '⚠️  DEBUG: Le service n\'a pas été appelé, mais aucune erreur visible. ',
+      );
       debugPrint('   - Le bouton était actif (_canSubmit = true)');
-      debugPrint('   - Mais _submitReception a probablement échoué sur une validation');
-      debugPrint('   - Vérifiez que partenaireId est bien défini en mode PARTENAIRE');
-      
-      fail('Le service createValidated n\'a pas été appelé. Une validation UI dans _submitReception a probablement échoué silencieusement. '
-          'Le bouton était actif, donc _canSubmit retournait true, mais _submitReception a probablement échoué sur la validation du partenaire en mode PARTENAIRE. '
-          'Vérifiez que le callback onSelected du PartenaireAutocomplete est bien appelé et que partenaireId est défini.');
+      debugPrint(
+        '   - Mais _submitReception a probablement échoué sur une validation',
+      );
+      debugPrint(
+        '   - Vérifiez que partenaireId est bien défini en mode PARTENAIRE',
+      );
+
+      fail(
+        'Le service createValidated n\'a pas été appelé. Une validation UI dans _submitReception a probablement échoué silencieusement. '
+        'Le bouton était actif, donc _canSubmit retournait true, mais _submitReception a probablement échoué sur la validation du partenaire en mode PARTENAIRE. '
+        'Vérifiez que le callback onSelected du PartenaireAutocomplete est bien appelé et que partenaireId est défini.',
+      );
     }
-    
+
     debugPrint('✅ DEBUG: Le service createValidated a été appelé avec succès');
-    
+
     // Assert : Vérifier que le Snackbar de succès est affiché
     // Le Snackbar est affiché via ScaffoldMessenger après que createValidated se termine
     // On cherche d'abord par type de widget, puis par texte
     final snackbarByType = find.byType(SnackBar);
     final snackbarByText = find.textContaining('Réception enregistrée');
-    
+
     // Debug : vérifier ce qui est trouvé
-    debugPrint('🔍 DEBUG: SnackBar trouvés par type: ${snackbarByType.evaluate().length}');
-    debugPrint('🔍 DEBUG: Widgets avec texte "Réception enregistrée": ${snackbarByText.evaluate().length}');
-    
+    debugPrint(
+      '🔍 DEBUG: SnackBar trouvés par type: ${snackbarByType.evaluate().length}',
+    );
+    debugPrint(
+      '🔍 DEBUG: Widgets avec texte "Réception enregistrée": ${snackbarByText.evaluate().length}',
+    );
+
     // Si on trouve un SnackBar, vérifier son contenu
     if (snackbarByType.evaluate().isNotEmpty) {
       final snackBarWidget = tester.widget<SnackBar>(snackbarByType.first);
       debugPrint('🔍 DEBUG: Contenu du SnackBar: ${snackBarWidget.content}');
     }
-    
+
     // On accepte soit le texte direct, soit le SnackBar avec ce texte
     final hasSnackbarByText = snackbarByText.evaluate().isNotEmpty;
     final hasSnackbarByType = snackbarByType.evaluate().isNotEmpty;
-    
+
     expect(
       hasSnackbarByText || hasSnackbarByType,
       isTrue,
-      reason: 'Le Snackbar de succès "Réception enregistrée" doit être affiché après la soumission. '
+      reason:
+          'Le Snackbar de succès "Réception enregistrée" doit être affiché après la soumission. '
           'SnackBar trouvés par type: ${snackbarByType.evaluate().length}, '
           'Widgets avec texte: ${snackbarByText.evaluate().length}',
     );
@@ -441,10 +473,11 @@ class _FakeReceptionService extends ReceptionService {
   bool _wasCalled = false;
   bool get wasCalled => _wasCalled;
 
-  _FakeReceptionService(refs.ReferentielsRepo refRepo) : super.withClient(
-    SupabaseClient('http://localhost', 'anon'),
-    refRepo: refRepo,
-  );
+  _FakeReceptionService(refs.ReferentielsRepo refRepo)
+    : super.withClient(
+        SupabaseClient('http://localhost', 'anon'),
+        refRepo: refRepo,
+      );
 
   @override
   Future<String> createValidated({
@@ -462,7 +495,9 @@ class _FakeReceptionService extends ReceptionService {
     String? note,
   }) async {
     _wasCalled = true;
-    debugPrint('✅ _FakeReceptionService.createValidated appelé avec: citerneId=$citerneId, produitId=$produitId, indexAvant=$indexAvant, indexApres=$indexApres');
+    debugPrint(
+      '✅ _FakeReceptionService.createValidated appelé avec: citerneId=$citerneId, produitId=$produitId, indexAvant=$indexAvant, indexApres=$indexApres',
+    );
     // Retourner un ID factice
     return 'rec-1';
   }

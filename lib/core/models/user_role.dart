@@ -5,10 +5,10 @@
 // 🧭 Description : Enum des rôles utilisateur autorisés dans l'application
 
 /// Enum des rôles utilisateur autorisés dans ML_PP MVP
-/// 
+///
 /// Définit tous les rôles possibles pour un utilisateur de l'application.
 /// Ces valeurs correspondent à la contrainte `role_check` de la table `profils`.
-/// 
+///
 /// Utilisé pour :
 /// - Le typage du champ `role` dans le modèle `Profil`
 /// - La validation des permissions dans l'application
@@ -17,91 +17,96 @@ enum UserRole {
   /// Administrateur - Accès complet à toutes les fonctionnalités
   /// Peut créer, modifier, supprimer tous les éléments
   admin('admin'),
-  
+
   /// Directeur - Accès aux fonctionnalités de direction
   /// Peut valider les réceptions et sorties, voir les rapports
   directeur('directeur'),
-  
+
   /// Gerant - Accès aux fonctionnalités de gestion
   /// Peut gérer les stocks et les mouvements
   gerant('gerant'),
-  
+
   /// Operateur - Accès aux fonctionnalités opérationnelles
   /// Peut créer des cours de route et des réceptions
   operateur('operateur'),
-  
+
   /// PCA (Personne Chargée d'Affaires) - Accès limité
   /// Peut consulter les informations de base
   pca('pca'),
-  
+
   /// Lecture seule - Accès en consultation uniquement
   /// Ne peut que visualiser les données
   lecture('lecture');
 
   /// Valeur stockée en base de données
   final String value;
-  
+
   /// Constructeur avec la valeur de la base
   const UserRole(this.value);
-  
+
   /// Convertit une chaîne en UserRole
-  /// 
+  ///
   /// [value] : La valeur de la base de données
-  /// 
+  ///
   /// Retourne :
   /// - `UserRole` : L'enum correspondant
   /// - `null` : Si la valeur n'est pas reconnue
-  /// 
+  ///
   /// Utilisé pour la désérialisation depuis Supabase
   static UserRole? fromString(String? value) {
     if (value == null) return null;
-    
+
     for (final role in UserRole.values) {
       if (role.value == value) return role;
     }
     return null;
   }
-  
+
   /// Convertit l'enum en chaîne pour la base de données
-  /// 
+  ///
   /// Retourne la valeur à stocker en base
   String toJson() => value;
-  
+
   /// Vérifie si le rôle a des permissions d'administration
-  /// 
+  ///
   /// Retourne `true` pour admin, directeur, gérant
   bool get isAdmin => this == UserRole.admin;
-  
+
   /// Vérifie si le rôle a des permissions de direction
-  /// 
+  ///
   /// Retourne `true` pour admin, directeur
   bool get isDirector => this == UserRole.admin || this == UserRole.directeur;
-  
+
   /// Vérifie si le rôle a des permissions de gestion
-  /// 
+  ///
   /// Retourne `true` pour admin, directeur, gerant
-  bool get isManager => this == UserRole.admin || this == UserRole.directeur || this == UserRole.gerant;
-  
+  bool get isManager =>
+      this == UserRole.admin ||
+      this == UserRole.directeur ||
+      this == UserRole.gerant;
+
   /// Vérifie si le rôle peut créer des mouvements
-  /// 
+  ///
   /// Retourne `true` pour admin, directeur, gerant, operateur
-  bool get canCreateMovements => this == UserRole.admin || 
-                                this == UserRole.directeur || 
-                                this == UserRole.gerant || 
-                                this == UserRole.operateur;
-  
+  bool get canCreateMovements =>
+      this == UserRole.admin ||
+      this == UserRole.directeur ||
+      this == UserRole.gerant ||
+      this == UserRole.operateur;
+
   /// Vérifie si le rôle peut valider des mouvements
-  /// 
+  ///
   /// Retourne `true` pour admin, directeur, gerant
-  bool get canValidateMovements => this == UserRole.admin || 
-                                  this == UserRole.directeur || 
-                                  this == UserRole.gerant;
-  
+  bool get canValidateMovements =>
+      this == UserRole.admin ||
+      this == UserRole.directeur ||
+      this == UserRole.gerant;
+
   /// Vérifie si le rôle a un accès en lecture seule
-  /// 
+  ///
   /// Retourne `true` pour pca, lecture
   bool get isReadOnly => this == UserRole.pca || this == UserRole.lecture;
-  
+
   @override
   String toString() => value;
 }
@@ -122,12 +127,12 @@ extension UserRoleX on UserRole {
   static String _normalize(String s) {
     final lower = s.trim().toLowerCase();
     return lower
-      .replaceAll(RegExp(r'[éèêë]'), 'e')
-      .replaceAll(RegExp(r'[àáâä]'), 'a')
-      .replaceAll(RegExp(r'[îïí]'), 'i')
-      .replaceAll(RegExp(r'[ôöó]'), 'o')
-      .replaceAll(RegExp(r'[ûüú]'), 'u')
-      .replaceAll('ç', 'c');
+        .replaceAll(RegExp(r'[éèêë]'), 'e')
+        .replaceAll(RegExp(r'[àáâä]'), 'a')
+        .replaceAll(RegExp(r'[îïí]'), 'i')
+        .replaceAll(RegExp(r'[ôöó]'), 'o')
+        .replaceAll(RegExp(r'[ûüú]'), 'u')
+        .replaceAll('ç', 'c');
   }
 
   /// Parse une chaîne en UserRole avec normalisation
@@ -135,18 +140,28 @@ extension UserRoleX on UserRole {
     if (raw == null) return null;
     final s = _normalize(raw);
     switch (s) {
-      case 'admin': return UserRole.admin;
-      case 'directeur': return UserRole.directeur;
-      case 'gerant': return UserRole.gerant;        // « gérant » normalisé
-      case 'operateur': return UserRole.operateur;  // « opérateur » normalisé
-      case 'lecture': return UserRole.lecture;
-      case 'pca': return UserRole.pca;
-      default: return null;
+      case 'admin':
+        return UserRole.admin;
+      case 'directeur':
+        return UserRole.directeur;
+      case 'gerant':
+        return UserRole.gerant; // « gérant » normalisé
+      case 'operateur':
+        return UserRole.operateur; // « opérateur » normalisé
+      case 'lecture':
+        return UserRole.lecture;
+      case 'pca':
+        return UserRole.pca;
+      default:
+        return null;
     }
   }
 
   /// Parse avec fallback sécurisé
-  static UserRole fromStringOrDefault(String? raw, {UserRole fallback = UserRole.lecture}) {
+  static UserRole fromStringOrDefault(
+    String? raw, {
+    UserRole fallback = UserRole.lecture,
+  }) {
     return parse(raw) ?? fallback; // ⛔️ plus de fallback admin
   }
 
@@ -171,19 +186,26 @@ extension UserRoleX on UserRole {
   };
 
   /// Parse depuis la base de données avec validation stricte
-  /// 
+  ///
   /// ⚠️ Pas de fallback "lecture" - retourne null si la valeur n'est pas reconnue
   static UserRole? fromDb(String? raw) {
     if (raw == null) return null;
     final v = raw.trim().toUpperCase();
     switch (v) {
-      case 'ADMIN': return UserRole.admin;
-      case 'DIRECTEUR': return UserRole.directeur;
-      case 'GERANT': return UserRole.gerant;
-      case 'OPERATEUR': return UserRole.operateur;
-      case 'PCA': return UserRole.pca;
-      case 'LECTURE': return UserRole.lecture;
-      default: return null; // ⚠️ pas de fallback "lecture"
+      case 'ADMIN':
+        return UserRole.admin;
+      case 'DIRECTEUR':
+        return UserRole.directeur;
+      case 'GERANT':
+        return UserRole.gerant;
+      case 'OPERATEUR':
+        return UserRole.operateur;
+      case 'PCA':
+        return UserRole.pca;
+      case 'LECTURE':
+        return UserRole.lecture;
+      default:
+        return null; // ⚠️ pas de fallback "lecture"
     }
   }
 }
