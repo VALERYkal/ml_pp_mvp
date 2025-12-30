@@ -21,11 +21,10 @@ _$ProfilImpl _$$ProfilImplFromJson(Map<String, dynamic> json) => _$ProfilImpl(
 Map<String, dynamic> _$$ProfilImplToJson(_$ProfilImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
-      if (instance.userId case final value?) 'user_id': value,
-      if (instance.nomComplet case final value?) 'nom_complet': value,
+      'user_id': instance.userId,
+      'nom_complet': instance.nomComplet,
       'role': const UserRoleConverter().toJson(instance.role),
-      if (instance.depotId case final value?) 'depot_id': value,
-      if (instance.email case final value?) 'email': value,
-      if (instance.createdAt?.toIso8601String() case final value?)
-        'created_at': value,
+      'depot_id': instance.depotId,
+      'email': instance.email,
+      'created_at': instance.createdAt?.toIso8601String(),
     };

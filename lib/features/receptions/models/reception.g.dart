@@ -32,28 +32,25 @@ _$ReceptionImpl _$$ReceptionImplFromJson(Map<String, dynamic> json) =>
       validatedBy: json['validated_by'] as String?,
     );
 
-Map<String, dynamic> _$$ReceptionImplToJson(
-  _$ReceptionImpl instance,
-) => <String, dynamic>{
-  'id': instance.id,
-  if (instance.coursDeRouteId case final value?) 'cours_de_route_id': value,
-  'citerne_id': instance.citerneId,
-  'produit_id': instance.produitId,
-  if (instance.partenaireId case final value?) 'partenaire_id': value,
-  'index_avant': instance.indexAvant,
-  'index_apres': instance.indexApres,
-  if (instance.temperatureAmbianteC case final value?)
-    'temperature_ambiante_c': value,
-  if (instance.densiteA15 case final value?) 'densite_a_15': value,
-  if (instance.volumeCorrige15c case final value?) 'volume_corrige_15c': value,
-  if (instance.volumeAmbiant case final value?) 'volume_ambiant': value,
-  'proprietaire_type': const OwnerTypeConverter().toJson(
-    instance.proprietaireType,
-  ),
-  if (instance.note case final value?) 'note': value,
-  if (instance.createdAt?.toIso8601String() case final value?)
-    'created_at': value,
-  if (instance.statut case final value?) 'statut': value,
-  if (instance.createdBy case final value?) 'created_by': value,
-  if (instance.validatedBy case final value?) 'validated_by': value,
-};
+Map<String, dynamic> _$$ReceptionImplToJson(_$ReceptionImpl instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'cours_de_route_id': instance.coursDeRouteId,
+      'citerne_id': instance.citerneId,
+      'produit_id': instance.produitId,
+      'partenaire_id': instance.partenaireId,
+      'index_avant': instance.indexAvant,
+      'index_apres': instance.indexApres,
+      'temperature_ambiante_c': instance.temperatureAmbianteC,
+      'densite_a_15': instance.densiteA15,
+      'volume_corrige_15c': instance.volumeCorrige15c,
+      'volume_ambiant': instance.volumeAmbiant,
+      'proprietaire_type': const OwnerTypeConverter().toJson(
+        instance.proprietaireType,
+      ),
+      'note': instance.note,
+      'created_at': instance.createdAt?.toIso8601String(),
+      'statut': instance.statut,
+      'created_by': instance.createdBy,
+      'validated_by': instance.validatedBy,
+    };
