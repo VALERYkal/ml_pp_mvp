@@ -116,8 +116,9 @@ void main() {
     late SupabaseClient client;
 
     setUp(() {
-      // Dummy client (utilisé seulement pour instancier le repository)
-      client = SupabaseClient('https://example.com', 'anon-key');
+      // Fake client: interdit tout accès réseau en tests
+      final fakeClient = _FakeSupabaseClient();
+      client = fakeClient;
       repository = StocksKpiRepository(client);
     });
 
