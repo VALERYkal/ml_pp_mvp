@@ -3,6 +3,27 @@
 **Objectif** : Application de gestion logistique pétrolière pour Monaluxe  
 **Stack technique** : Flutter + Supabase + Riverpod + GoRouter + Clean Architecture
 
+> ⚠️ **SPRINT EN COURS (31/12/2025) :** Finalisation production industrielle  
+> 📋 [Sprint Prod-Ready 10-15 jours](docs/SPRINT_PROD_READY_2025-12-31.md) | [Suivi](docs/SUIVI_SPRINT_PROD_READY.md)
+
+**Objectif Sprint :** ML_PP MVP déployable en production industrielle auditée
+
+**Avancement :** 0/11 tickets (0%)
+- 🔴 AXE A (DB-STRICT) : 0/3
+- 🔴 AXE B (Tests DB) : 0/2
+- 🔴 AXE C (Sécurité) : 0/2
+- 🟡 AXE D (Stabilisation) : 0/4
+
+**Verdict actuel :**
+- 🟢 **Fonctionnel : GO** (production interne contrôlée)
+- 🔴 **Industriel : NO-GO** (chantiers P0 requis : 7-10j)
+
+**Décision :**
+- ✅ GO production interne contrôlée
+- ❌ NO-GO production industrielle auditée (points 1-6 requis)
+
+📋 **[Voir le rapport complet →](docs/RAPPORT_SYNTHESE_PRODUCTION_2025-12-31.md)**
+
 ---
 
 ## 📚 Structure du projet

@@ -4,30 +4,214 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 
 ## [Unreleased]
 
-### 🛠️ **CI / Tests – Génération des mocks et exclusion E2E (02/01/2026)**
+### 📊 **RAPPORT DE SYNTHÈSE PRODUCTION (31/12/2025)**
+
+#### **🎯 Verdict Exécutif**
+
+**Fonctionnel :** 🟢 GO (production interne contrôlée)  
+**Industriel :** 🔴 NO-GO (chantiers transverses P0 non finalisés)
+
+**Décision :**
+- ✅ GO pour production interne contrôlée
+- ❌ NO-GO pour production industrielle auditée (7-10 jours ouvrés requis)
+
+#### **🚨 Points Bloquants Identifiés (P0)**
+
+1. **DB-STRICT inachevé** (CRITIQUE)
+   - Immutabilité stricte non généralisée
+   - Table `stock_adjustments` absente
+   - Fonctions admin de compensation absentes
+   - Tests DB-STRICT dédiés absents
+
+2. **Tests d'intégration Supabase absents** (CRITIQUE)
+   - Plusieurs tests critiques SKIP
+   - Aucun environnement Supabase de test configuré
+   - Aucun test E2E DB réel (RLS + triggers)
+
+3. **Sécurité RLS encore MVP** (CRITIQUE)
+   - SELECT global pour utilisateurs authentifiés
+   - Pas d'isolation stricte par dépôt
+   - Pas de tests de permissions par rôle/dépôt
+
+4. **Traçabilité incomplète Sorties** (IMPORTANT)
+   - `created_by` pas forcé par trigger
+   - Audit perfectible en cas d'erreur humaine
+
+5. **Run & exploitation non verrouillés** (IMPORTANT)
+   - Pas de runbook de release obligatoire
+   - Checklist SQL non imposée par process
+   - Pas de monitoring/observabilité outillée
+
+#### **📋 Plan d'Actions**
+
+**Effort estimé P0 :** 7 à 10 jours ouvrés
+
+Voir le détail complet dans :
+- [Rapport de Synthèse Production](docs/RAPPORT_SYNTHESE_PRODUCTION_2025-12-31.md)
+- [Plan Opérationnel 10 Points](docs/PLAN_OPERATIONNEL_PROD_READY_10_POINTS.md)
+- [Sprint Prod-Ready](docs/SPRINT_PROD_READY_2025-12-31.md)
+
+#### **✅ Ce qui est Définitivement Validé**
+
+- Architecture Clean respectée (gelable)
+- Modules métier : Auth, CDR, Réceptions, Sorties, Stocks, KPI, Citernes (tous stables)
+- Qualité & tests : CI stabilisée, tests unitaires déterministes
+- Vérité stock & métier : Bugs critiques corrigés, source unifiée
+
+---
+
+### 🎯 **SPRINT PROD-READY (31/12/2025)**
+
+#### **📋 Structure du Sprint**
+
+**Objectif unique :** À la fin du sprint, ML_PP MVP est déployable en production industrielle auditée.
+
+**Durée cible :** 10-15 jours ouvrés
+
+**Référence complète :** [`docs/SPRINT_PROD_READY_2025-12-31.md`](docs/SPRINT_PROD_READY_2025-12-31.md)
+
+#### **🧭 4 Axes, 11 Tickets**
+
+**🔴 AXE A — DB-STRICT & INTÉGRITÉ MÉTIER (Bloquant)**
+- A1: Immutabilité totale des mouvements (0.5j)
+- A2: Compensations officielles `stock_adjustments` (1.5j)
+- A3: Traçabilité Sorties complète (0.5j)
+
+**🔴 AXE B — TESTS DB RÉELS (Bloquant)**
+- B1: Supabase STAGING obligatoire (1j)
+- B2: Tests d'intégration DB activés (2j)
+
+**🔴 AXE C — SÉCURITÉ & CONTRAT PROD (Bloquant)**
+- C1: Décision RLS PROD formelle (0.5j)
+- C2: Implémentation RLS (1.5j)
+
+**🟡 AXE D — STABILISATION & RUN (Obligatoire)**
+- D1: Nettoyage legacy bloquant (1j)
+- D2: Contrat "Vérité Stock" verrouillé (1j)
+- D3: Runbook de release (1j)
+- D4: Observabilité minimale (1.5j)
+
+#### **Definition of Done**
+
+✅ Les 10 points PROD validés  
+✅ Tous tests passent (unit + widget + intégration DB)  
+✅ Release documentée + preuves SQL archivées
+
+#### **🏁 Critère Final**
+
+**🟢 GO PROD INDUSTRIEL si :**
+- Tous tickets A, B, C = DONE
+- Tous tickets D = DONE
+- CI verte + intégration DB verte
+- Runbook rempli et archivé
+
+**❌ NO-GO si :**
+- 1 seul ticket A/B/C non terminé
+
+---
+
+### 🛠️ **CI / Tests – Stabilisation industrielle du pipeline Flutter CI (02/01/2026)**
 
 #### **🎯 Objectif**
-Stabiliser le pipeline CI Flutter en générant les mocks nécessaires, en excluant explicitement les tests E2E du job unit/widget, et en ajoutant les placeholders requis pour éviter les échecs de compilation en CI.
+Stabiliser complètement le pipeline CI Flutter de manière industrielle, en garantissant la reproductibilité locale/CI, l'isolation réseau des tests, et la portabilité de la sélection de tests.
 
 #### **✅ Changements majeurs**
-- **build_runner en CI** : ajout de l’étape `flutter pub run build_runner build --delete-conflicting-outputs` et inclusion de `test/**` dans `build.yaml` pour générer les `*.mocks.dart` utilisés par les tests.
-- **Exclusion E2E** : le job unit/widget ignore désormais `test/e2e/**`, `test/*/e2e/**`, `*_e2e_test.dart` et `*e2e_test.dart`.
-- **Placeholder .env CI** : création d’un `.env` minimal (`SUPABASE_URL`, `SUPABASE_ANON_KEY`) si absent en CI.
-- **CI Flutter** : Flutter épinglé (`3.38.3`), `flutter analyze` tolérant (warnings non bloquants), `dart format --output=none --set-exit-if-changed lib test`.
-- **Placeholder dev** : ajout de `lib/dev/clear_cache_screen.dart` pour satisfaire l’import `app_router.dart` sans logique métier.
-- **Tests** : ajout de `FakeStocksKpiRepository` (in-memory) pour surcharger `stocksKpiRepositoryProvider` en tests sans toucher Supabase.
 
-#### **📋 Fichiers impactés**
-- `.github/workflows/flutter_ci.yml`
-- `build.yaml`
-- `lib/dev/clear_cache_screen.dart` (dev-only, placeholder)
-- `test/support/fakes/fake_stocks_kpi_repository.dart` (tests)
+**Sélection de tests portable et robuste**
+- ✅ Remplacement de `mapfile` (bash-4+) par une approche portable compatible macOS + Linux/CI
+- ✅ Utilisation de `find` + `xargs` pour la sélection de tests, garantissant le même comportement en local et en CI
+- ✅ Exclusion multi-niveaux des tests E2E :
+  - Par chemin : `test/e2e/**`, `test/*/e2e/**`, `test/**/e2e/*`
+  - Par nom de fichier : `*_e2e_test.dart`, `*e2e_test.dart`
+- ✅ Conservation des exclusions d'intégration existantes (`test/integration/*`, `test/*/integration/*`)
 
-#### **✅ Résultat attendu**
-- Plus d’erreurs “mocks.mocks.dart missing” en CI.
-- Les tests unit/widget ne lancent plus les suites E2E.
-- Compilation CI rétablie (import ClearCacheScreen résolu).
-- Aucune modification de logique métier ni de fichiers générés commités.
+**Génération des mocks en CI**
+- ✅ Ajout de l'étape `flutter pub run build_runner build --delete-conflicting-outputs` dans le workflow CI
+- ✅ Configuration `build.yaml` incluant `test/**` pour générer les `*.mocks.dart` utilisés par les tests
+- ✅ Garantie de cohérence : mêmes mocks générés en local et en CI
+
+**Élimination des appels réseau en tests**
+- ✅ **Point clé** : Correction du test `stocks_kpi_repository_test.dart` qui faisait un appel réseau implicite via `SupabaseClient('https://example.com', 'anon-key')`
+- ✅ Remplacement par `_FakeSupabaseClient()` dans le `setUp()` pour neutraliser tout accès réseau
+- ✅ Ajout de `FakeStocksKpiRepository` (in-memory) pour surcharger `stocksKpiRepositoryProvider` en tests sans toucher Supabase
+- ✅ Résultat : zéro appel réseau en tests, stabilité totale en CI
+
+**Configuration CI robuste**
+- ✅ Flutter épinglé à la version `3.38.3` pour garantir la reproductibilité
+- ✅ `flutter analyze` tolérant aux warnings (non bloquants pour MVP)
+- ✅ `dart format --output=none --set-exit-if-changed lib test` pour vérification du formatage
+- ✅ Placeholder `.env` créé automatiquement en CI si absent (`SUPABASE_URL`, `SUPABASE_ANON_KEY`)
+
+**Placeholders dev sans impact prod**
+- ✅ Ajout de `lib/dev/clear_cache_screen.dart` (placeholder minimal) pour satisfaire l'import `app_router.dart`
+- ✅ Correction de `test/security/route_permissions_test.dart` : `_App` converti en `ConsumerStatefulWidget` avec `GoRouter` stable
+- ✅ Suppression d'imports inutilisés (`sortie_service_test.dart`)
+
+#### **🧠 Le point clé qui a fait la différence**
+
+**Problème identifié** : Un test repository (`stocks_kpi_repository_test.dart`) utilisait un vrai `SupabaseClient` dans son `setUp()`, déclenchant des appels HTTP réels en CI. Même les tests "signature exists" appelaient les méthodes du repository, provoquant des erreurs réseau (404 Not Found) qui bloquaient le pipeline.
+
+**Solution appliquée** : Remplacement du vrai client par `_FakeSupabaseClient()` (classe fake déjà présente dans le fichier) dans le `setUp()`. Aucun changement sur le code applicatif, uniquement l'isolation réseau des tests.
+
+**Résultat** : Stabilité totale du CI, élimination des flakiness liés aux appels réseau involontaires.
+
+#### **📋 Détails techniques**
+
+**Workflow CI (`.github/workflows/flutter_ci.yml`)**
+- Sélection de tests portable : `find test ... | sort | xargs flutter test`
+- Exclusion E2E multi-niveaux (chemin + nom de fichier)
+- Génération des mocks avant l'exécution des tests
+- Flutter version épinglée, formatage vérifié, analyse tolérante
+
+**Configuration build (`build.yaml`)**
+- Inclusion de `lib/**` et `test/**` pour génération complète des mocks
+- Sources : `pubspec.yaml`, `$package$` pour cohérence
+
+**Tests isolés réseau**
+- `test/features/stocks/stocks_kpi_repository_test.dart` : `_FakeSupabaseClient()` dans `setUp()`
+- `test/support/fakes/fake_stocks_kpi_repository.dart` : Fake repository in-memory pour tests providers
+
+**Placeholders dev**
+- `lib/dev/clear_cache_screen.dart` : Widget minimal sans dépendances externes
+- Aucun impact sur la logique métier
+
+#### **✅ Critères d'acceptation**
+
+**Stabilité CI**
+- ✅ Pipeline CI vert de manière reproductible
+- ✅ Plus d'erreurs "mocks.mocks.dart missing"
+- ✅ Plus d'erreurs réseau (404 Not Found) en tests
+- ✅ Tests unit/widget n'exécutent plus les suites E2E
+
+**Reproductibilité**
+- ✅ Local = CI : mêmes tests, mêmes résultats
+- ✅ Sélection de tests portable (macOS + Linux/CI)
+- ✅ Mêmes mocks générés en local et en CI
+
+**Isolation**
+- ✅ Zéro appel réseau en tests (fake Supabase partout où nécessaire)
+- ✅ Aucun fichier généré committé
+- ✅ Aucune modification de logique métier
+
+**Qualité**
+- ✅ Commits propres et traçables
+- ✅ Configuration CI documentée et maintenable
+- ✅ Tests robustes et déterministes
+
+#### **📝 Fichiers modifiés**
+
+**Workflow et configuration**
+- `.github/workflows/flutter_ci.yml` : Sélection portable, génération mocks, exclusions E2E
+- `build.yaml` : Inclusion `test/**` pour génération complète
+
+**Tests**
+- `test/features/stocks/stocks_kpi_repository_test.dart` : Fake client dans `setUp()` (zéro réseau)
+- `test/support/fakes/fake_stocks_kpi_repository.dart` : Fake repository in-memory
+- `test/security/route_permissions_test.dart` : Router stable (`ConsumerStatefulWidget`)
+- `test/sorties/sortie_service_test.dart` : Suppression import inutilisé
+
+**Placeholders dev**
+- `lib/dev/clear_cache_screen.dart` : Widget placeholder minimal
 
 ### 🧪 **TEST – Stabilisation assertions menu principal auth_integration_test (01/01/2026)**
 
