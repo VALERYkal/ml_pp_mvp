@@ -42,10 +42,12 @@
 
 ### Citernes sous seuil
 
-#### v_citerne_stock_actuel (legacy journalier)
-- **Statut** : 🔶 LEGACY
+#### v_citerne_stock_snapshot_agg (canonique)
+- **Statut** : 🟢 CANONIQUE
 - **Fichiers** :
-  - `lib/features/dashboard/providers/citernes_sous_seuil_provider.dart`
+  - `lib/features/dashboard/providers/citernes_sous_seuil_provider.dart` (migré depuis `v_citerne_stock_actuel` - A-FLT-02)
+  - `lib/features/dashboard/providers/admin_kpi_provider.dart` (migré depuis `v_citerne_stock_actuel` - A-FLT-02)
+  - `lib/features/dashboard/providers/directeur_kpi_provider.dart` (migré depuis `v_citerne_stock_actuel` - A-FLT-02)
 
 ### Activités récentes
 
@@ -275,7 +277,10 @@
 
 ### 🔶 Deprecated (à remplacer)
 - `stock_actuel` : Sorties, Citernes (legacy)
-- `v_citerne_stock_actuel` : Dashboard citernes sous seuil (legacy)
+- `v_citerne_stock_actuel` : `stocks_repository.dart` uniquement (legacy)
+
+**Migration effectuée (A-FLT-02)** :
+- ✅ Dashboard providers migrés vers `v_citerne_stock_snapshot_agg`
 
 ### 📊 Tables (sources de données)
 - `stocks_journaliers` : Historique (module Stocks)
@@ -295,5 +300,5 @@
 
 ---
 
-**Dernière mise à jour** : 2025-12-27
+**Dernière mise à jour** : 2025-12-31 (Migration A-FLT-02 : Dashboard providers vers v_citerne_stock_snapshot_agg)
 

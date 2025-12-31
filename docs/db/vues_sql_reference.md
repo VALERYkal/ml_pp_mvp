@@ -20,12 +20,13 @@
 
 | Vue SQL | Statut | Source | Modules Flutter | Colonnes clés |
 |---------|--------|--------|-----------------|---------------|
-| `v_stock_actuel_snapshot` | 🟢 CANONIQUE | `stocks_snapshot` | `stocks_kpi_repository.dart`, `stocks_kpi_providers.dart` | `stock_ambiant`, `stock_15c` |
+| `v_stock_actuel` | 🟢 **SOURCE DE VÉRITÉ** | `stocks_snapshot` + `stocks_adjustments` | **Tous les modules** | `stock_ambiant`, `stock_15c` |
+| `v_stock_actuel_snapshot` | 🔶 DEPRECATED | `stocks_snapshot` | (Migration en cours) | `stock_ambiant`, `stock_15c` |
 | `v_citerne_stock_snapshot_agg` | 🟢 CANONIQUE | `v_stock_actuel_snapshot` | `citerne_repository.dart`, `citerne_list_screen.dart` | `stock_ambiant_total`, `stock_15c_total` |
 | `v_kpi_stock_global` | 🟢 CANONIQUE | `v_stock_actuel_snapshot` | `stocks_kpi_repository.dart`, `kpi_provider.dart` | `stock_ambiant_total`, `stock_*_monaluxe`, `stock_*_partenaire` |
 | `v_mouvements_stock` | 🟢 CANONIQUE | `receptions`, `sorties_produit` | (Non utilisé actuellement) | `delta_ambiant`, `delta_15c` |
 | `v_stock_actuel_owner_snapshot` | 🟡 LEGACY | `stocks_journaliers` | `stocks_kpi_repository.dart`, `stocks_kpi_providers.dart` | `stock_ambiant_total`, `stock_15c_total` |
-| `v_citerne_stock_actuel` | 🔶 DEPRECATED | `stocks_journaliers` | `stocks_repository.dart`, `admin_kpi_provider.dart`, `directeur_kpi_provider.dart` | `stock_ambiant`, `stock_15c` |
+| `v_citerne_stock_actuel` | 🔶 DEPRECATED | `stocks_journaliers` | `stocks_repository.dart` (legacy uniquement) | `stock_ambiant`, `stock_15c` |
 | `stock_actuel` | 🔶 DEPRECATED | `stocks_journaliers` | `sortie_providers.dart`, `citerne_providers.dart`, `citerne_service.dart` | `stock_ambiant`, `stock_15c` |
 | `logs` | 🟡 COMPAT | `log_actions` | `logs_service.dart`, `activites_recentes_provider.dart` | `id`, `created_at`, `module`, `action` |
 | `current_user_profile` | ⚪ NON UTILISÉ | (Non utilisé) | - | `id`, `user_id`, `role`, `depot_id` |
@@ -33,15 +34,79 @@
 
 ---
 
-## 1️⃣ Stock — Snapshot (temps réel)
+## 1️⃣ Stock — Source de vérité
 
 ---
 
-### 1. v_stock_actuel_snapshot
+### 1. v_stock_actuel ⭐ **SOURCE DE VÉRITÉ UNIQUE**
 
-**Statut** : 🟢 CANONIQUE
+**Statut** : 🟢 **SOURCE DE VÉRITÉ** (DB-STRICT, Production Ready, Verrouillé)
 
-**Rôle** : Source de vérité "stock actuel" par citerne / produit / propriétaire, basée sur `stocks_snapshot`.
+**Rôle** : **Source de vérité unique et non ambiguë** pour le stock actuel. Expose le stock actuel corrigé (ambiant et 15°C) par dépôt, citerne, produit et propriétaire, en tenant compte des mouvements validés et des corrections officielles.
+
+**⚠️ IMPORTANT** : Voir `docs/db/CONTRAT_STOCK_ACTUEL.md` pour les règles absolues.
+
+**Dépendances** :
+- **Table** : `stocks_snapshot`, `stocks_adjustments`, `citernes`, `produits`, `depots`
+- **Logique** : `stock_actuel = stock_snapshot + Σ(stocks_adjustments)`
+
+**Colonnes** :
+- `citerne_id` (uuid)
+- `citerne_nom` (text)
+- `produit_id` (uuid)
+- `produit_nom` (text)
+- `depot_id` (uuid)
+- `depot_nom` (text)
+- `proprietaire_type` (text) ✅ MONALUXE|PARTENAIRE
+- `stock_ambiant` (double precision)
+- `stock_15c` (double precision)
+- `updated_at` (timestamptz)
+- `capacite_totale` (double precision)
+- `capacite_securite` (double precision)
+
+**Utilisation Flutter** :
+- **Tous les modules** doivent utiliser cette vue pour le stock actuel
+- Dashboards KPI
+- Écrans Citernes
+- Écrans Stocks
+- Détails Produit / Propriétaire
+- Validation métier (sorties, réceptions)
+
+**Notes** :
+- ✅ **Source de vérité unique** : aucune autre vue ne doit être utilisée pour le stock actuel
+- ✅ Toute valeur affichée est recalculable et auditée
+- ❌ **NE DOIT JAMAIS être filtrée par date** (représente l'état actuel)
+- ⚠️ `updated_at` est informatif, jamais une date métier
+- ⚠️ Colonnes exposées : `stock_ambiant` / `stock_15c` (singulier, pas `*_total`)
+
+**Exemple de requête** :
+```sql
+SELECT 
+  citerne_id,
+  citerne_nom,
+  produit_id,
+  produit_nom,
+  depot_id,
+  depot_nom,
+  proprietaire_type,
+  stock_ambiant,
+  stock_15c,
+  updated_at,
+  capacite_totale,
+  capacite_securite
+FROM public.v_stock_actuel
+WHERE depot_id = 'xxx-xxx-xxx'
+ORDER BY citerne_nom
+LIMIT 5;
+```
+
+---
+
+### 1bis. v_stock_actuel_snapshot (DEPRECATED)
+
+**Statut** : 🔶 DEPRECATED (remplacé par `v_stock_actuel`)
+
+**Rôle** : Ancienne source de vérité "stock actuel" par citerne / produit / propriétaire, basée sur `stocks_snapshot`.
 
 **Dépendances** :
 - **Table** : `stocks_snapshot`, `citernes`, `produits`, `depots`
@@ -99,10 +164,10 @@ LIMIT 5;
 
 **Statut** : 🟢 CANONIQUE (Citernes)
 
-**Rôle** : Agrège `v_stock_actuel_snapshot` en stock total par citerne (somme sur propriétaires), utile pour l'écran Citernes.
+**Rôle** : Agrège `v_stock_actuel` en stock total par citerne (somme sur propriétaires), utile pour l'écran Citernes.
 
 **Dépendances** :
-- **View** : `v_stock_actuel_snapshot`
+- **View** : `v_stock_actuel` (source de vérité)
 - **Table** : `citernes`
 
 **Colonnes** :
@@ -145,10 +210,10 @@ LIMIT 5;
 
 **Statut** : 🟢 CANONIQUE (Dashboard KPI)
 
-**Rôle** : KPI "stock global dépôt" + split MONALUXE/PARTENAIRE, basé sur snapshot.
+**Rôle** : KPI "stock global dépôt" + split MONALUXE/PARTENAIRE, basé sur `v_stock_actuel`.
 
 **Dépendances** :
-- **View** : `v_stock_actuel_snapshot`
+- **View** : `v_stock_actuel` (source de vérité)
 
 **Colonnes** :
 - `depot_id` (uuid)
@@ -313,10 +378,12 @@ LIMIT 5;
 - `stock_15c` (float8)
 
 **Utilisation Flutter** :
-- `lib/data/repositories/stocks_repository.dart`
-- `lib/features/dashboard/providers/admin_kpi_provider.dart`
-- `lib/features/dashboard/providers/directeur_kpi_provider.dart`
-- `lib/features/dashboard/providers/citernes_sous_seuil_provider.dart`
+- `lib/data/repositories/stocks_repository.dart` (legacy uniquement)
+
+**Migration** :
+- ✅ `admin_kpi_provider.dart` → migré vers `v_citerne_stock_snapshot_agg` (A-FLT-02)
+- ✅ `directeur_kpi_provider.dart` → migré vers `v_citerne_stock_snapshot_agg` (A-FLT-02)
+- ✅ `citernes_sous_seuil_provider.dart` → migré vers `v_citerne_stock_snapshot_agg` (A-FLT-02)
 
 **Notes** :
 - ⚠️ C'est du journalier, pas du snapshot réel
@@ -527,23 +594,24 @@ LIMIT 5;
 
 ## 📝 Résumé décisions (à garder en tête)
 
-### ✅ Stock "maintenant" (écrans/deciders) = snapshot
+### ✅ Stock "maintenant" (écrans/deciders) = v_stock_actuel ⭐
+
+**⚠️ IMPORTANT** : Voir `docs/db/CONTRAT_STOCK_ACTUEL.md` pour la source de vérité officielle.
 
 Pour tous les écrans et décisions nécessitant le stock actuel réel :
-- `v_stock_actuel_snapshot` (par citerne/produit/propriétaire)
-- `v_citerne_stock_snapshot_agg` (par citerne, agrégé)
+- **`v_stock_actuel`** ⭐ (SOURCE DE VÉRITÉ UNIQUE - par citerne/produit/propriétaire)
+- `v_citerne_stock_snapshot_agg` (par citerne, agrégé - basée sur `v_stock_actuel`)
 - `v_kpi_stock_global` (par dépôt, split propriétaire)
 
-### ⚠️ Legacy journalier (encore utilisé)
+### ⚠️ Vues dépréciées (à migrer)
 
-- `stock_actuel` et `v_citerne_stock_actuel` = legacy journalier, encore utilisés par Dashboard + Sorties UI
-- À migrer progressivement vers snapshot
+- ❌ **`v_stock_actuel_snapshot`** → Remplacer par `v_stock_actuel` (source de vérité)
+- ❌ **`v_stocks_citerne_global_daily`** → Remplacer par `v_stock_actuel` (historique uniquement)
+- ❌ **`stock_actuel`** et `v_citerne_stock_actuel` = legacy journalier, encore utilisés par `stocks_repository.dart` (legacy uniquement)
+- ❌ **`v_stock_actuel_owner_snapshot`** = journalier mais porte un nom "snapshot" (confusion)
+- ⚠️ **`stocks_journaliers`** = historique uniquement, ne pas utiliser pour stock actuel
 
-### ⚠️ v_stock_actuel_owner_snapshot (confusion naming)
-
-- `v_stock_actuel_owner_snapshot` est journalier mais porte un nom "snapshot"
-- **À documenter clairement** pour éviter confusion
-- À terme, créer une vraie vue owner snapshot-based
+**Action** : Migrer progressivement vers `v_stock_actuel` (voir `docs/db/MIGRATION_V_STOCK_ACTUEL.md`)
 
 ### 📝 Notes techniques
 
@@ -551,31 +619,33 @@ Pour tous les écrans et décisions nécessitant le stock actuel réel :
 
 Les vues exposent des colonnes avec des noms différents :
 
-- **`v_stock_actuel_snapshot`** : `stock_ambiant`, `stock_15c` (singulier)
+- **`v_stock_actuel`** ⭐ (SOURCE DE VÉRITÉ) : `stock_ambiant`, `stock_15c` (singulier)
 - **`v_citerne_stock_snapshot_agg`** : `stock_ambiant_total`, `stock_15c_total` (avec suffixe `_total`)
 - **`v_kpi_stock_global`** : `stock_ambiant_total`, `stock_15c_total` + `stock_ambiant_monaluxe`, etc.
-- **`v_stock_actuel_owner_snapshot`** : `stock_ambiant_total`, `stock_15c_total` (avec suffixe `_total`)
-- **Vues legacy** (`v_citerne_stock_actuel`, `stock_actuel`) : `stock_ambiant`, `stock_15c` (singulier)
+- **Vues dépréciées** (`v_stock_actuel_snapshot`, `v_stock_actuel_owner_snapshot`, `v_citerne_stock_actuel`, `stock_actuel`) : Mix de naming
 
 **Garde-fous côté Dart** :
 - Le code Flutter utilise souvent `_safeDouble()` qui accepte les deux noms en fallback
 - Exemple : `_safeDouble(row['stock_ambiant_total'] ?? row['stock_ambiant'])`
 
-### Snapshot vs Journalier
+### Source de vérité vs Historique
 
-- **Snapshot** (`v_stock_actuel_snapshot`) : Stock réel présent maintenant, alimenté par triggers
-- **Journalier** (`v_stock_actuel_owner_snapshot`, `v_citerne_stock_actuel`, `stock_actuel`) : Basé sur `stocks_journaliers`, peut avoir des trous de dates, dépend de la dernière date disponible
+- **`v_stock_actuel`** ⭐ : **SOURCE DE VÉRITÉ UNIQUE** - Stock réel présent maintenant, tenant compte des mouvements validés et corrections officielles
+- **`stocks_journaliers`** : Historique uniquement, ne pas utiliser pour stock actuel
+- **Vues dépréciées** : À migrer vers `v_stock_actuel`
 
 ### Date vs updated_at
 
 - **`date_jour`** : Date métier (utilisée dans `v_mouvements_stock` pour filtrer par période)
-- **`updated_at`** : Timestamp technique de dernière mise à jour (informatif uniquement dans `v_stock_actuel_snapshot`)
-- ⚠️ Ne jamais filtrer `v_stock_actuel_snapshot` par date (utiliser `v_mouvements_stock` pour historique)
+- **`updated_at`** : Timestamp technique de dernière mise à jour (informatif uniquement)
+- ⚠️ Ne jamais filtrer `v_stock_actuel` par date (utiliser `v_mouvements_stock` pour historique)
 
 ---
 
 ## 🔗 Références
 
+- ⭐ **Source de vérité** : `docs/db/CONTRAT_STOCK_ACTUEL.md` (OBLIGATOIRE)
+- **Migration** : `docs/db/MIGRATION_V_STOCK_ACTUEL.md` (plan de migration)
 - **Migrations SQL** : `supabase/migrations/`
 - **Repository Flutter principal** : `lib/data/repositories/stocks_kpi_repository.dart`
 - **Providers Flutter** : `lib/features/stocks/data/stocks_kpi_providers.dart`
@@ -586,4 +656,4 @@ Les vues exposent des colonnes avec des noms différents :
 
 ---
 
-**Dernière mise à jour** : 2025-12-27
+**Dernière mise à jour** : 2025-12-31 (Migration A-FLT-02 : Dashboard providers vers v_citerne_stock_snapshot_agg)

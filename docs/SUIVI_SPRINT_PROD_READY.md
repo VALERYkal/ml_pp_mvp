@@ -18,22 +18,26 @@
 
 | Axe | Nom | Tickets | Complétés | % | Statut |
 |-----|-----|---------|-----------|---|--------|
-| 🔴 A | DB-STRICT & Intégrité | 3 | 0/3 | 0% | ⬜ À faire |
+| 🟢 A | DB-STRICT & Intégrité | 3 | 3/3 | 100% | ✅ DONE |
 | 🔴 B | Tests DB Réels | 2 | 0/2 | 0% | ⬜ À faire |
 | 🔴 C | Sécurité & Contrat | 2 | 0/2 | 0% | ⬜ À faire |
 | 🟡 D | Stabilisation & Run | 4 | 0/4 | 0% | ⬜ À faire |
 
-**Total :** 0/11 tickets (0%)
+**Total :** 3/11 tickets (27%)
 
 ---
 
-## 🔴 AXE A — DB-STRICT & INTÉGRITÉ MÉTIER
+## 🟢 AXE A — DB-STRICT & INTÉGRITÉ MÉTIER ✅ DONE
+
+**⚠️ IMPORTANT** : AXE A verrouillé côté DB. Toute régression Flutter ou SQL est interdite sans modification explicite du contrat `docs/db/AXE_A_DB_STRICT.md`.
 
 | Ticket | Titre | Effort | Statut | Assigné | Date |
 |--------|-------|--------|--------|---------|------|
-| A1 | Immutabilité totale | 0.5j | ⬜ | - | - |
-| A2 | Compensations officielles | 1.5j | ⬜ | - | - |
-| A3 | Traçabilité Sorties | 0.5j | ⬜ | - | - |
+| A1 | Immutabilité totale | 0.5j | ✅ DONE | - | 2025-12-31 |
+| A2 | Compensations officielles | 1.5j | ✅ DONE | - | 2025-12-31 |
+| A2.7 | Source de vérité stock | - | ✅ DONE | - | 2025-12-31 |
+
+**Documentation** : `docs/db/AXE_A_DB_STRICT.md`
 
 ---
 
@@ -79,16 +83,18 @@
    ❌ 1 seul ticket A/B/C non terminé
 ```
 
-**Statut actuel :** ❌ NO-GO (0/7 tickets bloquants complétés)
+**Statut actuel :** ❌ NO-GO (3/7 tickets bloquants complétés — AXE A terminé, AXE B/C restants)
 
 ---
 
 ## 📝 Journal du Sprint
 
-### [Date JJ/MM] - Jour X du sprint
+### 31/12/2025 - Finalisation AXE A
 
 **Tickets complétés :**
-- [Aucun]
+- ✅ A1 — Immutabilité totale des mouvements
+- ✅ A2 — Compensations officielles (stock_adjustments)
+- ✅ A2.7 — Source de vérité stock (v_stock_actuel)
 
 **Tickets en cours :**
 - [Aucun]
@@ -97,9 +103,13 @@
 - [Aucun]
 
 **Notes :**
-- [Notes de travail]
+- AXE A complété intégralement côté DB
+- Documentation exhaustive créée : `docs/db/AXE_A_DB_STRICT.md`
+- Contrat stock actuel créé : `docs/db/CONTRAT_STOCK_ACTUEL.md`
+- CHANGELOG mis à jour avec entrée AXE A
+- **⚠️ IMPORTANT** : AXE A verrouillé côté DB. Toute régression Flutter ou SQL est interdite sans modification explicite du contrat.
 
 ---
 
-**Dernière mise à jour :** [Date]
+**Dernière mise à jour :** 31/12/2025
 

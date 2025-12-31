@@ -32,7 +32,9 @@ Le sprint est découpé en **4 AXES**, eux-mêmes divisés en **tickets atomique
 
 ---
 
-## 🔴 AXE A — DB-STRICT & INTÉGRITÉ MÉTIER (BLOQUANT)
+## 🟢 AXE A — DB-STRICT & INTÉGRITÉ MÉTIER ✅ DONE
+
+**⚠️ IMPORTANT** : AXE A verrouillé côté DB (2025-12-31). Toute régression Flutter ou SQL est interdite sans modification explicite du contrat `docs/db/AXE_A_DB_STRICT.md`.
 
 ### A1 — Immutabilité totale des mouvements
 
@@ -45,18 +47,20 @@ Aucun `UPDATE`/`DELETE` possible sur les mouvements validés.
 
 #### Tâches
 
-- [ ] **T1.1** Créer trigger `BEFORE UPDATE` sur `receptions`
-- [ ] **T1.2** Créer trigger `BEFORE DELETE` sur `receptions`
-- [ ] **T1.3** Répéter pour `sorties_produit`
-- [ ] **T1.4** Répéter pour `stocks_journaliers`
-- [ ] **T1.5** Créer migration SQL idempotente
-- [ ] **T1.6** Créer tests SQL de validation
+- [x] **T1.1** Créer trigger `BEFORE UPDATE` sur `receptions`
+- [x] **T1.2** Créer trigger `BEFORE DELETE` sur `receptions`
+- [x] **T1.3** Répéter pour `sorties_produit`
+- [x] **T1.4** Répéter pour `stocks_journaliers`
+- [x] **T1.5** Créer migration SQL idempotente
+- [x] **T1.6** Créer tests SQL de validation
 
 #### DoD (Definition of Done)
 
 ✅ `UPDATE`/`DELETE` échouent systématiquement avec message explicite  
 ✅ Test SQL archivé et validé  
 ✅ Documentation des tests complète
+
+**Documentation** : `docs/db/AXE_A_DB_STRICT.md` (section "Immutabilité des tables critiques")
 
 ---
 
@@ -71,13 +75,13 @@ Corriger sans casser l'historique.
 
 #### Tâches
 
-- [ ] **T2.1** Créer table `stock_adjustments`
-- [ ] **T2.2** Créer fonction `admin_adjust_stock(...)`
-- [ ] **T2.3** Créer trigger `AFTER INSERT` sur `stock_adjustments`
-- [ ] **T2.4** Ajouter logs CRITICAL automatiques
-- [ ] **T2.5** Configurer RLS admin uniquement
-- [ ] **T2.6** Créer migration SQL
-- [ ] **T2.7** Tests SQL de validation
+- [x] **T2.1** Créer table `stock_adjustments`
+- [x] **T2.2** Créer fonction `admin_adjust_stock(...)`
+- [x] **T2.3** Créer trigger `AFTER INSERT` sur `stock_adjustments`
+- [x] **T2.4** Ajouter logs CRITICAL automatiques
+- [x] **T2.5** Configurer RLS admin uniquement
+- [x] **T2.6** Créer migration SQL
+- [x] **T2.7** Tests SQL de validation
 
 #### DoD
 
@@ -85,6 +89,37 @@ Corriger sans casser l'historique.
 ✅ Aucune écriture directe autorisée sur `receptions`/`sorties_produit`  
 ✅ Log CRITICAL généré automatiquement  
 ✅ Tests passent
+
+**Documentation** : `docs/db/AXE_A_DB_STRICT.md` (section "Corrections officielles via stocks_adjustments")
+
+---
+
+### A2.7 — Source de vérité stock (v_stock_actuel) ✅ DONE
+
+**Type :** DB / Architecture  
+**Priorité** : 🔴 Bloquant  
+**Statut** : ✅ **DONE** (2025-12-31)
+
+#### Objectif
+Définir la source de vérité unique pour le stock actuel.
+
+#### Tâches
+
+- [x] **T2.7.1** Créer vue `v_stock_actuel` (snapshot + adjustments)
+- [x] **T2.7.2** Créer contrat officiel `docs/db/CONTRAT_STOCK_ACTUEL.md`
+- [x] **T2.7.3** Documenter interdictions (sources legacy)
+- [x] **T2.7.4** Mettre à jour documentation vues SQL
+
+#### DoD
+
+✅ Vue `v_stock_actuel` créée et documentée  
+✅ Contrat officiel créé  
+✅ Documentation vues SQL mise à jour  
+✅ Interdictions clairement documentées
+
+**Documentation** : 
+- `docs/db/CONTRAT_STOCK_ACTUEL.md` (contrat officiel)
+- `docs/db/AXE_A_DB_STRICT.md` (section "Source de vérité du stock")
 
 ---
 
@@ -333,7 +368,7 @@ Plus aucun silence en cas d'erreur.
 
 | Axe | Tickets | Statut | Responsable | Date cible |
 |-----|---------|--------|-------------|------------|
-| **A** | A1–A3 | ⬜ 0/3 | - | - |
+| **A** | A1, A2, A2.7 | ✅ 3/3 DONE | - | 2025-12-31 |
 | **B** | B1–B2 | ⬜ 0/2 | - | - |
 | **C** | C1–C2 | ⬜ 0/2 | - | - |
 | **D** | D1–D4 | ⬜ 0/4 | - | - |
@@ -437,6 +472,8 @@ Plus aucun silence en cas d'erreur.
 ✅ Compensations fonctionnelles et tracées  
 ✅ 100% des sorties traçables
 
+**Statut** : ✅ **DONE** (2025-12-31) — Voir `docs/db/AXE_A_DB_STRICT.md`
+
 ### AXE B — Succès si :
 ✅ STAGING recréable à l'identique  
 ✅ Tests d'intégration DB passent  
@@ -470,5 +507,7 @@ Plus aucun silence en cas d'erreur.
 
 **Document créé le :** 31 décembre 2025  
 **Dernière mise à jour :** 31 décembre 2025  
-**Version :** 1.0
+**Version :** 1.1
+
+**⚠️ IMPORTANT** : AXE A verrouillé côté DB (2025-12-31). Toute régression Flutter ou SQL est interdite sans modification explicite du contrat `docs/db/AXE_A_DB_STRICT.md`.
 

@@ -23,7 +23,8 @@
 | Vue SQL | Statut | Rôle principal | Remplacement cible |
 |---------|--------|----------------|-------------------|
 | **CANONIQUES** | | | |
-| `v_stock_actuel_snapshot` | 🟢 CANONIQUE | Stock actuel réel (snapshot) | - |
+| `v_stock_actuel` | 🟢 **SOURCE DE VÉRITÉ** | Stock actuel corrigé (source unique) | - |
+| `v_stock_actuel_snapshot` | 🔶 DEPRECATED | Stock actuel réel (snapshot) | `v_stock_actuel` |
 | `v_citerne_stock_snapshot_agg` | 🟢 CANONIQUE | Affichage Citernes (agrégé) | - |
 | `v_kpi_stock_global` | 🟢 CANONIQUE | KPI stock dashboard | - |
 | `v_mouvements_stock` | 🟢 CANONIQUE | Journal mouvements (deltas) | - |
@@ -45,19 +46,23 @@ Les vues canoniques sont les **contrats stables** entre la base de données et F
 
 ---
 
-### 1. v_stock_actuel_snapshot
+### 1. v_stock_actuel ⭐ **SOURCE DE VÉRITÉ UNIQUE**
 
-**Statut** : 🟢 CANONIQUE
+**Statut** : 🟢 **SOURCE DE VÉRITÉ** (DB-STRICT, Production Ready, Verrouillé)
 
 #### Rôle
-Source de vérité absolue pour le stock actuel réel à l'instant T. Représente l'état physique présent dans chaque citerne, par produit et par propriétaire (MONALUXE / PARTENAIRE).
+**Source de vérité unique et non ambiguë** pour le stock actuel. Expose le stock actuel corrigé (ambiant et 15°C) par dépôt, citerne, produit et propriétaire, en tenant compte des mouvements validés et des corrections officielles.
+
+**⚠️ IMPORTANT** : Voir `docs/db/CONTRAT_STOCK_ACTUEL.md` pour les règles absolues.
 
 #### Source
-- **Table** : `stocks_snapshot`
-- Alimentée exclusivement par :
+- **Tables** : `stocks_snapshot`, `stocks_adjustments`
+- **Logique** : `stock_actuel = stock_snapshot + Σ(stocks_adjustments)`
+- Alimentée par :
   - Fonction `stock_snapshot_apply_delta()` appelée depuis :
     - Triggers de réceptions validées
     - Triggers de sorties validées
+  - Corrections officielles via `stocks_adjustments`
 - ⚠️ Aucun calcul à la volée, aucun agrégat temporel
 
 #### Colonnes exposées
@@ -96,10 +101,10 @@ Source de vérité absolue pour le stock actuel réel à l'instant T. Représent
 **Statut** : 🟢 CANONIQUE
 
 #### Rôle
-Vue dédiée à l'écran Citernes. Agrège le stock actuel par citerne, tous propriétaires confondus, depuis `v_stock_actuel_snapshot`.
+Vue dédiée à l'écran Citernes. Agrège le stock actuel par citerne, tous propriétaires confondus, depuis `v_stock_actuel`.
 
 #### Source
-- **Vue** : `v_stock_actuel_snapshot`
+- **Vue** : `v_stock_actuel` (source de vérité)
 - Agrégation par citerne (somme des propriétaires)
 
 #### Colonnes exposées
@@ -130,10 +135,10 @@ Vue dédiée à l'écran Citernes. Agrège le stock actuel par citerne, tous pro
 **Statut** : 🟢 CANONIQUE
 
 #### Rôle
-Vue KPI consolidée pour le pilotage global. Expose le stock total, stock MONALUXE et stock PARTENAIRE par dépôt et par produit, basée sur `v_stock_actuel_snapshot`.
+Vue KPI consolidée pour le pilotage global. Expose le stock total, stock MONALUXE et stock PARTENAIRE par dépôt et par produit, basée sur `v_stock_actuel`.
 
 #### Source
-- **Vue** : `v_stock_actuel_snapshot`
+- **Vue** : `v_stock_actuel` (source de vérité)
 - Agrégation par : dépôt, produit, propriétaire
 
 #### Colonnes exposées
@@ -260,11 +265,13 @@ Agrège `stocks_journaliers` en prenant la dernière date par (citerne, produit,
 - `stock_15c` (double precision)
 
 #### Usages Flutter
-- `lib/data/repositories/stocks_repository.dart`
+- `lib/data/repositories/stocks_repository.dart` (legacy uniquement)
   - `.from('v_citerne_stock_actuel')`
-- `lib/features/dashboard/providers/admin_kpi_provider.dart`
-- `lib/features/dashboard/providers/directeur_kpi_provider.dart`
-- `lib/features/dashboard/providers/citernes_sous_seuil_provider.dart`
+
+**Migration effectuée (A-FLT-02)** :
+- ✅ `admin_kpi_provider.dart` → migré vers `v_citerne_stock_snapshot_agg`
+- ✅ `directeur_kpi_provider.dart` → migré vers `v_citerne_stock_snapshot_agg`
+- ✅ `citernes_sous_seuil_provider.dart` → migré vers `v_citerne_stock_snapshot_agg`
 
 #### Notes / Risques
 - ⚠️ Même problème : c'est du journalier, pas du snapshot réel
@@ -416,31 +423,37 @@ Vue théorique pour exposer le profil utilisateur courant (si elle existe).
 
 ## 📋 Règles de choix
 
+**⚠️ IMPORTANT** : Voir `docs/db/CONTRAT_STOCK_ACTUEL.md` pour la source de vérité officielle.
+
 ### Quelle vue utiliser selon le besoin UI ?
 
 | Besoin UI | Vue canonique à utiliser | Notes |
 |-----------|-------------------------|-------|
-| **Stock actuel réel** | `v_stock_actuel_snapshot` | Source de vérité absolue, jamais filtrer par date |
-| **Affichage Citernes (liste/tank)** | `v_citerne_stock_snapshot_agg` | Agrégation par citerne, tous propriétaires |
-| **KPI Dashboard (stock global)** | `v_kpi_stock_global` | Déjà agrégé par dépôt/produit/propriétaire |
-| **Stock par propriétaire** | `v_stock_actuel_owner_snapshot` (legacy) | ⚠️ À migrer vers vue snapshot-based future |
+| **Stock actuel réel** | `v_stock_actuel` ⭐ | **SOURCE DE VÉRITÉ UNIQUE** - Voir `docs/db/CONTRAT_STOCK_ACTUEL.md` |
+| **Affichage Citernes (liste/tank)** | `v_citerne_stock_snapshot_agg` | Agrégation par citerne, tous propriétaires (basée sur `v_stock_actuel`) |
+| **KPI Dashboard (stock global)** | `v_kpi_stock_global` | Déjà agrégé par dépôt/produit/propriétaire (basée sur `v_stock_actuel`) |
+| **Stock par propriétaire** | `v_stock_actuel_owner_snapshot` (legacy) | ⚠️ À migrer vers `v_stock_actuel` avec agrégation côté app |
 | **Mouvements du jour/historique** | `v_mouvements_stock` | ⚠️ Non connectée UI actuellement, à utiliser pour timeline |
 | **Logs / Activités** | `logs` | Vue compat, stable |
 | **Cours de route (liste)** | `cours_route` | Vue UI, non liée stocks |
 
 ### ❌ À éviter absolument
 
-- ❌ **`stock_actuel`** → Remplacer par `v_stock_actuel_snapshot`
+- ❌ **`stock_actuel`** → Remplacer par `v_stock_actuel`
+- ❌ **`v_stock_actuel_snapshot`** → Remplacer par `v_stock_actuel` (déprécié)
+- ❌ **`v_stocks_citerne_global_daily`** → Remplacer par `v_stock_actuel` (historique uniquement)
 - ❌ **`v_citerne_stock_actuel`** → Remplacer par `v_citerne_stock_snapshot_agg`
-- ❌ Filtrer `v_stock_actuel_snapshot` par date (utiliser `v_mouvements_stock` pour historique)
+- ❌ Filtrer `v_stock_actuel` par date (utiliser `v_mouvements_stock` pour historique)
 - ❌ Utiliser une vue KPI pour validation métier (ex: contrôles de stock avant sortie)
+- ❌ Utiliser `stocks_journaliers` pour le stock actuel (historique uniquement)
 
 ### ✅ Bonnes pratiques
 
+- ✅ **TOUJOURS utiliser `v_stock_actuel` pour le stock actuel** (voir `docs/db/CONTRAT_STOCK_ACTUEL.md`)
 - ✅ Toujours partir d'une vue canonique pour nouveaux développements
 - ✅ Comprendre la différence `updated_at` (info) vs `date_jour` (métier)
 - ✅ Distinguer vues transactionnelles (stock actuel) vs vues analytiques (KPI/historique)
-- ✅ Utiliser `v_stock_actuel_snapshot` pour tout affichage "stock maintenant"
+- ✅ Toute correction passe par `stocks_adjustments` (pas d'écriture directe)
 
 ---
 
@@ -448,26 +461,37 @@ Vue théorique pour exposer le profil utilisateur courant (si elle existe).
 
 ### Phase 1 : Vues deprecated à retirer immédiatement
 
-#### `stock_actuel` → `v_stock_actuel_snapshot`
+#### `stock_actuel` → `v_stock_actuel`
 
 **Fichiers à migrer** :
 - `lib/features/sorties/providers/sortie_providers.dart` (ligne ~205)
 - `lib/features/citernes/providers/citerne_providers.dart` (legacy provider)
 - `lib/features/citernes/data/citerne_service.dart` (legacy method)
 
-**Action** : Remplacer tous les `.from('stock_actuel')` par `.from('v_stock_actuel_snapshot')` et adapter les colonnes consommées.
+**Action** : Remplacer tous les `.from('stock_actuel')` par `.from('v_stock_actuel')` et adapter les colonnes consommées.
+
+#### `v_stock_actuel_snapshot` → `v_stock_actuel`
+
+**Fichiers à migrer** :
+- `lib/data/repositories/stocks_kpi_repository.dart`
+- `lib/features/stocks/data/stocks_kpi_providers.dart`
+- `lib/features/dashboard/widgets/role_dashboard.dart`
+- Tous les fichiers utilisant `v_stock_actuel_snapshot`
+
+**Action** : Remplacer tous les `.from('v_stock_actuel_snapshot')` par `.from('v_stock_actuel')` (voir `docs/db/CONTRAT_STOCK_ACTUEL.md`).
 
 #### `v_citerne_stock_actuel` → `v_citerne_stock_snapshot_agg`
 
 **Fichiers à migrer** :
-- `lib/data/repositories/stocks_repository.dart`
-- `lib/features/dashboard/providers/admin_kpi_provider.dart`
-- `lib/features/dashboard/providers/directeur_kpi_provider.dart`
-- `lib/features/dashboard/providers/citernes_sous_seuil_provider.dart`
+- `lib/data/repositories/stocks_repository.dart` (legacy uniquement)
 
-**Action** : 
-- Pour citernes sous seuil : utiliser `v_citerne_stock_snapshot_agg` (`stock_ambiant_total`)
-- Pour KPI dashboard : utiliser `v_kpi_stock_global` ou agrégation depuis `v_stock_actuel_snapshot`
+**Migration effectuée (A-FLT-02)** :
+- ✅ `admin_kpi_provider.dart` → migré vers `v_citerne_stock_snapshot_agg` (`stock_ambiant_total`)
+- ✅ `directeur_kpi_provider.dart` → migré vers `v_citerne_stock_snapshot_agg` (`stock_ambiant_total`)
+- ✅ `citernes_sous_seuil_provider.dart` → migré vers `v_citerne_stock_snapshot_agg` (`stock_ambiant_total`)
+
+**Action restante** : 
+- Migrer `stocks_repository.dart` si nécessaire (legacy uniquement)
 
 ### Phase 2 : Vues legacy/compat à migrer (moyen terme)
 
@@ -479,8 +503,8 @@ Vue théorique pour exposer le profil utilisateur courant (si elle existe).
 - `lib/features/dashboard/widgets/role_dashboard.dart`
 
 **Action** :
-1. Créer une nouvelle vue `v_kpi_stock_owner` basée sur `v_stock_actuel_snapshot` (agrégation par dépôt+produit+propriétaire)
-2. Migrer tous les appels `.from('v_stock_actuel_owner_snapshot')` vers la nouvelle vue
+1. Utiliser `v_stock_actuel` (source de vérité) avec agrégation côté app par propriétaire
+2. Migrer tous les appels `.from('v_stock_actuel_owner_snapshot')` vers `v_stock_actuel`
 3. Supprimer `v_stock_actuel_owner_snapshot` après migration complète
 
 **TODO** : Créer la vue SQL `v_kpi_stock_owner` dans les migrations Supabase.
@@ -517,6 +541,7 @@ Vue théorique pour exposer le profil utilisateur courant (si elle existe).
 
 ## 🔗 Références
 
+- **⭐ Source de vérité** : `docs/db/CONTRAT_STOCK_ACTUEL.md` (OBLIGATOIRE)
 - **Migrations SQL** : `supabase/migrations/`
 - **Repository Flutter principal** : `lib/data/repositories/stocks_kpi_repository.dart`
 - **Providers Flutter** : `lib/features/stocks/data/stocks_kpi_providers.dart`

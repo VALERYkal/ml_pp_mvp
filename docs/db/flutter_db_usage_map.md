@@ -71,13 +71,12 @@
 
 **Usages Flutter** :
 
-- `lib/data/repositories/stocks_repository.dart`
+- `lib/data/repositories/stocks_repository.dart` (legacy uniquement)
 
-- `lib/features/dashboard/providers/admin_kpi_provider.dart`
-
-- `lib/features/dashboard/providers/directeur_kpi_provider.dart`
-
-- `lib/features/dashboard/providers/citernes_sous_seuil_provider.dart`
+**Migration effectuée (A-FLT-02)** :
+- ✅ `admin_kpi_provider.dart` → migré vers `v_citerne_stock_snapshot_agg`
+- ✅ `directeur_kpi_provider.dart` → migré vers `v_citerne_stock_snapshot_agg`
+- ✅ `citernes_sous_seuil_provider.dart` → migré vers `v_citerne_stock_snapshot_agg`
 
 ---
 
@@ -240,11 +239,11 @@ Si DB-STRICT impose une RPC `validate_sortie(id)`, il faudra aligner `sortie_dra
 
 - `lib/features/sorties/providers/sortie_providers.dart`
 
-- `lib/features/dashboard/providers/admin_kpi_provider.dart`
+- `lib/features/dashboard/providers/admin_kpi_provider.dart` (utilise `v_citerne_stock_snapshot_agg` depuis A-FLT-02)
 
-- `lib/features/dashboard/providers/directeur_kpi_provider.dart`
+- `lib/features/dashboard/providers/directeur_kpi_provider.dart` (utilise `v_citerne_stock_snapshot_agg` depuis A-FLT-02)
 
-- `lib/features/dashboard/providers/citernes_sous_seuil_provider.dart`
+- `lib/features/dashboard/providers/citernes_sous_seuil_provider.dart` (utilise `v_citerne_stock_snapshot_agg` depuis A-FLT-02)
 
 - `lib/features/citernes/providers/citerne_providers.dart`
 
@@ -342,6 +341,9 @@ Si DB-STRICT impose une RPC `validate_sortie(id)`, il faudra aligner `sortie_dra
 
 **Action** : Migrer progressivement vers les vues snapshot canoniques.
 
+**Migration effectuée (A-FLT-02)** :
+- ✅ Dashboard providers (`admin_kpi_provider`, `directeur_kpi_provider`, `citernes_sous_seuil_provider`) migrés vers `v_citerne_stock_snapshot_agg`
+
 ---
 
 ### v_stock_actuel_owner_snapshot n'est pas "snapshot temps réel"
@@ -362,5 +364,5 @@ Si DB-STRICT impose une RPC `validate_sortie(id)`, il faudra aligner `sortie_dra
 
 ---
 
-**Dernière mise à jour** : 2025-12-27
+**Dernière mise à jour** : 2025-12-31 (Migration A-FLT-02 : Dashboard providers vers v_citerne_stock_snapshot_agg)
 

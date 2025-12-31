@@ -65,6 +65,13 @@ Contient toutes les spécifications et documents nécessaires :
 - ✅ `technical/mock_architecture.md` – Architecture des mocks CDR
 - ✅ `quick_fixes/mock_conflict_resolution.md` – Guide rapide de correction
 
+### 📊 Base de données & Vues SQL
+- ⭐ **`db/CONTRAT_STOCK_ACTUEL.md`** – **Source de vérité unique** pour le stock actuel (OBLIGATOIRE)
+- ✅ `db/vues_sql_reference.md` – Référence complète des vues SQL
+- ✅ `db/vues_sql_reference_central.md` – Documentation centralisée des vues
+- ✅ `db/flutter_db_usage_map.md` – Cartographie Flutter → DB
+- ✅ `db/modules_flutter_db_map.md` – Cartographie par modules
+
 ---
 
 ## 🧠 À l’intention de l’IA (Cursor)

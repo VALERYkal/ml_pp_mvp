@@ -11,7 +11,7 @@
 | Vue SQL | Type | Occurrences | Statut |
 |---------|------|-------------|--------|
 | `stock_actuel` | 🔶 LEGACY | 3 | À migrer vers `v_stock_actuel_snapshot` |
-| `v_citerne_stock_actuel` | 🔶 LEGACY | 4 | À migrer vers `v_citerne_stock_snapshot_agg` |
+| `v_citerne_stock_actuel` | 🔶 LEGACY | 1 | ✅ 3/4 migrés (A-FLT-02), reste `stocks_repository.dart` |
 | `v_stock_actuel_owner_snapshot` | 🟡 LEGACY | 2 | À migrer vers vue owner snapshot-based (à créer) |
 | `v_kpi_stock_global` | 🟢 CANONIQUE | 1 | ✅ OK (snapshot-based) |
 
@@ -48,12 +48,12 @@
 **Statut** : 🔶 LEGACY (journalier)  
 **Remplacement cible** : `v_citerne_stock_snapshot_agg` ou `v_kpi_stock_global`
 
-| Fichier Dart | Ligne | Méthode/Provider | Module | Usage | Priorité migration |
-|--------------|-------|------------------|--------|-------|-------------------|
-| `lib/data/repositories/stocks_repository.dart` | ~40 | `fetchTotauxStocks()` | Stocks | Totaux stocks par dépôt | 🔴 Haute |
-| `lib/features/dashboard/providers/admin_kpi_provider.dart` | ~65 | `citernesSousSeuilProvider` | Dashboard | Citernes sous seuil (KPI) | 🔴 Haute |
-| `lib/features/dashboard/providers/directeur_kpi_provider.dart` | ~76 | `directeurKpisProvider` | Dashboard | Citernes sous seuil (KPI) | 🔴 Haute |
-| `lib/features/dashboard/providers/citernes_sous_seuil_provider.dart` | ~15 | `citernesSousSeuilProvider` | Dashboard | Citernes sous seuil (widget) | 🔴 Haute |
+| Fichier Dart | Ligne | Méthode/Provider | Module | Usage | Statut |
+|--------------|-------|------------------|--------|-------|--------|
+| `lib/data/repositories/stocks_repository.dart` | ~40 | `fetchTotauxStocks()` | Stocks | Totaux stocks par dépôt | 🔴 À migrer |
+| `lib/features/dashboard/providers/admin_kpi_provider.dart` | ~65 | `citernesSousSeuilProvider` | Dashboard | Citernes sous seuil (KPI) | ✅ Migré (A-FLT-02) |
+| `lib/features/dashboard/providers/directeur_kpi_provider.dart` | ~76 | `directeurKpisProvider` | Dashboard | Citernes sous seuil (KPI) | ✅ Migré (A-FLT-02) |
+| `lib/features/dashboard/providers/citernes_sous_seuil_provider.dart` | ~15 | `citernesSousSeuilProvider` | Dashboard | Citernes sous seuil (widget) | ✅ Migré (A-FLT-02) |
 
 **Détails** :
 - **Dashboard KPI** : Tous les providers "citernes sous seuil" utilisent cette vue legacy
@@ -110,11 +110,11 @@
 
 2. **Dashboard KPI** : `v_citerne_stock_actuel` pour citernes sous seuil
    - **Fichiers** : 
-     - `lib/features/dashboard/providers/admin_kpi_provider.dart`
-     - `lib/features/dashboard/providers/directeur_kpi_provider.dart`
-     - `lib/features/dashboard/providers/citernes_sous_seuil_provider.dart`
-   - **Action** : Remplacer par `v_citerne_stock_snapshot_agg`
-   - **Impact** : KPI Dashboard affiche stock réel temps présent
+     - `lib/features/dashboard/providers/admin_kpi_provider.dart` ✅ **MIGRÉ (A-FLT-02)**
+     - `lib/features/dashboard/providers/directeur_kpi_provider.dart` ✅ **MIGRÉ (A-FLT-02)**
+     - `lib/features/dashboard/providers/citernes_sous_seuil_provider.dart` ✅ **MIGRÉ (A-FLT-02)**
+   - **Action** : ✅ Terminé - Remplacé par `v_citerne_stock_snapshot_agg`
+   - **Impact** : ✅ KPI Dashboard affiche maintenant stock réel temps présent
 
 3. **Stocks Repository** : `v_citerne_stock_actuel` dans `fetchTotauxStocks()`
    - **Fichier** : `lib/data/repositories/stocks_repository.dart`

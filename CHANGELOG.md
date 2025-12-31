@@ -4,6 +4,104 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 
 ## [Unreleased]
 
+### 🔒 **AXE A — DB-STRICT & INTÉGRITÉ MÉTIER (31/12/2025)**
+
+#### **Added**
+
+- **DB-STRICT enforcement** : Immutabilité absolue sur `receptions`, `sorties_produit`, `stocks_journaliers`
+  - Triggers `BEFORE UPDATE` et `BEFORE DELETE` bloquent toute modification de transaction validée
+  - Exceptions PostgreSQL explicites (code `P0001`) avec messages clairs
+  - Aucun bypass, aucune exception, aucun flag admin
+
+- **Mécanisme de correction officiel** : Table `stocks_adjustments` pour compensations tracées
+  - Fonctions admin : `admin_compensate_reception()`, `admin_compensate_sortie()`, `admin_adjust_stock()`
+  - Trigger automatique applique les corrections au stock via `stock_upsert_journalier()`
+  - Logs `CRITICAL` générés automatiquement pour toute compensation
+  - RLS : INSERT réservé aux admins uniquement
+
+- **Source de vérité stock canonique** : Vue `v_stock_actuel` (snapshot + adjustments)
+  - Logique : `stock_actuel = stock_snapshot + Σ(stocks_adjustments)`
+  - Contrat officiel : `docs/db/CONTRAT_STOCK_ACTUEL.md`
+  - Interdiction stricte d'utiliser les sources legacy pour le stock actuel
+
+#### **Changed**
+
+- **Contrat de lecture stock** : Toute lecture du stock actuel DOIT utiliser `v_stock_actuel`
+  - Anciennes sources dépréciées : `v_stock_actuel_snapshot`, `v_stocks_citerne_global_daily`, `stocks_journaliers` (historique uniquement)
+
+- **Paradigme de correction** : Les corrections ne sont plus des `UPDATE`/`DELETE` mais des compensations uniquement
+  - Toute erreur humaine corrigée via `stocks_adjustments`
+  - Historique préservé : les transactions originales restent en base
+  - Traçabilité totale : toute compensation est auditée
+
+#### **Security**
+
+- **Prévention de mutation silencieuse** : Blocage DB des modifications sur tables critiques
+  - Protection contre corruption accidentelle ou malveillante
+  - Garantie d'intégrité métier au niveau DB
+
+- **Enforcement audit-grade** : Intégrité stock garantie par mécanismes DB non contournables
+  - Recalculabilité : toute valeur de stock est recalculable depuis les sources
+  - Traçabilité : toute action critique génère un log `log_actions`
+
+#### **Documentation**
+
+- **Documentation exhaustive AXE A** : `docs/db/AXE_A_DB_STRICT.md`
+  - Principe DB-STRICT expliqué
+  - Mécanismes techniques documentés (triggers, fonctions, RLS)
+  - Garanties d'audit et traçabilité
+  - Statut : AXE A = DONE, PROD-READY DB-STRICT
+
+#### **Migration Code Flutter**
+
+- **Ticket A-FLT-01** : Migration stock sortie vers `v_stock_actuel` (source de vérité)
+  - Remplacement de `.from('stock_actuel')` par `.from('v_stock_actuel')` dans `sortie_providers.dart`
+  - Adaptation des colonnes : `date_jour` → `updated_at`
+  - Conformité au contrat DB-STRICT (AXE A)
+  - Fichier : `lib/features/sorties/providers/sortie_providers.dart`
+
+- **Ticket A-FLT-02** : Migration dashboard providers vers `v_citerne_stock_snapshot_agg` (vue canonique) - **31/12/2025**
+  - **Objectif** : Éliminer l'usage de la vue legacy `v_citerne_stock_actuel` (journalier) dans le module dashboard
+  - **Changements techniques** :
+    - Remplacement de `.from('v_citerne_stock_actuel')` par `.from('v_citerne_stock_snapshot_agg')` dans 3 providers
+    - Adaptation des colonnes : `stock_ambiant` → `stock_ambiant_total`, `stock_15c` → `stock_15c_total`
+    - Conservation de la logique métier existante (seuils, calculs) sans refactoring
+  - **Fichiers modifiés** :
+    - `lib/features/dashboard/providers/admin_kpi_provider.dart` (lignes 63-69)
+    - `lib/features/dashboard/providers/directeur_kpi_provider.dart` (lignes 77-83)
+    - `lib/features/dashboard/providers/citernes_sous_seuil_provider.dart` (lignes 20-26)
+  - **Résultats** :
+    - ✅ Plus aucune référence à `v_citerne_stock_actuel` dans le module dashboard
+    - ✅ Les KPIs "citernes sous seuil" utilisent désormais la vue snapshot canonique (stock réel temps présent)
+    - ✅ Conformité au contrat DB-STRICT (AXE A) : utilisation exclusive de la vue canonique agrégée
+    - ✅ `flutter analyze` OK, aucune régression fonctionnelle
+  - **Documentation mise à jour** :
+    - `docs/db/vues_sql_reference.md`
+    - `docs/db/vues_sql_reference_central.md`
+    - `docs/db/flutter_db_usage_map.md`
+    - `docs/db/modules_flutter_db_map.md`
+    - `docs/db/stock_migration_inventory.md`
+
+- **Ticket A-FLT-04** : Migration Citernes legacy de `stock_actuel` vers `v_stock_actuel` (source de vérité) - **31/12/2025**
+  - **Objectif** : Éliminer l'usage de la vue legacy `stock_actuel` dans le module Citernes (conformité contrat DB AXE A)
+  - **Changements techniques** :
+    - Remplacement de `.from('stock_actuel')` par `.from('v_stock_actuel')` dans 2 fichiers
+    - Adaptation du mapping : `date_jour` → `updated_at` (vue snapshot temps réel)
+    - Suppression du filtre par date (v_stock_actuel est un snapshot temps réel, ne doit pas être filtré)
+    - Suppression de la fonction `_fmtYmd()` non utilisée
+  - **Fichiers modifiés** :
+    - `lib/features/citernes/providers/citerne_providers.dart` (provider `citernesWithStockProvider`)
+    - `lib/features/citernes/data/citerne_service.dart` (méthode `getStockActuel`)
+  - **Résultats** :
+    - ✅ Plus aucune référence à `stock_actuel` (vue legacy) dans le module Citernes
+    - ✅ Utilisation exclusive de `v_stock_actuel` (source de vérité unique selon contrat DB AXE A)
+    - ✅ Commentaires mis à jour : "Compat: utilise v_stock_actuel (contrat DB AXE A – stock actuel unique)"
+    - ✅ `@Deprecated` conservé (méthodes legacy pour compatibilité avec ReceptionService)
+    - ✅ `flutter analyze` OK, aucune régression fonctionnelle
+  - **Conformité** : Contrat DB-STRICT (AXE A) - voir `docs/db/CONTRAT_STOCK_ACTUEL.md`
+
+---
+
 ### 📊 **RAPPORT DE SYNTHÈSE PRODUCTION (31/12/2025)**
 
 #### **🎯 Verdict Exécutif**

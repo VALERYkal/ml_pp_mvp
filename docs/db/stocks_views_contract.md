@@ -1,26 +1,32 @@
 # Contrat SQL - Vues Stocks (Interface stable pour Flutter)
 
-**Date** : 23/12/2025  
-**Version** : 2.0  
+**Date** : 31/12/2025  
+**Version** : 3.0  
 **Objectif** : Définir l'interface SQL stable que Flutter consommera pour les stocks
 
-**Migration Supabase** : `20251223_1200_stocks_views_daily.sql` — Vue canonique versionnée et idempotente
+**⚠️ IMPORTANT** : Voir `docs/db/CONTRAT_STOCK_ACTUEL.md` pour la source de vérité officielle.
 
 ---
 
 ## But
 
-La source canonique pour "stock global par citerne" est `v_stocks_citerne_global_daily`. Cette vue expose des snapshots quotidiens par citerne & produit (tous propriétaires confondus) avec support du filtrage par `date_jour`. L'application Flutter utilise exclusivement cette vue pour tous les modules (Dashboard, Stocks, Citernes).
+**La source de vérité unique pour le stock actuel est `v_stock_actuel`.**
+
+Cette vue expose le stock actuel corrigé (ambiant et 15°C) par dépôt, citerne, produit et propriétaire, en tenant compte des mouvements validés et des corrections officielles.
 
 ---
 
-## Vue canonique
+## Vue canonique (Source de vérité)
 
-**Nom** : `public.v_stocks_citerne_global_daily`
+**Nom** : `public.v_stock_actuel`
 
-**Rôle** : Snapshot "global" par citerne & produit (tous propriétaires confondus) avec `date_jour`.
+**⚠️ DEPRECATED** : `v_stocks_citerne_global_daily` n'est plus la source de vérité. Voir `docs/db/CONTRAT_STOCK_ACTUEL.md`.
 
-**Statut** : **Canonical view consumed by Flutter**. This is the single source of truth for all Flutter modules (Dashboard, Stocks, Citernes). The legacy view `v_stocks_citerne_global` is DB-only and not used by the app.
+**Rôle** : **SOURCE DE VÉRITÉ UNIQUE** pour le stock actuel. Expose le stock actuel corrigé par dépôt, citerne, produit et propriétaire.
+
+**Statut** : **Canonical view consumed by Flutter**. This is the single source of truth for all Flutter modules (Dashboard, Stocks, Citernes). 
+
+**⚠️ DEPRECATED** : `v_stocks_citerne_global_daily` et `v_stock_actuel_snapshot` ne sont plus les sources de vérité. Voir `docs/db/CONTRAT_STOCK_ACTUEL.md`.
 
 **Colonnes garanties (MUST expose)** :
 - `citerne_id` (UUID) — **MANDATORY**
