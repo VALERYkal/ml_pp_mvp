@@ -74,13 +74,13 @@ final directeurKpiProvider = FutureProvider<DirecteurKpiData>((ref) async {
       .select('id, capacite_totale, capacite_securite');
 
   final latest = await supa
-      .from('v_citerne_stock_actuel')
-      .select('citerne_id, stock_ambiant');
+      .from('v_citerne_stock_snapshot_agg')
+      .select('citerne_id, stock_ambiant_total');
 
   final stockByCiterne = <String, double>{};
   for (final m in (latest as List)) {
     final id = m['citerne_id'] as String?;
-    final stock = (m['stock_ambiant'] as num?)?.toDouble() ?? 0.0;
+    final stock = (m['stock_ambiant_total'] as num?)?.toDouble() ?? 0.0;
     if (id != null) stockByCiterne[id] = stock;
   }
 

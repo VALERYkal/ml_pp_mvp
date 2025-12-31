@@ -15,7 +15,7 @@ class StocksRepository {
   final SupabaseClient _supa;
   StocksRepository(this._supa);
 
-  /// Somme des stocks actuels depuis la vue v_citerne_stock_actuel.
+  /// Somme des stocks actuels depuis la vue v_citerne_stock_snapshot_agg.
   /// - Si [depotId] est renseigné, on filtre via les citernes du dépôt.
   /// - [produitId] optionnel (pour réutilisation ultérieure).
   Future<StocksTotals> totauxActuels({
@@ -37,8 +37,8 @@ class StocksRepository {
 
     // 2) Charger la vue (une ligne par citerne = dernier stock)
     final sel = _supa
-        .from('v_citerne_stock_actuel')
-        .select('citerne_id, produit_id, stock_ambiant, stock_15c, date_jour');
+        .from('v_citerne_stock_snapshot_agg')
+        .select('citerne_id, produit_id, stock_ambiant_total, stock_15c_total, last_snapshot_at');
 
     if (citerneIds != null) {
       sel.in_('citerne_id', citerneIds);
@@ -52,10 +52,10 @@ class StocksRepository {
     double amb = 0.0, s15 = 0.0;
     DateTime? lastDay;
     for (final m in (rows as List)) {
-      amb += (m['stock_ambiant'] as num?)?.toDouble() ?? 0.0;
-      s15 += (m['stock_15c'] as num?)?.toDouble() ?? 0.0;
+      amb += (m['stock_ambiant_total'] as num?)?.toDouble() ?? 0.0;
+      s15 += (m['stock_15c_total'] as num?)?.toDouble() ?? 0.0;
 
-      final dj = m['date_jour'];
+      final dj = m['last_snapshot_at'];
       if (dj != null) {
         final d = DateTime.parse(dj.toString());
         if (lastDay == null || d.isAfter(lastDay)) lastDay = d;

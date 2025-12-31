@@ -312,9 +312,9 @@ final citerneStocksSnapshotProvider = Riverpod.FutureProvider.autoDispose<DepotS
   );
 });
 
-/// Provider legacy pour compatibilité (utilise stock_actuel)
+/// Provider legacy pour compatibilité (utilise v_stock_actuel)
 ///
-/// LEGACY: Utilise la vue SQL `stock_actuel` (ancienne source de vérité).
+/// Compat: utilise v_stock_actuel (contrat DB AXE A – stock actuel unique).
 ///
 /// ⚠️ DEPRECATED: Ne pas utiliser dans le module Citernes UI.
 /// Utiliser `citerneStockSnapshotProvider` (v_citerne_stock_snapshot_agg) à la place.
@@ -347,12 +347,13 @@ final citernesWithStockProvider = Riverpod.FutureProvider<List<CiterneRow>>((
       .toSet()
       .toList();
 
-  // 2) Dernier stock par citerne/produit depuis la vue `stock_actuel`
+  // 2) Stock actuel par citerne/produit depuis v_stock_actuel (source de vérité unique)
+  // Note: v_stock_actuel expose updated_at (pas date_jour), et ne doit pas être filtré par date
   final stocks =
       await sb
-              .from('stock_actuel')
+              .from('v_stock_actuel')
               .select(
-                'citerne_id, produit_id, stock_ambiant, stock_15c, date_jour',
+                'citerne_id, produit_id, stock_ambiant, stock_15c, updated_at',
               )
               .in_('citerne_id', ids)
               .in_('produit_id', prodIds)
@@ -389,7 +390,7 @@ final citernesWithStockProvider = Riverpod.FutureProvider<List<CiterneRow>>((
       capaciteSecurite: (c['capacite_securite'] as num?)?.toDouble(),
       stockAmbiant: (s?['stock_ambiant'] as num?)?.toDouble(),
       stock15c: (s?['stock_15c'] as num?)?.toDouble(),
-      dateStock: _parseDate(s?['date_jour']),
+      dateStock: _parseDate(s?['updated_at']),
     );
   }).toList();
 });

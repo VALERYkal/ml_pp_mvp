@@ -32,39 +32,33 @@ class CiterneService {
   final SupabaseClient _client;
   CiterneService.withClient(this._client);
 
-  /// Formate une date en YYYY-MM-DD pour la base de données
-  String _fmtYmd(DateTime d) =>
-      '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
-
-  /// Récupère le stock actuel pour une citerne et un produit à une date donnée
+  /// Récupère le stock actuel pour une citerne et un produit
   ///
-  /// LEGACY: Utilise la vue SQL `stock_actuel` (ancienne source de vérité).
+  /// Compat: utilise v_stock_actuel (contrat DB AXE A – stock actuel unique).
   ///
   /// ⚠️ DEPRECATED: Cette méthode est conservée uniquement pour compatibilité avec ReceptionService.
   /// Pour le module Citernes, utiliser `CiterneRepository.fetchCiterneStockSnapshots()` (v_citerne_stock_snapshot_agg) à la place.
   ///
   /// [citerneId] : ID de la citerne
   /// [produitId] : ID du produit
-  /// [date] : Date optionnelle (par défaut aujourd'hui)
+  /// [date] : Date optionnelle (ignorée - v_stock_actuel est un snapshot temps réel)
   ///
   /// Retourne : Map avec 'ambiant' et 'c15' (volumes en litres)
   @Deprecated(
-    'Legacy method using stock_actuel. Kept for ReceptionService compatibility. Use CiterneRepository.fetchCiterneStockSnapshots() for Citernes.',
+    'Legacy method using v_stock_actuel. Kept for ReceptionService compatibility. Use CiterneRepository.fetchCiterneStockSnapshots() for Citernes.',
   )
   Future<Map<String, double>> getStockActuel(
     String citerneId,
     String produitId, {
     DateTime? date,
   }) async {
-    final dateJour = _fmtYmd(date ?? DateTime.now());
-
     try {
+      // v_stock_actuel est un snapshot temps réel, ne doit pas être filtré par date
       final res = await _client
-          .from('stock_actuel')
+          .from('v_stock_actuel')
           .select('stock_ambiant, stock_15c')
           .eq('citerne_id', citerneId)
           .eq('produit_id', produitId)
-          .eq('date_jour', dateJour)
           .maybeSingle();
 
       if (res == null) {

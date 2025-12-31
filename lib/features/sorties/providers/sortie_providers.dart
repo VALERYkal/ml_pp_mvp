@@ -206,7 +206,8 @@ final citernesByProduitProvider =
       return byId.entries.map((e) => {'id': e.key, 'nom': e.value}).toList();
     });
 
-// --- PROVIDER: CITERNE + DERNIER STOCK via vue stock_actuel ---
+// --- PROVIDER: CITERNE + DERNIER STOCK via vue v_stock_actuel ---
+// AXE A: stock actuel = v_stock_actuel (DB contract - source de vérité unique)
 final citernesByProduitWithStockProvider =
     Riverpod.FutureProvider.family<List<CiterneWithStockForSortie>, String>((
       ref,
@@ -229,11 +230,11 @@ final citernesByProduitWithStockProvider =
 
       final citerneIds = citernes.map((e) => e['id'] as String).toList();
 
-      // 2) Dernier stock par citerne depuis la vue stock_actuel
+      // 2) Stock actuel par citerne depuis la vue v_stock_actuel (source de vérité)
       final stocks =
           await supabase
-                  .from('stock_actuel')
-                  .select('citerne_id, stock_ambiant, stock_15c, date_jour')
+                  .from('v_stock_actuel')
+                  .select('citerne_id, stock_ambiant, stock_15c, updated_at')
                   .in_('citerne_id', citerneIds)
                   .eq('produit_id', produitId)
               as List;
@@ -261,7 +262,7 @@ final citernesByProduitWithStockProvider =
           capaciteTotale: (c['capacite_totale'] as num?)?.toDouble(),
           stockAmbiant: (s?['stock_ambiant'] as num?)?.toDouble(),
           stock15c: (s?['stock_15c'] as num?)?.toDouble(),
-          date: _parseDate(s?['date_jour']),
+          date: _parseDate(s?['updated_at']),
         );
       }).toList();
     });
