@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cdr_etat.dart';
 import 'package:ml_pp_mvp/features/cours_route/data/cdr_logs_service.dart';
+import 'package:ml_pp_mvp/shared/utils/app_log.dart';
 
 /// Service de gestion des cours de route avec Supabase
 ///
@@ -398,8 +399,6 @@ class CoursDeRouteService {
           .eq('id', cdrId)
           .maybeSingle();
 
-      if (current == null) return false;
-
       // Vérifier les champs requis (ajuster selon le schéma réel)
       final chauffeurNom = current['chauffeur_nom'] as String?;
       final citerneId = current['citerne_id'] as String?;
@@ -417,7 +416,7 @@ class CoursDeRouteService {
         .select<Map<String, dynamic>>()
         .maybeSingle();
 
-    if (res != null && userId != null) {
+    if (userId != null) {
       // Enregistrer le log de transition (best-effort)
       try {
         await _logsService.logTransition(
@@ -428,11 +427,11 @@ class CoursDeRouteService {
         );
       } catch (e) {
         // Ne pas faire échouer la transition si le log échoue
-        print('Erreur lors du logging de la transition CDR: $e');
+        appLog('Erreur lors du logging de la transition CDR: $e');
       }
     }
 
-    return res != null;
+    return true;
   }
 
   /// Compte les cours de route par statut (utilise les vrais statuts DB)

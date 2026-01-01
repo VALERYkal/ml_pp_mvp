@@ -2,7 +2,23 @@
 
 **Projet** : ML_PP MVP — Module Stock / Sorties / Réceptions  
 **Date** : 06/12/2025  
+**Mise à jour** : 01/01/2026 - Migration complète vers `v_stock_actuel` terminée ✅  
 **Prérequis** : Phase 1 complétée ✅, Phase 2 (SQL) complétée ✅
+
+---
+
+## ✅ **MIGRATION COMPLÈTE TERMINÉE** (01/01/2026)
+
+**Tous les modules utilisent désormais `v_stock_actuel` comme source de vérité unique** (conformément au contrat AXE A).
+
+- ✅ Dashboard : Agrégation depuis `v_stock_actuel` via `fetchStockActuelRows()  
+- ✅ Citernes : Agrégation depuis `v_stock_actuel` par `citerne_id`  
+- ✅ Module Stock : Agrégation depuis `v_stock_actuel` pour les totaux  
+- ✅ Ajustements : Visibles immédiatement dans tous les modules  
+
+Voir `docs/db/CONTRAT_STOCK_ACTUEL.md` pour le contrat officiel.
+
+---
 
 ---
 

@@ -3,6 +3,7 @@
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cdr_etat.dart';
+import 'package:ml_pp_mvp/shared/utils/app_log.dart';
 
 /// Service de logging des transitions d'état CDR
 ///
@@ -47,11 +48,11 @@ class CdrLogsService {
       await _supabase.from('cdr_logs').insert(payload);
     } on PostgrestException catch (e) {
       // Log l'erreur mais ne pas faire échouer la transition
-      print('Erreur lors de l\'enregistrement du log CDR: ${e.message}');
+      appLog('Erreur lors de l\'enregistrement du log CDR: ${e.message}');
       rethrow;
     } catch (e) {
       // Log l'erreur mais ne pas faire échouer la transition
-      print('Erreur inattendue lors de l\'enregistrement du log CDR: $e');
+      appLog('Erreur inattendue lors de l\'enregistrement du log CDR: $e');
       rethrow;
     }
   }

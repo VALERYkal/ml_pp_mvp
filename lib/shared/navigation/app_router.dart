@@ -1,11 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' hide Provider;
 import 'package:ml_pp_mvp/shared/providers/session_provider.dart';
 import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart';
 import 'package:ml_pp_mvp/core/models/user_role.dart';
-import 'package:ml_pp_mvp/shared/navigation/go_router_refresh_stream.dart';
 import 'package:ml_pp_mvp/shared/navigation/router_refresh.dart';
 
 import 'package:ml_pp_mvp/features/auth/screens/login_screen.dart';

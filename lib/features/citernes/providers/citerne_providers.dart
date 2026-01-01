@@ -127,9 +127,10 @@ final citerneStocksSnapshotProvider = Riverpod.FutureProvider.autoDispose<DepotS
     );
   }
 
-  // 4) Récupérer les stocks depuis v_stock_actuel_snapshot
+  // 4) Récupérer les stocks depuis v_stock_actuel (source de vérité canonique)
+  // SOURCE CANONIQUE — inclut adjustments (AXE A)
   final repo = ref.read(stocksKpiRepositoryProvider);
-  final stockRows = await repo.fetchCiterneStocksFromSnapshot(depotId: depotId);
+  final stockRows = await repo.fetchStockActuelRows(depotId: depotId);
 
   // Helper pour conversion sécurisée
   double _safeDouble(dynamic v) {
@@ -164,8 +165,8 @@ final citerneStocksSnapshotProvider = Riverpod.FutureProvider.autoDispose<DepotS
     try {
       final map = Map<String, dynamic>.from(m);
 
-      // Adapter les clés de v_stock_actuel_snapshot vers le format attendu par CiterneGlobalStockSnapshot
-      // La vue retourne stock_ambiant et stock_15c (sans _total)
+      // Adapter les clés de v_stock_actuel vers le format attendu par CiterneGlobalStockSnapshot
+      // La vue retourne stock_ambiant et stock_15c (pas _total)
       map['stock_ambiant_total'] = _safeDouble(
         map['stock_ambiant_total'] ?? map['stock_ambiant'],
       );

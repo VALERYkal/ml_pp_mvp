@@ -23,7 +23,7 @@ class ModernStatusTimeline extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: theme.dividerColor.withOpacity(0.1)),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -33,7 +33,7 @@ class ModernStatusTimeline extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: accentColor.withOpacity(0.1),
+                  color: accentColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(Icons.timeline, color: accentColor, size: 20),
@@ -84,8 +84,8 @@ class ModernStatusTimeline extends StatelessWidget {
                     height: 2,
                     decoration: BoxDecoration(
                       color: isCompleted
-                          ? accentColor.withOpacity(0.3)
-                          : theme.dividerColor.withOpacity(0.2),
+                          ? accentColor.withValues(alpha: 0.3)
+                          : theme.dividerColor.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(1),
                     ),
                   ),
@@ -116,8 +116,8 @@ class ModernStatusTimeline extends StatelessWidget {
           height: 40,
           decoration: BoxDecoration(
             color: isActive || isCompleted
-                ? color.withOpacity(0.2)
-                : color.withOpacity(0.1),
+                ? color.withValues(alpha: 0.2)
+                : color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(color: color, width: isActive ? 2 : 1),
           ),

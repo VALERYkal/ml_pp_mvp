@@ -136,8 +136,8 @@ class _ModernKpiCardState extends State<ModernKpiCard>
                     end: Alignment.bottomRight,
                     colors: [
                       theme.colorScheme.surface,
-                      theme.colorScheme.surfaceContainerHighest.withOpacity(
-                        0.3,
+                      theme.colorScheme.surfaceContainerHighest.withValues(
+                        alpha: 0.3,
                       ),
                     ],
                   )
@@ -146,28 +146,28 @@ class _ModernKpiCardState extends State<ModernKpiCard>
             borderRadius: BorderRadius.circular(28),
             border: Border.all(
               color: _isHovered
-                  ? accentColor.withOpacity(0.2)
-                  : accentColor.withOpacity(0.1),
+                  ? accentColor.withValues(alpha: 0.2)
+                  : accentColor.withValues(alpha: 0.1),
               width: _isHovered ? 2.5 : 1.5,
             ),
             boxShadow: [
               // Ombre principale avec effet hover
               BoxShadow(
-                color: accentColor.withOpacity(_isHovered ? 0.15 : 0.08),
+                color: accentColor.withValues(alpha: _isHovered ? 0.15 : 0.08),
                 blurRadius: _isHovered ? 40 : 28,
                 offset: Offset(0, _isHovered ? 20 : 14),
                 spreadRadius: 0,
               ),
               // Ombre de profondeur
               BoxShadow(
-                color: Colors.black.withOpacity(0.06),
+                color: Colors.black.withValues(alpha: 0.06),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
                 spreadRadius: 0,
               ),
               // Ombre subtile pour la profondeur
               BoxShadow(
-                color: Colors.black.withOpacity(0.03),
+                color: Colors.black.withValues(alpha: 0.03),
                 blurRadius: 12,
                 offset: const Offset(0, 6),
                 spreadRadius: 0,
@@ -207,19 +207,19 @@ class _ModernKpiCardState extends State<ModernKpiCard>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                accentColor.withOpacity(_isHovered ? 0.2 : 0.15),
-                accentColor.withOpacity(_isHovered ? 0.15 : 0.1),
+                accentColor.withValues(alpha: _isHovered ? 0.2 : 0.15),
+                accentColor.withValues(alpha: _isHovered ? 0.15 : 0.1),
               ],
             ),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: accentColor.withOpacity(_isHovered ? 0.25 : 0.15),
+              color: accentColor.withValues(alpha: _isHovered ? 0.25 : 0.15),
               width: _isHovered ? 2.0 : 1.5,
             ),
             boxShadow: _isHovered
                 ? [
                     BoxShadow(
-                      color: accentColor.withOpacity(0.2),
+                      color: accentColor.withValues(alpha: 0.2),
                       blurRadius: 12,
                       offset: const Offset(0, 6),
                       spreadRadius: 0,
@@ -227,7 +227,7 @@ class _ModernKpiCardState extends State<ModernKpiCard>
                   ]
                 : [
                     BoxShadow(
-                      color: accentColor.withOpacity(0.1),
+                      color: accentColor.withValues(alpha: 0.1),
                       blurRadius: 8,
                       offset: const Offset(0, 4),
                       spreadRadius: 0,
@@ -252,7 +252,7 @@ class _ModernKpiCardState extends State<ModernKpiCard>
                     theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w800,
                       color: _isHovered
-                          ? accentColor.withOpacity(0.9)
+                          ? accentColor.withValues(alpha: 0.9)
                           : theme.colorScheme.onSurface,
                       letterSpacing: -0.3,
                       height: 1.1,
@@ -283,10 +283,10 @@ class _ModernKpiCardState extends State<ModernKpiCard>
       duration: const Duration(milliseconds: 300),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(_isHovered ? 0.15 : 0.1),
+        color: color.withValues(alpha: _isHovered ? 0.15 : 0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: color.withOpacity(_isHovered ? 0.3 : 0.2),
+          color: color.withValues(alpha: _isHovered ? 0.3 : 0.2),
           width: 1,
         ),
       ),
@@ -349,7 +349,7 @@ class _ModernKpiCardState extends State<ModernKpiCard>
           style:
               theme.textTheme.headlineLarge?.copyWith(
                 fontWeight: FontWeight.w900,
-                color: _isHovered ? accentColor.withOpacity(0.9) : accentColor,
+                color: _isHovered ? accentColor.withValues(alpha: 0.9) : accentColor,
                 letterSpacing: -0.8,
                 height: 1.0,
                 fontSize: 32,
@@ -365,8 +365,8 @@ class _ModernKpiCardState extends State<ModernKpiCard>
             style:
                 theme.textTheme.bodyLarge?.copyWith(
                   color: _isHovered
-                      ? theme.colorScheme.onSurfaceVariant.withOpacity(0.9)
-                      : theme.colorScheme.onSurfaceVariant.withOpacity(0.8),
+                      ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.9)
+                      : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
                   fontWeight: FontWeight.w600,
                   letterSpacing: 0.3,
                   fontSize: 16,
@@ -393,7 +393,7 @@ class _ModernKpiCardState extends State<ModernKpiCard>
               theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w800,
                 color: _isHovered
-                    ? theme.colorScheme.onSurface.withOpacity(0.9)
+                    ? theme.colorScheme.onSurface.withValues(alpha: 0.9)
                     : theme.colorScheme.onSurface,
                 letterSpacing: -0.3,
                 height: 1.1,
@@ -410,8 +410,8 @@ class _ModernKpiCardState extends State<ModernKpiCard>
             style:
                 theme.textTheme.bodyMedium?.copyWith(
                   color: _isHovered
-                      ? theme.colorScheme.onSurfaceVariant.withOpacity(0.8)
-                      : theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
+                      ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8)
+                      : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                   fontWeight: FontWeight.w500,
                   letterSpacing: 0.2,
                   fontSize: 14,
@@ -432,19 +432,19 @@ class _ModernKpiCardState extends State<ModernKpiCard>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            theme.colorScheme.surfaceContainerHighest.withOpacity(0.6),
-            theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+            theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+            theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: theme.colorScheme.outline.withOpacity(0.1),
+          color: theme.colorScheme.outline.withValues(alpha: 0.1),
           width: 1,
         ),
         boxShadow: _isHovered
             ? [
                 BoxShadow(
-                  color: theme.colorScheme.shadow.withOpacity(0.1),
+                  color: theme.colorScheme.shadow.withValues(alpha: 0.1),
                   blurRadius: 8,
                   offset: const Offset(0, 4),
                 ),
@@ -469,7 +469,7 @@ class _ModernKpiCardState extends State<ModernKpiCard>
             child: Text(
               metric.label,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant.withOpacity(0.8),
+                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
                 fontWeight: FontWeight.w500,
                 fontSize: 14,
               ),

@@ -162,7 +162,6 @@ class ProfilService {
         .eq('user_id', uid)
         .maybeSingle();
 
-    if (res == null) return null;
     return Profil.fromJson(res);
   }
 

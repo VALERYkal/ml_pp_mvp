@@ -4,6 +4,116 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 
 ## [Unreleased]
 
+### 🔒 **AXE A — Alignement complet sur v_stock_actuel (01/01/2026)**
+
+#### **Changed**
+
+- **Alignement complet de l'application sur v_stock_actuel** : Migration de tous les modules vers la source de vérité canonique - **01/01/2026**
+  - **Objectif** : Garantir que toute l'application lit le stock actuel depuis `v_stock_actuel`, incluant automatiquement les ajustements (`stocks_adjustments`)
+  - **Changements techniques** :
+    - **Méthode canonique créée** : `StocksKpiRepository.fetchStockActuelRows()` - méthode centrale pour lire depuis `v_stock_actuel`
+    - **Dashboard** : Migration de `depotGlobalStockFromSnapshotProvider` et `depotOwnerStockFromSnapshotProvider` vers `fetchStockActuelRows()` avec agrégation Dart
+    - **Module Stock** : Migration de `StocksRepository.totauxActuels()` de `v_citerne_stock_snapshot_agg` vers `v_stock_actuel`
+    - **Module Citernes** : Migration de `CiterneRepository.fetchCiterneStockSnapshots()` de `v_citerne_stock_snapshot_agg` vers `v_stock_actuel` avec agrégation par `citerne_id`
+  - **Fichiers modifiés** :
+    - `lib/data/repositories/stocks_kpi_repository.dart` (ajout `fetchStockActuelRows()`)
+    - `lib/features/stocks/data/stocks_kpi_providers.dart` (migration providers Dashboard)
+    - `lib/data/repositories/stocks_repository.dart` (migration `totauxActuels()`)
+    - `lib/features/citernes/data/citerne_repository.dart` (migration `fetchCiterneStockSnapshots()`)
+    - `lib/features/citernes/providers/citerne_providers.dart` (migration provider legacy)
+  - **Résultats** :
+    - ✅ Toute lecture de stock actuel passe par `v_stock_actuel` (source de vérité unique)
+    - ✅ Les ajustements sont immédiatement visibles dans Dashboard, Citernes et Module Stock
+    - ✅ Cohérence garantie entre tous les modules (même source de données)
+    - ✅ Aucune modification de la base de données ou des vues SQL
+    - ✅ `flutter analyze` OK, aucune régression fonctionnelle
+  - **Conformité** : Contrat DB-STRICT (AXE A) - voir `docs/db/CONTRAT_STOCK_ACTUEL.md`
+
+- **Correction module Citernes** : Affichage du stock réel incluant ajustements - **01/01/2026**
+  - **Problème** : Le module Citernes affichait 30 400 L au lieu de 31 253 L car il utilisait encore `v_citerne_stock_snapshot_agg` (vue dépréciée)
+  - **Solution** : Migration de `CiterneRepository.fetchCiterneStockSnapshots()` vers `v_stock_actuel` avec agrégation Dart par `citerne_id`
+  - **Changements techniques** :
+    - Remplacement de la lecture depuis `v_citerne_stock_snapshot_agg` par `v_stock_actuel`
+    - Agrégation côté Dart : somme de toutes les lignes de `v_stock_actuel` ayant le même `citerne_id` (tous propriétaires confondus)
+    - Récupération des capacités depuis la table `citernes` pour compléter les snapshots
+    - Conservation du type de retour `List<CiterneStockSnapshot>` et de la signature publique
+  - **Fichier modifié** :
+    - `lib/features/citernes/data/citerne_repository.dart` (méthode `fetchCiterneStockSnapshots()`)
+  - **Résultats** :
+    - ✅ Module Citernes affiche maintenant 31 253 L (stock réel incluant ajustements)
+    - ✅ Cohérence avec Dashboard et Module Stock (même source de données)
+    - ✅ Ajustements visibles immédiatement dans l'écran Citernes
+    - ✅ Aucune modification de l'UI ou des providers (seulement le repository)
+    - ✅ `flutter analyze` OK
+  - **Conformité** : Contrat DB-STRICT (AXE A) - voir `docs/db/CONTRAT_STOCK_ACTUEL.md`
+
+#### **Fixed**
+
+- **Correction erreur Supabase 23502** : Ajout de `created_by` dans les ajustements de stock - **01/01/2026**
+  - **Problème** : Erreur `23502` (contrainte NOT NULL violée) lors de la création d'un ajustement car `created_by` n'était pas fourni
+  - **Solution** : Récupération de l'utilisateur authentifié via `Supabase.instance.client.auth.currentUser` et ajout explicite de `created_by` dans le payload
+  - **Fichier modifié** :
+    - `lib/features/stocks_adjustments/data/stocks_adjustments_service.dart` (méthode `createAdjustment()`)
+  - **Résultats** :
+    - ✅ Plus d'erreur 23502 lors de la création d'ajustements
+    - ✅ `created_by` correctement rempli avec l'ID de l'utilisateur authentifié
+    - ✅ Logs de debug temporaires ajoutés pour diagnostic (à supprimer après validation)
+    - ✅ `flutter analyze` OK
+  - **Conformité** : Correction de bug critique sans modification de la logique métier
+
+### 🔧 **Maintenance & Refactoring**
+
+#### **Fixed**
+
+- **Corrections null-safety** : Nettoyage des warnings de null-check impossibles - **31/12/2025**
+  - **Objectif** : Éliminer les warnings `dead_null_aware_expression`, `unnecessary_null_comparison`, `invalid_null_aware_operator` sans changer la logique
+  - **Corrections appliquées** :
+    - `cours_cache_provider.dart` et `cours_sort_provider.dart` : Suppression de `?? ''` sur `fournisseurId` (non-nullable)
+    - `sortie_service.dart` : Suppression de `?? 'N/A'` sur `e.message`, `e.details`, `e.hint` (4 occurrences)
+    - `cours_de_route_service.dart` : Suppression des vérifications `current == null` et `res != null` inutiles
+    - `profil_service.dart` : Suppression de `if (res == null)` inutile
+  - **Résultats** :
+    - ✅ Réduction significative des warnings de null-safety
+    - ✅ Aucune modification de la logique fonctionnelle
+    - ✅ Code plus propre et conforme aux règles Dart
+  - **Conformité** : Amélioration de la qualité du code sans risque fonctionnel
+
+- **Migration API Flutter dépréciée** : Remplacement de `withOpacity` par `withValues(alpha: ...)` - **01/01/2026**
+  - **Objectif** : Éliminer les avertissements de dépréciation Flutter récents sans changer l'apparence de l'application
+  - **Règle de remplacement** : `color.withOpacity(x)` → `color.withValues(alpha: x)` (valeur x conservée identique)
+  - **Fichiers traités** :
+    - `lib/features/auth/screens/login_screen.dart` (1 occurrence)
+    - `lib/features/citernes/screens/citerne_list_screen.dart` (20 occurrences)
+    - `lib/features/cours_route/screens/cours_route_list_screen.dart` (2 occurrences)
+    - `lib/features/cours_route/screens/cours_route_detail_screen.dart` (8 occurrences)
+    - `lib/shared/ui/modern_components/modern_status_timeline.dart` (5 occurrences)
+    - `lib/shared/ui/modern_components/modern_kpi_card.dart` (28 occurrences)
+    - `lib/shared/ui/modern_components/modern_info_card.dart` (5 occurrences)
+    - `lib/shared/ui/modern_components/modern_detail_header.dart` (5 occurrences)
+    - `lib/shared/ui/modern_components/modern_action_card.dart` (5 occurrences)
+    - `lib/shared/ui/modern_components/dashboard_header.dart` (12 occurrences)
+    - `lib/shared/ui/modern_components/dashboard_grid.dart` (2 occurrences)
+    - `lib/shared/ui/kpi_card.dart` (3 occurrences)
+  - **Résultats** :
+    - ✅ Diminution nette des `deprecated_member_use` liés à `withOpacity`
+    - ✅ Aucune modification des couleurs métier (badges propriétaire, etc.) - seulement l'API
+    - ✅ Apparence UI identique (valeurs d'opacité conservées)
+    - ✅ `flutter analyze` OK, aucune erreur de linter
+  - **Conformité** : Migration vers API Flutter moderne sans régression visuelle
+
+- **Application limitée de `prefer_const_constructors`** : Constification sélective de widgets statiques - **01/01/2026**
+  - **Objectif** : Réduire les avertissements du linter `prefer_const_constructors` de manière sûre et limitée
+  - **Stratégie** : Application uniquement sur widgets statiques simples (safe), sans modifier les props dynamiques
+  - **Garde-fou** : Aucune modification des props dynamiques, aucun impact sur les tests snapshot/golden
+  - **Fichiers traités** :
+    - `lib/features/auth/screens/login_screen.dart` : Constification de `RoundedRectangleBorder`, `BoxDecoration`, `BorderRadius`, `AlwaysStoppedAnimation`
+    - `lib/features/cours_route/screens/cours_route_detail_screen.dart` : Constification de `BorderRadius`, `Row` dans `PopupMenuItem`
+  - **Résultats** :
+    - ✅ Réduction des avertissements `prefer_const_constructors` sans régression
+    - ✅ Aucune modification de comportement (widgets statiques uniquement)
+    - ✅ `flutter analyze` OK, aucune erreur de linter
+  - **Conformité** : Amélioration de la qualité du code sans risque fonctionnel
+
 ### 🔒 **AXE A — DB-STRICT & INTÉGRITÉ MÉTIER (31/12/2025)**
 
 #### **Added**
@@ -99,6 +209,239 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
     - ✅ `@Deprecated` conservé (méthodes legacy pour compatibilité avec ReceptionService)
     - ✅ `flutter analyze` OK, aucune régression fonctionnelle
   - **Conformité** : Contrat DB-STRICT (AXE A) - voir `docs/db/CONTRAT_STOCK_ACTUEL.md`
+
+- **Ticket A-FLT-05** : Migration dashboard StockTotalTile vers source unifiée basée sur depotId - **31/12/2025**
+  - **Objectif** : Supprimer l'usage de `stocksDashboardKpisProvider(null)` dans le dashboard et forcer l'utilisation des providers snapshot paramétrés par `depotId` (conformité DB-STRICT AXE A)
+  - **Changements techniques** :
+    - Création de `currentDepotIdProvider` dans `depots_provider.dart` : Provider synchrone qui extrait `depotId` depuis `currentProfilProvider`
+    - Création du DTO `DashboardStockTotals` dans `kpi_tiles.dart` : DTO local pour les totaux de stock (total15c, totalAmbient, capacityTotal, usagePct)
+    - Création de `dashboardStockTotalProvider` : Provider unifié qui combine `depotGlobalStockFromSnapshotProvider(depotId)` et `depotTotalCapacityProvider(depotId)` avec récupération parallèle via `await` direct
+    - Migration de `StockTotalTile` : Remplacement de `stocksDashboardKpisProvider(null)` par `dashboardStockTotalProvider`
+    - Gestion du cas `depotId == null` : Retourne un DTO vide (0/0/0/0) si le profil n'a pas de dépôt
+    - Optimisation : Utilisation de `ref.read()` et `await` direct pour récupérer stock et capacité en parallèle (Future créées avant await)
+  - **Fichiers modifiés** :
+    - `lib/features/depots/providers/depots_provider.dart` (ajout `currentDepotIdProvider`)
+    - `lib/features/dashboard/widgets/kpi_tiles.dart` (migration `StockTotalTile` + création `dashboardStockTotalProvider` et `DashboardStockTotals`)
+  - **Résultats** :
+    - ✅ Plus aucune référence à `stocksDashboardKpisProvider(null)` dans le dashboard
+    - ✅ Tous les KPIs stock dépendent d'un `depotId` (source unifiée via `currentDepotIdProvider`)
+    - ✅ Utilisation exclusive des providers snapshot canoniques (`depotGlobalStockFromSnapshotProvider`, `depotTotalCapacityProvider`)
+    - ✅ Conformité DB-STRICT (AXE A) : pas de source legacy non paramétrée, tous les KPIs sont liés à un dépôt
+    - ✅ Aucune requête Supabase directe dans les widgets (conformité architecture)
+    - ✅ `flutter analyze` OK, aucune régression
+  - **Conformité** : Contrat DB-STRICT (AXE A) - voir `docs/db/AXE_A_DB_STRICT.md` et `docs/db/CONTRAT_STOCK_ACTUEL.md`
+
+- **Ticket A-FLT-06** : Améliorations de robustesse dashboardStockTotalProvider et KpiCard - **31/12/2025**
+  - **Objectif** : Rendre le code plus type-safe, robuste et extensible (suppression casts fragiles, protection NaN/Infinity, subtitle optionnel)
+  - **Fichiers modifiés** :
+    - `lib/features/dashboard/widgets/kpi_tiles.dart` (améliorations `dashboardStockTotalProvider`, `KpiCard`, `StockTotalTile`)
+  - **Changements techniques** :
+    - **dashboardStockTotalProvider** : Suppression de `Future.wait()` avec casts, remplacement par `await` direct (parallélisation préservée, plus type-safe)
+    - **dashboardStockTotalProvider** : Protection contre NaN/Infinity avec `isFinite` pour `usagePct` avant utilisation
+    - **KpiCard** : Ajout champ `subtitle` optionnel (`String?`) avec affichage conditionnel uniquement si `subtitle != null && subtitle!.trim().isNotEmpty`
+    - **KpiCard** : Conversion safe de la valeur avec `.toDouble()` avant `toStringAsFixed(0)`
+    - **StockTotalTile** : Affichage du pourcentage d'utilisation via `subtitle: 'Utilisation: ${totals.usagePct.toStringAsFixed(1)}%'`
+  - **Résultats** :
+    - ✅ Plus de casts fragiles (`as (...)` ou `as double`) - code type-safe
+    - ✅ Protection contre NaN/Infinity pour le calcul de pourcentage
+    - ✅ Plus de warning "usagePct unused" - le champ est maintenant utilisé dans l'UI
+    - ✅ Affichage du pourcentage d'utilisation dans la carte KPI Stock total
+    - ✅ `KpiCard` extensible sans régression (subtitle optionnel, autres KPIs inchangés)
+    - ✅ `flutter analyze` OK, aucune régression fonctionnelle
+  - **Conformité** : Amélioration de la robustesse du code existant (A-FLT-05) - voir `docs/db/AXE_A_DB_STRICT.md`
+
+- **Ticket A-FLT-07** : Nettoyage qualité de code - suppression warnings (unused imports, variables, casts) - **31/12/2025**
+  - **Objectif** : Éliminer les warnings de qualité de code directement liés aux zones dashboard/stock sans modifier le comportement
+  - **Changements techniques** :
+    - **kpi_tiles.dart** : Suppression des imports non utilisés
+      - `import 'package:ml_pp_mvp/features/cours_route/models/cdr_etat.dart';` (non utilisé)
+      - `import 'package:ml_pp_mvp/shared/formatters.dart';` (non utilisé)
+    - **role_dashboard.dart** : Correction variable `snapshotAsync` unused
+      - Remplacement de la déclaration de variable inutilisée par un `if` avec `ref.watch()` direct
+      - Conserve la réactivité/invalidations Riverpod sans variable intermédiaire
+    - **stocks_kpi_repository.dart** : Nettoyage code mort et casts inutiles
+      - Suppression de la fonction `_safeToDouble()` non utilisée (lignes 11-21)
+      - Suppression des casts redondants aux lignes 220 et 618
+      - Les types sont déjà spécifiés dans `.select<List<Map<String, dynamic>>>()`, donc les casts étaient inutiles
+  - **Fichiers modifiés** :
+    - `lib/features/dashboard/widgets/kpi_tiles.dart` (suppression imports unused)
+    - `lib/features/dashboard/widgets/role_dashboard.dart` (correction variable unused)
+    - `lib/data/repositories/stocks_kpi_repository.dart` (suppression fonction unused + casts inutiles)
+  - **Résultats** :
+    - ✅ Plus de warning `unused_import` dans `kpi_tiles.dart`
+    - ✅ Plus de warning `unused_local_variable` pour `snapshotAsync` dans `role_dashboard.dart`
+    - ✅ Plus de warning `unused_element` pour `_safeToDouble` dans `stocks_kpi_repository.dart`
+    - ✅ Plus de warning `unnecessary_cast` dans `stocks_kpi_repository.dart`
+    - ✅ Comportement 100% préservé : aucune modification de la logique métier
+    - ✅ Architecture DB-STRICT intacte : aucun changement des providers ou signatures publiques
+    - ✅ `flutter analyze` OK, tous les warnings ciblés supprimés
+  - **Conformité** : Amélioration qualité de code sans régression - voir `docs/db/AXE_A_DB_STRICT.md`
+
+- **Ticket A-FLT-08** : Nettoyage imports inutiles (batch safe) - **31/12/2025**
+  - **Objectif** : Supprimer les imports non utilisés détectés par `flutter analyze` sans modifier la logique métier
+  - **Fichiers modifiés** :
+    - `lib/features/auth/screens/login_screen.dart` (suppression `go_router`, `user_role`, `profil_provider`)
+    - `lib/shared/navigation/app_router.dart` (suppression `supabase_flutter`, `go_router_refresh_stream`)
+    - `lib/shared/ui/errors.dart` (suppression `supabase_flutter`)
+    - `lib/features/cours_route/services/export_service.dart` (suppression `dart:typed_data`)
+    - `lib/features/cours_route/widgets/infinite_scroll_list.dart` (suppression `cours_filters_provider`)
+    - `lib/features/logs/providers/logs_providers.dart` (suppression `flutter/foundation`)
+  - **Résultats** :
+    - ✅ Plus de warnings `unused_import` sur les fichiers ciblés
+    - ✅ Comportement 100% préservé : aucune modification de la logique métier
+    - ✅ `flutter analyze` OK, tous les warnings ciblés supprimés
+  - **Conformité** : Nettoyage qualité de code sans régression
+
+- **Ticket A-FLT-09** : Migration MaterialStateProperty → WidgetStateProperty (dépréciations Flutter) - **31/12/2025**
+  - **Objectif** : Corriger les usages dépréciés de `MaterialStateProperty` et `MaterialState` vers les nouvelles APIs Flutter
+  - **Changements techniques** :
+    - `MaterialStateProperty.all(...)` → `WidgetStateProperty.all(...)`
+    - `MaterialStateProperty.resolveWith(...)` → `WidgetStateProperty.resolveWith(...)`
+    - `MaterialState.hovered` → `WidgetState.hovered`
+  - **Fichiers modifiés** :
+    - `lib/features/auth/screens/login_screen.dart` (ligne 349 : `overlayColor` du `ElevatedButton`)
+    - `lib/features/cours_route/screens/cours_route_list_screen.dart` (lignes 538-539 : `color` du `DataRow`)
+  - **Résultats** :
+    - ✅ Plus de warnings de dépréciation `MaterialStateProperty`/`MaterialState`
+    - ✅ Comportement identique : migration API uniquement, aucun changement de style
+    - ✅ `flutter analyze` OK, tous les warnings ciblés supprimés
+  - **Conformité** : Migration API Flutter sans changement de comportement
+
+- **Ticket A-FLT-10** : Nettoyage string interpolation lints (ultra low risk) - **31/12/2025**
+  - **Objectif** : Corriger les warnings `unnecessary_brace_in_string_interps` et `prefer_interpolation_to_compose_strings` sans modifier la logique
+  - **Changements techniques** :
+    - Simplification `${variable}` → `$variable` pour variables simples
+    - Remplacement `'...' + variable` → `'...$variable'` pour préférer l'interpolation
+  - **Fichiers modifiés** :
+    - `lib/data/repositories/receptions_repository.dart` (ligne 56 : `' depot=' + depotId` → `' depot=$depotId'`)
+    - `lib/data/repositories/stocks_repository.dart` (ligne 69 : concaténations → interpolations)
+    - `lib/features/cours_route/widgets/performance_indicator.dart` (ligne 56 : `${cacheHitRate}` → `$cacheHitRate`)
+    - `lib/features/logs/screens/logs_list_screen.dart` (ligne 174 : `${pageSize}` → `$pageSize`)
+    - `lib/features/receptions/data/cours_arrives_provider.dart` (ligne 44 : `${produitCode}`, `${produitNom}` simplifiés)
+  - **Résultats** :
+    - ✅ Warnings `unnecessary_brace_in_string_interps` supprimés
+    - ✅ Warnings `prefer_interpolation_to_compose_strings` supprimés
+    - ✅ Comportement identique : simplifications syntaxiques uniquement
+    - ✅ `flutter analyze` OK, tous les warnings ciblés supprimés
+  - **Conformité** : Amélioration qualité de code sans changement de logique
+
+- **Ticket A-FLT-11** : Correction lint curly_braces_in_flow_control_structures - **31/12/2025**
+  - **Objectif** : Ajouter des accolades `{}` aux structures de contrôle mono-lignes (if/for/while) pour conformité aux règles de lint Dart
+  - **Changements techniques** :
+    - Ajout d'accolades à toutes les structures de contrôle mono-lignes sans accolades dans les fichiers ciblés
+    - Correction appliquée uniquement aux lignes signalées par le linter, sans reformatage global des fichiers
+  - **Fichiers modifiés** :
+    - `lib/data/repositories/cours_de_route_repository.dart` (1 correction)
+    - `lib/data/repositories/stocks_kpi_repository.dart` (10+ corrections)
+    - `lib/features/auth/screens/login_screen.dart` (4 corrections)
+    - `lib/features/receptions/screens/reception_form_screen.dart` (6 corrections)
+    - `lib/shared/providers/ref_data_provider.dart` (10+ corrections)
+    - `lib/features/logs/screens/logs_list_screen.dart` (1 correction)
+    - `lib/features/sorties/screens/sortie_form_screen.dart` (4 corrections)
+  - **Résultats** :
+    - ✅ Plus aucune erreur `curly_braces_in_flow_control_structures` sur les fichiers ciblés
+    - ✅ Conformité aux règles de lint Dart (meilleure lisibilité et maintenabilité)
+    - ✅ Comportement 100% préservé : aucune modification de la logique métier
+    - ✅ `flutter analyze` OK, tous les warnings ciblés supprimés
+  - **Conformité** : Amélioration qualité de code sans régression
+
+- **Ticket A-FLT-12** : Remplacement `print()` production par logger contrôlé `appLog()` - **31/12/2025**
+  - **Objectif** : Éliminer les violations `avoid_print` dans les fichiers de production en utilisant un logger qui ne s'affiche qu'en mode développement
+  - **Changements techniques** :
+    - Création du helper `lib/shared/utils/app_log.dart` avec fonction `appLog()` utilisant `assert()` + `debugPrint()` pour un logging dev-only (tree-shaking en production)
+    - Remplacement de tous les `print()` par `appLog()` dans les fichiers de production ciblés
+    - Imports ajoutés dans les fichiers modifiés
+  - **Fichiers modifiés** :
+    - `lib/shared/utils/app_log.dart` (créé : helper de logging)
+    - `lib/features/cours_route/data/cdr_logs_service.dart` (2 occurrences remplacées)
+    - `lib/features/cours_route/data/cours_de_route_service.dart` (1 occurrence remplacée)
+    - `lib/features/kpi/providers/kpi_provider.dart` (23 occurrences remplacées)
+  - **Note** : Le fichier `test/features/auth/run_auth_tests.dart` conserve ses `print()` car c'est un script de test où ils sont acceptables
+  - **Résultats** :
+    - ✅ Plus aucune violation `avoid_print` dans les fichiers de production ciblés
+    - ✅ Les logs ne s'affichent qu'en mode développement (supprimés en production via tree-shaking)
+    - ✅ Aucun changement fonctionnel : comportement préservé pour le debug en dev
+    - ✅ `flutter analyze` OK, plus d'erreurs `avoid_print` sur les fichiers modifiés
+  - **Conformité** : Amélioration qualité de code (respect des règles lint) sans régression fonctionnelle
+
+#### **AXE A — Complétion APP (UX Ajustements)**
+
+- **Ticket A-UX-01** : Service + Provider StocksAdjustments - **31/12/2025**
+  - **Objectif** : Créer le service Flutter encapsulant l'appel Supabase vers `stocks_adjustments` (complétion côté APP du mécanisme DB-STRICT AXE A)
+  - **Fichiers créés** :
+    - `lib/core/errors/stocks_adjustments_exception.dart` (exception dédiée)
+    - `lib/features/stocks_adjustments/data/stocks_adjustments_service.dart` (service avec validations)
+    - `lib/features/stocks_adjustments/providers/stocks_adjustments_providers.dart` (provider Riverpod)
+  - **Fonctionnalités** :
+    - Service `StocksAdjustmentsService.createAdjustment()` avec validations côté Flutter
+    - Payload minimal conforme contrat DB-STRICT : `mouvement_type`, `mouvement_id`, `delta_ambiant`, `delta_15c`, `reason`
+    - Les champs `created_by`, `depot_id`, `citerne_id`, `produit_id`, `proprietaire_type` sont gérés par DB (triggers)
+    - Validation : `mouvement_type` ('RECEPTION' | 'SORTIE'), `delta_ambiant != 0`, `reason.length >= 10`
+    - Gestion d'erreurs robuste : détection RLS/permissions avec messages utilisateur lisibles
+  - **Résultats** :
+    - ✅ Service injectable via `stocksAdjustmentsServiceProvider`
+    - ✅ Conformité stricte au contrat DB-STRICT AXE A (payload minimal, DB gère le reste)
+    - ✅ Aucun fichier existant modifié (nouveaux fichiers uniquement)
+    - ✅ `flutter analyze` OK, aucune régression
+  - **Conformité** : Contrat DB-STRICT (AXE A) - voir `docs/db/AXE_A_DB_STRICT.md`
+
+- **Ticket A-UX-02** : Bouton "Corriger (Ajustement)" sur écrans détails Réception/Sortie - **01/01/2026**
+  - **Objectif** : Ajouter une action pour créer un ajustement de stock directement depuis les écrans de détails des réceptions et sorties (admin uniquement)
+  - **Fichiers modifiés** :
+    - `lib/features/receptions/screens/reception_detail_screen.dart` : Ajout bouton dans AppBar
+    - `lib/features/sorties/screens/sortie_detail_screen.dart` : Ajout bouton dans AppBar
+  - **Fonctionnalités** :
+    - Bouton "Corriger (Ajustement)" (icône `Icons.tune`) dans l'AppBar des écrans de détails
+    - Visible uniquement pour les administrateurs (vérification via `userRoleProvider` et comparaison directe avec `UserRole.admin`)
+    - Au clic : ouverture du BottomSheet `StocksAdjustmentCreateSheet` avec les paramètres corrects
+    - Après succès : fermeture automatique du sheet et invalidation des providers de stock via `invalidateDashboardKpisAfterStockMovement()`
+    - Rafraîchissement automatique des vues dépendantes (dashboard, citernes, stocks)
+  - **Correction (01/01/2026)** : Bug fix condition d'affichage admin
+    - **Problème** : Condition `userRole?.isAdmin == true` ne fonctionnait pas car `userRole` est un enum `UserRole?`, pas un objet avec propriété `.isAdmin`
+    - **Solution** : Remplacement par comparaison directe `userRole == UserRole.admin`
+    - **Fichiers corrigés** : `reception_detail_screen.dart`, `sortie_detail_screen.dart`
+    - **Ajout** : Import `UserRole` nécessaire pour la comparaison
+  - **Résultats** :
+    - ✅ Bouton visible uniquement pour les admins (correction appliquée)
+    - ✅ Ajustement créé correctement en DB via le service existant
+    - ✅ Stocks rafraîchis automatiquement après création
+    - ✅ `flutter analyze` OK, aucune erreur ni warning
+    - ✅ Aucune dépendance circulaire, code propre et conforme au style du projet
+  - **Conformité** : Contrat DB-STRICT (AXE A) - Utilisation du service `StocksAdjustmentsService` existant
+
+- **Ticket A-UX-03** : Système d'ajustement de stock industriel complet - **01/01/2026**
+  - **Objectif** : Implémenter un système d'ajustement de stock industriel avec 4 types de corrections (Volume / Température / Densité / Mixte), sans modifier la DB
+  - **Fichier modifié** :
+    - `lib/features/stocks_adjustments/screens/stocks_adjustment_create_sheet.dart` : Réimplémentation complète du BottomSheet
+  - **Fonctionnalités** :
+    - **Enum `AdjustmentType`** : Volume, Température, Densité, Mixte avec labels et préfixes
+    - **Sélecteur de type** : `SegmentedButton` Material 3 pour choisir le type de correction
+    - **Chargement des données** : Récupération automatique des données du mouvement (température, densité, volume) depuis la DB
+    - **Champs dynamiques** selon le type :
+      - **Volume** : Correction ambiante (obligatoire, ≠ 0), température/densité en lecture seule
+      - **Température** : Nouvelle température (obligatoire, > 0), volume/densité en lecture seule
+      - **Densité** : Nouvelle densité (obligatoire, 0.7-1.1), volume/température en lecture seule
+      - **Mixte** : Correction ambiante + nouvelle température + nouvelle densité (tous obligatoires)
+    - **Calcul automatique des deltas** :
+      - Utilisation de `calcV15()` (même formule que Réceptions/Sorties)
+      - Recalcul automatique du volume à 15°C selon le type de correction
+      - Déduction de `deltaAmbiant` et `delta15c` selon les règles métier
+    - **Préfixage automatique de la raison** : `[VOLUME]`, `[TEMP]`, `[DENSITE]`, `[MIXTE]`
+    - **Suppression de la saisie manuelle du 15°C** : Calcul automatique uniquement
+    - **Aperçu des impacts** : Carte affichant les deltas calculés en temps réel
+    - **Validations** :
+      - Température > 0
+      - Densité entre 0.7 et 1.1
+      - Impact non nul (bloque si les deux deltas sont à 0)
+      - Champs obligatoires selon le type
+  - **Résultats** :
+    - ✅ L'admin corrige uniquement la cause réelle (type de correction adapté)
+    - ✅ 15°C toujours cohérent et recalculé automatiquement
+    - ✅ Audit lisible et explicite (raison préfixée automatiquement)
+    - ✅ Aucune régression, DB inchangée (utilise le service existant)
+    - ✅ `flutter analyze` OK (3 warnings mineurs `prefer_const_constructors` non bloquants)
+    - ✅ UX Material 3 propre avec SegmentedButton et champs dynamiques
+  - **Conformité** : Contrat DB-STRICT (AXE A) - Utilisation du service `StocksAdjustmentsService` existant, réutilisation de `calcV15()` pour cohérence avec Réceptions/Sorties
 
 ---
 

@@ -42,7 +42,7 @@ class KpiCard extends StatelessWidget {
           boxShadow: [
             BoxShadow(
               blurRadius: 24,
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black.withValues(alpha: 0.06),
               offset: const Offset(0, 12),
             ),
           ],
@@ -89,7 +89,7 @@ class KpiCard extends StatelessWidget {
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
-                  color: t.colorScheme.surfaceVariant.withOpacity(0.25),
+                  color: t.colorScheme.surfaceVariant.withValues(alpha: 0.25),
                 ),
                 child: Row(
                   children: [
@@ -121,7 +121,7 @@ class _IconTint extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: color.withOpacity(.1),
+        color: color.withValues(alpha: .1),
         borderRadius: BorderRadius.circular(12),
       ),
       padding: const EdgeInsets.all(10),

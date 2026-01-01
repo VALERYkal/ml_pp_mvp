@@ -72,7 +72,7 @@ class SortieService {
     } on PostgrestException catch (e, st) {
       if (kDebugMode) {
         debugPrint(
-          '[SORTIE][ERROR] code=${e.code} message=${e.message ?? 'N/A'} details=${e.details ?? 'N/A'} hint=${e.hint ?? 'N/A'}',
+          '[SORTIE][ERROR] code=${e.code} message=${e.message} details=${e.details} hint=${e.hint}',
         );
         debugPrint('[SORTIE][ERROR] stackTrace: $st');
       }
@@ -153,7 +153,7 @@ class SortieService {
     } on PostgrestException catch (e, st) {
       if (kDebugMode) {
         debugPrint(
-          '[SORTIE][ERROR] code=${e.code} message=${e.message ?? 'N/A'} details=${e.details ?? 'N/A'} hint=${e.hint ?? 'N/A'}',
+          '[SORTIE][ERROR] code=${e.code} message=${e.message} details=${e.details} hint=${e.hint}',
         );
         debugPrint('[SORTIE][ERROR] stackTrace: $st');
       }
@@ -271,7 +271,7 @@ class SortieService {
       } on PostgrestException catch (e, st) {
         if (kDebugMode) {
           debugPrint(
-            '[SORTIE][ERROR] code=${e.code} message=${e.message ?? 'N/A'} details=${e.details ?? 'N/A'} hint=${e.hint ?? 'N/A'}',
+            '[SORTIE][ERROR] code=${e.code} message=${e.message} details=${e.details} hint=${e.hint}',
           );
           debugPrint('[SORTIE][ERROR] stackTrace: $st');
         }
@@ -343,7 +343,7 @@ class SortieService {
       } on PostgrestException catch (e, st) {
         if (kDebugMode) {
           debugPrint(
-            '[SORTIE][ERROR] code=${e.code} message=${e.message ?? 'N/A'} details=${e.details ?? 'N/A'} hint=${e.hint ?? 'N/A'}',
+            '[SORTIE][ERROR] code=${e.code} message=${e.message} details=${e.details} hint=${e.hint}',
           );
           debugPrint('[SORTIE][ERROR] stackTrace: $st');
         }

@@ -865,8 +865,12 @@ String _fmtVol(num? v) => v == null ? '—' : '${v.toStringAsFixed(0)} L';
 String _fmtDate(DateTime? d) =>
     d == null ? '—' : d.toIso8601String().substring(0, 10);
 String _shorten(String value, int maxLength) {
-  if (value.isEmpty) return value;
-  if (value.length <= maxLength) return value;
+  if (value.isEmpty) {
+    return value;
+  }
+  if (value.length <= maxLength) {
+    return value;
+  }
   return value.substring(0, maxLength);
 }
 
@@ -910,9 +914,12 @@ class _HeaderCoursHeader extends ConsumerWidget {
                 );
                 // derive code from produitCodes if possible
                 final code = cache.produitCodes[cours!.produitId];
-                if (prodCode.isEmpty && code != null && code.isNotEmpty)
+                if (prodCode.isEmpty && code != null && code.isNotEmpty) {
                   prodCode = code;
-                if (prodNom.isEmpty && name.isNotEmpty) prodNom = name;
+                }
+                if (prodNom.isEmpty && name.isNotEmpty) {
+                  prodNom = name;
+                }
               }
             },
             orElse: () {},
@@ -995,7 +1002,9 @@ class _CoursArriveSelector extends ConsumerWidget {
 
     // lookups id -> libellés produits via cache détaillé
     String fournisseurNameOf(String? id) {
-      if (id == null || id.isEmpty) return '—';
+      if (id == null || id.isEmpty) {
+        return '—';
+      }
       return fournisseurs.maybeWhen(
         data: (cache) => rfd.resolveName(cache, id, 'fournisseur'),
         orElse: () => '—',
@@ -1003,7 +1012,9 @@ class _CoursArriveSelector extends ConsumerWidget {
     }
 
     String produitCodeOf(String? id) {
-      if (id == null || id.isEmpty) return '';
+      if (id == null || id.isEmpty) {
+        return '';
+      }
       return fournisseurs.maybeWhen(
         data: (cache) => cache.produitCodes[id] ?? '',
         orElse: () => '',
@@ -1011,7 +1022,9 @@ class _CoursArriveSelector extends ConsumerWidget {
     }
 
     String produitNomOf(String? id) {
-      if (id == null || id.isEmpty) return '';
+      if (id == null || id.isEmpty) {
+        return '';
+      }
       return fournisseurs.maybeWhen(
         data: (cache) => rfd.resolveName(cache, id, 'produit'),
         orElse: () => '',
@@ -1021,8 +1034,12 @@ class _CoursArriveSelector extends ConsumerWidget {
     String _fmtDate(DateTime? d) =>
         d == null ? '—' : d.toIso8601String().substring(0, 10);
     String _shorten(String value, int maxLength) {
-      if (value.isEmpty) return value;
-      if (value.length <= maxLength) return value;
+      if (value.isEmpty) {
+        return value;
+      }
+      if (value.length <= maxLength) {
+        return value;
+      }
       return value.substring(0, maxLength);
     }
 
@@ -1051,7 +1068,9 @@ class _CoursArriveSelector extends ConsumerWidget {
       loading: () => const LinearProgressIndicator(minHeight: 2),
       error: (e, _) => Text('Erreur chargement CDR: $e'),
       data: (items) {
-        if (items.isEmpty) return const Text('Aucun CDR au statut ARRIVE');
+        if (items.isEmpty) {
+          return const Text('Aucun CDR au statut ARRIVE');
+        }
         return DropdownButtonFormField<CoursDeRoute>(
           isExpanded: true,
           decoration: const InputDecoration(
@@ -1120,7 +1139,9 @@ class _ProduitChips extends ConsumerWidget {
             final sb = (b.code.isNotEmpty ? b.code : b.nom);
             return sa.compareTo(sb);
           });
-        if (actifs.isEmpty) return const Text('Aucun produit disponible');
+        if (actifs.isEmpty) {
+          return const Text('Aucun produit disponible');
+        }
         return Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -1132,7 +1153,9 @@ class _ProduitChips extends ConsumerWidget {
                 onSelected: !enabled
                     ? null
                     : (sel) {
-                        if (sel) onSelected(p.id);
+                        if (sel) {
+                          onSelected(p.id);
+                        }
                       },
               ),
           ],

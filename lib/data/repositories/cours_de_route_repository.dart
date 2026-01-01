@@ -51,7 +51,9 @@ class CoursDeRouteRepository {
 
     for (final m in (rows as List)) {
       final rawStatut = (m['statut'] as String?)?.trim();
-      if (rawStatut == null) continue;
+      if (rawStatut == null) {
+        continue;
+      }
 
       final s = rawStatut.toUpperCase();
       final v = (m['volume'] as num?)?.toDouble() ?? 0.0;

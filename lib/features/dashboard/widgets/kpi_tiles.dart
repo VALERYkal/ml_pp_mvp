@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ml_pp_mvp/features/cours_route/models/cdr_etat.dart';
 import 'package:ml_pp_mvp/features/cours_route/providers/cdr_kpi_provider.dart';
-import 'package:ml_pp_mvp/shared/formatters.dart';
-import 'package:ml_pp_mvp/features/kpi/providers/kpi_providers.dart';
+import 'package:ml_pp_mvp/features/depots/providers/depots_provider.dart'
+    show currentDepotIdProvider;
+import 'package:ml_pp_mvp/features/stocks/data/stocks_kpi_providers.dart'
+    show depotGlobalStockFromSnapshotProvider, depotTotalCapacityProvider;
 
 /// Carte KPI réutilisable
 class KpiCard extends StatelessWidget {
@@ -11,6 +12,7 @@ class KpiCard extends StatelessWidget {
   final num? value;
   final bool warning;
   final IconData? icon;
+  final String? subtitle;
 
   const KpiCard({
     super.key,
@@ -18,11 +20,12 @@ class KpiCard extends StatelessWidget {
     required this.value,
     this.warning = false,
     this.icon,
+    this.subtitle,
   });
 
   @override
   Widget build(BuildContext context) {
-    final v = value ?? 0;
+    final v = (value ?? 0).toDouble();
     final defaultIcon = warning ? Icons.warning_amber : Icons.trending_up;
 
     return SizedBox(
@@ -63,6 +66,15 @@ class KpiCard extends StatelessWidget {
                                 : Theme.of(context).colorScheme.onSurface,
                           ),
                     ),
+                    if (subtitle != null && subtitle!.trim().isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle!,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -437,25 +449,94 @@ class CdrKpiTilesDetail extends ConsumerWidget {
   }
 }
 
+/// DTO pour les totaux de stock du dashboard
+class DashboardStockTotals {
+  final double total15c;
+  final double totalAmbient;
+  final double capacityTotal;
+  final double usagePct;
+
+  const DashboardStockTotals({
+    required this.total15c,
+    required this.totalAmbient,
+    required this.capacityTotal,
+    required this.usagePct,
+  });
+
+  /// Crée un DTO vide (dépôt non défini)
+  factory DashboardStockTotals.empty() {
+    return const DashboardStockTotals(
+      total15c: 0.0,
+      totalAmbient: 0.0,
+      capacityTotal: 0.0,
+      usagePct: 0.0,
+    );
+  }
+}
+
+/// Provider unifié pour les totaux de stock du dashboard
+///
+/// Combine depotGlobalStockFromSnapshotProvider et depotTotalCapacityProvider
+/// pour fournir un DTO unique utilisé par StockTotalTile.
+/// Si depotId est null (profil incomplet), retourne un DTO vide.
+///
+/// Conformité DB-STRICT (AXE A) : utilise uniquement les vues snapshot canoniques
+/// paramétrées par depotId (source de vérité unique).
+final dashboardStockTotalProvider =
+    FutureProvider<DashboardStockTotals>((ref) async {
+  final depotId = ref.watch(currentDepotIdProvider);
+  
+  // Si pas de dépôt, retourner valeurs vides
+  if (depotId == null) {
+    return DashboardStockTotals.empty();
+  }
+
+  // Récupérer stock et capacité en parallèle (les Future sont déclenchées simultanément)
+  final stockFuture = ref.read(depotGlobalStockFromSnapshotProvider(depotId).future);
+  final capacityFuture = ref.read(depotTotalCapacityProvider(depotId).future);
+
+  // Attendre les deux résultats (parallélisation garantie car Future créées avant await)
+  final stock = await stockFuture;
+  final capacity = await capacityFuture;
+
+  // Calculer le pourcentage d'utilisation (affichage uniquement, pas recalcul stock)
+  final rawPct = capacity > 0 ? (stock.amb / capacity * 100) : 0.0;
+  final usagePct = rawPct.isFinite ? rawPct : 0.0;
+
+  return DashboardStockTotals(
+    total15c: stock.v15,
+    totalAmbient: stock.amb,
+    capacityTotal: capacity,
+    usagePct: usagePct,
+  );
+});
+
 // Stock total — 15°C en primary, ambiant en secondaire, % d'utilisation
 class StockTotalTile extends ConsumerWidget {
   const StockTotalTile({super.key});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final total15c = ref.watch(
-      kpiStocksProvider.select((s) => s.total15c ?? 0.0),
-    );
-    final totalAmb = ref.watch(
-      kpiStocksProvider.select((s) => s.totalAmbient ?? 0.0),
-    );
-    final capacity = ref.watch(
-      kpiStocksProvider.select((s) => s.capacityTotal ?? 0.0),
-    );
-    final usagePct = capacity <= 0 ? 0 : (totalAmb / capacity * 100);
-    return KpiCard(
-      title: 'Stock total',
-      value: total15c,
-      icon: Icons.inventory_2_outlined,
+    final totalsAsync = ref.watch(dashboardStockTotalProvider);
+
+    return totalsAsync.when(
+      loading: () => const KpiCard(
+        title: 'Stock total',
+        value: 0,
+        icon: Icons.inventory_2_outlined,
+      ),
+      error: (e, _) => const KpiCard(
+        title: 'Stock total',
+        value: 0,
+        icon: Icons.inventory_2_outlined,
+      ),
+      data: (totals) {
+        return KpiCard(
+          title: 'Stock total',
+          value: totals.total15c,
+          icon: Icons.inventory_2_outlined,
+          subtitle: 'Utilisation: ${totals.usagePct.toStringAsFixed(1)}%',
+        );
+      },
     );
   }
 }

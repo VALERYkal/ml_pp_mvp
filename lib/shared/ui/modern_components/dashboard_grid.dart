@@ -164,8 +164,8 @@ class DashboardSection extends StatelessWidget {
                   Text(
                     subtitle!,
                     style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant.withOpacity(
-                        0.8,
+                      color: theme.colorScheme.onSurfaceVariant.withValues(
+                        alpha: 0.8,
                       ),
                       fontWeight: FontWeight.w400,
                       letterSpacing: 0.1,
@@ -237,6 +237,6 @@ class KpiColorPalette {
 
   /// Retourne une couleur avec opacité pour les arrière-plans
   static Color withOpacity(Color color, double opacity) {
-    return color.withOpacity(opacity);
+    return color.withValues(alpha: opacity);
   }
 }

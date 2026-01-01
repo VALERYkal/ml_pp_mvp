@@ -53,7 +53,7 @@ class PerformanceIndicator extends ConsumerWidget {
 
           // Statistiques de cache
           Text(
-            'Cache: ${cacheHitRate}%',
+            'Cache: $cacheHitRate%',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),

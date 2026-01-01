@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_pagination_provider.dart';
-import 'package:ml_pp_mvp/features/cours_route/providers/cours_filters_provider.dart';
 import 'package:ml_pp_mvp/shared/ui/format.dart';
 
 /// Liste avec scroll infini pour la vue mobile

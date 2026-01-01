@@ -69,7 +69,9 @@ final refDataProvider = Riverpod.FutureProvider<RefDataCache>((ref) async {
 });
 
 String resolveName(RefDataCache cache, String id, String type) {
-  if (id.isEmpty) return '—';
+  if (id.isEmpty) {
+    return '—';
+  }
   final key = id.trim();
   switch (type) {
     case 'fournisseur':
@@ -78,7 +80,9 @@ String resolveName(RefDataCache cache, String id, String type) {
           _shortId(key);
     case 'produit':
       final byId = cache.produits[key] ?? _findByPrefix(cache.produits, key);
-      if (byId != null) return byId;
+      if (byId != null) {
+        return byId;
+      }
       // Fallback via code connu si l'id existe dans le mapping des codes
       final code =
           cache.produitCodes[key] ?? _findCodeByPrefix(cache.produitCodes, key);
@@ -94,10 +98,12 @@ String resolveName(RefDataCache cache, String id, String type) {
         }
       }
       // Fallback ultime: deux produits connus par UUID/prefixe
-      if (_matchesIdOrPrefix(key, '640cf7ec-1616-4503-a484-0a61afb20005'))
+      if (_matchesIdOrPrefix(key, '640cf7ec-1616-4503-a484-0a61afb20005')) {
         return 'Essence';
-      if (_matchesIdOrPrefix(key, '452b557c-e974-4315-b6c2-cda8487db428'))
+      }
+      if (_matchesIdOrPrefix(key, '452b557c-e974-4315-b6c2-cda8487db428')) {
         return 'Gasoil / AGO';
+      }
       return _shortId(key);
     default:
       return '—';
@@ -128,7 +134,9 @@ String _shortId(String id) => id.length > 6 ? id.substring(0, 6) : id;
 String _bestLabel(List<String?> candidates, {required String fallback}) {
   for (final c in candidates) {
     final v = (c ?? '').trim();
-    if (v.isNotEmpty) return v;
+    if (v.isNotEmpty) {
+      return v;
+    }
   }
   return fallback;
 }
@@ -144,7 +152,9 @@ String? _findByPrefix(Map<String, String> map, String key) {
     // Match on first 6 chars
     final mks = mk.length >= 6 ? mk.substring(0, 6) : mk;
     final ks = k.length >= 6 ? k.substring(0, 6) : k;
-    if (mks == ks) return entry.value;
+    if (mks == ks) {
+      return entry.value;
+    }
   }
   return null;
 }
@@ -154,10 +164,14 @@ String? _findCodeByPrefix(Map<String, String> idToCode, String key) {
   final k = key.toLowerCase();
   for (final entry in idToCode.entries) {
     final mk = entry.key.toLowerCase();
-    if (mk.startsWith(k) || k.startsWith(mk)) return entry.value;
+    if (mk.startsWith(k) || k.startsWith(mk)) {
+      return entry.value;
+    }
     final mks = mk.length >= 6 ? mk.substring(0, 6) : mk;
     final ks = k.length >= 6 ? k.substring(0, 6) : k;
-    if (mks == ks) return entry.value;
+    if (mks == ks) {
+      return entry.value;
+    }
   }
   return null;
 }
@@ -165,8 +179,12 @@ String? _findCodeByPrefix(Map<String, String> idToCode, String key) {
 bool _matchesIdOrPrefix(String key, String fullId) {
   final k = key.toLowerCase();
   final fid = fullId.toLowerCase();
-  if (k == fid) return true;
-  if (fid.startsWith(k) || k.startsWith(fid)) return true;
+  if (k == fid) {
+    return true;
+  }
+  if (fid.startsWith(k) || k.startsWith(fid)) {
+    return true;
+  }
   final ks = k.length >= 6 ? k.substring(0, 6) : k;
   final fids = fid.length >= 6 ? fid.substring(0, 6) : fid;
   return ks == fids;

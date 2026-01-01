@@ -150,7 +150,7 @@ List<CoursDeRoute> sortCours(List<CoursDeRoute> cours, CoursSortConfig config) {
 
     switch (config.column) {
       case CoursSortColumn.fournisseur:
-        comparison = (a.fournisseurId ?? '').compareTo(b.fournisseurId ?? '');
+        comparison = a.fournisseurId.compareTo(b.fournisseurId);
         break;
       case CoursSortColumn.produit:
         final aProd = (a.produitCode ?? a.produitNom ?? '').trim();

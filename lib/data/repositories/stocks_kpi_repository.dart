@@ -3,22 +3,15 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Helper pour convertir proprement toute valeur numérique en double.
 double _toDouble(dynamic value) {
-  if (value == null) return 0.0;
-  if (value is num) return value.toDouble();
+  if (value == null) {
+    return 0.0;
+  }
+  if (value is num) {
+    return value.toDouble();
+  }
   throw ArgumentError('Value $value (${value.runtimeType}) is not numeric');
 }
 
-/// Helper safe pour convertir une valeur numérique en double (ne lance jamais d'exception).
-/// Retourne 0.0 si la valeur est null ou non numérique.
-double _safeToDouble(dynamic value) {
-  if (value == null) return 0.0;
-  if (value is num) return value.toDouble();
-  if (value is String) {
-    final parsed = double.tryParse(value);
-    if (parsed != null) return parsed;
-  }
-  return 0.0;
-}
 
 /// KPI global de stock par dépôt & produit (toutes propriétés confondues).
 ///
@@ -190,6 +183,39 @@ class StocksKpiRepository {
 
   StocksKpiRepository(this._client);
 
+  /// ⚠️ IMPORTANT — CONTRAT STOCK ACTUEL
+  /// Toute lecture de stock "actuel" DOIT passer par v_stock_actuel.
+  /// Les vues snapshot sont dépréciées pour l'actuel (AXE A).
+  ///
+  /// SOURCE CANONIQUE — inclut adjustments (AXE A)
+  /// Récupère les lignes de stock actuel depuis la vue canonique v_stock_actuel.
+  ///
+  /// Cette vue inclut automatiquement :
+  /// - réceptions validées
+  /// - sorties validées
+  /// - ajustements (stocks_adjustments)
+  ///
+  /// [depotId] : Identifiant du dépôt (requis)
+  /// [produitId] : Optionnel, filtre par produit
+  ///
+  /// Retourne : Liste de Map contenant les données brutes de v_stock_actuel
+  Future<List<Map<String, dynamic>>> fetchStockActuelRows({
+    required String depotId,
+    String? produitId,
+  }) async {
+    final query = _client
+        .from('v_stock_actuel')
+        .select<List<Map<String, dynamic>>>()
+        .eq('depot_id', depotId);
+
+    if (produitId != null) {
+      query.eq('produit_id', produitId);
+    }
+
+    final rows = await query;
+    return (rows as List).cast<Map<String, dynamic>>();
+  }
+
   /// Helper pour formater une date en format ISO YYYY-MM-DD (UTC).
   String _formatYmd(DateTime date) {
     return DateTime.utc(
@@ -228,8 +254,7 @@ class StocksKpiRepository {
     query.order('date_jour', ascending: false);
 
     final rows = await query;
-    final list = rows as List<Map<String, dynamic>>;
-    return list.map(DepotGlobalStockKpi.fromMap).toList();
+    return rows.map(DepotGlobalStockKpi.fromMap).toList();
   }
 
   /// Retourne les totaux par dépôt, propriétaire & produit.
@@ -328,9 +353,15 @@ class StocksKpiRepository {
         .from('v_stock_actuel_snapshot')
         .select<List<Map<String, dynamic>>>();
 
-    if (depotId != null) query.eq('depot_id', depotId);
-    if (citerneId != null) query.eq('citerne_id', citerneId);
-    if (produitId != null) query.eq('produit_id', produitId);
+    if (depotId != null) {
+      query.eq('depot_id', depotId);
+    }
+    if (citerneId != null) {
+      query.eq('citerne_id', citerneId);
+    }
+    if (produitId != null) {
+      query.eq('produit_id', produitId);
+    }
 
     // déterministe
     query.order('citerne_nom', ascending: true);
@@ -527,11 +558,18 @@ class StocksKpiRepository {
         .from('stocks_journaliers')
         .select<List<Map<String, dynamic>>>();
 
-    if (depotId != null) query.eq('depot_id', depotId);
-    if (citerneId != null) query.eq('citerne_id', citerneId);
-    if (produitId != null) query.eq('produit_id', produitId);
-    if (proprietaireType != null)
+    if (depotId != null) {
+      query.eq('depot_id', depotId);
+    }
+    if (citerneId != null) {
+      query.eq('citerne_id', citerneId);
+    }
+    if (produitId != null) {
+      query.eq('produit_id', produitId);
+    }
+    if (proprietaireType != null) {
       query.eq('proprietaire_type', proprietaireType);
+    }
 
     // Trier par date_jour DESC pour obtenir les plus récents en premier
     query.order('date_jour', ascending: false);
@@ -626,10 +664,9 @@ class StocksKpiRepository {
     }
 
     final rows = await query;
-    final list = rows as List<Map<String, dynamic>>;
 
     double total = 0.0;
-    for (final row in list) {
+    for (final row in rows) {
       final capacite = row['capacite_totale'];
       if (capacite != null) {
         total += (capacite is num ? capacite.toDouble() : 0.0);

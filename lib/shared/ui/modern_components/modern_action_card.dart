@@ -27,10 +27,10 @@ class ModernActionCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: theme.dividerColor.withOpacity(0.1)),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -48,7 +48,7 @@ class ModernActionCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: accentColor.withOpacity(0.1),
+                      color: accentColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(icon!, color: accentColor, size: 20),
@@ -129,7 +129,7 @@ class ModernActionCard extends StatelessWidget {
         label: Text(action.label),
         style: OutlinedButton.styleFrom(
           foregroundColor: Colors.red,
-          side: BorderSide(color: Colors.red.withOpacity(0.5)),
+          side: BorderSide(color: Colors.red.withValues(alpha: 0.5)),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),

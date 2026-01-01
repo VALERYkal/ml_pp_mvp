@@ -22,9 +22,10 @@ class FakeStocksKpiRepository extends StocksKpiRepository {
 
   @override
   Future<List<DepotOwnerStockKpi>> fetchDepotOwnerTotals({
-    required String depotId,
     DateTime? dateJour,
+    String? depotId,
     String? produitId,
+    String? proprietaireType,
   }) async {
     return ownerTotals;
   }

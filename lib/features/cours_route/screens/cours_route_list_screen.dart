@@ -535,16 +535,16 @@ class _DataTableView extends ConsumerWidget {
                             produitCodes,
                           );
                           return DataRow(
-                            color: MaterialStateProperty.resolveWith((states) {
-                              if (states.contains(MaterialState.hovered)) {
+                            color: WidgetStateProperty.resolveWith((states) {
+                              if (states.contains(WidgetState.hovered)) {
                                 return Theme.of(
                                   context,
-                                ).colorScheme.surfaceVariant.withOpacity(0.18);
+                                ).colorScheme.surfaceVariant.withValues(alpha: 0.18);
                               }
                               final isOdd = index.isOdd;
                               return isOdd
                                   ? Theme.of(context).colorScheme.surfaceVariant
-                                        .withOpacity(0.06)
+                                        .withValues(alpha: 0.06)
                                   : null;
                             }),
                             cells: [

@@ -6,11 +6,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../../core/models/user_role.dart';
 import '../../../shared/providers/auth_service_provider.dart';
-import '../../profil/providers/profil_provider.dart';
 
 /// Écran de connexion avec formulaire et gestion des rôles
 ///
@@ -97,8 +94,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           behavior: SnackBarBehavior.floating,
           backgroundColor: bg,
           elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(12)),
           ),
           content: Row(
             children: [
@@ -168,11 +165,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   /// Erreurs d'authentification (AuthException)
   String _mapAuthError(String? message) {
     final s = (message ?? '').toLowerCase();
-    if (s.contains('invalid')) return 'Identifiants invalides';
-    if (s.contains('email not confirmed')) return 'Email non confirmé';
-    if (s.contains('network')) return 'Problème réseau';
-    if (s.contains('too many requests'))
+    if (s.contains('invalid')) {
+      return 'Identifiants invalides';
+    }
+    if (s.contains('email not confirmed')) {
+      return 'Email non confirmé';
+    }
+    if (s.contains('network')) {
+      return 'Problème réseau';
+    }
+    if (s.contains('too many requests')) {
       return 'Trop de tentatives. Réessayez plus tard.';
+    }
     return 'Impossible de se connecter';
   }
 
@@ -218,10 +222,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   Center(
                     child: Container(
                       padding: const EdgeInsets.all(18),
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: const [
+                        borderRadius: BorderRadius.all(Radius.circular(16)),
+                        boxShadow: [
                           BoxShadow(
                             color: Color(0x1A000000),
                             blurRadius: 18,
@@ -267,15 +271,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       hintText: 'votre.email@exemple.com',
                       prefixIcon: const Icon(Icons.mail_rounded, color: _hint),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: const BorderRadius.all(Radius.circular(8)),
                         borderSide: BorderSide(color: _fieldStroke),
                       ),
                       enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: const BorderRadius.all(Radius.circular(8)),
                         borderSide: BorderSide(color: _fieldStroke),
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: const BorderRadius.all(Radius.circular(8)),
                         borderSide: BorderSide(color: _primary),
                       ),
                       filled: true,
@@ -314,15 +318,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         },
                       ),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: const BorderRadius.all(Radius.circular(8)),
                         borderSide: BorderSide(color: _fieldStroke),
                       ),
                       enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: const BorderRadius.all(Radius.circular(8)),
                         borderSide: BorderSide(color: _fieldStroke),
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: const BorderRadius.all(Radius.circular(8)),
                         borderSide: BorderSide(color: _primary),
                       ),
                       filled: true,
@@ -349,8 +353,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             elevation: 1.5,
                             shape: const StadiumBorder(),
                           ).copyWith(
-                            overlayColor: MaterialStateProperty.all(
-                              _primaryDark.withOpacity(.12),
+                            overlayColor: WidgetStateProperty.all(
+                              _primaryDark.withValues(alpha: .12),
                             ),
                           ),
                       child: _isLoading
@@ -359,7 +363,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               width: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(
+                                valueColor: const AlwaysStoppedAnimation<Color>(
                                   Colors.white,
                                 ),
                               ),

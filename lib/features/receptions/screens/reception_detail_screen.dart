@@ -4,6 +4,10 @@ import 'package:ml_pp_mvp/features/receptions/providers/receptions_table_provide
 import 'package:ml_pp_mvp/features/receptions/models/reception_row_vm.dart';
 import 'package:ml_pp_mvp/shared/utils/date_formatter.dart';
 import 'package:ml_pp_mvp/shared/utils/volume_formatter.dart';
+import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart';
+import 'package:ml_pp_mvp/core/models/user_role.dart';
+import 'package:ml_pp_mvp/features/stocks_adjustments/screens/stocks_adjustment_create_sheet.dart';
+import 'package:ml_pp_mvp/shared/refresh/refresh_helpers.dart';
 
 class ReceptionDetailScreen extends ConsumerWidget {
   final String receptionId;
@@ -13,9 +17,21 @@ class ReceptionDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final asyncRows = ref.watch(receptionsTableProvider);
+    final userRole = ref.watch(userRoleProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Détail de la réception')),
+      appBar: AppBar(
+        title: const Text('Détail de la réception'),
+        actions: [
+          // Bouton "Corriger (Ajustement)" visible uniquement pour admin
+          if (userRole == UserRole.admin)
+            IconButton(
+              icon: const Icon(Icons.tune),
+              tooltip: 'Corriger (Ajustement)',
+              onPressed: () => _showAdjustmentSheet(context, ref),
+            ),
+        ],
+      ),
       body: asyncRows.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, st) => Center(
@@ -302,6 +318,19 @@ class ReceptionDetailScreen extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  /// Affiche le BottomSheet pour créer un ajustement
+  void _showAdjustmentSheet(BuildContext context, WidgetRef ref) {
+    StocksAdjustmentCreateSheet.show(
+      context,
+      mouvementType: 'RECEPTION',
+      mouvementId: receptionId,
+      onSuccess: () {
+        // Invalider les providers de stock après création de l'ajustement
+        invalidateDashboardKpisAfterStockMovement(ref);
+      },
     );
   }
 }

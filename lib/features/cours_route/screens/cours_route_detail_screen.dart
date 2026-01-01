@@ -310,10 +310,10 @@ class CoursRouteDetailScreen extends ConsumerWidget {
                                   margin: const EdgeInsets.only(bottom: 16),
                                   padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
-                                    color: Colors.amber.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(12),
+                                    color: Colors.amber.withValues(alpha: 0.1),
+                                    borderRadius: const BorderRadius.all(Radius.circular(12)),
                                     border: Border.all(
-                                      color: Colors.amber.withOpacity(0.3),
+                                      color: Colors.amber.withValues(alpha: 0.3),
                                     ),
                                   ),
                                   child: Row(
@@ -470,10 +470,10 @@ class CoursRouteDetailScreen extends ConsumerWidget {
                               child: Container(
                                 padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
-                                  color: Colors.amber.withOpacity(0.1),
+                                  color: Colors.amber.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
-                                    color: Colors.amber.withOpacity(0.3),
+                                    color: Colors.amber.withValues(alpha: 0.3),
                                   ),
                                 ),
                                 child: Row(
@@ -605,9 +605,9 @@ class CoursRouteDetailScreen extends ConsumerWidget {
       padding: const EdgeInsets.all(20),
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.red.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.red.withOpacity(0.3)),
+        color: Colors.red.withValues(alpha: 0.1),
+        borderRadius: const BorderRadius.all(Radius.circular(16)),
+        border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -658,7 +658,7 @@ class CoursRouteDetailScreen extends ConsumerWidget {
           items.add(
             const PopupMenuItem(
               value: 'edit',
-              child: Row(
+              child: const Row(
                 children: [
                   Icon(Icons.edit),
                   SizedBox(width: 8),
@@ -673,7 +673,7 @@ class CoursRouteDetailScreen extends ConsumerWidget {
           items.add(
             const PopupMenuItem(
               value: 'delete',
-              child: Row(
+              child: const Row(
                 children: [
                   Icon(Icons.delete, color: Colors.red),
                   SizedBox(width: 8),
@@ -821,9 +821,9 @@ class _ModernStatutChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.3), width: 1),
+        color: color.withValues(alpha: 0.1),
+        borderRadius: const BorderRadius.all(Radius.circular(20)),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

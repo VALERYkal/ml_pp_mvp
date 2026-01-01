@@ -38,10 +38,13 @@ final kpiGlobalStockByDepotProvider =
       return list.isNotEmpty ? list.first : null;
     });
 
-/// Calcule les totaux de stock d'un dépôt depuis v_stock_actuel_snapshot.
+/// Calcule les totaux de stock d'un dépôt depuis v_stock_actuel (source de vérité canonique).
 ///
 /// Ce provider agrège les données de toutes les citernes d'un dépôt
-/// depuis la vue snapshot qui représente l'état actuel.
+/// depuis la vue canonique v_stock_actuel qui inclut automatiquement :
+/// - réceptions validées
+/// - sorties validées
+/// - ajustements (stocks_adjustments)
 ///
 /// Retourne un record avec :
 /// - amb : total stock ambiant
@@ -53,7 +56,8 @@ final depotGlobalStockFromSnapshotProvider = riverpod.FutureProvider.autoDispose
       depotId,
     ) async {
       final repo = ref.watch(stocksKpiRepositoryProvider);
-      final rows = await repo.fetchCiterneStocksFromSnapshot(depotId: depotId);
+      // SOURCE CANONIQUE — inclut adjustments (AXE A)
+      final rows = await repo.fetchStockActuelRows(depotId: depotId);
 
       double amb = 0.0;
       double v15 = 0.0;
@@ -62,13 +66,14 @@ final depotGlobalStockFromSnapshotProvider = riverpod.FutureProvider.autoDispose
       for (final r in rows) {
         final m = Map<String, dynamic>.from(r);
         tanks.add(m['citerne_id']?.toString() ?? '');
+        // v_stock_actuel expose stock_ambiant et stock_15c (pas _total)
         amb +=
-            (m['stock_ambiant_total'] as num?)?.toDouble() ??
             (m['stock_ambiant'] as num?)?.toDouble() ??
+            (m['stock_ambiant_total'] as num?)?.toDouble() ??
             0.0;
         v15 +=
-            (m['stock_15c_total'] as num?)?.toDouble() ??
             (m['stock_15c'] as num?)?.toDouble() ??
+            (m['stock_15c_total'] as num?)?.toDouble() ??
             0.0;
       }
 
@@ -79,10 +84,15 @@ final depotGlobalStockFromSnapshotProvider = riverpod.FutureProvider.autoDispose
       );
     });
 
-/// Calcule les stocks par propriétaire d'un dépôt depuis v_stock_actuel_owner_snapshot.
+/// Calcule les stocks par propriétaire d'un dépôt depuis v_stock_actuel (source de vérité canonique).
 ///
 /// Retourne une liste de DepotOwnerStockKpi, une par propriétaire (MONALUXE, PARTENAIRE).
 /// Si un propriétaire n'a pas de stock, il est inclus avec des valeurs à 0.0.
+///
+/// La vue v_stock_actuel inclut automatiquement :
+/// - réceptions validées
+/// - sorties validées
+/// - ajustements (stocks_adjustments)
 final depotOwnerStockFromSnapshotProvider =
     riverpod.FutureProvider.family<List<DepotOwnerStockKpi>, String>((
       ref,
@@ -91,9 +101,8 @@ final depotOwnerStockFromSnapshotProvider =
       final repo = ref.watch(stocksKpiRepositoryProvider);
 
       try {
-        final rows = await repo.fetchDepotOwnerStocksFromSnapshot(
-          depotId: depotId,
-        );
+        // SOURCE CANONIQUE — inclut adjustments (AXE A)
+        final rows = await repo.fetchStockActuelRows(depotId: depotId);
 
         if (kDebugMode) {
           debugPrint(
@@ -104,8 +113,8 @@ final depotOwnerStockFromSnapshotProvider =
         // Helper safe pour conversion numérique
         double safeDouble(dynamic v) => (v is num) ? v.toDouble() : 0.0;
 
-        // Normaliser et filtrer les rows valides
-        final validOwners = <DepotOwnerStockKpi>[];
+        // Agréger par proprietaire_type depuis v_stock_actuel
+        final stockByOwner = <String, ({double amb, double v15, String? depotNom, String? produitId, String? produitNom})>{};
         String? depotNom;
 
         for (final row in rows) {
@@ -122,27 +131,36 @@ final depotOwnerStockFromSnapshotProvider =
           }
 
           final proprietaireType = (propTypeRaw as String).toUpperCase().trim();
-
-          // Stocker le depotNom depuis la première ligne valide
           depotNom ??= (row['depot_nom'] as String?) ?? '';
 
-          // Créer le DepotOwnerStockKpi avec conversion safe
-          final owner = DepotOwnerStockKpi(
-            depotId: (row['depot_id'] as String?) ?? depotId,
+          // Agréger les volumes par propriétaire
+          final current = stockByOwner[proprietaireType];
+          final amb = safeDouble(row['stock_ambiant'] ?? row['stock_ambiant_total']);
+          final v15 = safeDouble(row['stock_15c'] ?? row['stock_15c_total']);
+
+          stockByOwner[proprietaireType] = (
+            amb: (current?.amb ?? 0.0) + amb,
+            v15: (current?.v15 ?? 0.0) + v15,
             depotNom: depotNom,
-            proprietaireType: proprietaireType,
-            produitId: (row['produit_id'] as String?) ?? '',
-            produitNom: (row['produit_nom'] as String?) ?? '',
-            // Utiliser stock_ambiant_total et stock_15c_total (cohérence avec autres vues)
-            stockAmbiantTotal: safeDouble(
-              row['stock_ambiant_total'] ?? row['stock_ambiant'],
-            ),
-            stock15cTotal: safeDouble(
-              row['stock_15c_total'] ?? row['stock_15c'],
+            produitId: row['produit_id'] as String?,
+            produitNom: row['produit_nom'] as String?,
+          );
+        }
+
+        // Convertir en liste de DepotOwnerStockKpi
+        final validOwners = <DepotOwnerStockKpi>[];
+        for (final entry in stockByOwner.entries) {
+          validOwners.add(
+            DepotOwnerStockKpi(
+              depotId: depotId,
+              depotNom: entry.value.depotNom ?? '',
+              proprietaireType: entry.key,
+              produitId: entry.value.produitId ?? '',
+              produitNom: entry.value.produitNom ?? '',
+              stockAmbiantTotal: entry.value.amb,
+              stock15cTotal: entry.value.v15,
             ),
           );
-
-          validOwners.add(owner);
         }
 
         // S'assurer que MONALUXE et PARTENAIRE existent (avec 0.0 si absents)

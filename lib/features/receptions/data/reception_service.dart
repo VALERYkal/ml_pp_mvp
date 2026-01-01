@@ -257,16 +257,6 @@ class ReceptionService {
   // La DB applique automatiquement les effets (stocks + CDR DECHARGE) via triggers.
 }
 
-String _safeJson(dynamic v) {
-  try {
-    if (v == null) return 'null';
-    if (v is String) return v;
-    return jsonEncode(v);
-  } catch (_) {
-    return v.toString();
-  }
-}
-
 final receptionServiceProvider = Riverpod.Provider<ReceptionService>((ref) {
   final repo = ref.read(refs.referentielsRepoProvider);
   return ReceptionService.withClient(Supabase.instance.client, refRepo: repo);

@@ -34,7 +34,7 @@ void invalidateDashboardKpisAfterStockMovement(
     ref.invalidate(stocksDashboardKpisProvider);
   }
 
-  // 3) Invalider les providers snapshot de stock actuel (nouvelle source de vérité)
+  // 3) Invalider les providers snapshot de stock actuel (source de vérité canonique v_stock_actuel)
   if (depotId != null) {
     try {
       ref.invalidate(depotGlobalStockFromSnapshotProvider(depotId));

@@ -140,5 +140,19 @@ final snapshots = await repo.fetchCiterneGlobalSnapshots(
 ## Références
 
 - Repository canonique : `lib/data/repositories/stocks_kpi_repository.dart`
+  - Méthode centrale : `fetchStockActuelRows()` (source de vérité unique)
 - Provider principal : `lib/features/stocks/data/stocks_kpi_providers.dart` → `depotStocksSnapshotProvider`
+- Providers Dashboard : `depotGlobalStockFromSnapshotProvider`, `depotOwnerStockFromSnapshotProvider` (utilisent `fetchStockActuelRows()`)
+- Repository Citernes : `lib/features/citernes/data/citerne_repository.dart` → `fetchCiterneStockSnapshots()` (utilise `v_stock_actuel`)
+- Repository Stock : `lib/data/repositories/stocks_repository.dart` → `totauxActuels()` (utilise `v_stock_actuel`)
 - Documentation technique : `docs/db/PHASE3_FLUTTER_RECONNEXION_STOCKS.md`
+- Contrat officiel : `docs/db/CONTRAT_STOCK_ACTUEL.md`
+
+## État de la migration (01/01/2026)
+
+✅ **Migration complète terminée** : Tous les modules utilisent désormais `v_stock_actuel` comme source de vérité unique.
+
+- ✅ Dashboard : Agrégation depuis `v_stock_actuel` via `fetchStockActuelRows()`
+- ✅ Citernes : Agrégation depuis `v_stock_actuel` par `citerne_id`
+- ✅ Module Stock : Agrégation depuis `v_stock_actuel` pour les totaux
+- ✅ Ajustements : Visibles immédiatement dans tous les modules

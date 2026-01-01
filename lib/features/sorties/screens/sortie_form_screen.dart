@@ -107,7 +107,9 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
   /// Helper pour récupérer le nom de la citerne depuis son ID
   /// Utilise un fallback simple avec l'ID tronqué pour le log de diagnostic
   String _getCiterneNom(String? citerneId) {
-    if (citerneId == null) return 'N/A';
+    if (citerneId == null) {
+      return 'N/A';
+    }
     // Fallback simple : utiliser l'ID tronqué (suffisant pour le log de diagnostic)
     return citerneId.length > 8 ? '${citerneId.substring(0, 8)}...' : citerneId;
   }
@@ -945,7 +947,9 @@ class _ProduitChips extends ConsumerWidget {
             final sb = (b.code.isNotEmpty ? b.code : b.nom);
             return sa.compareTo(sb);
           });
-        if (actifs.isEmpty) return const Text('Aucun produit disponible');
+        if (actifs.isEmpty) {
+          return const Text('Aucun produit disponible');
+        }
         return Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -957,7 +961,9 @@ class _ProduitChips extends ConsumerWidget {
                 onSelected: !enabled
                     ? null
                     : (sel) {
-                        if (sel) onSelected(p.id);
+                        if (sel) {
+                          onSelected(p.id);
+                        }
                       },
               ),
           ],

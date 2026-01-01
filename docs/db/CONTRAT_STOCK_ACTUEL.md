@@ -79,16 +79,26 @@ stock_actuel = stock_snapshot + Σ(stocks_adjustments)
 
 ### Anciennes sources (dépréciées)
 
-- `v_stock_actuel_snapshot` → Remplacer par `v_stock_actuel`
-- `v_stocks_citerne_global_daily` → Remplacer par `v_stock_actuel` (agrégation côté app si besoin)
+- `v_stock_actuel_snapshot` → Remplacer par `v_stock_actuel` ✅ **MIGRÉ**
+- `v_stocks_citerne_global_daily` → Remplacer par `v_stock_actuel` (agrégation côté app si besoin) ✅ **MIGRÉ**
+- `v_citerne_stock_snapshot_agg` → Remplacer par `v_stock_actuel` (agrégation côté app) ✅ **MIGRÉ**
+- `v_stock_actuel_owner_snapshot` → Remplacer par `v_stock_actuel` (agrégation côté app) ✅ **MIGRÉ**
 - `stocks_journaliers` → Utiliser uniquement pour historique/rapports
 
 ### Plan de migration
 
-1. **Phase 1** : Mise à jour des repositories Flutter
-2. **Phase 2** : Mise à jour des providers
-3. **Phase 3** : Mise à jour des écrans UI
-4. **Phase 4** : Suppression des références legacy
+1. **Phase 1** : Mise à jour des repositories Flutter ✅ **TERMINÉE (01/01/2026)**
+2. **Phase 2** : Mise à jour des providers ✅ **TERMINÉE (01/01/2026)**
+3. **Phase 3** : Mise à jour des écrans UI ✅ **TERMINÉE (01/01/2026)**
+4. **Phase 4** : Suppression des références legacy ⏳ **EN COURS**
+
+### État de la migration (01/01/2026)
+
+- ✅ **Dashboard** : Utilise `v_stock_actuel` via `fetchStockActuelRows()` avec agrégation Dart
+- ✅ **Module Citernes** : Utilise `v_stock_actuel` via `CiterneRepository.fetchCiterneStockSnapshots()` avec agrégation par `citerne_id`
+- ✅ **Module Stock** : Utilise `v_stock_actuel` via `StocksRepository.totauxActuels()` avec agrégation Dart
+- ✅ **Méthode canonique** : `StocksKpiRepository.fetchStockActuelRows()` créée et utilisée partout
+- ⏳ **Références legacy** : Commentaires et documentation à nettoyer (non bloquant)
 
 ---
 

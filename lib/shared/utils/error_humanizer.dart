@@ -14,7 +14,6 @@ class ErrorHumanizer {
   static String humanizePostgrest(PostgrestException e) {
     final message = e.message.toLowerCase();
     final details = e.details?.toString().toLowerCase() ?? '';
-    final hint = e.hint?.toString().toLowerCase() ?? '';
 
     // Erreurs d'authentification et permissions
     if (message.contains('permission denied') ||

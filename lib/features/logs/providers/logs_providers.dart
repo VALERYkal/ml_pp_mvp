@@ -1,15 +1,11 @@
 // 📌 Providers pour consultation des logs (log_actions)
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart'
     show DateTimeRange; // for DateTimeRange filter state
 import 'package:flutter_riverpod/flutter_riverpod.dart' as Riverpod;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 // Utils pour les dates
-String _fmtYmd(DateTime d) =>
-    '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
-
 String _iso(DateTime d) => d.toIso8601String().split('.').first + 'Z';
 
 /// Modèle "vue" enrichi avec parsing des détails JSONB
@@ -276,10 +272,3 @@ final usersLookupProvider = Riverpod.FutureProvider<Map<String, String>>((
   }
   return map;
 });
-
-String _escapeCsv(String input) {
-  final needs =
-      input.contains(',') || input.contains('"') || input.contains('\n');
-  final s = input.replaceAll('"', '""');
-  return needs ? '"$s"' : s;
-}

@@ -16,6 +16,14 @@ final depotNameProvider = riverpod.FutureProvider.family<String?, String>((
   return repo.getDepotNameById(depotId);
 });
 
+/// ID du dépôt courant (profil) — utilisé pour les KPIs stock
+final currentDepotIdProvider = riverpod.Provider<String?>((ref) {
+  final profil = ref.watch(currentProfilProvider).valueOrNull;
+  final depotId = profil?.depotId;
+  if (depotId == null || depotId.isEmpty) return null;
+  return depotId;
+});
+
 /// Nom du dépôt courant (profil) — pratique pour l'AppBar
 final currentDepotNameProvider = riverpod.FutureProvider<String?>((ref) async {
   final profil = ref.watch(currentProfilProvider).valueOrNull;

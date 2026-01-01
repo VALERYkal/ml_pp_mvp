@@ -4,6 +4,10 @@ import 'package:ml_pp_mvp/features/sorties/providers/sorties_table_provider.dart
 import 'package:ml_pp_mvp/features/sorties/models/sortie_row_vm.dart';
 import 'package:ml_pp_mvp/shared/utils/date_formatter.dart';
 import 'package:ml_pp_mvp/shared/utils/volume_formatter.dart';
+import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart';
+import 'package:ml_pp_mvp/core/models/user_role.dart';
+import 'package:ml_pp_mvp/features/stocks_adjustments/screens/stocks_adjustment_create_sheet.dart';
+import 'package:ml_pp_mvp/shared/refresh/refresh_helpers.dart';
 
 class SortieDetailScreen extends ConsumerWidget {
   final String sortieId;
@@ -13,9 +17,21 @@ class SortieDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final asyncRows = ref.watch(sortiesTableProvider);
+    final userRole = ref.watch(userRoleProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Détail de la sortie')),
+      appBar: AppBar(
+        title: const Text('Détail de la sortie'),
+        actions: [
+          // Bouton "Corriger (Ajustement)" visible uniquement pour admin
+          if (userRole == UserRole.admin)
+            IconButton(
+              icon: const Icon(Icons.tune),
+              tooltip: 'Corriger (Ajustement)',
+              onPressed: () => _showAdjustmentSheet(context, ref),
+            ),
+        ],
+      ),
       body: asyncRows.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, st) => Center(
@@ -311,6 +327,19 @@ class SortieDetailScreen extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  /// Affiche le BottomSheet pour créer un ajustement
+  void _showAdjustmentSheet(BuildContext context, WidgetRef ref) {
+    StocksAdjustmentCreateSheet.show(
+      context,
+      mouvementType: 'SORTIE',
+      mouvementId: sortieId,
+      onSuccess: () {
+        // Invalider les providers de stock après création de l'ajustement
+        invalidateDashboardKpisAfterStockMovement(ref);
+      },
     );
   }
 }

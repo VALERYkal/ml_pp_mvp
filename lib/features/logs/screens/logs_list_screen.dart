@@ -171,7 +171,7 @@ class LogsListScreen extends ConsumerWidget {
             const SizedBox(height: 12),
             Row(
               children: [
-                Text('Page ${page + 1} • ${pageSize} éléments'),
+                Text('Page ${page + 1} • $pageSize éléments'),
                 const Spacer(),
                 Row(
                   children: [
@@ -445,7 +445,9 @@ class LogsListScreen extends ConsumerWidget {
   );
 
   String _prettyJson(Map<String, dynamic>? m) {
-    if (m == null || m.isEmpty) return '{}';
+    if (m == null || m.isEmpty) {
+      return '{}';
+    }
     try {
       // Simple pretty for nested maps/lists
       return m

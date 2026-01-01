@@ -207,17 +207,18 @@ class _RoleDashboardState extends ConsumerState<RoleDashboard> {
                               today.day,
                             );
 
-                            final snapshotAsync = depotId != null
-                                ? ref.watch(
-                                    depotStocksSnapshotProvider(
-                                      DepotStocksSnapshotParams(
-                                        depotId: depotId,
-                                        dateJour:
-                                            normalizedToday, // Date normalisée stable
-                                      ),
-                                    ),
-                                  )
-                                : null;
+                            // Watch pour réactivité/invalidations (valeur non utilisée directement)
+                            if (depotId != null) {
+                              ref.watch(
+                                depotStocksSnapshotProvider(
+                                  DepotStocksSnapshotParams(
+                                    depotId: depotId,
+                                    dateJour:
+                                        normalizedToday, // Date normalisée stable
+                                  ),
+                                ),
+                              );
+                            }
 
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,

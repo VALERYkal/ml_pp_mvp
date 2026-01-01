@@ -41,7 +41,7 @@ class CoursArriveItem {
   String get title =>
       '${dateChargement.toIso8601String().split("T").first} – ${departPays ?? "?"} → ${depotNom ?? "?"}';
   String get subtitle =>
-      'Fournisseur: ${fournisseurNom ?? "-"} · Prod: ${produitCode} ${produitNom} · Vol: ${volume ?? "-"} · Camion: ${plaqueCamion ?? "-"} · Transp: ${transporteur ?? "-"} · Chauf: ${chauffeur ?? "-"}';
+      'Fournisseur: ${fournisseurNom ?? "-"} · Prod: $produitCode $produitNom · Vol: ${volume ?? "-"} · Camion: ${plaqueCamion ?? "-"} · Transp: ${transporteur ?? "-"} · Chauf: ${chauffeur ?? "-"}';
 }
 
 // 🚫 PROD-FROZEN: ONLY ARRIVE CDRs are selectable in Réception form. This provider filters by statut='ARRIVE' and is used by reception_form_screen.dart

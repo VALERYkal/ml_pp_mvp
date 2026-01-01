@@ -8,6 +8,7 @@ import 'package:ml_pp_mvp/features/stocks/data/stocks_kpi_providers.dart';
 import 'package:ml_pp_mvp/features/stocks/data/stocks_kpi_service.dart';
 import 'package:ml_pp_mvp/data/repositories/repositories.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:ml_pp_mvp/shared/utils/app_log.dart';
 
 /// Helper de parsing robuste pour convertir num | String → double
 /// Gère null, num, String avec virgules/points, et valeurs invalides
@@ -337,11 +338,11 @@ final kpiProviderProvider = FutureProvider.autoDispose<KpiSnapshot>((
   ref,
 ) async {
   try {
-    print('🔍 KPI DEBUG: Début du chargement KPI...');
+    appLog('🔍 KPI DEBUG: Début du chargement KPI...');
 
     // 1) Contexte utilisateur (RLS) : dépôt, propriétaire, etc.
     final profil = await ref.watch(profilProvider.future);
-    print(
+    appLog(
       '🔍 KPI DEBUG: Profil chargé: ${profil?.id}, depot=${profil?.depotId}',
     );
     final depotId = profil?.depotId; // null => global si rôle le permet
@@ -350,29 +351,29 @@ final kpiProviderProvider = FutureProvider.autoDispose<KpiSnapshot>((
     // 2) Requêtes parallèles pour optimiser les performances
     // Utiliser les nouveaux providers pour les réceptions et sorties (retournent KpiReceptions et KpiSorties)
     final receptionsKpi = await ref.watch(receptionsKpiTodayProvider.future);
-    print('🔍 KPI DEBUG: receptionsKpiToday OK: ${receptionsKpi.toString()}');
+    appLog('🔍 KPI DEBUG: receptionsKpiToday OK: ${receptionsKpi.toString()}');
 
     final sortiesKpi = await ref.watch(sortiesKpiTodayProvider.future);
-    print('🔍 KPI DEBUG: sortiesKpiToday OK: ${sortiesKpi.toString()}');
+    appLog('🔍 KPI DEBUG: sortiesKpiToday OK: ${sortiesKpi.toString()}');
 
     // Phase 3.4: Utiliser le nouveau provider agrégé pour les stocks
     // Les capacités sont maintenant incluses dans CiterneGlobalStockSnapshot
     final stocksKpis = await _safeLoadStocks(ref: ref, depotId: depotId);
-    print('🔍 KPI DEBUG: stocksDashboardKpis OK: ${stocksKpis.toString()}');
+    appLog('🔍 KPI DEBUG: stocksDashboardKpis OK: ${stocksKpis.toString()}');
     final stocks = _computeStocksDataFromKpis(stocksKpis);
 
     final trucks = await _fetchTrucksToFollow(supa, depotId);
-    print('🔍 KPI DEBUG: trucksToFollow OK: ${trucks.toString()}');
+    appLog('🔍 KPI DEBUG: trucksToFollow OK: ${trucks.toString()}');
 
-    print('🔍 KPI DEBUG: Tous les KPI sont chargés correctement.');
+    appLog('🔍 KPI DEBUG: Tous les KPI sont chargés correctement.');
 
     // 4) Construction du snapshot unifié avec null-safety
 
     // Debug temporaire (peut être retiré ensuite)
-    print(
+    appLog(
       '[KPI] receptions: 15C=${receptionsKpi.volume15c} | amb=${receptionsKpi.volumeAmbient} | count=${receptionsKpi.count} | monaluxe=${receptionsKpi.countMonaluxe} | partenaire=${receptionsKpi.countPartenaire}',
     );
-    print(
+    appLog(
       '[KPI Sorties] count=${sortiesKpi.count}, mona=${sortiesKpi.countMonaluxe}, part=${sortiesKpi.countPartenaire}, vol15c=${sortiesKpi.volume15c}',
     );
 
@@ -387,7 +388,7 @@ final kpiProviderProvider = FutureProvider.autoDispose<KpiSnapshot>((
     );
 
     // Debug temporaire (peut être retiré ensuite)
-    print(
+    appLog(
       '[KPI] stocks: 15C=${stocksKpi.total15c} | amb=${stocksKpi.totalAmbient} | cap=${stocksKpi.capacityTotal}',
     );
 
@@ -398,13 +399,13 @@ final kpiProviderProvider = FutureProvider.autoDispose<KpiSnapshot>((
       sortiesAmbient: sortiesKpi.volumeAmbient,
     );
 
-    print(
+    appLog(
       '🔍 DEBUG KPI: Balance calculée - receptions15c=${receptionsKpi.volume15c}, sorties15c=${sortiesKpi.volume15c}',
     );
-    print(
+    appLog(
       '🔍 DEBUG KPI: Balance calculée - receptionsAmbient=${receptionsKpi.volumeAmbient}, sortiesAmbient=${sortiesKpi.volumeAmbient}',
     );
-    print(
+    appLog(
       '🔍 DEBUG KPI: Balance finale - delta15c=${balance.delta15c}, deltaAmbient=${balance.deltaAmbient}',
     );
 
@@ -416,8 +417,8 @@ final kpiProviderProvider = FutureProvider.autoDispose<KpiSnapshot>((
       trucksToFollow: trucks,
     );
   } catch (e, stack) {
-    print('❌ KPI ERROR: $e');
-    print(stack);
+    appLog('❌ KPI ERROR: $e');
+    appLog(stack.toString());
     return KpiSnapshot.empty;
   }
 });
@@ -446,7 +447,7 @@ class _StocksData {
 ///
 /// Pour la capacité totale, on somme depuis citerneGlobal (détail technique, pas un calcul métier).
 _StocksData _computeStocksDataFromKpis(StocksDashboardKpis kpis) {
-  print(
+  appLog(
     '🔍 DEBUG KPI: Calcul des stocks depuis globalByDepotProduct (source DB)',
   );
 
@@ -465,7 +466,7 @@ _StocksData _computeStocksDataFromKpis(StocksDashboardKpis kpis) {
     capacityTotal += snapshot.capaciteTotale;
   }
 
-  print(
+  appLog(
     '🔍 DEBUG KPI: Totaux depuis globalByDepotProduct - totalAmbient=$totalAmbient, total15c=$total15c, capacityTotal=$capacityTotal',
   );
 
@@ -489,7 +490,7 @@ Future<KpiTrucksToFollow> _fetchTrucksToFollow(
   SupabaseClient supa,
   String? depotId,
 ) async {
-  print('🔍 DEBUG KPI: Récupération camions à suivre, depotId: $depotId');
+  appLog('🔍 DEBUG KPI: Récupération camions à suivre, depotId: $depotId');
 
   // Statuts à suivre - On exclut uniquement DECHARGE (cours terminé)
   const statutsNonDecharges = ['CHARGEMENT', 'TRANSIT', 'FRONTIERE', 'ARRIVE'];
@@ -506,7 +507,7 @@ Future<KpiTrucksToFollow> _fetchTrucksToFollow(
   }
 
   final rows = await query;
-  print('🔍 DEBUG KPI: ${rows.length} cours de route non déchargés trouvés');
+  appLog('🔍 DEBUG KPI: ${rows.length} cours de route non déchargés trouvés');
 
   // Variables pour les 3 catégories
   int trucksLoading = 0; // Au chargement
@@ -544,10 +545,10 @@ Future<KpiTrucksToFollow> _fetchTrucksToFollow(
   final totalTrucks = trucksLoading + trucksOnRoute + trucksArrived;
   final totalPlannedVolume = volumeLoading + volumeOnRoute + volumeArrived;
 
-  print(
+  appLog(
     '🔍 DEBUG KPI Camions: total=$totalTrucks, loading=$trucksLoading, onRoute=$trucksOnRoute, arrived=$trucksArrived',
   );
-  print(
+  appLog(
     '🔍 DEBUG KPI Volumes: total=${totalPlannedVolume}L, loading=${volumeLoading}L, onRoute=${volumeOnRoute}L, arrived=${volumeArrived}L',
   );
 
@@ -575,8 +576,8 @@ Future<StocksDashboardKpis> _safeLoadStocks({
     return await ref.watch(stocksDashboardKpisProvider(depotId).future);
   } catch (e, stack) {
     // Log non bloquant : les stocks sont en mode dégradé, mais on ne casse pas tout le dashboard
-    print('⚠️ KPI STOCKS ERROR (dégradé): $e');
-    print(stack);
+    appLog('⚠️ KPI STOCKS ERROR (dégradé): $e');
+    appLog(stack.toString());
     // Retourner un snapshot vide pour les stocks
     return StocksDashboardKpis.empty();
   }

@@ -36,15 +36,6 @@ String _formatVolume(double? volume) {
   return '$spacedInteger$decimalPart L';
 }
 
-String _formatDate(DateTime? date) {
-  if (date == null) return '';
-  return DateFormat('dd/MM/yyyy').format(date);
-}
-
-String _formatPercentage(double ratio) {
-  return '${(ratio * 100).toStringAsFixed(1)}%';
-}
-
 // Couleurs modernes pour les niveaux de remplissage
 class _TankColors {
   static const Color empty = Color(0xFF94A3B8); // Gris slate
@@ -59,10 +50,6 @@ class _TankColors {
     if (pct < 70) return medium;
     if (pct < 90) return high;
     return critical;
-  }
-
-  static Color getBackgroundTint(double pct) {
-    return getColorForLevel(pct).withOpacity(0.04);
   }
 }
 
@@ -118,13 +105,13 @@ class CiterneListScreen extends ConsumerWidget {
                 end: Alignment.bottomRight,
                 colors: [
                   theme.colorScheme.primary,
-                  theme.colorScheme.primary.withOpacity(0.7),
+                  theme.colorScheme.primary.withValues(alpha: 0.7),
                 ],
               ),
               borderRadius: BorderRadius.circular(14),
               boxShadow: [
                 BoxShadow(
-                  color: theme.colorScheme.primary.withOpacity(0.3),
+                  color: theme.colorScheme.primary.withValues(alpha: 0.3),
                   blurRadius: 8,
                   offset: const Offset(0, 3),
                 ),
@@ -182,7 +169,7 @@ class CiterneListScreen extends ConsumerWidget {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 20,
                   offset: const Offset(0, 4),
                 ),
@@ -311,150 +298,6 @@ class CiterneListScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildCiterneGrid(
-    BuildContext context,
-    List<CiterneRow> citernes,
-    ThemeData theme,
-  ) {
-    // Calculer les statistiques
-    final totalCiternes = citernes.length;
-    final alertesCiternes = citernes.where((c) => c.belowSecurity).length;
-    final capaciteTotale = citernes.fold<double>(
-      0,
-      (sum, c) => sum + (c.capaciteTotale ?? 0),
-    );
-    // RÈGLE MÉTIER : Stock ambiant = source de vérité opérationnelle
-    final stockTotalAmbiant = citernes.fold<double>(
-      0,
-      (sum, c) => sum + (c.stockAmbiant ?? 0),
-    );
-    final stockTotal15c = citernes.fold<double>(
-      0,
-      (sum, c) => sum + (c.stock15c ?? 0),
-    );
-
-    return CustomScrollView(
-      slivers: [
-        // En-tête avec statistiques
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Cartes de statistiques modernisées
-                GridView.count(
-                  crossAxisCount: 4,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  childAspectRatio: 1.7,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  children: [
-                    _buildStatCard(
-                      context,
-                      'Total Citernes',
-                      totalCiternes.toString(),
-                      Icons.storage_rounded,
-                      const Color(0xFF3B82F6),
-                      theme,
-                    ),
-                    _buildStatCard(
-                      context,
-                      'Alertes',
-                      alertesCiternes.toString(),
-                      Icons.warning_amber_rounded,
-                      alertesCiternes > 0
-                          ? const Color(0xFFEF4444)
-                          : const Color(0xFF94A3B8),
-                      theme,
-                    ),
-                    _buildStatCard(
-                      context,
-                      'Capacité Totale',
-                      _formatVolume(capaciteTotale),
-                      Icons.straighten_rounded,
-                      const Color(0xFF8B5CF6),
-                      theme,
-                    ),
-                    // RÈGLE MÉTIER : Stock ambiant = source de vérité opérationnelle
-                    _buildStockTotalCard(
-                      context,
-                      stockTotalAmbiant,
-                      stockTotal15c,
-                      theme,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                // Titre de section
-                Row(
-                  children: [
-                    Container(
-                      width: 4,
-                      height: 20,
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      'Réservoirs',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF1E293B),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '$totalCiternes',
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: theme.colorScheme.primary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-              ],
-            ),
-          ),
-        ),
-
-        // Grille des citernes
-        SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          sliver: SliverGrid(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              crossAxisSpacing: 14,
-              mainAxisSpacing: 14,
-              childAspectRatio: 1.35,
-            ),
-            delegate: SliverChildBuilderDelegate(
-              (context, index) =>
-                  _buildCiterneCard(context, citernes[index], theme),
-              childCount: citernes.length,
-            ),
-          ),
-        ),
-
-        const SliverToBoxAdapter(child: SizedBox(height: 80)),
-      ],
-    );
-  }
-
   /// Construit la grille de citernes à partir des snapshots.
   /// Utilise directement la vue SQL `v_citerne_stock_snapshot_agg`
   Widget _buildCiterneGridFromSnapshot(
@@ -562,7 +405,7 @@ class CiterneListScreen extends ConsumerWidget {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withOpacity(0.1),
+                        color: theme.colorScheme.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
@@ -640,10 +483,10 @@ class CiterneListScreen extends ConsumerWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.15), width: 1.5),
+        border: Border.all(color: color.withValues(alpha: 0.15), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.08),
+            color: color.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -659,7 +502,7 @@ class CiterneListScreen extends ConsumerWidget {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [color.withOpacity(0.15), color.withOpacity(0.05)],
+                colors: [color.withValues(alpha: 0.15), color.withValues(alpha: 0.05)],
               ),
               borderRadius: BorderRadius.circular(10),
             ),
@@ -717,10 +560,10 @@ class CiterneListScreen extends ConsumerWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.15), width: 1.5),
+        border: Border.all(color: color.withValues(alpha: 0.15), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.08),
+            color: color.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -736,7 +579,7 @@ class CiterneListScreen extends ConsumerWidget {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [color.withOpacity(0.15), color.withOpacity(0.05)],
+                colors: [color.withValues(alpha: 0.15), color.withValues(alpha: 0.05)],
               ),
               borderRadius: BorderRadius.circular(10),
             ),
@@ -809,37 +652,6 @@ class CiterneListScreen extends ConsumerWidget {
       lastUpdated: citerne.lastSnapshotAt,
     );
   }
-
-  Widget _buildInfoRow(
-    IconData icon,
-    String label,
-    String value,
-    ThemeData theme,
-  ) {
-    return Row(
-      children: [
-        Icon(icon, size: 11, color: theme.colorScheme.onSurfaceVariant),
-        const SizedBox(width: 3),
-        Expanded(
-          child: Text(
-            label,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              fontSize: 10,
-            ),
-          ),
-        ),
-        Text(
-          value,
-          style: theme.textTheme.bodySmall?.copyWith(
-            fontWeight: FontWeight.w500,
-            color: theme.colorScheme.onSurface,
-            fontSize: 10,
-          ),
-        ),
-      ],
-    );
-  }
 }
 
 class TankCard extends StatelessWidget {
@@ -873,14 +685,14 @@ class TankCard extends StatelessWidget {
         border: Border.all(
           color: isEmpty
               ? const Color(0xFFE2E8F0)
-              : levelColor.withOpacity(0.25),
+              : levelColor.withValues(alpha: 0.25),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
             color: isEmpty
-                ? Colors.black.withOpacity(0.03)
-                : levelColor.withOpacity(0.1),
+                ? Colors.black.withValues(alpha: 0.03)
+                : levelColor.withValues(alpha: 0.1),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -900,7 +712,7 @@ class TankCard extends StatelessWidget {
                     Colors.white,
                     isEmpty
                         ? const Color(0xFFF8FAFC)
-                        : levelColor.withOpacity(0.03),
+                        : levelColor.withValues(alpha: 0.03),
                   ],
                 ),
               ),
@@ -929,7 +741,7 @@ class TankCard extends StatelessWidget {
                             ? null
                             : [
                                 BoxShadow(
-                                  color: levelColor.withOpacity(0.5),
+                                  color: levelColor.withValues(alpha: 0.5),
                                   blurRadius: 6,
                                   spreadRadius: 1,
                                 ),
@@ -959,7 +771,7 @@ class TankCard extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: isEmpty
                             ? const Color(0xFFF1F5F9)
-                            : levelColor.withOpacity(0.12),
+                            : levelColor.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -1077,7 +889,7 @@ class TankCard extends StatelessWidget {
   }) {
     final t = Theme.of(context);
 
-    final iconWidget = Icon(icon, size: 13, color: color.withOpacity(0.7));
+    final iconWidget = Icon(icon, size: 13, color: color.withValues(alpha: 0.7));
 
     final labelWidget = Text(
       label,
@@ -1122,53 +934,4 @@ class TankCard extends StatelessWidget {
       ],
     );
   }
-}
-
-// Fonction helper globale pour le formatage (conservée pour compatibilité)
-Widget _metricLine(
-  BuildContext context, {
-  required IconData icon,
-  required String label,
-  required String value,
-  bool alignEnd = false,
-}) {
-  final t = Theme.of(context);
-  final ic = Icon(
-    icon,
-    size: 14,
-    color: t.colorScheme.onSurfaceVariant.withOpacity(0.8),
-  );
-  final lab = Text(
-    label,
-    style: t.textTheme.bodySmall?.copyWith(
-      color: t.colorScheme.onSurfaceVariant,
-    ),
-  );
-  final val = Text(
-    value,
-    maxLines: 1,
-    overflow: TextOverflow.ellipsis,
-    style: t.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
-  );
-  if (alignEnd) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        lab,
-        const SizedBox(width: 6),
-        Flexible(child: val),
-        const SizedBox(width: 4),
-        ic,
-      ],
-    );
-  }
-  return Row(
-    children: [
-      ic,
-      const SizedBox(width: 6),
-      lab,
-      const SizedBox(width: 8),
-      Flexible(child: val),
-    ],
-  );
 }
