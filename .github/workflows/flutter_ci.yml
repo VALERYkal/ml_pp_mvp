@@ -57,9 +57,11 @@ jobs:
           fi
 
       # (Optionnel) 6) Analyse statique
-      # MVP: flutter analyze produces warnings that are not blocking.
-      # Full lint cleanup will be done post-MVP.
-      - name: Flutter analyze (MVP-safe)
+      # NOTE:
+      # flutter analyze is temporarily non-blocking for MVP delivery.
+      # Warnings remain visible in logs but do not fail the CI.
+      # Lint cleanup will be addressed in AXE B / post-MVP.
+      - name: Flutter analyze (non-blocking for MVP)
         run: flutter analyze || true
 
       # (Optionnel) 7) Vérifier le formatage
