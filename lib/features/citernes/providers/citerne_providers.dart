@@ -51,15 +51,15 @@ final citerneRepositoryProvider = Riverpod.Provider<CiterneRepository>((ref) {
 
 /// Provider pour récupérer les snapshots de stock agrégés pour les citernes
 ///
-/// LEGACY: Utilise v_stock_actuel_snapshot comme source de vérité pour le stock actuel des citernes.
+/// LEGACY: Utilise v_stock_actuel comme source de vérité pour le stock actuel des citernes (via fetchStockActuelRows).
 ///
 /// ⚠️ DEPRECATED: Ne pas utiliser dans le module Citernes UI.
-/// Utiliser `citerneStockSnapshotProvider` (v_citerne_stock_snapshot_agg) à la place.
+/// Utiliser `citerneStockSnapshotProvider` (v_stock_actuel via CiterneRepository) à la place.
 ///
 /// Conservé temporairement pour compatibilité avec `lib/shared/refresh/refresh_helpers.dart`.
 /// Do not use in Citernes UI.
 @Deprecated(
-  'Use citerneStockSnapshotProvider (v_citerne_stock_snapshot_agg) instead. Kept for refresh_helpers compatibility.',
+  'Use citerneStockSnapshotProvider (v_stock_actuel via CiterneRepository) instead. Kept for refresh_helpers compatibility.',
 )
 final citerneStocksSnapshotProvider = Riverpod.FutureProvider.autoDispose<DepotStocksSnapshot>((
   ref,
@@ -244,7 +244,7 @@ final citerneStocksSnapshotProvider = Riverpod.FutureProvider.autoDispose<DepotS
       final stockRow = stockByKey[key];
 
       if (stockRow != null) {
-        // Citerne avec stock : utiliser les données de v_stock_actuel_snapshot
+        // Citerne avec stock : utiliser les données de v_stock_actuel (via fetchStockActuelRows)
         citerneRows.add(stockRow);
       } else {
         // Citerne sans stock : créer un snapshot avec des valeurs à zéro
@@ -306,7 +306,7 @@ final citerneStocksSnapshotProvider = Riverpod.FutureProvider.autoDispose<DepotS
   return DepotStocksSnapshot(
     dateJour: dateJour,
     isFallback:
-        false, // v_stock_actuel_snapshot retourne toujours l'état actuel
+        false, // v_stock_actuel retourne toujours l'état actuel
     totals: totals,
     owners: owners,
     citerneRows: citerneRows,
@@ -318,12 +318,12 @@ final citerneStocksSnapshotProvider = Riverpod.FutureProvider.autoDispose<DepotS
 /// Compat: utilise v_stock_actuel (contrat DB AXE A – stock actuel unique).
 ///
 /// ⚠️ DEPRECATED: Ne pas utiliser dans le module Citernes UI.
-/// Utiliser `citerneStockSnapshotProvider` (v_citerne_stock_snapshot_agg) à la place.
+/// Utiliser `citerneStockSnapshotProvider` (v_stock_actuel via CiterneRepository) à la place.
 ///
 /// Conservé temporairement pour compatibilité avec `lib/features/receptions/screens/reception_form_screen.dart`.
 /// Do not use in Citernes UI.
 @Deprecated(
-  'Use citerneStockSnapshotProvider (v_citerne_stock_snapshot_agg) instead. Kept for reception_form_screen compatibility.',
+  'Use citerneStockSnapshotProvider (v_stock_actuel via CiterneRepository) instead. Kept for reception_form_screen compatibility.',
 )
 final citernesWithStockProvider = Riverpod.FutureProvider<List<CiterneRow>>((
   ref,
@@ -398,8 +398,8 @@ final citernesWithStockProvider = Riverpod.FutureProvider<List<CiterneRow>>((
 
 /// Provider pour récupérer les snapshots de stock agrégés pour les citernes.
 ///
-/// Consomme directement la vue SQL `v_citerne_stock_snapshot_agg`
-/// qui expose 1 ligne = 1 citerne avec stock total (MONALUXE + PARTENAIRE).
+/// Consomme v_stock_actuel via CiterneRepository.fetchCiterneStockSnapshots()
+/// qui agrège côté Dart pour exposer 1 ligne = 1 citerne avec stock total (MONALUXE + PARTENAIRE).
 ///
 /// Ne pas réutiliser `depotStocksSnapshotProvider` - ce provider est isolé pour le module Citernes.
 final citerneStockSnapshotProvider =

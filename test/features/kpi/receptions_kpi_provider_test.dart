@@ -4,7 +4,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ml_pp_mvp/features/kpi/providers/kpi_provider.dart';
 import 'package:ml_pp_mvp/features/receptions/kpi/receptions_kpi_provider.dart';
-import 'package:riverpod/riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void main() {
   group('receptionsKpiTodayProvider', () {

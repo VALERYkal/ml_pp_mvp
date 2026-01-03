@@ -90,7 +90,7 @@ stock_actuel = stock_snapshot + Σ(stocks_adjustments)
 1. **Phase 1** : Mise à jour des repositories Flutter ✅ **TERMINÉE (01/01/2026)**
 2. **Phase 2** : Mise à jour des providers ✅ **TERMINÉE (01/01/2026)**
 3. **Phase 3** : Mise à jour des écrans UI ✅ **TERMINÉE (01/01/2026)**
-4. **Phase 4** : Suppression des références legacy ⏳ **EN COURS**
+4. **Phase 4** : Suppression des références legacy ✅ **TERMINÉE (01/01/2026)**
 
 ### État de la migration (01/01/2026)
 
@@ -98,7 +98,15 @@ stock_actuel = stock_snapshot + Σ(stocks_adjustments)
 - ✅ **Module Citernes** : Utilise `v_stock_actuel` via `CiterneRepository.fetchCiterneStockSnapshots()` avec agrégation par `citerne_id`
 - ✅ **Module Stock** : Utilise `v_stock_actuel` via `StocksRepository.totauxActuels()` avec agrégation Dart
 - ✅ **Méthode canonique** : `StocksKpiRepository.fetchStockActuelRows()` créée et utilisée partout
-- ⏳ **Références legacy** : Commentaires et documentation à nettoyer (non bloquant)
+- ✅ **Références legacy** : Toutes supprimées (0 occurrence dans `lib/` et `test/`)
+- ✅ **Repository complet** : Toutes les méthodes migrées vers `fetchStockActuelRows()` + agrégation Dart
+- ✅ **Dashboard providers** : Tous migrés vers `fetchStockActuelRows()` avec filtrage par `depot_id` du profil
+- ✅ **Tests** : Mis à jour et renforcés avec test de non-régression multi-propriétaires
+- ✅ **Documentation** : Commentaires et documentation alignés sur `v_stock_actuel`
+
+### ✅ Migration complète terminée (01/01/2026)
+
+**Toutes les phases de migration sont complétées. L'application est 100% alignée sur `v_stock_actuel` comme source de vérité unique pour le stock actuel.**
 
 ---
 

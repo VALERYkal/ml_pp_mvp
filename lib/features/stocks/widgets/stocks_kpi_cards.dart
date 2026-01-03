@@ -3,12 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ml_pp_mvp/data/repositories/stocks_kpi_repository.dart';
 import 'package:ml_pp_mvp/features/stocks/data/stocks_kpi_providers.dart';
-import 'package:ml_pp_mvp/features/stocks/domain/depot_stocks_snapshot.dart';
 import 'package:ml_pp_mvp/shared/formatters.dart';
 
 /// Carte affichant le breakdown des stocks par propriétaire (MONALUXE / PARTENAIRE).
 ///
-/// Utilise `depotOwnerStockFromSnapshotProvider` pour obtenir les données depuis v_stock_actuel_owner_snapshot.
+/// Utilise `depotOwnerStockFromSnapshotProvider` pour obtenir les données depuis v_stock_actuel (agrégation Dart par proprietaire_type).
 /// Affiche deux lignes : une pour MONALUXE, une pour PARTENAIRE avec volumes ambiant/15°C.
 class OwnerStockBreakdownCard extends ConsumerWidget {
   final String depotId;

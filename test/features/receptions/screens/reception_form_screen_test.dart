@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase/supabase.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:ml_pp_mvp/features/receptions/screens/reception_form_screen.dart';
 import 'package:ml_pp_mvp/features/receptions/providers/reception_providers.dart'

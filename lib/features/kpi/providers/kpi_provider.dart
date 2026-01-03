@@ -443,7 +443,7 @@ class _StocksData {
 /// Calcule les totaux de stock depuis le nouveau provider agrégé
 ///
 /// Utilise stocksDashboardKpisProvider pour obtenir les données de stock.
-/// Source de vérité : kpis.globalByDepotProduct (agrégé par la DB via v_kpi_stock_global).
+/// Source de vérité : kpis.globalByDepotProduct (agrégé côté Dart depuis v_stock_actuel via fetchDepotProductTotals).
 ///
 /// Pour la capacité totale, on somme depuis citerneGlobal (détail technique, pas un calcul métier).
 _StocksData _computeStocksDataFromKpis(StocksDashboardKpis kpis) {

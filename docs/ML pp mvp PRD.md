@@ -1,4 +1,4 @@
-# PRD – ML_PP MVP v4.0 (Décembre 2025)
+# PRD – ML_PP MVP v5.0 (Janvier 2026)
 
 ## 📌 Objectif général
 Créer une application de gestion logistique pétrolière pour Monaluxe permettant de suivre les flux de carburant à travers les modules : authentification, cours de route, réception, sorties, citernes, stock journalier, logs et dashboard.
@@ -57,6 +57,7 @@ Créer une application de gestion logistique pétrolière pour Monaluxe permetta
 - **Formulaire** : Champs obligatoires (produit, citerne, `index_avant`, `index_apres`, température, densité)
 - **Calculs** : Volume ambiant = `index_apres - index_avant`, Volume 15°C calculé automatiquement
 - **Gestion d'erreurs** : Mapping des erreurs SQL vers messages utilisateur lisibles
+- **Ajustements** : Bouton "Corriger (Ajustement)" visible uniquement pour les administrateurs sur l'écran de détail
 
 ### 📤 Sortie Produit
 
@@ -85,6 +86,7 @@ Créer une application de gestion logistique pétrolière pour Monaluxe permetta
 - **Mapping d'erreurs** : Messages utilisateur lisibles pour chaque erreur du trigger
 - **Formulaire** : Champs obligatoires (produit, citerne, `index_avant`, `index_apres`, température, densité, bénéficiaire)
 - **Gestion d'erreurs** : Affichage des erreurs SQL dans des SnackBars avec messages clairs
+- **Ajustements** : Bouton "Corriger (Ajustement)" visible uniquement pour les administrateurs sur l'écran de détail
 
 ### 🛢 Citernes
 - Champs : nom, capacité, sécurité, produit, statut (active/inactive)
@@ -93,6 +95,8 @@ Créer une application de gestion logistique pétrolière pour Monaluxe permetta
 - Pas de mélange de produits, mais mélange de propriétaires autorisé
 - Journalisation : création, modification, désactivation
 - **Validation** : Vérification produit/citerne avant insertion sortie/réception
+- **Source de données** : Utilise `v_stock_actuel` comme source de vérité unique (migration complète 01/01/2026)
+- **Stock par citerne** : Agrégation depuis `v_stock_actuel` par `citerne_id`, inclut réceptions + sorties + ajustements
 
 ### 📊 Stocks Journaliers
 
@@ -101,7 +105,7 @@ Créer une application de gestion logistique pétrolière pour Monaluxe permetta
   - `citerne_id`, `produit_id`, `date_jour` (clés primaires)
   - `proprietaire_type` (MONALUXE | PARTENAIRE) - **NOUVEAU**
   - `depot_id` (référence au dépôt) - **NOUVEAU**
-  - `source` (RECEPTION | SORTIE | MANUAL) - **NOUVEAU**
+  - `source` (RECEPTION | SORTIE | MANUAL | ADJUSTMENT) - **NOUVEAU**
   - `stock_ambiant`, `stock_15c` (volumes)
   - `created_at`, `updated_at` (audit)
 - **Contrainte UNIQUE** : `(citerne_id, produit_id, date_jour, proprietaire_type)`
@@ -115,6 +119,48 @@ Créer une application de gestion logistique pétrolière pour Monaluxe permetta
 - Affichage brut / 15°C / par citerne / par propriétaire
 - Exportables en CSV ou PDF (à venir)
 - **Séparation par propriétaire** : Filtrage et agrégation par `proprietaire_type`
+- **Source de vérité unique** : `v_stock_actuel` (migration complète 01/01/2026)
+  - Toute lecture de stock actuel DOIT utiliser `v_stock_actuel`
+  - Inclut automatiquement : réceptions validées + sorties validées + ajustements
+  - Utilisée par : Dashboard, Citernes, Module Stock
+
+### 🔧 Ajustements de Stock
+
+#### Architecture Backend (PostgreSQL)
+- **Table** : `stocks_adjustments` pour corrections officielles du stock
+- **Seule méthode autorisée** : Pour corriger le stock après validation d'une réception ou sortie
+- **Champs** :
+  - `mouvement_type` (RECEPTION | SORTIE) - Référence au mouvement source
+  - `mouvement_id` (UUID) - ID du mouvement à corriger
+  - `delta_ambiant` (double precision) - Correction du volume ambiant (≠ 0)
+  - `delta_15c` (double precision) - Correction du volume à 15°C
+  - `reason` (text) - Raison obligatoire (minimum 10 caractères)
+  - `created_by` (UUID) - Utilisateur ayant créé l'ajustement (NOT NULL)
+- **Contraintes** :
+  - Au moins un delta non nul (`delta_ambiant != 0 OR delta_15c != 0`)
+  - Raison minimum 10 caractères
+  - `created_by` obligatoire
+- **RLS** : INSERT réservé aux administrateurs uniquement
+- **Impact immédiat** : Les ajustements sont immédiatement reflétés dans `v_stock_actuel`
+
+#### Types d'ajustements (Frontend)
+- **Volume** : Correction uniquement du volume ambiant (température/densité en lecture seule)
+- **Température** : Correction de la température (recalcul automatique du 15°C)
+- **Densité** : Correction de la densité (recalcul automatique du 15°C)
+- **Mixte** : Correction volume + température + densité (recalcul automatique complet)
+- **Préfixage automatique** : La raison est automatiquement préfixée avec `[VOLUME]`, `[TEMP]`, `[DENSITE]`, ou `[MIXTE]`
+
+#### Architecture Frontend (Flutter)
+- **Service** : `StocksAdjustmentsService.createAdjustment()` avec validations métier
+- **Exception dédiée** : `StocksAdjustmentsException` pour erreurs SQL/DB
+- **Formulaire** : `StocksAdjustmentCreateSheet` avec sélecteur de type d'ajustement
+- **Calculs automatiques** : Utilisation de `calcV15()` pour recalculer les deltas selon le type
+- **Validations** :
+  - Impact non nul (au moins un delta ≠ 0)
+  - Plages valides pour température et densité
+  - Raison minimum 10 caractères
+- **Accès** : Uniquement depuis les écrans de détail Réception/Sortie, visible uniquement pour les administrateurs
+- **Rafraîchissement** : Invalidation automatique des providers Dashboard/Citernes/Stock après création
 
 ### 📚 Référentiels (Lecture seule via Supabase)
 - Fournisseurs
@@ -138,6 +184,9 @@ Créer une application de gestion logistique pétrolière pour Monaluxe permetta
   - `KpiSorties` : `count`, `volumeAmbient`, `volume15c`, `countMonaluxe`, `countPartenaire`
   - `KpiSnapshot` : Agrégation de tous les KPI (réceptions, sorties, stocks, balance, tendances, alertes)
 - **Testabilité** : Architecture 100% testable sans dépendance à Supabase (injection de données mockées)
+- **Source de données stocks** : Utilise `v_stock_actuel` via `fetchStockActuelRows()` (migration complète 01/01/2026)
+  - Agrégation Dart pour totaux globaux et par propriétaire
+  - Inclut automatiquement les ajustements dans les calculs
 
 #### Fonctionnalités
 - Récap volumes stockés, reçus, sortis
@@ -182,12 +231,22 @@ Créer une application de gestion logistique pétrolière pour Monaluxe permetta
 - **Stocks** :
   - `stock_upsert_journalier()` : Upsert avec support `proprietaire_type`, `depot_id`, `source`
   - Contrainte UNIQUE : `(citerne_id, produit_id, date_jour, proprietaire_type)`
+- **Ajustements** :
+  - `apply_stock_adjustment()` : Application des ajustements au stock journalier (trigger AFTER INSERT)
+  - Journalisation automatique avec niveau CRITICAL dans `log_actions`
 
 #### Migrations SQL
 - **Idempotentes** : Toutes les migrations peuvent être rejouées sans erreur
 - **Structure** : Sections claires avec commentaires (STEP 1, STEP 2, etc.)
 - **Backfill** : Mise à jour des données existantes avec valeurs par défaut
 - **Index** : Index composites pour performance
+
+#### Vue canonique : v_stock_actuel
+- **Source de vérité unique** : Toute lecture de stock actuel DOIT utiliser `v_stock_actuel`
+- **Inclut automatiquement** : Réceptions validées + Sorties validées + Ajustements
+- **Utilisée par** : Dashboard, Citernes, Module Stock
+- **Migration complète** : Tous les modules alignés sur `v_stock_actuel` (01/01/2026)
+- **Voir** : `docs/db/CONTRAT_STOCK_ACTUEL.md` pour le contrat complet
 
 ### Frontend (Flutter)
 
@@ -209,6 +268,13 @@ Créer une application de gestion logistique pétrolière pour Monaluxe permetta
 - **Riverpod** : Providers pour données, services, état
 - **Auto-dispose** : Providers auto-dispose pour performance
 - **Invalidation** : Invalidation automatique après création/modification
+- **Rafraîchissement après ajustement** : Invalidation automatique des providers Dashboard/Citernes/Stock
+
+#### CI/CD (GitHub Actions)
+- **Flutter analyze** : Non-bloquant pour MVP (warnings visibles dans les logs)
+- **Dart format** : Non-bloquant pour MVP (formatting issues visibles dans les logs)
+- **Tests** : Bloquants (compilation et tests unitaires/widgets)
+- **Note** : Lint cleanup prévu en AXE B / post-MVP
 
 ---
 
@@ -233,6 +299,9 @@ Créer une application de gestion logistique pétrolière pour Monaluxe permetta
 - ❌ MONALUXE sans client_id → rejet
 - ❌ PARTENAIRE sans partenaire_id → rejet
 - ❌ Indices incohérents → rejet
+- ❌ Ajustement avec impact nul → rejet
+- ❌ Ajustement sans raison (ou raison < 10 caractères) → rejet
+- ❌ Ajustement créé par non-admin → rejet (RLS)
 
 ### Frontend (Flutter)
 - ⚠ Rôle non autorisé → interdiction d'action (lecture seule)
@@ -286,6 +355,9 @@ Créer une application de gestion logistique pétrolière pour Monaluxe permetta
 - ✅ Vérifier comportement des alertes du dashboard
 - ✅ Vérifier séparation des stocks MONALUXE vs PARTENAIRE
 - ✅ Vérifier journalisation automatique dans `log_actions`
+- ✅ Vérifier que les ajustements sont visibles immédiatement dans Dashboard/Citernes/Stock
+- ✅ Vérifier que seuls les admins peuvent créer des ajustements
+- ✅ Vérifier que les ajustements sont reflétés dans `v_stock_actuel`
 
 ---
 
@@ -301,6 +373,9 @@ Créer une application de gestion logistique pétrolière pour Monaluxe permetta
 | Propriétaire           | Type de propriétaire du stock (MONALUXE ou PARTENAIRE) |
 | Index                  | Mesure de niveau dans une citerne (avant/après) |
 | Stock journalier       | Stock calculé par jour, par citerne, par produit, par propriétaire |
+| Ajustement de stock    | Correction officielle du stock après validation (uniquement admin) |
+| v_stock_actuel         | Vue canonique source de vérité unique pour le stock actuel |
+| Delta                  | Variation de volume (positif = ajout, négatif = retrait) |
 
 ---
 
@@ -312,6 +387,36 @@ Créer une application de gestion logistique pétrolière pour Monaluxe permetta
 - 🔄 Synchronisation stocks MONALUXE/PARTENAIRE → validation manuelle recommandée
 
 ---
+
+## 📋 SUPPLÉMENT PRD – Version MVP Janvier 2026
+
+### 0) Migration complète sur v_stock_actuel (01/01/2026)
+
+#### Alignement architectural
+- **Source de vérité unique** : `v_stock_actuel` est la SEULE source pour le stock actuel
+- **Migration complète** : Tous les modules utilisent désormais `v_stock_actuel`
+  - ✅ Dashboard : Agrégation depuis `v_stock_actuel` via `fetchStockActuelRows()`
+  - ✅ Citernes : Agrégation depuis `v_stock_actuel` par `citerne_id`
+  - ✅ Module Stock : Agrégation depuis `v_stock_actuel` pour les totaux
+- **Méthode canonique** : `StocksKpiRepository.fetchStockActuelRows()` créée et utilisée partout
+- **Impact immédiat** : Les ajustements sont visibles immédiatement dans tous les modules
+- **Vues dépréciées** : `v_stock_actuel_snapshot`, `v_citerne_stock_snapshot_agg`, `v_stock_actuel_owner_snapshot` (remplacées par agrégation Dart)
+
+### 1) Système d'ajustements de stock industriel
+
+#### Fonctionnalités
+- **Types d'ajustements** : Volume, Température, Densité, Mixte
+- **Calculs automatiques** : Utilisation de `calcV15()` pour recalculer les deltas
+- **Préfixage automatique** : Raison préfixée avec `[VOLUME]`, `[TEMP]`, `[DENSITE]`, `[MIXTE]`
+- **Validations** : Impact non nul, plages valides, raison minimum 10 caractères
+- **Accès** : Uniquement depuis écrans de détail Réception/Sortie, visible uniquement pour admins
+- **Impact** : Immédiatement reflété dans `v_stock_actuel` et tous les modules
+
+#### Architecture
+- **Table** : `stocks_adjustments` avec contraintes strictes
+- **Trigger** : `apply_stock_adjustment()` pour application automatique
+- **RLS** : INSERT réservé aux administrateurs
+- **Journalisation** : Niveau CRITICAL dans `log_actions`
 
 ## 📋 SUPPLÉMENT PRD – Version MVP Décembre 2025
 
@@ -387,6 +492,6 @@ Créer une application de gestion logistique pétrolière pour Monaluxe permetta
 
 ---
 
-**Version** : 4.0  
-**Date** : Décembre 2025  
-**Dernière mise à jour** : 02/12/2025
+**Version** : 5.0  
+**Date** : Janvier 2026  
+**Dernière mise à jour** : 01/01/2026

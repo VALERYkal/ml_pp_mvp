@@ -37,7 +37,7 @@ class CiterneService {
   /// Compat: utilise v_stock_actuel (contrat DB AXE A – stock actuel unique).
   ///
   /// ⚠️ DEPRECATED: Cette méthode est conservée uniquement pour compatibilité avec ReceptionService.
-  /// Pour le module Citernes, utiliser `CiterneRepository.fetchCiterneStockSnapshots()` (v_citerne_stock_snapshot_agg) à la place.
+  /// Pour le module Citernes, utiliser `CiterneRepository.fetchCiterneStockSnapshots()` (v_stock_actuel via agrégation Dart) à la place.
   ///
   /// [citerneId] : ID de la citerne
   /// [produitId] : ID du produit

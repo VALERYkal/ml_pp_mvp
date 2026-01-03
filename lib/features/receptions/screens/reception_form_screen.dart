@@ -8,7 +8,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ml_pp_mvp/shared/ui/toast.dart';
 import 'package:ml_pp_mvp/shared/ui/errors.dart';
-import 'package:postgrest/postgrest.dart';
 import 'package:ml_pp_mvp/core/errors/reception_validation_exception.dart';
 import 'package:ml_pp_mvp/core/errors/reception_insert_exception.dart';
 
@@ -644,10 +643,11 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
                         }
                       });
                     }
-                    if (filtered.isEmpty)
+                    if (filtered.isEmpty) {
                       return const Text(
                         'Aucune citerne active disponible pour ce produit',
                       );
+                    }
                     return KeyedSubtree(
                       key: const Key('reception_citerne_selector'),
                       child: Column(
@@ -679,8 +679,9 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
               Builder(
                 builder: (_) {
                   final pid = _selectedProduitId ?? _selectedCours?.produitId;
-                  if (pid == null || pid.isEmpty)
+                  if (pid == null || pid.isEmpty) {
                     return const SizedBox.shrink();
+                  }
                   return ref
                       .watch(
                         citerneQuickInfoProvider((

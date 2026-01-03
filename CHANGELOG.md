@@ -47,6 +47,56 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
     - ✅ `flutter analyze` OK
   - **Conformité** : Contrat DB-STRICT (AXE A) - voir `docs/db/CONTRAT_STOCK_ACTUEL.md`
 
+#### ✅ **Phase 4 — Cleanup legacy complet (01/01/2026)**
+
+- **Suppression totale des références aux vues legacy** : Élimination de toutes les lectures depuis les vues dépréciées - **01/01/2026**
+  - **Objectif** : Garantir que 100% des lectures de stock actuel passent par `v_stock_actuel` via la méthode canonique `fetchStockActuelRows()`
+  - **Vues legacy supprimées de l'application** :
+    - ❌ `v_stock_actuel_snapshot` (remplacée par `v_stock_actuel` + agrégation Dart)
+    - ❌ `v_stock_actuel_owner_snapshot` (remplacée par `v_stock_actuel` + agrégation Dart)
+    - ❌ `v_citerne_stock_snapshot_agg` (remplacée par `v_stock_actuel` + agrégation Dart)
+    - ❌ `v_kpi_stock_global` (remplacée par `v_stock_actuel` + agrégation Dart)
+  - **Repository refactorisé** :
+    - `fetchDepotOwnerTotals()` : Migration vers `fetchStockActuelRows()` + agrégation Dart par `proprietaire_type`
+    - `fetchCiterneStocksFromSnapshot()` : Migration vers `fetchStockActuelRows()` + agrégation Dart par `citerne_id`
+    - `fetchCiterneGlobalSnapshots()` : Mise à jour pour utiliser la méthode refactorisée
+    - `fetchCiterneOwnerSnapshots()` : Migration de `stocks_journaliers` vers `fetchStockActuelRows()` + agrégation Dart
+    - `fetchDepotOwnerStocksFromSnapshot()` : Migration vers `fetchStockActuelRows()` + agrégation Dart
+    - `fetchDepotProductTotals()` : Migration de `v_kpi_stock_global` vers `fetchStockActuelRows()` + agrégation Dart
+  - **Dashboard providers refactorisés** :
+    - `citernesSousSeuilProvider` : Migration vers `fetchStockActuelRows(depotId)` avec filtrage par profil utilisateur
+    - `adminKpiProvider` : Section "citernes sous seuil" migrée vers `fetchStockActuelRows()`
+    - `directeurKpiProvider` : Section "Citernes & stocks actuels" migrée vers `fetchStockActuelRows()`
+  - **Tests mis à jour** :
+    - Réalignement complet des tests sur `v_stock_actuel`
+    - Ajout d'un test de non-régression pour vérifier l'agrégation multi-propriétaires (MONALUXE + PARTENAIRE)
+    - Mock data adapté au format granulaire de `v_stock_actuel`
+  - **Commentaires et documentation nettoyés** :
+    - Mise à jour de tous les commentaires legacy dans les fichiers UI et providers
+    - Documentation alignée sur `v_stock_actuel` comme source unique
+  - **Fichiers modifiés** :
+    - `lib/data/repositories/stocks_kpi_repository.dart` (refactor complet)
+    - `lib/features/dashboard/providers/citernes_sous_seuil_provider.dart`
+    - `lib/features/dashboard/providers/admin_kpi_provider.dart`
+    - `lib/features/dashboard/providers/directeur_kpi_provider.dart`
+    - `test/features/stocks/stocks_kpi_repository_test.dart` (tests mis à jour + test non-régression)
+    - `lib/features/dashboard/widgets/role_dashboard.dart` (commentaires)
+    - `lib/features/stocks/widgets/stocks_kpi_cards.dart` (commentaires)
+    - `lib/features/citernes/screens/citerne_list_screen.dart` (commentaires)
+    - `lib/features/citernes/providers/citerne_providers.dart` (commentaires)
+    - `lib/features/citernes/data/citerne_service.dart` (commentaires)
+    - `lib/features/citernes/domain/citerne_stock_snapshot.dart` (commentaires)
+    - `lib/features/kpi/providers/kpi_provider.dart` (commentaires)
+  - **Résultats** :
+    - ✅ **0 occurrence** des vues legacy dans `lib/` et `test/` (vérifié par `rg`)
+    - ✅ **100% agrégation Dart** : toutes les lectures passent par `fetchStockActuelRows()`
+    - ✅ **Filtrage par dépôt** : tous les providers dashboard filtrent sur `depot_id` du profil utilisateur
+    - ✅ **Cohérence garantie** : même source de données pour Dashboard, Citernes, Stocks, KPI
+    - ✅ **Tests validés** : `flutter analyze` OK, `flutter test` OK
+    - ✅ **Aucune régression** : signatures publiques conservées, comportement identique
+  - **Conformité** : Contrat DB-STRICT (AXE A) - Phase 4 complétée - voir `docs/db/CONTRAT_STOCK_ACTUEL.md`
+  - **Statut** : ✅ **AXE A officiellement clos (100%)**. Le cœur stock est désormais cohérent, strict, maintenable et prêt production.
+
 #### **Fixed**
 
 - **Correction erreur Supabase 23502** : Ajout de `created_by` dans les ajustements de stock - **01/01/2026**
@@ -60,6 +110,65 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
     - ✅ Logs de debug temporaires ajoutés pour diagnostic (à supprimer après validation)
     - ✅ `flutter analyze` OK
   - **Conformité** : Correction de bug critique sans modification de la logique métier
+
+- **Correction conformité interface tests** : Ajout de `fetchStockActuelRows` dans les fakes de tests - **01/01/2026**
+  - **Problème** : Erreur `flutter analyze` : "Missing concrete implementation of `StocksKpiRepository.fetchStockActuelRows`" dans les fakes de tests après l'introduction de la méthode canonique
+  - **Solution** : Ajout de l'override `fetchStockActuelRows()` dans tous les fakes de tests qui implémentent `StocksKpiRepository`
+  - **Fichiers modifiés** :
+    - `test/features/stocks/widgets/stocks_kpi_cards_test.dart` (ajout dans `FakeStocksKpiRepositoryForWidget`)
+    - `test/features/stocks/depot_stocks_snapshot_provider_test.dart` (ajout dans `FakeStocksKpiRepository` et `_CapturingStocksKpiRepository`)
+  - **Implémentations** :
+    - `FakeStocksKpiRepositoryForWidget` : retourne `[]` (utilisé uniquement pour tester l'état loading)
+    - `FakeStocksKpiRepository` : retourne `[]` (non utilisé par les tests existants)
+    - `_CapturingStocksKpiRepository` : délègue au `_delegate` (pattern de capture conservé)
+  - **Résultats** :
+    - ✅ `flutter analyze` : 0 erreur "Missing concrete implementation"
+    - ✅ `flutter test test/features/stocks_adjustments/` : 32 tests passent
+    - ✅ `flutter test test/features/stocks/` : 16 tests passent
+    - ✅ Aucun fichier de production modifié
+    - ✅ Aucun changement fonctionnel métier
+  - **Conformité** : Correction de conformité d'interface (tests uniquement), patch minimal pour maintenir la cohérence après l'introduction de `fetchStockActuelRows()` comme méthode canonique
+
+#### **Added**
+
+- **Suite de tests complète pour le module Ajustements de stock** : Tests unitaires, service et invalidation - **01/01/2026**
+  - **Objectif** : Sécuriser le module Ajustements de stock avec des tests déterministes sans dépendance à la DB réelle
+  - **Extraction de la logique pure** :
+    - Création de [`lib/features/stocks_adjustments/domain/adjustment_compute.dart`](lib/features/stocks_adjustments/domain/adjustment_compute.dart)
+    - Extraction de `computeAdjustmentDeltas()`, `buildPrefixedReason()`, `hasNonZeroImpact()` en fonctions pures testables
+    - Refactor de l'écran pour utiliser ces fonctions (comportement identique)
+  - **Tests unitaires** (`test/features/stocks_adjustments/stocks_adjustments_unit_test.dart`) :
+    - Calcul des deltas pour les 4 types d'ajustement (VOLUME, TEMP, DENSITE, MIXTE)
+    - Validation de l'impact non nul
+    - Préfixage automatique des raisons
+    - 19 tests unitaires
+  - **Tests du service** (`test/features/stocks_adjustments/stocks_adjustments_service_test.dart`) :
+    - Fake PostgREST qui capture les appels `insert` (table name + payload)
+    - Fake `GoTrueClient` pour simuler `auth.currentUser`
+    - Tests "happy path" : vérification du payload complet (`mouvement_type`, `mouvement_id`, `delta_ambiant`, `delta_15c`, `reason`, `created_by`)
+    - Tests de validation : `deltaAmbiant == 0`, `reason < 10`, `mouvement_type` invalide, `currentUser == null`
+    - Tests d'erreurs Supabase : mapping RLS → message utilisateur
+    - 10 tests de service
+  - **Tests d'invalidation** (`test/features/stocks_adjustments/stocks_adjustments_invalidation_test.dart`) :
+    - Fake repository avec compteur d'appels pour vérifier l'invalidation
+    - Tests `testWidgets` pour obtenir un `WidgetRef` réel
+    - Vérification que `invalidateDashboardKpisAfterStockMovement` relance les providers après création d'ajustement
+    - 2 tests d'invalidation
+  - **Fichiers créés** :
+    - `lib/features/stocks_adjustments/domain/adjustment_compute.dart` (logique pure extraite)
+    - `test/features/stocks_adjustments/stocks_adjustments_unit_test.dart`
+    - `test/features/stocks_adjustments/stocks_adjustments_service_test.dart`
+    - `test/features/stocks_adjustments/stocks_adjustments_invalidation_test.dart`
+  - **Fichiers modifiés** :
+    - `lib/features/stocks_adjustments/screens/stocks_adjustment_create_sheet.dart` (refactor pour utiliser les fonctions pures)
+  - **Résultats** :
+    - ✅ **32 tests passent** (19 unitaires + 10 service + 2 invalidation + 1 prefix)
+    - ✅ **Aucune dépendance à `Supabase.instance`** dans les tests (fakes/mocks utilisés)
+    - ✅ **Tests rapides et déterministes** (sans DB réelle)
+    - ✅ **Couverture complète** : calcul des deltas, validations, insert Supabase, invalidation providers
+    - ✅ `flutter analyze` OK
+    - ✅ Architecture respectée : injection via Riverpod, pas de dépendance directe
+  - **Conformité** : Amélioration de la qualité et de la maintenabilité du code sans changement fonctionnel
 
 ### 🔧 **Maintenance & Refactoring**
 

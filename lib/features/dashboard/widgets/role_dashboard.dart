@@ -226,7 +226,7 @@ class _RoleDashboardState extends ConsumerState<RoleDashboard> {
                                 // RÈGLE MÉTIER : Stock ambiant = source de vérité opérationnelle
                                 // Le stock à 15°C est une valeur dérivée, analytique, non décisionnelle
                                 // Référentiel : docs/db/REGLE_METIER_STOCKS_AMBIANT_15C.md
-                                // Source de vérité : v_stock_actuel_snapshot via depotGlobalStockFromSnapshotProvider
+                                // Source de vérité : v_stock_actuel via depotGlobalStockFromSnapshotProvider (agrégation Dart)
                                 Builder(
                                   builder: (context) {
                                     final snapAsync = depotId != null
@@ -321,7 +321,7 @@ class _RoleDashboardState extends ConsumerState<RoleDashboard> {
                                         );
                                   },
                                 ),
-                                // Détail par propriétaire depuis v_stock_actuel_owner_snapshot
+                                // Détail par propriétaire depuis v_stock_actuel (agrégation Dart par proprietaire_type)
                                 Builder(
                                   builder: (context) {
                                     final ownersAsync = depotId != null

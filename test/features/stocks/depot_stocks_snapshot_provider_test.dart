@@ -81,6 +81,14 @@ class FakeStocksKpiRepository implements StocksKpiRepository {
   }) async {
     return [];
   }
+
+  @override
+  Future<List<Map<String, dynamic>>> fetchStockActuelRows({
+    required String depotId,
+    String? produitId,
+  }) async {
+    return [];
+  }
 }
 
 void main() {
@@ -576,6 +584,17 @@ class _CapturingStocksKpiRepository implements StocksKpiRepository {
     String? produitId,
   }) async {
     return _delegate.fetchDepotOwnerStocksFromSnapshot(
+      depotId: depotId,
+      produitId: produitId,
+    );
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> fetchStockActuelRows({
+    required String depotId,
+    String? produitId,
+  }) async {
+    return _delegate.fetchStockActuelRows(
       depotId: depotId,
       produitId: produitId,
     );

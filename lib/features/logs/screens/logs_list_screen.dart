@@ -93,8 +93,9 @@ class LogsListScreen extends ConsumerWidget {
                       lastDate: DateTime(2100),
                       initialDateRange: range,
                     );
-                    if (picked != null)
+                    if (picked != null) {
                       ref.read(logsDateRangeProvider.notifier).state = picked;
+                    }
                   },
                   child: Text(_fmtRange(range)),
                 ),
@@ -208,8 +209,9 @@ class LogsListScreen extends ConsumerWidget {
             Expanded(
               child: logs.when(
                 data: (items) {
-                  if (items.isEmpty)
+                  if (items.isEmpty) {
                     return const Center(child: Text('Aucun log'));
+                  }
 
                   // Récupérer les maps de lookup pour les libellés
                   final citMap = ref

@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:postgrest/postgrest.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ml_pp_mvp/shared/ui/toast.dart';
 import 'package:ml_pp_mvp/shared/ui/errors.dart';
 import 'package:ml_pp_mvp/core/errors/sortie_validation_exception.dart';
@@ -689,8 +689,9 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
                 // Pré-sélection automatique si une seule citerne
                 if (filtered.length == 1 && _selectedCiterneId == null) {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (mounted)
+                    if (mounted) {
                       setState(() => _selectedCiterneId = filtered.first.id);
+                    }
                   });
                 }
                 if (filtered.isEmpty) {

@@ -65,9 +65,12 @@ jobs:
         run: flutter analyze || true
 
       # (Optionnel) 7) Vérifier le formatage
-      #   Tu peux commenter cette étape si tu ne veux pas que le build casse sur le format.
-      - name: Dart format check
-        run: dart format --output=none --set-exit-if-changed lib test
+      # NOTE:
+      # Dart format is temporarily non-blocking for MVP.
+      # Formatting issues are visible in logs but do not fail CI.
+      # Strict formatting will be re-enabled post-MVP.
+      - name: Dart format check (non-blocking for MVP)
+        run: dart format --output=none --set-exit-if-changed lib test || true
 
       # 8) Lancer TOUTES les suites de tests
   

@@ -888,24 +888,22 @@ class _AdvanceButtonState extends ConsumerState<_AdvanceButton> {
                 await ref
                     .read(coursDeRouteServiceProvider)
                     .updateStatut(id: widget.c.id, to: nextEnum);
-                if (mounted) {
-                  showAppToast(
-                    context,
-                    'Statut mis à jour → ${nextEnum.label}',
-                    type: ToastType.success,
-                  );
-                  // Rafraîchir les listes
-                  ref.invalidate(coursDeRouteListProvider);
-                  ref.invalidate(coursDeRouteActifsProvider);
-                }
+                if (!context.mounted) return;
+                showAppToast(
+                  context,
+                  'Statut mis à jour → ${nextEnum.label}',
+                  type: ToastType.success,
+                );
+                // Rafraîchir les listes
+                ref.invalidate(coursDeRouteListProvider);
+                ref.invalidate(coursDeRouteActifsProvider);
               } catch (e) {
-                if (mounted) {
-                  showAppToast(
-                    context,
-                    humanizePostgrest(e),
-                    type: ToastType.error,
-                  );
-                }
+                if (!context.mounted) return;
+                showAppToast(
+                  context,
+                  humanizePostgrest(e),
+                  type: ToastType.error,
+                );
               } finally {
                 if (mounted) setState(() => busy = false);
               }

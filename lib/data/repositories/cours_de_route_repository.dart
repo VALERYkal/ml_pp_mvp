@@ -39,10 +39,12 @@ class CoursDeRouteRepository {
         .from('cours_de_route')
         .select('id, statut, volume, depot_destination_id, produit_id');
 
-    if (depotId != null && depotId.isNotEmpty)
+    if (depotId != null && depotId.isNotEmpty) {
       query.eq('depot_destination_id', depotId);
-    if (produitId != null && produitId.isNotEmpty)
+    }
+    if (produitId != null && produitId.isNotEmpty) {
       query.eq('produit_id', produitId);
+    }
 
     final rows = await query;
 

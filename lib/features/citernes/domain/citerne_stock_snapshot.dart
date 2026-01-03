@@ -1,6 +1,6 @@
 /// Modèle pour représenter un snapshot de stock agrégé par citerne.
 ///
-/// Source de données : `v_citerne_stock_snapshot_agg`
+/// Source de données : `v_stock_actuel` (via CiterneRepository.fetchCiterneStockSnapshots avec agrégation Dart)
 /// Contient le stock total (MONALUXE + PARTENAIRE) pour une citerne donnée.
 class CiterneStockSnapshot {
   final String citerneId;

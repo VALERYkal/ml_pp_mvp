@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ml_pp_mvp/data/repositories/stocks_kpi_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:postgrest/postgrest.dart';
 
 /// Fake filter builder générique qui implémente PostgrestFilterBuilder<T>
 ///
@@ -154,38 +153,66 @@ void main() {
         );
       });
 
-      test('reads from v_stock_actuel_owner_snapshot and returns owner totals', () async {
-        // Arrange: créer un fake client avec des données snapshot (une ligne par propriétaire)
+      test('reads from v_stock_actuel and aggregates by proprietaire_type', () async {
+        // Arrange: créer un fake client avec des données v_stock_actuel (format granulaire)
         final fakeClient = _FakeSupabaseClient();
         final rowsToReturn = [
           {
             'depot_id': 'depot-1',
             'depot_nom': 'Depot A',
-            'proprietaire_type': 'MONALUXE',
+            'citerne_id': 'citerne-1',
+            'citerne_nom': 'Tank A',
             'produit_id': 'prod-1',
             'produit_nom': 'Gasoil',
-            'stock_ambiant_total': 1010.0,
-            'stock_15c_total': 1000.0,
-            // date_jour supprimé : la vue snapshot ne l'utilise pas pour le filtrage
+            'proprietaire_type': 'MONALUXE',
+            'stock_ambiant': 600.0,
+            'stock_15c': 590.0,
+            'updated_at': '2025-12-10T10:00:00Z',
           },
           {
             'depot_id': 'depot-1',
             'depot_nom': 'Depot A',
-            'proprietaire_type': 'PARTENAIRE',
+            'citerne_id': 'citerne-1',
+            'citerne_nom': 'Tank A',
             'produit_id': 'prod-1',
             'produit_nom': 'Gasoil',
-            'stock_ambiant_total': 500.0,
-            'stock_15c_total': 475.0,
-            // date_jour supprimé : la vue snapshot ne l'utilise pas pour le filtrage
+            'proprietaire_type': 'PARTENAIRE',
+            'stock_ambiant': 300.0,
+            'stock_15c': 290.0,
+            'updated_at': '2025-12-10T10:00:00Z',
+          },
+          {
+            'depot_id': 'depot-1',
+            'depot_nom': 'Depot A',
+            'citerne_id': 'citerne-2',
+            'citerne_nom': 'Tank B',
+            'produit_id': 'prod-1',
+            'produit_nom': 'Gasoil',
+            'proprietaire_type': 'MONALUXE',
+            'stock_ambiant': 410.0,
+            'stock_15c': 410.0,
+            'updated_at': '2025-12-10T10:00:00Z',
+          },
+          {
+            'depot_id': 'depot-1',
+            'depot_nom': 'Depot A',
+            'citerne_id': 'citerne-2',
+            'citerne_nom': 'Tank B',
+            'produit_id': 'prod-1',
+            'produit_nom': 'Gasoil',
+            'proprietaire_type': 'PARTENAIRE',
+            'stock_ambiant': 200.0,
+            'stock_15c': 185.0,
+            'updated_at': '2025-12-10T10:00:00Z',
           },
         ];
-        fakeClient.setViewData('v_stock_actuel_owner_snapshot', rowsToReturn);
+        fakeClient.setViewData('v_stock_actuel', rowsToReturn);
 
         final repo = StocksKpiRepository(fakeClient);
 
         // Act
         final result = await repo.fetchDepotOwnerTotals(
-          dateJour: DateTime(2025, 12, 10), // Ignored by snapshot view
+          dateJour: DateTime(2025, 12, 10), // Ignored: v_stock_actuel = toujours état actuel
           depotId: 'depot-1',
         );
 
@@ -193,19 +220,104 @@ void main() {
         expect(result, isNotEmpty);
 
         // Vérifier que la vue correcte a été utilisée (critique : on teste la bonne source SQL)
-        expect(fakeClient.capturedViewName, 'v_stock_actuel_owner_snapshot');
+        expect(fakeClient.fromCalls, contains('v_stock_actuel'));
 
-        // Note: v_stock_actuel_owner_snapshot ignore dateJour (snapshot = toujours état actuel)
-        // Le test vérifie que la vue correcte est utilisée et que les données sont retournées
+        // Note: v_stock_actuel ignore dateJour (toujours état actuel)
+        // Le test vérifie que la vue correcte est utilisée et que les données sont agrégées
         expect(result.length, 2);
 
-        // Vérifier que les stocks correspondent aux données mockées (valeurs directement depuis la vue)
+        // Vérifier que les stocks sont agrégés correctement par propriétaire
+        // MONALUXE: 600 + 410 = 1010 (ambiant), 590 + 410 = 1000 (15c)
         final monaluxeResult = result.firstWhere(
           (kpi) => kpi.proprietaireType == 'MONALUXE',
         );
         expect(monaluxeResult.stockAmbiantTotal, 1010.0);
         expect(monaluxeResult.stock15cTotal, 1000.0);
 
+        // PARTENAIRE: 300 + 200 = 500 (ambiant), 290 + 185 = 475 (15c)
+        final partenaireResult = result.firstWhere(
+          (kpi) => kpi.proprietaireType == 'PARTENAIRE',
+        );
+        expect(partenaireResult.stockAmbiantTotal, 500.0);
+        expect(partenaireResult.stock15cTotal, 475.0);
+      });
+
+      test('non-regression: aggregates correctly with multiple citernes per owner', () async {
+        // Test non-régression: 2 lignes v_stock_actuel même propriétaire mais citernes différentes
+        // Vérifie que fetchDepotOwnerTotals agrège correctement par propriétaire
+        final fakeClient = _FakeSupabaseClient();
+        final rowsToReturn = [
+          {
+            'depot_id': 'depot-1',
+            'depot_nom': 'Depot A',
+            'citerne_id': 'citerne-1',
+            'citerne_nom': 'Tank A',
+            'produit_id': 'prod-1',
+            'produit_nom': 'Gasoil',
+            'proprietaire_type': 'MONALUXE',
+            'stock_ambiant': 600.0,
+            'stock_15c': 590.0,
+            'updated_at': '2025-12-10T10:00:00Z',
+          },
+          {
+            'depot_id': 'depot-1',
+            'depot_nom': 'Depot A',
+            'citerne_id': 'citerne-2',
+            'citerne_nom': 'Tank B',
+            'produit_id': 'prod-1',
+            'produit_nom': 'Gasoil',
+            'proprietaire_type': 'MONALUXE',
+            'stock_ambiant': 410.0,
+            'stock_15c': 410.0,
+            'updated_at': '2025-12-10T10:00:00Z',
+          },
+          {
+            'depot_id': 'depot-1',
+            'depot_nom': 'Depot A',
+            'citerne_id': 'citerne-1',
+            'citerne_nom': 'Tank A',
+            'produit_id': 'prod-1',
+            'produit_nom': 'Gasoil',
+            'proprietaire_type': 'PARTENAIRE',
+            'stock_ambiant': 300.0,
+            'stock_15c': 290.0,
+            'updated_at': '2025-12-10T10:00:00Z',
+          },
+          {
+            'depot_id': 'depot-1',
+            'depot_nom': 'Depot A',
+            'citerne_id': 'citerne-2',
+            'citerne_nom': 'Tank B',
+            'produit_id': 'prod-1',
+            'produit_nom': 'Gasoil',
+            'proprietaire_type': 'PARTENAIRE',
+            'stock_ambiant': 200.0,
+            'stock_15c': 185.0,
+            'updated_at': '2025-12-10T10:00:00Z',
+          },
+        ];
+        fakeClient.setViewData('v_stock_actuel', rowsToReturn);
+
+        final repo = StocksKpiRepository(fakeClient);
+
+        // Act
+        final result = await repo.fetchDepotOwnerTotals(
+          depotId: 'depot-1',
+        );
+
+        // Assert
+        expect(result.length, 2);
+
+        // Vérifier que MONALUXE agrège correctement toutes les citernes
+        // Total: 600 + 410 = 1010 (ambiant), 590 + 410 = 1000 (15c)
+        final monaluxeResult = result.firstWhere(
+          (kpi) => kpi.proprietaireType == 'MONALUXE',
+        );
+        expect(monaluxeResult.stockAmbiantTotal, 1010.0);
+        expect(monaluxeResult.stock15cTotal, 1000.0);
+
+        // Vérifier que PARTENAIRE agrège correctement toutes les citernes
+        // Total: 300 + 200 = 500 (ambiant), 290 + 185 = 475 (15c)
         final partenaireResult = result.firstWhere(
           (kpi) => kpi.proprietaireType == 'PARTENAIRE',
         );
@@ -257,71 +369,89 @@ void main() {
         );
       });
 
-      test('filters to latest date_jour when multiple dates returned', () async {
-        // Arrange: créer un fake client avec des données contenant plusieurs dates
+      test('aggregates by citerne_id from v_stock_actuel (all owners combined)', () async {
+        // Arrange: créer un fake client avec des données v_stock_actuel (format granulaire)
+        // Test non-régression: 2 lignes v_stock_actuel même citerne_id (MONALUXE + PARTENAIRE)
         final fakeClient = _FakeSupabaseClient();
         final rowsToReturn = [
           {
+            'depot_id': 'depot-1',
+            'depot_nom': 'Depot A',
             'citerne_id': 'citerne-1',
             'citerne_nom': 'Tank A',
             'produit_id': 'prod-1',
             'produit_nom': 'Gasoil',
-            'date_jour': '2025-12-09', // Date la plus récente
-            'stock_ambiant_total': 1000.0,
-            'stock_15c_total': 950.0,
-            'capacite_totale': 5000.0,
-            'capacite_securite': 500.0,
+            'proprietaire_type': 'MONALUXE',
+            'stock_ambiant': 600.0,
+            'stock_15c': 590.0,
+            'updated_at': '2025-12-09T10:00:00Z',
           },
           {
+            'depot_id': 'depot-1',
+            'depot_nom': 'Depot A',
+            'citerne_id': 'citerne-1',
+            'citerne_nom': 'Tank A',
+            'produit_id': 'prod-1',
+            'produit_nom': 'Gasoil',
+            'proprietaire_type': 'PARTENAIRE',
+            'stock_ambiant': 400.0,
+            'stock_15c': 360.0,
+            'updated_at': '2025-12-09T10:00:00Z',
+          },
+          {
+            'depot_id': 'depot-1',
+            'depot_nom': 'Depot A',
             'citerne_id': 'citerne-2',
             'citerne_nom': 'Tank B',
             'produit_id': 'prod-1',
             'produit_nom': 'Gasoil',
-            'date_jour': '2025-12-09', // Même date (devrait être inclus)
-            'stock_ambiant_total': 2000.0,
-            'stock_15c_total': 1900.0,
-            'capacite_totale': 10000.0,
-            'capacite_securite': 1000.0,
-          },
-          {
-            'citerne_id': 'citerne-1',
-            'citerne_nom': 'Tank A',
-            'produit_id': 'prod-1',
-            'produit_nom': 'Gasoil',
-            'date_jour':
-                '2025-12-08', // Date plus ancienne (devrait être exclue)
-            'stock_ambiant_total': 900.0,
-            'stock_15c_total': 855.0,
-            'capacite_totale': 5000.0,
-            'capacite_securite': 500.0,
+            'proprietaire_type': 'MONALUXE',
+            'stock_ambiant': 2000.0,
+            'stock_15c': 1900.0,
+            'updated_at': '2025-12-09T10:00:00Z',
           },
         ];
-        fakeClient.setViewData('v_stock_actuel_snapshot', rowsToReturn);
+        fakeClient.setViewData('v_stock_actuel', rowsToReturn);
+        // Mock pour les capacités des citernes
+        fakeClient.setViewData('citernes', [
+          {
+            'id': 'citerne-1',
+            'nom': 'Tank A',
+            'capacite_totale': 5000.0,
+            'capacite_securite': 500.0,
+            'produit_id': 'prod-1',
+          },
+          {
+            'id': 'citerne-2',
+            'nom': 'Tank B',
+            'capacite_totale': 10000.0,
+            'capacite_securite': 1000.0,
+            'produit_id': 'prod-1',
+          },
+        ]);
+        fakeClient.setViewData('produits', [
+          {'id': 'prod-1', 'nom': 'Gasoil'},
+        ]);
 
         final repo = StocksKpiRepository(fakeClient);
 
         // Act
         final result = await repo.fetchCiterneGlobalSnapshots(
-          dateJour: DateTime(2025, 12, 10),
+          dateJour: DateTime(2025, 12, 10), // Ignored: v_stock_actuel = toujours état actuel
           depotId: 'depot-1',
         );
 
         // Assert
         expect(result, isNotEmpty);
 
-        // Vérifier que la vue correcte a été utilisée (au moins une fois)
-        // Le repository peut aussi appeler d'autres tables (ex: produits pour enrichissement)
-        // donc on vérifie que la vue snapshot a été appelée, pas qu'elle soit la dernière
-        expect(fakeClient.fromCalls, contains('v_stock_actuel_snapshot'));
+        // Vérifier que la vue correcte a été utilisée
+        expect(fakeClient.fromCalls, contains('v_stock_actuel'));
 
-        // Note: v_stock_actuel_snapshot ignore dateJour (snapshot = toujours état actuel)
-        // Le test vérifie que la vue correcte est utilisée et que les données sont retournées
-        // Vérifier l'intention : on doit avoir les données de la date la plus récente (2025-12-09)
-        // Le nombre exact de résultats peut varier si le repository enrichit avec d'autres tables
+        // Note: v_stock_actuel ignore dateJour (toujours état actuel)
+        // Le test vérifie que la vue correcte est utilisée et que les données sont agrégées
 
-        // Vérifier que les données correspondent aux lignes de la date la plus récente
-        // On vérifie que citerne-1 a les valeurs de la date la plus récente (1000.0, 950.0)
-        // et pas celles de la date ancienne (900.0, 855.0)
+        // Vérifier que citerne-1 agrège correctement MONALUXE + PARTENAIRE
+        // Total: 600 + 400 = 1000 (ambiant), 590 + 360 = 950 (15c)
         final tankA = result.firstWhere(
           (snapshot) => snapshot.citerneId == 'citerne-1',
           orElse: () =>
@@ -330,7 +460,7 @@ void main() {
         expect(tankA.stockAmbiantTotal, 1000.0);
         expect(tankA.stock15cTotal, 950.0);
 
-        // Vérifier aussi que citerne-2 est présente avec ses valeurs de la date la plus récente
+        // Vérifier que citerne-2 a ses valeurs (MONALUXE uniquement)
         final tankB = result.firstWhere(
           (snapshot) => snapshot.citerneId == 'citerne-2',
           orElse: () =>

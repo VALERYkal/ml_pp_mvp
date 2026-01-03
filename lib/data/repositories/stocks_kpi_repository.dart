@@ -15,15 +15,14 @@ double _toDouble(dynamic value) {
 
 /// KPI global de stock par dépôt & produit (toutes propriétés confondues).
 ///
-/// Source SQL attendue :
-///   v_kpi_stock_global
+/// Source SQL : v_stock_actuel (via fetchDepotProductTotals avec agrégation Dart)
 /// Colonnes utilisées :
 ///   - depot_id
 ///   - depot_nom
 ///   - produit_id
 ///   - produit_nom
-///   - stock_ambiant_total
-///   - stock_15c_total
+///   - stock_ambiant_total (agrégé)
+///   - stock_15c_total (agrégé)
 class DepotGlobalStockKpi {
   final String depotId;
   final String depotNom;
@@ -55,16 +54,15 @@ class DepotGlobalStockKpi {
 
 /// KPI de stock par dépôt, propriétaire (MONALUXE/PARTENAIRE) & produit.
 ///
-/// Source SQL attendue :
-///   v_stock_actuel_owner_snapshot (snapshot état actuel)
+/// Source SQL : v_stock_actuel (via fetchDepotOwnerTotals avec agrégation Dart)
 /// Colonnes utilisées :
 ///   - depot_id
 ///   - depot_nom
 ///   - proprietaire_type
 ///   - produit_id
 ///   - produit_nom
-///   - stock_ambiant_total
-///   - stock_15c_total
+///   - stock_ambiant_total (agrégé)
+///   - stock_15c_total (agrégé)
 class DepotOwnerStockKpi {
   final String depotId;
   final String depotNom;
@@ -216,84 +214,179 @@ class StocksKpiRepository {
     return (rows as List).cast<Map<String, dynamic>>();
   }
 
-  /// Helper pour formater une date en format ISO YYYY-MM-DD (UTC).
-  String _formatYmd(DateTime date) {
-    return DateTime.utc(
-      date.year,
-      date.month,
-      date.day,
-    ).toIso8601String().split('T').first;
-  }
-
   /// Retourne les totaux globaux par dépôt & produit.
   ///
-  /// Si [depotId] est fourni, on filtre sur ce dépôt.
+  /// SOURCE CANONIQUE — inclut adjustments (AXE A)
+  /// Lit depuis v_stock_actuel et agrège côté Dart par (depot_id, produit_id).
+  ///
+  /// Si [depotId] est fourni, on filtre sur ce dépôt (requis pour fetchStockActuelRows).
   /// Si [produitId] est fourni, on filtre sur ce produit.
-  /// Si [dateJour] est fourni, on filtre sur cette date (<= dateJour pour prendre la dernière disponible).
+  /// ⚠️ [dateJour] est ignoré : v_stock_actuel = toujours état actuel.
   Future<List<DepotGlobalStockKpi>> fetchDepotProductTotals({
     String? depotId,
     String? produitId,
-    DateTime? dateJour,
+    DateTime? dateJour, // Ignoré : v_stock_actuel = toujours état actuel
   }) async {
-    final query = _client
-        .from('v_kpi_stock_global')
-        .select<List<Map<String, dynamic>>>();
-
-    if (depotId != null) {
-      query.eq('depot_id', depotId);
-    }
-    if (produitId != null) {
-      query.eq('produit_id', produitId);
-    }
-    // If a date is provided, pick the latest row <= that date.
-    if (dateJour != null) {
-      query.lte('date_jour', _formatYmd(dateJour));
+    if (depotId == null) {
+      // Si pas de depotId, retourner liste vide (comportement conservé)
+      return [];
     }
 
-    // Deterministic: latest date first (dashboard consumes newest snapshot)
-    query.order('date_jour', ascending: false);
+    // SOURCE CANONIQUE — inclut adjustments (AXE A)
+    final rows = await fetchStockActuelRows(
+      depotId: depotId,
+      produitId: produitId,
+    );
 
-    final rows = await query;
-    return rows.map(DepotGlobalStockKpi.fromMap).toList();
+    // Agréger par (depot_id, produit_id) tous propriétaires confondus
+    final Map<String, ({
+      String depotId,
+      String depotNom,
+      String produitId,
+      String produitNom,
+      double stockAmbiant,
+      double stock15c,
+    })> aggregated = {};
+
+    for (final row in rows) {
+      final rowProduitId = (row['produit_id'] as String?) ?? '';
+      final key = '$depotId::$rowProduitId';
+
+      final stockAmbiant = _toDouble(row['stock_ambiant'] ?? row['stock_ambiant_total'] ?? 0.0);
+      final stock15c = _toDouble(row['stock_15c'] ?? row['stock_15c_total'] ?? 0.0);
+      final depotNom = (row['depot_nom'] as String?) ?? '';
+      final produitNom = (row['produit_nom'] as String?) ?? '';
+
+      if (aggregated.containsKey(key)) {
+        final current = aggregated[key]!;
+        aggregated[key] = (
+          depotId: current.depotId,
+          depotNom: current.depotNom,
+          produitId: current.produitId,
+          produitNom: current.produitNom,
+          stockAmbiant: current.stockAmbiant + stockAmbiant,
+          stock15c: current.stock15c + stock15c,
+        );
+      } else {
+        aggregated[key] = (
+          depotId: depotId,
+          depotNom: depotNom,
+          produitId: rowProduitId,
+          produitNom: produitNom,
+          stockAmbiant: stockAmbiant,
+          stock15c: stock15c,
+        );
+      }
+    }
+
+    // Convertir en liste de DepotGlobalStockKpi
+    return aggregated.values.map((agg) {
+      return DepotGlobalStockKpi(
+        depotId: agg.depotId,
+        depotNom: agg.depotNom,
+        produitId: agg.produitId,
+        produitNom: agg.produitNom,
+        stockAmbiantTotal: agg.stockAmbiant,
+        stock15cTotal: agg.stock15c,
+      );
+    }).toList();
   }
 
   /// Retourne les totaux par dépôt, propriétaire & produit.
   ///
   /// Utilisé pour le breakdown MONALUXE vs PARTENAIRE.
-  /// ⚠️ [dateJour] est ignoré : v_stock_actuel_owner_snapshot = toujours état actuel.
+  /// ⚠️ [dateJour] est ignoré : v_stock_actuel = toujours état actuel.
+  ///
+  /// SOURCE CANONIQUE — inclut adjustments (AXE A)
+  /// Lit depuis v_stock_actuel et agrège côté Dart par proprietaire_type.
   Future<List<DepotOwnerStockKpi>> fetchDepotOwnerTotals({
     String? depotId,
     String? produitId,
     String? proprietaireType,
-    DateTime? dateJour, // Ignoré : snapshot = toujours état actuel
+    DateTime? dateJour, // Ignoré : v_stock_actuel = toujours état actuel
   }) async {
-    // Utiliser v_stock_actuel_owner_snapshot (source de vérité snapshot actuel)
-    final query = _client
-        .from('v_stock_actuel_owner_snapshot')
-        .select<List<Map<String, dynamic>>>();
-
-    // Filtrer par depot_id (obligatoire pour éviter de charger tous les dépôts)
-    if (depotId != null) {
-      query.eq('depot_id', depotId);
-    }
-    if (produitId != null) {
-      query.eq('produit_id', produitId);
-    }
-    if (proprietaireType != null) {
-      query.eq('proprietaire_type', proprietaireType);
+    if (depotId == null) {
+      // Si pas de depotId, retourner liste vide (comportement conservé)
+      return [];
     }
 
-    // Ordre déterministe : MONALUXE puis PARTENAIRE
-    query.order('proprietaire_type', ascending: true);
+    // SOURCE CANONIQUE — inclut adjustments (AXE A)
+    final rows = await fetchStockActuelRows(
+      depotId: depotId,
+      produitId: produitId,
+    );
 
-    final rows = await query;
-    // Cast sûr : rows peut être List<dynamic> avec items Map<String, dynamic>
-    final list = (rows as List).cast<Map<String, dynamic>>();
+    // Agréger par (depot_id, produit_id, proprietaire_type)
+    final Map<String, ({
+      String depotId,
+      String depotNom,
+      String produitId,
+      String produitNom,
+      String proprietaireType,
+      double stockAmbiant,
+      double stock15c,
+    })> aggregated = {};
 
-    final result = list.map(DepotOwnerStockKpi.fromMap).toList();
+    for (final row in rows) {
+      // Filtrer par proprietaireType si fourni
+      final rowProprietaireType = (row['proprietaire_type'] as String?)?.toUpperCase().trim();
+      if (rowProprietaireType == null || rowProprietaireType.isEmpty) {
+        continue; // Ignorer les rows sans proprietaire_type
+      }
+      if (proprietaireType != null && rowProprietaireType != proprietaireType.toUpperCase().trim()) {
+        continue; // Filtrer par proprietaireType si fourni
+      }
+
+      final rowProduitId = (row['produit_id'] as String?) ?? '';
+      final key = '$depotId::${rowProduitId}::$rowProprietaireType';
+
+      final stockAmbiant = _toDouble(row['stock_ambiant'] ?? row['stock_ambiant_total'] ?? 0.0);
+      final stock15c = _toDouble(row['stock_15c'] ?? row['stock_15c_total'] ?? 0.0);
+      final depotNom = (row['depot_nom'] as String?) ?? '';
+      final produitNom = (row['produit_nom'] as String?) ?? '';
+
+      if (aggregated.containsKey(key)) {
+        final current = aggregated[key]!;
+        aggregated[key] = (
+          depotId: current.depotId,
+          depotNom: current.depotNom,
+          produitId: current.produitId,
+          produitNom: current.produitNom,
+          proprietaireType: current.proprietaireType,
+          stockAmbiant: current.stockAmbiant + stockAmbiant,
+          stock15c: current.stock15c + stock15c,
+        );
+      } else {
+        aggregated[key] = (
+          depotId: depotId,
+          depotNom: depotNom,
+          produitId: rowProduitId,
+          produitNom: produitNom,
+          proprietaireType: rowProprietaireType,
+          stockAmbiant: stockAmbiant,
+          stock15c: stock15c,
+        );
+      }
+    }
+
+    // Convertir en liste de DepotOwnerStockKpi
+    final result = aggregated.values.map((agg) {
+      return DepotOwnerStockKpi(
+        depotId: agg.depotId,
+        depotNom: agg.depotNom,
+        proprietaireType: agg.proprietaireType,
+        produitId: agg.produitId,
+        produitNom: agg.produitNom,
+        stockAmbiantTotal: agg.stockAmbiant,
+        stock15cTotal: agg.stock15c,
+      );
+    }).toList();
+
+    // Trier par proprietaire_type (MONALUXE puis PARTENAIRE)
+    result.sort((a, b) => a.proprietaireType.compareTo(b.proprietaireType));
 
     // Fallback safe : si résultat vide, retourner MONALUXE et PARTENAIRE avec 0.0
-    if (result.isEmpty && depotId != null) {
+    if (result.isEmpty) {
       // Récupérer le nom du dépôt pour le fallback
       String depotNom = '';
       try {
@@ -334,46 +427,86 @@ class StocksKpiRepository {
     return result;
   }
 
-  /// Récupère les stocks actuels par citerne depuis la vue snapshot.
+  /// Récupère les stocks actuels par citerne depuis v_stock_actuel (source de vérité canonique).
   ///
-  /// Cette méthode lit depuis v_stock_actuel_snapshot qui représente
-  /// le dernier état connu de chaque citerne (tous propriétaires confondus).
+  /// SOURCE CANONIQUE — inclut adjustments (AXE A)
+  /// Lit depuis v_stock_actuel et agrège côté Dart par (citerne_id, produit_id) tous propriétaires confondus.
   ///
-  /// [depotId] : Optionnel, filtre par dépôt
-  /// [citerneId] : Optionnel, filtre par citerne
-  /// [produitId] : Optionnel, filtre par produit
+  /// [depotId] : Optionnel, filtre par dépôt (requis pour fetchStockActuelRows)
+  /// [citerneId] : Optionnel, filtre par citerne (appliqué côté Dart)
+  /// [produitId] : Optionnel, filtre par produit (peut être passé à fetchStockActuelRows)
   ///
-  /// Retourne : Liste de Map contenant les données brutes de la vue SQL
+  /// Retourne : Liste de Map contenant les données agrégées par citerne
   Future<List<Map<String, dynamic>>> fetchCiterneStocksFromSnapshot({
     String? depotId,
     String? citerneId,
     String? produitId,
   }) async {
-    final query = _client
-        .from('v_stock_actuel_snapshot')
-        .select<List<Map<String, dynamic>>>();
-
-    if (depotId != null) {
-      query.eq('depot_id', depotId);
-    }
-    if (citerneId != null) {
-      query.eq('citerne_id', citerneId);
-    }
-    if (produitId != null) {
-      query.eq('produit_id', produitId);
+    if (depotId == null) {
+      // Si pas de depotId, retourner liste vide (comportement conservé)
+      return [];
     }
 
-    // déterministe
-    query.order('citerne_nom', ascending: true);
+    // SOURCE CANONIQUE — inclut adjustments (AXE A)
+    final rows = await fetchStockActuelRows(
+      depotId: depotId,
+      produitId: produitId,
+    );
 
-    final rows = await query;
-    return (rows as List).cast<Map<String, dynamic>>();
+    // Agréger par (citerne_id, produit_id) tous propriétaires confondus
+    final Map<String, Map<String, dynamic>> aggregated = {};
+
+    for (final row in rows) {
+      final rowCiterneId = (row['citerne_id'] as String?) ?? '';
+      final rowProduitId = (row['produit_id'] as String?) ?? '';
+
+      // Filtrer par citerneId si fourni
+      if (citerneId != null && rowCiterneId != citerneId) {
+        continue;
+      }
+
+      final key = '$rowCiterneId::$rowProduitId';
+
+      final stockAmbiant = _toDouble(row['stock_ambiant'] ?? row['stock_ambiant_total'] ?? 0.0);
+      final stock15c = _toDouble(row['stock_15c'] ?? row['stock_15c_total'] ?? 0.0);
+
+      if (aggregated.containsKey(key)) {
+        final current = aggregated[key]!;
+        aggregated[key] = Map<String, dynamic>.from(current)
+          ..['stock_ambiant_total'] = (_toDouble(current['stock_ambiant_total'] ?? 0.0) + stockAmbiant)
+          ..['stock_15c_total'] = (_toDouble(current['stock_15c_total'] ?? 0.0) + stock15c);
+      } else {
+        aggregated[key] = {
+          'citerne_id': rowCiterneId,
+          'citerne_nom': (row['citerne_nom'] as String?) ?? 'Citerne',
+          'produit_id': rowProduitId,
+          'produit_nom': (row['produit_nom'] as String?) ?? '',
+          'depot_id': (row['depot_id'] as String?) ?? depotId,
+          'depot_nom': (row['depot_nom'] as String?) ?? '',
+          'stock_ambiant_total': stockAmbiant,
+          'stock_15c_total': stock15c,
+          'updated_at': row['updated_at'] ?? row['date_jour'],
+        };
+      }
+    }
+
+    // Convertir en liste et trier par nom de citerne
+    final result = aggregated.values.toList();
+    result.sort((a, b) {
+      final nomA = (a['citerne_nom'] as String?) ?? '';
+      final nomB = (b['citerne_nom'] as String?) ?? '';
+      return nomA.compareTo(nomB);
+    });
+
+    return result;
   }
 
-  /// Récupère les stocks actuels par dépôt et propriétaire depuis la vue snapshot.
+  /// Récupère les stocks actuels par dépôt et propriétaire depuis v_stock_actuel (source de vérité canonique).
   ///
-  /// Vue SQL : v_stock_actuel_owner_snapshot
-  /// Colonnes attendues :
+  /// SOURCE CANONIQUE — inclut adjustments (AXE A)
+  /// Lit depuis v_stock_actuel et agrège côté Dart par (depot_id, produit_id, proprietaire_type).
+  ///
+  /// Colonnes retournées :
   ///   - depot_id, depot_nom
   ///   - produit_id, produit_nom
   ///   - proprietaire_type (MONALUXE ou PARTENAIRE)
@@ -383,7 +516,7 @@ class StocksKpiRepository {
   /// [depotId] : Identifiant du dépôt (requis)
   /// [produitId] : Optionnel, filtre par produit
   ///
-  /// Retourne : Liste de Map contenant les données brutes de la vue SQL
+  /// Retourne : Liste de Map contenant les données agrégées
   Future<List<Map<String, dynamic>>> fetchDepotOwnerStocksFromSnapshot({
     required String depotId,
     String? produitId,
@@ -395,21 +528,56 @@ class StocksKpiRepository {
       );
     }
 
-    final query = _client
-        .from('v_stock_actuel_owner_snapshot')
-        .select<List<Map<String, dynamic>>>();
+    // SOURCE CANONIQUE — inclut adjustments (AXE A)
+    final rows = await fetchStockActuelRows(
+      depotId: depotId,
+      produitId: produitId,
+    );
 
-    query.eq('depot_id', depotId);
+    // Agréger par (depot_id, produit_id, proprietaire_type)
+    final Map<String, Map<String, dynamic>> aggregated = {};
 
-    if (produitId != null) {
-      query.eq('produit_id', produitId);
+    for (final row in rows) {
+      final rowProduitId = (row['produit_id'] as String?) ?? '';
+      final rowProprietaireType = (row['proprietaire_type'] as String?)?.toUpperCase().trim();
+
+      // Ignorer les rows sans proprietaire_type
+      if (rowProprietaireType == null || rowProprietaireType.isEmpty) {
+        continue;
+      }
+
+      final key = '$depotId::$rowProduitId::$rowProprietaireType';
+
+      final stockAmbiant = _toDouble(row['stock_ambiant'] ?? row['stock_ambiant_total'] ?? 0.0);
+      final stock15c = _toDouble(row['stock_15c'] ?? row['stock_15c_total'] ?? 0.0);
+      final depotNom = (row['depot_nom'] as String?) ?? '';
+      final produitNom = (row['produit_nom'] as String?) ?? '';
+
+      if (aggregated.containsKey(key)) {
+        final current = aggregated[key]!;
+        aggregated[key] = Map<String, dynamic>.from(current)
+          ..['stock_ambiant_total'] = (_toDouble(current['stock_ambiant_total'] ?? 0.0) + stockAmbiant)
+          ..['stock_15c_total'] = (_toDouble(current['stock_15c_total'] ?? 0.0) + stock15c);
+      } else {
+        aggregated[key] = {
+          'depot_id': depotId,
+          'depot_nom': depotNom,
+          'produit_id': rowProduitId,
+          'produit_nom': produitNom,
+          'proprietaire_type': rowProprietaireType,
+          'stock_ambiant_total': stockAmbiant,
+          'stock_15c_total': stock15c,
+        };
+      }
     }
 
-    // Ordre déterministe : MONALUXE puis PARTENAIRE
-    query.order('proprietaire_type', ascending: true);
-
-    final rows = await query;
-    final result = (rows as List).cast<Map<String, dynamic>>();
+    // Convertir en liste et trier par proprietaire_type (MONALUXE puis PARTENAIRE)
+    final result = aggregated.values.toList();
+    result.sort((a, b) {
+      final propA = (a['proprietaire_type'] as String?) ?? '';
+      final propB = (b['proprietaire_type'] as String?) ?? '';
+      return propA.compareTo(propB);
+    });
 
     if (kDebugMode) {
       debugPrint(
@@ -428,14 +596,15 @@ class StocksKpiRepository {
   /// [DEPRECATED] Alias de compatibilité pour fetchCiterneGlobalSnapshots.
   ///
   /// ⚠️ Cette méthode est maintenue uniquement pour compatibilité avec le code existant.
-  /// Utilise v_stock_actuel_snapshot comme source de vérité (ignore dateJour car snapshot = état actuel).
+  /// SOURCE CANONIQUE — inclut adjustments (AXE A)
+  /// Utilise v_stock_actuel via fetchCiterneStocksFromSnapshot() (ignore dateJour car v_stock_actuel = état actuel).
   ///
   /// [depotId] : Optionnel, filtre par dépôt
   /// [citerneId] : Optionnel, filtre par citerne
   /// [produitId] : Optionnel, filtre par produit
-  /// [dateJour] : Ignoré (snapshot = toujours état actuel)
+  /// [dateJour] : Ignoré (v_stock_actuel = toujours état actuel)
   ///
-  /// Retourne : Liste de CiterneGlobalStockSnapshot mappée depuis v_stock_actuel_snapshot
+  /// Retourne : Liste de CiterneGlobalStockSnapshot mappée depuis v_stock_actuel (agrégation Dart)
   @Deprecated(
     'Utiliser fetchCiterneStocksFromSnapshot() directement. Cette méthode est maintenue pour compatibilité.',
   )
@@ -443,9 +612,10 @@ class StocksKpiRepository {
     String? depotId,
     String? citerneId,
     String? produitId,
-    DateTime? dateJour, // Ignoré : snapshot = toujours état actuel
+    DateTime? dateJour, // Ignoré : v_stock_actuel = toujours état actuel
   }) async {
-    // Récupérer les stocks depuis v_stock_actuel_snapshot
+    // SOURCE CANONIQUE — inclut adjustments (AXE A)
+    // Récupérer les stocks depuis v_stock_actuel (via fetchCiterneStocksFromSnapshot)
     final stockRows = await fetchCiterneStocksFromSnapshot(
       depotId: depotId,
       citerneId: citerneId,
@@ -507,7 +677,7 @@ class StocksKpiRepository {
       final citerneData = citernesMap[citerneId ?? ''];
 
       // Adapter les clés et enrichir avec les capacités
-      // v_stock_actuel_snapshot peut retourner stock_ambiant/stock_15c ou stock_ambiant_total/stock_15c_total
+      // fetchCiterneStocksFromSnapshot retourne déjà stock_ambiant_total/stock_15c_total (agrégation Dart)
       map['stock_ambiant_total'] ??= map['stock_ambiant'] ?? 0.0;
       map['stock_15c_total'] ??= map['stock_15c'] ?? 0.0;
       // Utiliser updated_at si disponible, sinon date actuelle
@@ -533,15 +703,16 @@ class StocksKpiRepository {
   /// [DEPRECATED] Alias de compatibilité pour fetchCiterneOwnerSnapshots.
   ///
   /// ⚠️ Cette méthode est maintenue uniquement pour compatibilité avec le code existant.
-  /// Lit depuis stocks_journaliers pour obtenir les snapshots par citerne et propriétaire.
+  /// SOURCE CANONIQUE — inclut adjustments (AXE A)
+  /// Lit depuis v_stock_actuel et agrège côté Dart par (citerne, produit, propriétaire).
   ///
-  /// [depotId] : Optionnel, filtre par dépôt
-  /// [citerneId] : Optionnel, filtre par citerne
-  /// [produitId] : Optionnel, filtre par produit
-  /// [proprietaireType] : Optionnel, filtre par propriétaire
-  /// [dateJour] : Ignoré (snapshot = toujours état actuel, utilise MAX(date_jour))
+  /// [depotId] : Optionnel, filtre par dépôt (requis pour fetchStockActuelRows)
+  /// [citerneId] : Optionnel, filtre par citerne (appliqué côté Dart)
+  /// [produitId] : Optionnel, filtre par produit (peut être passé à fetchStockActuelRows)
+  /// [proprietaireType] : Optionnel, filtre par propriétaire (appliqué côté Dart)
+  /// [dateJour] : Ignoré (v_stock_actuel = toujours état actuel)
   ///
-  /// Retourne : Liste de CiterneOwnerStockSnapshot avec le dernier état connu par (citerne, produit, propriétaire)
+  /// Retourne : Liste de CiterneOwnerStockSnapshot avec l'état actuel par (citerne, produit, propriétaire)
   @Deprecated(
     'Utiliser les providers snapshot directement. Cette méthode est maintenue pour compatibilité.',
   )
@@ -550,94 +721,75 @@ class StocksKpiRepository {
     String? citerneId,
     String? produitId,
     String? proprietaireType,
-    DateTime? dateJour, // Ignoré : snapshot = toujours état actuel
+    DateTime? dateJour, // Ignoré : v_stock_actuel = toujours état actuel
   }) async {
-    // Construire la requête pour obtenir le dernier stock par (citerne, produit, propriétaire)
-    // On utilise une sous-requête pour obtenir le MAX(date_jour) puis on joint
-    final query = _client
-        .from('stocks_journaliers')
-        .select<List<Map<String, dynamic>>>();
-
-    if (depotId != null) {
-      query.eq('depot_id', depotId);
-    }
-    if (citerneId != null) {
-      query.eq('citerne_id', citerneId);
-    }
-    if (produitId != null) {
-      query.eq('produit_id', produitId);
-    }
-    if (proprietaireType != null) {
-      query.eq('proprietaire_type', proprietaireType);
+    if (depotId == null) {
+      // Si pas de depotId, retourner liste vide (comportement conservé)
+      return [];
     }
 
-    // Trier par date_jour DESC pour obtenir les plus récents en premier
-    query.order('date_jour', ascending: false);
+    // SOURCE CANONIQUE — inclut adjustments (AXE A)
+    final rows = await fetchStockActuelRows(
+      depotId: depotId,
+      produitId: produitId,
+    );
 
-    final allRows = await query;
-    final rows = (allRows as List).cast<Map<String, dynamic>>();
+    // Agréger par (citerne_id, produit_id, proprietaire_type)
+    final Map<String, Map<String, dynamic>> aggregated = {};
 
-    // Grouper par (citerne_id, produit_id, proprietaire_type) et prendre le premier (plus récent)
-    final grouped = <String, Map<String, dynamic>>{};
     for (final row in rows) {
-      final key =
-          '${row['citerne_id']}::${row['produit_id']}::${row['proprietaire_type']}';
-      if (!grouped.containsKey(key)) {
-        grouped[key] = row;
+      final rowCiterneId = (row['citerne_id'] as String?) ?? '';
+      final rowProduitId = (row['produit_id'] as String?) ?? '';
+      final rowProprietaireType = (row['proprietaire_type'] as String?)?.toUpperCase().trim();
+
+      // Filtrer par citerneId si fourni
+      if (citerneId != null && rowCiterneId != citerneId) {
+        continue;
+      }
+      // Filtrer par proprietaireType si fourni
+      if (proprietaireType != null && rowProprietaireType != proprietaireType.toUpperCase().trim()) {
+        continue;
+      }
+      // Ignorer les rows sans proprietaire_type
+      if (rowProprietaireType == null || rowProprietaireType.isEmpty) {
+        continue;
+      }
+
+      final key = '$rowCiterneId::$rowProduitId::$rowProprietaireType';
+
+      final stockAmbiant = _toDouble(row['stock_ambiant'] ?? row['stock_ambiant_total'] ?? 0.0);
+      final stock15c = _toDouble(row['stock_15c'] ?? row['stock_15c_total'] ?? 0.0);
+
+      if (aggregated.containsKey(key)) {
+        // Agrégation : additionner les volumes (normalement une seule ligne par clé dans v_stock_actuel)
+        final current = aggregated[key]!;
+        aggregated[key] = Map<String, dynamic>.from(current)
+          ..['stock_ambiant_total'] = (_toDouble(current['stock_ambiant_total'] ?? 0.0) + stockAmbiant)
+          ..['stock_15c_total'] = (_toDouble(current['stock_15c_total'] ?? 0.0) + stock15c);
+      } else {
+        // Utiliser updated_at ou date_jour pour dateJour
+        final updatedAt = row['updated_at'] ?? row['date_jour'];
+        final dateStr = updatedAt is String
+            ? updatedAt
+            : (updatedAt is DateTime
+                ? updatedAt.toIso8601String().split('T').first
+                : DateTime.now().toIso8601String().split('T').first);
+
+        aggregated[key] = {
+          'citerne_id': rowCiterneId,
+          'citerne_nom': (row['citerne_nom'] as String?) ?? 'Citerne',
+          'produit_id': rowProduitId,
+          'produit_nom': (row['produit_nom'] as String?) ?? '',
+          'proprietaire_type': rowProprietaireType,
+          'date_jour': dateStr,
+          'stock_ambiant_total': stockAmbiant,
+          'stock_15c_total': stock15c,
+        };
       }
     }
 
-    // Récupérer les noms des citernes et produits
-    final citerneIds = grouped.values
-        .map((r) => r['citerne_id'] as String?)
-        .whereType<String>()
-        .toSet()
-        .toList();
-    final produitIds = grouped.values
-        .map((r) => r['produit_id'] as String?)
-        .whereType<String>()
-        .toSet()
-        .toList();
-
-    final citernesMap = <String, String>{};
-    if (citerneIds.isNotEmpty) {
-      final citernes =
-          await _client.from('citernes').select('id, nom').in_('id', citerneIds)
-              as List;
-      for (final c in citernes) {
-        final id = c['id'] as String?;
-        final nom = c['nom'] as String?;
-        if (id != null && nom != null) {
-          citernesMap[id] = nom;
-        }
-      }
-    }
-
-    final produitsMap = <String, String>{};
-    if (produitIds.isNotEmpty) {
-      final produits =
-          await _client.from('produits').select('id, nom').in_('id', produitIds)
-              as List;
-      for (final p in produits) {
-        final id = p['id'] as String?;
-        final nom = p['nom'] as String?;
-        if (id != null && nom != null) {
-          produitsMap[id] = nom;
-        }
-      }
-    }
-
-    // Mapper vers CiterneOwnerStockSnapshot
-    return grouped.values.map((row) {
-      final map = Map<String, dynamic>.from(row);
-      final citerneId = map['citerne_id'] as String? ?? '';
-      final produitId = map['produit_id'] as String? ?? '';
-
-      map['citerne_nom'] = citernesMap[citerneId] ?? 'Citerne';
-      map['produit_nom'] = produitsMap[produitId] ?? '';
-      map['stock_ambiant_total'] = map['stock_ambiant'] ?? 0.0;
-      map['stock_15c_total'] = map['stock_15c'] ?? 0.0;
-
+    // Convertir en liste de CiterneOwnerStockSnapshot
+    return aggregated.values.map((map) {
       return CiterneOwnerStockSnapshot.fromMap(map);
     }).toList();
   }

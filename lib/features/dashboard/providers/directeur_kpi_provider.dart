@@ -2,6 +2,8 @@
 // Ce fichier sera supprimé dans la prochaine version majeure
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../data/repositories/stocks_kpi_repository.dart';
+import '../../profil/providers/profil_provider.dart';
 
 class DirecteurKpiData {
   final int receptionsJour;
@@ -69,39 +71,49 @@ final directeurKpiProvider = FutureProvider<DirecteurKpiData>((ref) async {
   }
 
   // Citernes & stocks actuels
-  final citernes = await supa
-      .from('citernes')
-      .select('id, capacite_totale, capacite_securite');
-
-  final latest = await supa
-      .from('v_citerne_stock_snapshot_agg')
-      .select('citerne_id, stock_ambiant_total');
-
-  final stockByCiterne = <String, double>{};
-  for (final m in (latest as List)) {
-    final id = m['citerne_id'] as String?;
-    final stock = (m['stock_ambiant_total'] as num?)?.toDouble() ?? 0.0;
-    if (id != null) stockByCiterne[id] = stock;
-  }
-
+  // SOURCE CANONIQUE — inclut adjustments (AXE A)
+  // Récupérer le depotId depuis le profil
+  final profil = ref.watch(profilProvider).valueOrNull;
+  final depotId = profil?.depotId;
   double totalStock = 0.0;
   double totalCapacite = 0.0;
   int nbSousSeuil = 0;
+  int totalCit = 0;
+  double ratio = 0.0;
 
-  for (final c in (citernes as List)) {
-    final id = c['id'] as String?;
-    if (id == null) continue;
-    final stock = stockByCiterne[id] ?? 0.0;
-    final cap = (c['capacite_totale'] as num?)?.toDouble() ?? 0.0;
-    final seuil = (c['capacite_securite'] as num?)?.toDouble() ?? 0.0;
+  if (depotId != null) {
+    final repo = StocksKpiRepository(supa);
+    // Récupérer les stocks depuis v_stock_actuel
+    final stockRows = await repo.fetchStockActuelRows(depotId: depotId);
+    // Agréger par citerne_id (somme de tous les propriétaires)
+    final stockByCiterne = <String, double>{};
+    for (final row in stockRows) {
+      final citerneId = (row['citerne_id'] as String?) ?? '';
+      if (citerneId.isEmpty) continue;
+      final stockAmbiant = (row['stock_ambiant'] as num?)?.toDouble() ?? 0.0;
+      stockByCiterne[citerneId] = (stockByCiterne[citerneId] ?? 0.0) + stockAmbiant;
+    }
+    // Récupérer les citernes du dépôt
+    final citernes = await supa
+        .from('citernes')
+        .select('id, capacite_totale, capacite_securite')
+        .eq('depot_id', depotId);
 
-    totalStock += stock;
-    totalCapacite += cap;
-    if (stock < seuil) nbSousSeuil++;
+    for (final c in (citernes as List)) {
+      final id = (c['id'] as String?) ?? '';
+      if (id.isEmpty) continue;
+      final stock = stockByCiterne[id] ?? 0.0;
+      final cap = (c['capacite_totale'] as num?)?.toDouble() ?? 0.0;
+      final seuil = (c['capacite_securite'] as num?)?.toDouble() ?? 0.0;
+
+      totalStock += stock;
+      totalCapacite += cap;
+      if (stock < seuil) nbSousSeuil++;
+    }
+
+    totalCit = (citernes as List).length;
+    ratio = totalCapacite > 0 ? (totalStock / totalCapacite) : 0.0;
   }
-
-  final totalCit = (citernes as List).length;
-  final ratio = totalCapacite > 0 ? (totalStock / totalCapacite) : 0.0;
 
   return DirecteurKpiData(
     receptionsJour: (recs as List).length,

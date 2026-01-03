@@ -70,7 +70,7 @@ class StocksAdjustmentsService {
       debugPrint('➡️ hint = ${e.hint}');
       debugPrint('➡️ code = ${e.code}');
 
-      final msg = (e.message ?? '').toLowerCase();
+      final msg = e.message.toLowerCase();
 
       // Détection plus robuste des erreurs de droits
       final isRlsOrPerm =

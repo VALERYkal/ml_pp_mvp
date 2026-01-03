@@ -299,7 +299,7 @@ class CiterneListScreen extends ConsumerWidget {
   }
 
   /// Construit la grille de citernes à partir des snapshots.
-  /// Utilise directement la vue SQL `v_citerne_stock_snapshot_agg`
+  /// Utilise v_stock_actuel via CiterneRepository.fetchCiterneStockSnapshots() (agrégation Dart)
   Widget _buildCiterneGridFromSnapshot(
     BuildContext context,
     List<CiterneStockSnapshot> citernes,
@@ -632,7 +632,7 @@ class CiterneListScreen extends ConsumerWidget {
   }
 
   /// Construit une carte de citerne à partir d'un snapshot.
-  /// Utilise CiterneStockSnapshot (données depuis la vue v_citerne_stock_snapshot_agg)
+  /// Utilise CiterneStockSnapshot (données depuis v_stock_actuel via agrégation Dart)
   Widget _buildCiterneCardFromSnapshot(
     BuildContext context,
     CiterneStockSnapshot citerne,

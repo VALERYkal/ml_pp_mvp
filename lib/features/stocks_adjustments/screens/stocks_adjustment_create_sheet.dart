@@ -9,58 +9,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ml_pp_mvp/features/stocks_adjustments/providers/stocks_adjustments_providers.dart';
 import 'package:ml_pp_mvp/core/errors/stocks_adjustments_exception.dart';
 import 'package:ml_pp_mvp/shared/ui/toast.dart';
-import 'package:ml_pp_mvp/shared/utils/volume_calc.dart';
-
-/// Type de correction d'ajustement
-enum AdjustmentType {
-  volume,
-  temperature,
-  densite,
-  mixte,
-}
-
-extension AdjustmentTypeX on AdjustmentType {
-  String get label {
-    switch (this) {
-      case AdjustmentType.volume:
-        return 'Volume';
-      case AdjustmentType.temperature:
-        return 'Température';
-      case AdjustmentType.densite:
-        return 'Densité';
-      case AdjustmentType.mixte:
-        return 'Mixte';
-    }
-  }
-
-  String get prefix {
-    switch (this) {
-      case AdjustmentType.volume:
-        return '[VOLUME]';
-      case AdjustmentType.temperature:
-        return '[TEMP]';
-      case AdjustmentType.densite:
-        return '[DENSITE]';
-      case AdjustmentType.mixte:
-        return '[MIXTE]';
-    }
-  }
-}
-
-/// Données du mouvement (réception ou sortie)
-class MovementData {
-  final double volumeAmbiant;
-  final double? temperatureC;
-  final double? densiteA15;
-  final double? volumeCorrige15c;
-
-  MovementData({
-    required this.volumeAmbiant,
-    this.temperatureC,
-    this.densiteA15,
-    this.volumeCorrige15c,
-  });
-}
+import 'package:ml_pp_mvp/features/stocks_adjustments/domain/adjustment_compute.dart';
 
 /// BottomSheet réutilisable pour créer un ajustement de stock
 class StocksAdjustmentCreateSheet extends ConsumerStatefulWidget {
@@ -191,113 +140,21 @@ class _StocksAdjustmentCreateSheetState
   }
 
   /// Calcule les deltas selon le type de correction
-  ({double deltaAmbiant, double delta15c}) _calculateDeltas() {
+  AdjustmentDeltas _calculateDeltas() {
     final movement = _movementData;
     if (movement == null) {
-      return (deltaAmbiant: 0.0, delta15c: 0.0);
+      return const AdjustmentDeltas(deltaAmbiant: 0.0, delta15c: 0.0);
     }
 
-    switch (_selectedType) {
-      case AdjustmentType.volume:
-        // Volume : correction ambiante obligatoire, recalcul 15°C
-        final correctionAmbiante =
-            _parseDouble(_correctionAmbianteController.text) ?? 0.0;
-        final nouvelleTemp = movement.temperatureC ?? 15.0;
-        final nouvelleDens = movement.densiteA15 ?? 0.8;
-        final nouveauVolumeAmbiant = movement.volumeAmbiant + correctionAmbiante;
-        final nouveauVolume15c = calcV15(
-          volumeObserveL: nouveauVolumeAmbiant,
-          temperatureC: nouvelleTemp,
-          densiteA15: nouvelleDens,
-        );
-        final ancienVolume15c = movement.volumeCorrige15c ??
-            calcV15(
-              volumeObserveL: movement.volumeAmbiant,
-              temperatureC: nouvelleTemp,
-              densiteA15: nouvelleDens,
-            );
-        return (
-          deltaAmbiant: correctionAmbiante,
-          delta15c: nouveauVolume15c - ancienVolume15c,
-        );
+    final params = AdjustmentDeltasParams(
+      type: _selectedType,
+      movement: movement,
+      correctionAmbiante: _parseDouble(_correctionAmbianteController.text),
+      nouvelleTemperature: _parseDouble(_nouvelleTemperatureController.text),
+      nouvelleDensite: _parseDouble(_nouvelleDensiteController.text),
+    );
 
-      case AdjustmentType.temperature:
-        // Température : nouvelle température obligatoire, recalcul 15°C
-        final nouvelleTemp =
-            _parseDouble(_nouvelleTemperatureController.text);
-        if (nouvelleTemp == null || nouvelleTemp <= 0) {
-          return (deltaAmbiant: 0.0, delta15c: 0.0);
-        }
-        final nouvelleDens = movement.densiteA15 ?? 0.8;
-        final nouveauVolume15c = calcV15(
-          volumeObserveL: movement.volumeAmbiant,
-          temperatureC: nouvelleTemp,
-          densiteA15: nouvelleDens,
-        );
-        final ancienVolume15c = movement.volumeCorrige15c ??
-            calcV15(
-              volumeObserveL: movement.volumeAmbiant,
-              temperatureC: movement.temperatureC ?? 15.0,
-              densiteA15: nouvelleDens,
-            );
-        return (
-          deltaAmbiant: 0.0,
-          delta15c: nouveauVolume15c - ancienVolume15c,
-        );
-
-      case AdjustmentType.densite:
-        // Densité : nouvelle densité obligatoire, recalcul 15°C
-        final nouvelleDens = _parseDouble(_nouvelleDensiteController.text);
-        if (nouvelleDens == null || nouvelleDens <= 0) {
-          return (deltaAmbiant: 0.0, delta15c: 0.0);
-        }
-        final nouvelleTemp = movement.temperatureC ?? 15.0;
-        final nouveauVolume15c = calcV15(
-          volumeObserveL: movement.volumeAmbiant,
-          temperatureC: nouvelleTemp,
-          densiteA15: nouvelleDens,
-        );
-        final ancienVolume15c = movement.volumeCorrige15c ??
-            calcV15(
-              volumeObserveL: movement.volumeAmbiant,
-              temperatureC: nouvelleTemp,
-              densiteA15: movement.densiteA15 ?? 0.8,
-            );
-        return (
-          deltaAmbiant: 0.0,
-          delta15c: nouveauVolume15c - ancienVolume15c,
-        );
-
-      case AdjustmentType.mixte:
-        // Mixte : correction ambiante + nouvelle température + nouvelle densité
-        final correctionAmbiante =
-            _parseDouble(_correctionAmbianteController.text) ?? 0.0;
-        final nouvelleTemp =
-            _parseDouble(_nouvelleTemperatureController.text);
-        final nouvelleDens = _parseDouble(_nouvelleDensiteController.text);
-        if (nouvelleTemp == null ||
-            nouvelleTemp <= 0 ||
-            nouvelleDens == null ||
-            nouvelleDens <= 0) {
-          return (deltaAmbiant: 0.0, delta15c: 0.0);
-        }
-        final nouveauVolumeAmbiant = movement.volumeAmbiant + correctionAmbiante;
-        final nouveauVolume15c = calcV15(
-          volumeObserveL: nouveauVolumeAmbiant,
-          temperatureC: nouvelleTemp,
-          densiteA15: nouvelleDens,
-        );
-        final ancienVolume15c = movement.volumeCorrige15c ??
-            calcV15(
-              volumeObserveL: movement.volumeAmbiant,
-              temperatureC: movement.temperatureC ?? 15.0,
-              densiteA15: movement.densiteA15 ?? 0.8,
-            );
-        return (
-          deltaAmbiant: correctionAmbiante,
-          delta15c: nouveauVolume15c - ancienVolume15c,
-        );
-    }
+    return computeAdjustmentDeltas(params);
   }
 
   /// Soumet le formulaire
@@ -319,7 +176,7 @@ class _StocksAdjustmentCreateSheetState
     final deltas = _calculateDeltas();
 
     // Validation : impact non nul
-    if (deltas.deltaAmbiant == 0.0 && deltas.delta15c == 0.0) {
+    if (!hasNonZeroImpact(deltas)) {
       showAppToast(
         context,
         'L\'ajustement n\'a aucun impact. Vérifiez vos valeurs.',
@@ -329,7 +186,10 @@ class _StocksAdjustmentCreateSheetState
     }
 
     // Préfixer la raison
-    final reason = '${_selectedType.prefix} ${_reasonController.text.trim()}';
+    final reason = buildPrefixedReason(
+      _selectedType,
+      _reasonController.text,
+    );
 
     setState(() => _isLoading = true);
 
@@ -876,7 +736,7 @@ class _StocksAdjustmentCreateSheetState
   /// Construit la carte d'aperçu des impacts
   Widget _buildPreviewCard(ThemeData theme) {
     final deltas = _calculateDeltas();
-    final hasImpact = deltas.deltaAmbiant != 0.0 || deltas.delta15c != 0.0;
+    final hasImpact = hasNonZeroImpact(deltas);
 
     return Card(
       color: hasImpact

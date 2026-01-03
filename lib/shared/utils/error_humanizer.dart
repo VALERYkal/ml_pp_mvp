@@ -1,7 +1,7 @@
 // 📌 Module : Shared Utils
 // 🧭 Description : Humanisation des erreurs de base de données
 
-import 'package:postgrest/postgrest.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Utilitaires pour humaniser les erreurs de base de données
 class ErrorHumanizer {

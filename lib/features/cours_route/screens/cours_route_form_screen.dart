@@ -89,7 +89,8 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
           message: 'Les changements non enregistrés seront perdus.',
           confirmLabel: 'Quitter',
         );
-        if (shouldPop && mounted) {
+        if (!context.mounted) return;
+        if (shouldPop) {
           Navigator.of(context).pop();
         }
       },

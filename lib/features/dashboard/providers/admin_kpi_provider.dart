@@ -2,6 +2,8 @@
 // Ce fichier sera supprimé dans la prochaine version majeure
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../data/repositories/stocks_kpi_repository.dart';
+import '../../profil/providers/profil_provider.dart';
 
 class AdminKpis {
   final int erreurs24h;
@@ -57,26 +59,35 @@ final adminKpiProvider = FutureProvider<AdminKpis>((ref) async {
       .lt('date_sortie', _isoUtc(dayEnd));
 
   // 4) citernes sous seuil
-  final citernes = await supa.from('citernes').select('id,capacite_securite');
-
-  final latest = await supa
-      .from('v_citerne_stock_snapshot_agg')
-      .select('citerne_id,stock_ambiant_total');
-
-  final stockByCiterne = <String, double>{};
-  for (final m in (latest as List)) {
-    final id = m['citerne_id'] as String?;
-    final stock = (m['stock_ambiant_total'] as num?)?.toDouble() ?? 0.0;
-    if (id != null) stockByCiterne[id] = stock;
-  }
-
+  // SOURCE CANONIQUE — inclut adjustments (AXE A)
+  // Récupérer le depotId depuis le profil
+  final profil = ref.watch(profilProvider).valueOrNull;
+  final depotId = profil?.depotId;
   int nbCitSousSeuil = 0;
-  for (final m in (citernes as List)) {
-    final id = m['id'] as String?;
-    final seuil = (m['capacite_securite'] as num?)?.toDouble() ?? 0.0;
-    if (id == null) continue;
-    final stock = stockByCiterne[id] ?? 0.0;
-    if (stock < seuil) nbCitSousSeuil++;
+  if (depotId != null) {
+    final repo = StocksKpiRepository(supa);
+    // Récupérer les stocks depuis v_stock_actuel
+    final stockRows = await repo.fetchStockActuelRows(depotId: depotId);
+    // Agréger par citerne_id (somme de tous les propriétaires)
+    final stockByCiterne = <String, double>{};
+    for (final row in stockRows) {
+      final citerneId = (row['citerne_id'] as String?) ?? '';
+      if (citerneId.isEmpty) continue;
+      final stockAmbiant = (row['stock_ambiant'] as num?)?.toDouble() ?? 0.0;
+      stockByCiterne[citerneId] = (stockByCiterne[citerneId] ?? 0.0) + stockAmbiant;
+    }
+    // Récupérer les citernes du dépôt avec leurs seuils
+    final citernes = await supa
+        .from('citernes')
+        .select('id, capacite_securite')
+        .eq('depot_id', depotId);
+    for (final m in (citernes as List)) {
+      final id = (m['id'] as String?) ?? '';
+      if (id.isEmpty) continue;
+      final seuil = (m['capacite_securite'] as num?)?.toDouble() ?? 0.0;
+      final stock = stockByCiterne[id] ?? 0.0;
+      if (stock < seuil) nbCitSousSeuil++;
+    }
   }
 
   // 5) produits actifs

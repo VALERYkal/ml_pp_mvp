@@ -85,6 +85,16 @@ class FakeStocksKpiRepositoryForWidget implements StocksKpiRepository {
   }) async {
     return [];
   }
+
+  @override
+  Future<List<Map<String, dynamic>>> fetchStockActuelRows({
+    required String depotId,
+    String? produitId,
+  }) async {
+    // Ce fake est utilisé uniquement pour tester l'état loading du widget.
+    // Aucune donnée réelle n'est nécessaire.
+    return [];
+  }
 }
 
 void main() {

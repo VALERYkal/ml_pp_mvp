@@ -150,9 +150,26 @@ final snapshots = await repo.fetchCiterneGlobalSnapshots(
 
 ## État de la migration (01/01/2026)
 
-✅ **Migration complète terminée** : Tous les modules utilisent désormais `v_stock_actuel` comme source de vérité unique.
+✅ **Migration complète terminée (Phase 4)** : Tous les modules utilisent désormais `v_stock_actuel` comme source de vérité unique.
 
-- ✅ Dashboard : Agrégation depuis `v_stock_actuel` via `fetchStockActuelRows()`
-- ✅ Citernes : Agrégation depuis `v_stock_actuel` par `citerne_id`
+- ✅ **Phase 1** : Repositories Flutter migrés vers `fetchStockActuelRows()`
+- ✅ **Phase 2** : Providers migrés vers `fetchStockActuelRows()` avec agrégation Dart
+- ✅ **Phase 3** : Écrans UI alignés sur `v_stock_actuel`
+- ✅ **Phase 4** : Suppression complète des références legacy (0 occurrence dans `lib/` et `test/`)
+
+**Modules alignés** :
+- ✅ Dashboard : Agrégation depuis `v_stock_actuel` via `fetchStockActuelRows()` avec filtrage par `depot_id` du profil
+- ✅ Citernes : Agrégation depuis `v_stock_actuel` par `citerne_id` (tous propriétaires confondus)
 - ✅ Module Stock : Agrégation depuis `v_stock_actuel` pour les totaux
+- ✅ KPI : Agrégation depuis `v_stock_actuel` pour tous les indicateurs
 - ✅ Ajustements : Visibles immédiatement dans tous les modules
+
+**Vues legacy supprimées de l'application** :
+- ❌ `v_stock_actuel_snapshot` (remplacée par `v_stock_actuel` + agrégation Dart)
+- ❌ `v_stock_actuel_owner_snapshot` (remplacée par `v_stock_actuel` + agrégation Dart)
+- ❌ `v_citerne_stock_snapshot_agg` (remplacée par `v_stock_actuel` + agrégation Dart)
+- ❌ `v_kpi_stock_global` (remplacée par `v_stock_actuel` + agrégation Dart)
+
+**Méthode canonique** : `StocksKpiRepository.fetchStockActuelRows()` - utilisée partout pour toutes les lectures de stock actuel.
+
+➡️ **AXE A officiellement clos (100%)**. Le cœur stock est désormais cohérent, strict, maintenable et prêt production.

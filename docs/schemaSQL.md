@@ -1,4 +1,4 @@
--- SCHEMA SQL – ML_PP MVP – v4.0 (Décembre 2025)
+-- SCHEMA SQL – ML_PP MVP – v5.0 (Janvier 2026)
 -- WARNING: This schema is for context only and is not meant to be run.
 -- Table order and constraints may not be valid for execution.
 -- Use migrations in supabase/migrations/ for actual database setup.
@@ -202,7 +202,7 @@ CREATE TABLE public.stocks_journaliers (
   stock_15c double precision NOT NULL,
   proprietaire_type text DEFAULT 'MONALUXE' CHECK (proprietaire_type IN ('MONALUXE', 'PARTENAIRE')),
   depot_id uuid,
-  source text DEFAULT 'SYSTEM' CHECK (source IN ('RECEPTION', 'SORTIE', 'MANUAL', 'SYSTEM')),
+  source text DEFAULT 'SYSTEM' CHECK (source IN ('RECEPTION', 'SORTIE', 'MANUAL', 'SYSTEM', 'ADJUSTMENT')),
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT stocks_journaliers_pkey PRIMARY KEY (id),
@@ -210,6 +210,52 @@ CREATE TABLE public.stocks_journaliers (
   CONSTRAINT stocks_journaliers_citerne_id_fkey FOREIGN KEY (citerne_id) REFERENCES public.citernes(id),
   CONSTRAINT stocks_journaliers_produit_id_fkey FOREIGN KEY (produit_id) REFERENCES public.produits(id)
 );
+
+-- Ajustements de stock (corrections officielles)
+-- IMPORTANT: Seule méthode autorisée pour corriger le stock après validation
+-- Les ajustements sont immédiatement reflétés dans v_stock_actuel
+CREATE TABLE public.stocks_adjustments (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  mouvement_type text NOT NULL CHECK (mouvement_type IN ('RECEPTION', 'SORTIE')),
+  mouvement_id uuid NOT NULL,
+  delta_ambiant double precision NOT NULL CHECK (delta_ambiant != 0),
+  delta_15c double precision NOT NULL DEFAULT 0,
+  reason text NOT NULL CHECK (char_length(reason) >= 10),
+  created_by uuid NOT NULL,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT stocks_adjustments_pkey PRIMARY KEY (id),
+  CONSTRAINT stocks_adjustments_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id),
+  CONSTRAINT stocks_adjustments_delta_not_zero CHECK (delta_ambiant != 0 OR delta_15c != 0)
+);
+
+-- ============================================================================
+-- VUES SQL IMPORTANTES
+-- ============================================================================
+
+-- Vue canonique: v_stock_actuel
+-- SOURCE DE VÉRITÉ UNIQUE pour le stock actuel
+-- Inclut automatiquement: réceptions validées + sorties validées + ajustements
+-- Utilisée par: Dashboard, Citernes, Module Stock
+-- ⚠️ IMPORTANT: Toute lecture de stock actuel DOIT utiliser cette vue
+-- Voir: docs/db/CONTRAT_STOCK_ACTUEL.md
+-- NOTE: La définition exacte de cette vue est dans les migrations Supabase
+-- Cette vue expose: depot_id, citerne_id, citerne_nom, produit_id, produit_nom,
+--                   stock_ambiant, stock_15c, proprietaire_type, updated_at
+
+-- Vue: v_stock_actuel_owner_snapshot
+-- Vue snapshot du stock actuel par dépôt, produit et propriétaire
+-- Retourne le dernier état connu de chaque combinaison (citerne, produit, propriétaire)
+-- et agrège par (dépôt, produit, propriétaire)
+-- ⚠️ DEPRECATED: Remplacée par v_stock_actuel avec agrégation côté app
+
+-- Vue: v_stocks_citerne_global_daily
+-- Vue canonique pour snapshots quotidiens par citerne & produit (tous propriétaires confondus)
+-- ⚠️ DEPRECATED: Remplacée par v_stock_actuel avec agrégation côté app
+
+-- Vue: v_mouvements_stock
+-- Vue qui agrège tous les mouvements (réceptions et sorties) avec leurs deltas journaliers
+-- Les réceptions sont positives (crédit), les sorties sont négatives (débit)
+-- Utilisée pour le recalcul des stocks journaliers
 
 -- ============================================================================
 -- UTILISATEURS & SÉCURITÉ
@@ -267,6 +313,10 @@ CREATE INDEX IF NOT EXISTS idx_stocks_j_citerne_produit_date_proprietaire
 CREATE INDEX IF NOT EXISTS idx_stocks_journaliers_citerne_date_desc 
   ON public.stocks_journaliers (citerne_id, date_jour DESC);
 
+-- Index stocks_adjustments
+CREATE INDEX IF NOT EXISTS idx_stocks_adjustments_mouvement ON public.stocks_adjustments (mouvement_type, mouvement_id);
+CREATE INDEX IF NOT EXISTS idx_stocks_adjustments_created_at ON public.stocks_adjustments (created_at DESC);
+
 -- ============================================================================
 -- NOTES IMPORTANTES
 -- ============================================================================
@@ -276,18 +326,45 @@ CREATE INDEX IF NOT EXISTS idx_stocks_journaliers_citerne_date_desc
 --    permet de séparer complètement les stocks MONALUXE et PARTENAIRE.
 --    Chaque combinaison a son propre stock journalier.
 
--- 2. TRIGGERS SQL
+-- 2. AJUSTEMENTS DE STOCK (stocks_adjustments)
+--    Les ajustements sont la SEULE méthode autorisée pour corriger le stock après validation.
+--    Ils sont immédiatement reflétés dans v_stock_actuel.
+--    Seuls les administrateurs peuvent créer des ajustements.
+--    Les ajustements doivent avoir une raison d'au moins 10 caractères.
+--    Les deltas peuvent être positifs (ajout) ou négatifs (retrait).
+
+-- 3. SOURCE DE VÉRITÉ UNIQUE: v_stock_actuel
+--    Toute lecture de stock actuel DOIT utiliser la vue v_stock_actuel.
+--    Cette vue inclut automatiquement:
+--    - Les réceptions validées
+--    - Les sorties validées
+--    - Les ajustements (stocks_adjustments)
+--    Voir: docs/db/CONTRAT_STOCK_ACTUEL.md pour le contrat complet.
+
+-- 4. TRIGGERS SQL
 --    - receptions_apply_effects() : Calcul volumes, crédit stock, journalisation
 --    - fn_sorties_after_insert() : Validation, débit stock, journalisation
 --    - stock_upsert_journalier() : Upsert avec support proprietaire_type, depot_id, source
+--    - apply_stock_adjustment() : Application des ajustements au stock journalier
 
--- 3. CONTRAINTES MÉTIER
+-- 5. CONTRAINTES MÉTIER
 --    - sorties_produit_beneficiaire_check : client_id OU partenaire_id requis
 --    - citerne_id et produit_id NOT NULL pour réceptions et sorties (MVP)
 --    - Validation produit/citerne via trigger BEFORE INSERT
+--    - stocks_adjustments: delta_ambiant != 0 (au moins un delta non nul)
+--    - stocks_adjustments: reason >= 10 caractères
 
--- 4. ROW LEVEL SECURITY (RLS)
+-- 6. ROW LEVEL SECURITY (RLS)
 --    Activée sur toutes les tables sensibles avec politiques par rôle.
+--    stocks_adjustments: INSERT réservé aux admins uniquement.
 
--- 5. AUDIT TRAIL
+-- 7. AUDIT TRAIL
 --    Toutes les actions critiques sont journalisées dans log_actions via triggers.
+--    Les ajustements de stock sont loggés avec niveau CRITICAL.
+
+-- 8. MIGRATION COMPLÈTE (01/01/2026)
+--    ✅ Tous les modules utilisent désormais v_stock_actuel comme source de vérité unique
+--    ✅ Dashboard: Agrégation depuis v_stock_actuel via fetchStockActuelRows()
+--    ✅ Citernes: Agrégation depuis v_stock_actuel par citerne_id
+--    ✅ Module Stock: Agrégation depuis v_stock_actuel pour les totaux
+--    ✅ Ajustements: Visibles immédiatement dans tous les modules
