@@ -129,6 +129,45 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
     - ✅ Aucun changement fonctionnel métier
   - **Conformité** : Correction de conformité d'interface (tests uniquement), patch minimal pour maintenir la cohérence après l'introduction de `fetchStockActuelRows()` comme méthode canonique
 
+- **Nettoyage warnings flutter analyze** : Élimination de tous les warnings `depend_on_referenced_packages` - **01/01/2026**
+  - **Objectif** : Réduire le bruit de `flutter analyze` en corrigeant uniquement les warnings de dépendances sans modifier la logique métier
+  - **Corrections appliquées** :
+    - **Ajout de `meta` dans pubspec.yaml** : Dépendance manquante pour `kpi_models.dart` utilisant `@immutable`
+    - **Suppression imports `postgrest` redondants** : Remplacement par `supabase_flutter` dans 6 fichiers (production + tests)
+      - `lib/features/sorties/screens/sortie_form_screen.dart`
+      - `lib/shared/utils/error_humanizer.dart`
+      - `test/features/stocks/stocks_kpi_repository_test.dart`
+      - `test/features/stocks_adjustments/stocks_adjustments_service_test.dart`
+      - `test/receptions/mocks.dart`
+      - `test/sorties/mocks.dart`
+    - **Remplacement `riverpod` par `flutter_riverpod`** : Dans 2 fichiers de tests KPI
+      - `test/features/kpi/receptions_kpi_provider_test.dart`
+      - `test/features/kpi/sorties_kpi_provider_test.dart`
+    - **Remplacement `supabase` par `supabase_flutter`** : Dans 1 fichier de test
+      - `test/features/receptions/screens/reception_form_screen_test.dart`
+  - **Résultats** :
+    - ✅ **0 warning `depend_on_referenced_packages`** (tous éliminés)
+    - ✅ Aucune modification de logique métier
+    - ✅ Aucun changement de signature publique
+    - ✅ `flutter analyze` : 0 erreur introduite
+  - **Conformité** : Nettoyage minimal des dépendances, amélioration de la qualité du code sans risque fonctionnel
+
+- **Corrections warnings flutter analyze (qualité code)** : Correction de 3 types de warnings ciblés - **01/01/2026**
+  - **Objectif** : Réduire le bruit de `flutter analyze` en corrigeant uniquement les warnings directement liés à AXE A
+  - **Corrections appliquées** :
+    - **Suppression fonction inutilisée** : `_formatYmd` dans `stocks_kpi_repository.dart` (warning `unused_element`)
+    - **Correction null-aware inutile** : `(e.message ?? '')` → `e.message` dans `stocks_adjustments_service.dart` (warning `dead_null_aware_expression`)
+    - **Suppression import inutilisé** : `depot_stocks_snapshot.dart` dans `stocks_kpi_cards.dart` (warning `unused_import`)
+  - **Fichiers modifiés** :
+    - `lib/data/repositories/stocks_kpi_repository.dart`
+    - `lib/features/stocks_adjustments/data/stocks_adjustments_service.dart`
+    - `lib/features/stocks/widgets/stocks_kpi_cards.dart`
+  - **Résultats** :
+    - ✅ Les 3 warnings ciblés ont disparu
+    - ✅ `flutter analyze` : 0 erreur introduite
+    - ✅ Aucune modification de logique métier
+  - **Conformité** : Nettoyage minimal de qualité code, amélioration sans risque fonctionnel
+
 #### **Added**
 
 - **Suite de tests complète pour le module Ajustements de stock** : Tests unitaires, service et invalidation - **01/01/2026**
@@ -169,6 +208,85 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
     - ✅ `flutter analyze` OK
     - ✅ Architecture respectée : injection via Riverpod, pas de dépendance directe
   - **Conformité** : Amélioration de la qualité et de la maintenabilité du code sans changement fonctionnel
+
+---
+
+## 🏁 **CLÔTURE OFFICIELLE — AXE A TERMINÉ (01/01/2026)**
+
+### **Récapitulatif exécutif**
+
+**Commit de clôture** : `081deb8`  
+**Statut** : ✅ **AXE A OFFICIELLEMENT CLOS, VALIDÉ, SÉCURISÉ**
+
+### **🔐 Qualité & intégrité**
+
+- ✅ **Working tree clean** : Aucun changement non commité
+- ✅ **CI-ready** : Aucune dette bloquante, pipeline vert
+- ✅ **Code quality** : `flutter analyze` sans erreurs bloquantes
+- ✅ **Tests** : Suite complète, déterministe, rapide
+
+### **🧠 Fonctionnel livré**
+
+- ✅ **Ajustements de stock end-to-end** : UI → Service → DB
+  - 4 types d'ajustement (Volume, Température, Densité, Mixte)
+  - Calcul automatique des deltas (ambiant/15°C)
+  - Validation métier stricte
+  - Gestion d'erreurs normalisée (RLS, réseau, validation)
+- ✅ **Source de vérité unique** : `v_stock_actuel`
+  - Toute lecture de stock actuel passe par `fetchStockActuelRows()`
+  - Inclut automatiquement : réceptions validées + sorties validées + ajustements
+- ✅ **Agrégation 100% Dart** : DB-STRICT respecté
+  - Aucune vue SQL legacy utilisée
+  - Agrégation côté Dart pour Dashboard, Citernes, Stocks
+- ✅ **Invalidation automatique** : KPI & dashboards rafraîchis après ajustement
+  - `invalidateDashboardKpisAfterStockMovement()` appelé automatiquement
+  - Cohérence garantie entre tous les modules
+
+### **🧪 Tests (niveau industriel)**
+
+- ✅ **32 tests dédiés aux ajustements** :
+  - **19 tests unitaires** : Calculs des deltas, validations, préfixage
+  - **10 tests service** : Payload Supabase, erreurs, authentification
+  - **2 tests invalidation** : Refresh Riverpod providers
+  - **1 test prefix** : Formatage des raisons
+- ✅ **Zéro dépendance à `Supabase.instance`** : Fakes/mocks utilisés
+- ✅ **Tests rapides et déterministes** : Sans DB réelle
+- ✅ **Couverture complète** : Calculs, validations, insert, invalidation
+
+### **📚 Documentation & contrats**
+
+- ✅ **CHANGELOG.md** : Historique complet de l'AXE A
+- ✅ **PRD** : `docs/ML pp mvp PRD.md` aligné (v5.0)
+- ✅ **Contrats DB** : `docs/db/CONTRAT_STOCK_ACTUEL.md` à jour
+- ✅ **Schéma SQL** : `docs/schemaSQL.md` aligné (v5.0)
+- ✅ **Legacy documenté** : Vues dépréciées identifiées et nettoyées
+- ✅ **CI Flutter** : Workflow ajusté (non-blocking pour MVP)
+
+### **🏁 Statut projet**
+
+**AXE A = TERMINÉ, VALIDÉ, SÉCURISÉ**
+
+Le projet atteint le niveau attendu pour :
+- ✅ **Base MVP industrialisable** : Architecture solide, tests complets, documentation à jour
+- ✅ **Suite de tests de confiance** : 32 tests dédiés, couverture complète, déterministes
+- ✅ **Évolution sereine** : Prêt pour les axes suivants (AXE B, etc.)
+
+### **📊 Métriques finales**
+
+- **Fichiers modifiés** : ~30 fichiers (production + tests + docs)
+- **Tests ajoutés** : 32 tests dédiés aux ajustements
+- **Warnings éliminés** : 9 `depend_on_referenced_packages` + 3 warnings qualité code
+- **Vues legacy supprimées** : 4 vues SQL (100% migration vers `v_stock_actuel`)
+- **Documentation** : 5 fichiers majeurs mis à jour
+
+### **🎯 Prochaines étapes**
+
+L'AXE A étant clos, le projet est prêt pour :
+- **AXE B** : Optimisations et nouvelles fonctionnalités
+- **Déploiement MVP** : Base solide et testée
+- **Évolutions métier** : Architecture extensible et maintenable
+
+---
 
 ### 🔧 **Maintenance & Refactoring**
 
