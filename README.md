@@ -97,6 +97,19 @@ Contient toutes les spécifications et documents nécessaires :
 
 ---
 
+## 🧪 Tests d'intégration DB réels
+
+Le projet inclut des tests d'intégration DB réels exécutés contre l'environnement STAGING :
+
+- **B2.2 — Tests d'intégration Sorties** : Validation DB-STRICT du flux Sortie → Stock → Log
+  - Test : `test/integration/sortie_stock_log_test.dart`
+  - Valide que les règles métier critiques (débit stock, rejets, logs) fonctionnent sans mock
+  - Architecture DB-STRICT : Tables immutables, écritures uniquement via triggers/fonctions SQL
+
+Voir `docs/B2_INTEGRATION_TESTS.md` pour la documentation complète.
+
+---
+
 ## 📍Où placer ce README
 
 ✅ Place-le dans la racine du projet :  

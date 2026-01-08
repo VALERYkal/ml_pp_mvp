@@ -57,6 +57,7 @@
 - [Guide de Tests](./testing_guide.md)
 - [Tests Auth Integration](./testing/auth_integration_tests.md)
 - [DB Strict Tests](./DB_STRICT_MIGRATION_TESTS.md)
+- [B2.2 Tests d'intégration DB STAGING](./tests/B2_2_INTEGRATION_DB_STAGING.md)
 
 ### Modules Métier
 - [Cours de Route Modernization](./COURS_ROUTE_MODERNIZATION.md)

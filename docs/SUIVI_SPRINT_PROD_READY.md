@@ -19,11 +19,11 @@
 | Axe | Nom | Tickets | Complétés | % | Statut |
 |-----|-----|---------|-----------|---|--------|
 | 🟢 A | DB-STRICT & Intégrité | 3 | 3/3 | 100% | ✅ DONE |
-| 🔴 B | Tests DB Réels | 2 | 0/2 | 0% | ⬜ À faire |
+| 🟢 B | Tests DB Réels | 2 | 2/2 | 100% | ✅ DONE |
 | 🔴 C | Sécurité & Contrat | 2 | 0/2 | 0% | ⬜ À faire |
 | 🟡 D | Stabilisation & Run | 4 | 0/4 | 0% | ⬜ À faire |
 
-**Total :** 3/11 tickets (27%)
+**Total :** 5/11 tickets (45%)
 
 ---
 
@@ -41,12 +41,14 @@
 
 ---
 
-## 🔴 AXE B — TESTS DB RÉELS
+## 🔴 AXE B — TESTS DB RÉELS ✅ DONE
 
 | Ticket | Titre | Effort | Statut | Assigné | Date |
 |--------|-------|--------|--------|---------|------|
-| B1 | Supabase STAGING | 1j | ⬜ | - | - |
-| B2 | Tests intégration DB | 2j | ⬜ | - | - |
+| B1 | Supabase STAGING | 1j | ✅ DONE | - | 03/01/2026 |
+| B2 | Tests intégration DB | 2j | ✅ DONE | - | 04/01/2026 |
+
+**Notes :** Runner one-shot vert (db_smoke + reception + sortie). Documentation : `docs/tests/B2_2_INTEGRATION_DB_STAGING.md`
 
 ---
 
@@ -111,5 +113,18 @@
 
 ---
 
-**Dernière mise à jour :** 31/12/2025
+### 04/01/2026 - Finalisation AXE B
+
+**Tickets complétés :**
+- ✅ B1 — Supabase STAGING
+- ✅ B2 — Tests intégration DB (runner one-shot vert)
+
+**Notes :**
+- Tests d'intégration DB réels STAGING validés
+- Documentation officielle créée : `docs/tests/B2_2_INTEGRATION_DB_STAGING.md`
+- Runner one-shot vert : `flutter test test/integration/db_smoke_test.dart test/integration/reception_stock_log_test.dart test/integration/sortie_stock_log_test.dart -r expanded`
+
+---
+
+**Dernière mise à jour :** 04/01/2026
 
