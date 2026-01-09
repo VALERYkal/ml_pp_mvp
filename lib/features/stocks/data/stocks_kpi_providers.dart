@@ -474,24 +474,8 @@ final depotStocksSnapshotProvider = riverpod.FutureProvider.autoDispose.family<D
       dateJour: dateJour,
     );
 
-    // Guard de régression : vérifier que toutes les lignes ont la même date_jour (debug only)
+    // Note : multi-dates acceptées (dernier snapshot par citerne, même si dates diffèrent)
     if (kDebugMode && citerneRowsRaw.isNotEmpty) {
-      final distinctDates = citerneRowsRaw
-          .map(
-            (row) =>
-                '${row.dateJour.year}-${row.dateJour.month.toString().padLeft(2, '0')}-${row.dateJour.day.toString().padLeft(2, '0')}',
-          )
-          .toSet();
-      if (distinctDates.length > 1) {
-        debugPrint(
-          '⚠️ depotStocksSnapshotProvider: Plusieurs dates distinctes détectées dans citerneRowsRaw: ${distinctDates.join(", ")}. '
-          'Le repository devrait avoir filtré à une seule date.',
-        );
-      } else {
-        debugPrint(
-          '✅ depotStocksSnapshotProvider: Toutes les lignes ont la même date_jour: ${distinctDates.first}',
-        );
-      }
       debugPrint(
         '🔄 depotStocksSnapshotProvider: fetchCiterneGlobalSnapshots OK (${citerneRowsRaw.length} items)',
       );

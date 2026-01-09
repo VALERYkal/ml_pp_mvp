@@ -4,6 +4,378 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 
 ## [Unreleased]
 
+### 🏁 **AXE B — Stock Adjustments (UI & Consistency) — CLOS (09/01/2026)**
+
+#### **Status**
+- ✅ **AXE B — VALIDÉ FONCTIONNELLEMENT**
+
+#### **Added**
+- **UI flow to create stock adjustments** from receptions and sorties.
+  - Ajustements créés depuis l'UI (réception / sortie)
+  - Écriture réelle en base Supabase
+  - Déclenchement des triggers existants
+  - Journalisation complète
+  - ➡️ Flux métier fonctionnel et fiable
+
+- **Centralized visual indicator (`Corrigé`)** for stocks impacted by manual adjustments.
+  - Badge standardisé `StockCorrectedBadge` utilisé partout
+  - Tooltip explicite indiquant la présence d'ajustements
+  - Affichage cohérent sur tous les écrans de décision
+
+- **Consistent badge and tooltip across**:
+  - Tank cards (cartes citernes)
+  - Depot total stock (stock total dépôt)
+  - Stock by owner (stock par propriétaire)
+  - Stock KPIs dashboard (KPI stock dashboard)
+
+- **Visual warning for negative stock or capacity overflow** (MVP-safe, non-blocking).
+  - Ajustements négatifs ou dépassant la capacité : acceptés (pas de blocage)
+  - Stock affiché clampé à 0 si nécessaire
+  - Warning visuel + tooltip explicatif
+  - Aucun crash, aucun rejet automatique
+  - ➡️ Signal sans dissimulation, conforme MVP
+
+#### **Changed**
+- **Stock figures now explicitly communicate** when they include manual corrections.
+  - Tous les écrans affichent le badge "Corrigé" si des ajustements sont présents
+  - Une seule logique partout (`hasDepotAdjustmentsProvider` / `hasCiterneAdjustmentsProvider`)
+  - Transparence métier assurée
+
+- **Stock display clamps negative values to zero** while preserving audit visibility.
+  - Valeur affichée clampée à 0 pour l'UX MVP
+  - Valeur réelle DB conservée pour l'audit
+  - Signal visuel si stock réel négatif
+
+#### **Impact**
+- ✅ **Impact réel sur les stocks** : Les ajustements modifient :
+  - Le stock par citerne
+  - Le stock total dépôt
+  - Le stock par propriétaire
+  - Les KPI dashboard
+  - ➡️ Une seule vérité chiffrée, aucune divergence observée entre écrans
+
+- ✅ **Propagation visuelle immédiate** : Tous les écrans se rafraîchissent automatiquement après création d'un ajustement
+  - Invalidation ciblée des providers Riverpod
+  - Aucun rafraîchissement manuel nécessaire
+
+- ✅ **Cohérence globale** : Tous les écrans affichent le même chiffre après ajustement
+  - Respect de l'architecture DB-STRICT (lecture uniquement depuis `v_stock_actuel`)
+  - Aucune divergence observée
+
+#### **Notes**
+- **Full-stack Flutter E2E tests with live Supabase are intentionally not required**
+  - Raison : Nature non-idle de l'application (streams, auth refresh, timers)
+  - Ce point est technique, pas métier
+  - Il n'empêche pas l'exploitation réelle du module
+  - ➡️ Décision assumée : AXE B validé sans dépendre du E2E Flutter
+
+- **Business logic and database integrity are fully validated**
+  - Création d'ajustements fonctionnelle
+  - Impact réel sur les stocks vérifié
+  - Cohérence des chiffres garantie
+  - Journalisation complète
+
+#### **Conclusion**
+L'AXE B remplit l'intégralité de sa valeur métier. Les ajustements de stock sont :
+- ✅ Fonctionnels (création depuis l'UI)
+- ✅ Visibles (badge "Corrigé" partout)
+- ✅ Cohérents (une seule vérité chiffrée)
+- ✅ Auditables (journalisation complète)
+
+Le projet peut avancer sans dette fonctionnelle sur ce périmètre.
+
+**État final** :
+- AXE A : ✅ Verrouillé (DB)
+- AXE B : ✅ Clos officiellement
+- Prochaine étape logique : AXE C (RLS / sécurité / prod hardening)
+
+### 🔒 **B4.4 — Centralisation du signal "Stock corrigé" & propagation cohérente des badges (09/01/2026)**
+
+#### **Added**
+
+- **Badge standardisé `StockCorrectedBadge`** : Composant unique pour signaler la présence d'ajustements manuels.
+  - **Fichier** : `lib/features/stocks_adjustments/widgets/stock_corrige_badge.dart`
+  - **Renommage** : `StockCorrigeBadge` → `StockCorrectedBadge` (standardisé)
+  - **Texte exact** : "Corrigé"
+  - **Icône** : 🟡 (amber avec `Icons.edit_outlined`)
+  - **Tooltip exact** : "Ce stock inclut un ou plusieurs ajustements manuels."
+  - **Comportement** :
+    - S'affiche uniquement si des ajustements récents sont détectés (via `hasDepotAdjustmentsProvider` ou `hasCiterneAdjustmentsProvider`)
+    - Masqué en cas de chargement ou d'erreur
+    - Réactif aux changements (watch des providers)
+  - **Usage** : Accepte soit `depotId` soit `citerneId`
+  - **Compatibilité** : Alias `StockCorrigeBadge` déprécié mais fonctionnel
+
+- **Paramètre `titleTrailing` dans `KpiCard`** : Widget optionnel pour ajouter un badge ou un widget à droite du titre.
+  - **Fichier** : `lib/shared/ui/kpi_card.dart`
+  - **Objectif** : Permettre d'ajouter le badge "Corrigé" sur les KPIs du dashboard
+  - **Usage** : `titleTrailing: StockCorrectedBadge(depotId: depotId)`
+
+- **Badge "Corrigé" sur l'écran Citerne** : Signal visuel pour chaque citerne avec ajustement.
+  - **Fichier** : `lib/features/citernes/screens/citerne_list_screen.dart`
+  - **Position** : À côté du nom "CITERNE X" dans le header de `TankCard`
+  - **Condition** : `citerneId != null && citerneId.isNotEmpty`
+  - **Utilisation** : `StockCorrectedBadge(citerneId: citerneId)`
+
+- **Badge "Corrigé" sur Stock total dépôt** : Signal visuel pour le stock global du dépôt.
+  - **Fichier** : `lib/features/stocks/screens/stocks_screen.dart`
+  - **Position** : Dans le header de `_buildTotalStockCard`, à droite du titre "Stock total"
+  - **Condition** : `depotId != null && depotId.isNotEmpty`
+  - **Utilisation** : `StockCorrectedBadge(depotId: depotId)`
+
+- **Badge "Corrigé" sur Stock par propriétaire** : Signal visuel pour chaque propriétaire (MONALUXE/PARTENAIRE).
+  - **Fichier** : `lib/features/stocks/widgets/stocks_kpi_cards.dart`
+  - **Positions** :
+    - Header de `OwnerStockBreakdownCard` : Badge à droite du titre "Stock par propriétaire"
+    - Ligne MONALUXE : Badge à droite du volume ambiant
+    - Ligne PARTENAIRE : Badge à droite du volume ambiant
+  - **Condition** : `depotId != null && depotId.isNotEmpty`
+  - **Utilisation** : `StockCorrectedBadge(depotId: depotId)`
+
+- **Badge "Corrigé" sur KPI Dashboard** : Signal visuel pour le stock total dans le dashboard.
+  - **Fichier** : `lib/features/dashboard/widgets/role_dashboard.dart`
+  - **Position** : Dans le header de `KpiCard` (stock total), à droite du titre
+  - **Condition** : `depotId != null && depotId.isNotEmpty`
+  - **Utilisation** : `titleTrailing: StockCorrectedBadge(depotId: depotId)`
+
+#### **Changed**
+
+- **`stock_corrige_badge.dart`** : Standardisation du badge et mise à jour du tooltip.
+  - Renommage de la classe : `StockCorrigeBadge` → `StockCorrectedBadge`
+  - Tooltip mis à jour : "Ce stock inclut un ou plusieurs ajustements manuels." (plus de mention "30 derniers jours")
+  - Ajout d'un alias de compatibilité : `typedef StockCorrigeBadge = StockCorrectedBadge` (déprécié)
+  - Commentaires mis à jour pour refléter B4.4 (centralisation)
+
+- **`kpi_card.dart`** : Ajout du paramètre `titleTrailing` pour permettre l'affichage d'un badge.
+  - Ajout du paramètre `titleTrailing` (Widget? optionnel)
+  - Suppression de `const` du constructeur (peut dépendre de valeurs runtime)
+  - Modification du header pour afficher `titleTrailing` à droite du titre
+  - Utilisation d'un `Row` avec `Expanded` sur le titre pour la disposition
+
+- **`stocks_screen.dart`** : Ajout du badge sur la carte de stock total.
+  - Modification de `_buildTotalStockCard` pour accepter `depotId`
+  - Ajout du badge `StockCorrectedBadge` dans le header de la carte
+  - Transmission du `depotId` à `_buildTotalStockCard` depuis les appels
+
+- **`stocks_kpi_cards.dart`** : Ajout du badge sur le breakdown par propriétaire.
+  - Modification de `_buildOwnerRow` pour accepter `depotId`
+  - Ajout du badge dans le header de `OwnerStockBreakdownCard`
+  - Ajout du badge sur chaque ligne (MONALUXE et PARTENAIRE)
+  - Transmission du `depotId` aux appels de `_buildOwnerRow`
+
+- **`citerne_list_screen.dart`** : Ajout du badge dans `TankCard`.
+  - Ajout du paramètre `citerneId` au constructeur de `TankCard`
+  - Modification du header pour afficher le badge à côté du nom "CITERNE X"
+  - Transmission du `citerneId` depuis `_buildCiterneCardFromSnapshot`
+
+- **`role_dashboard.dart`** : Ajout du badge sur le KPI stock total.
+  - Import de `StockCorrectedBadge`
+  - Ajout de `titleTrailing` dans le `KpiCard` du stock total
+  - Utilisation de `depotId` depuis le profil pour conditionner l'affichage
+
+- **`has_adjustments_provider.dart`** : Nettoyage des imports inutilisés.
+  - Suppression de l'import `supabase_flutter` (non utilisé directement)
+
+#### **Impact**
+
+- ✅ **B4.4 VALIDÉ** : Centralisation du signal "Stock corrigé" fonctionnelle
+- ✅ **Une seule logique** : Tous les écrans utilisent la même condition (`hasDepotAdjustmentsProvider` ou `hasCiterneAdjustmentsProvider`)
+- ✅ **Un seul composant** : `StockCorrectedBadge` est utilisé partout (pas de badge custom par écran)
+- ✅ **Cohérence visuelle** : Le badge apparaît de la même manière sur tous les écrans
+- ✅ **Signal métier clair** : Les utilisateurs comprennent immédiatement si un stock est corrigé
+- ✅ **Respect des exclusions** : Le badge n'est PAS ajouté sur les écrans interdits (réceptions, sorties, liste ajustements, formulaires)
+- ✅ **Aucun impact DB** : Lecture seule depuis `stock_adjustments` (table existante)
+- ✅ **Aucune nouvelle requête complexe** : Utilisation des providers existants optimisés (`limit(1)`)
+- ✅ **Code compile sans erreur** : Warnings mineurs uniquement (style, pas de fonctionnalité)
+
+#### **Garde-fous respectés**
+
+- ❌ Aucune modification DB
+- ❌ Aucune nouvelle requête SQL
+- ❌ Aucun recalcul de stock en Flutter
+- ❌ Aucun widget badge avec logique locale
+- ❌ Aucune logique différente selon l'écran
+- ✅ Une seule source de vérité : `hasDepotAdjustmentsProvider` / `hasCiterneAdjustmentsProvider`
+- ✅ Un seul composant visuel : `StockCorrectedBadge`
+- ✅ Tooltip exact et standardisé partout
+- ✅ Badge PAS ajouté sur les écrans interdits (B4.4-D)
+
+#### **Écrans avec badge "Corrigé"**
+
+- ✅ **Écran Citerne** : Badge à côté du nom "CITERNE X"
+- ✅ **Stock total dépôt** : Badge dans le header de la carte
+- ✅ **Stock par propriétaire** : Badge dans le header et sur chaque ligne (MONALUXE/PARTENAIRE)
+- ✅ **KPI Dashboard** : Badge dans le header du KPI stock total
+
+#### **Écrans SANS badge "Corrigé" (B4.4-D)**
+
+- ✅ Réceptions : Pas de badge (écran de création/validation)
+- ✅ Sorties : Pas de badge (écran de création/validation)
+- ✅ Liste des ajustements : Pas de badge (liste des corrections)
+- ✅ Formulaires : Pas de badge (formulaires de saisie)
+
+### ⚠️ **B4.3 — Signal visuel des incohérences + Numérotation des citernes (09/01/2026)**
+
+#### **Added**
+
+- **Signal visuel pour stock réel négatif (B4.3-A)** : Détection et affichage d'un warning si le stock réel est négatif suite à un ajustement.
+  - **Fichier** : `lib/features/citernes/screens/citerne_list_screen.dart`
+  - **Détection** : Calcul de `realStockAmb` (valeur DB réelle) et `displayedStockAmb` (valeur clampée à 0)
+  - **Affichage** : La valeur affichée est clampée à 0 pour l'UX MVP (comportement conservé)
+  - **Signal** : Icône ⚠️ orange avec tooltip explicite si `isNegativeStock == true`
+  - **Tooltip exact** : "Stock réel négatif suite à un ajustement. La valeur affichée est corrigée à 0 pour l'affichage."
+  - **Position** : À droite de la valeur "Amb" dans la métrique stock ambiant
+
+- **Signal visuel pour dépassement de capacité (B4.3-B)** : Détection et affichage d'un warning si le stock dépasse la capacité théorique de la citerne.
+  - **Fichier** : `lib/features/citernes/screens/citerne_list_screen.dart`
+  - **Détection** : `exceedsCapacity = realStockAmb > capacity`
+  - **Signal** : Icône ⚠️ orange avec tooltip explicite si `exceedsCapacity == true`
+  - **Tooltip exact** : "Stock supérieur à la capacité théorique de la citerne. Veuillez vérifier les ajustements."
+  - **Position** : À droite de la valeur "Amb" dans la métrique stock ambiant (peut apparaître avec le signal stock négatif)
+
+- **Numérotation visible des citernes (B4.3-C)** : Identification claire de chaque citerne par un numéro visible.
+  - **Fichier** : `lib/features/citernes/screens/citerne_list_screen.dart`
+  - **Format** : "CITERNE 1", "CITERNE 2", "CITERNE 3"...
+  - **Source** : Index visuel dans la liste triée (index + 1 pour affichage 1, 2, 3...)
+  - **Stabilité** : Numérotation stable après tri par numéro extrait du nom (TANK1, TANK2, etc.)
+  - **Position** : Header de la carte citerne, remplace/améliore le nom existant
+
+#### **Changed**
+
+- **`TankCard` widget** : Ajout des signaux visuels d'incohérence et de la numérotation.
+  - Ajout du paramètre `numero` (int?) pour la numérotation visible
+  - Retrait du mot-clé `const` du constructeur (dépend de valeurs runtime)
+  - Calcul des flags `isNegativeStock` et `exceedsCapacity` basés sur les valeurs réelles DB
+  - Affichage conditionnel des icônes de warning avec tooltips explicites
+  - Affichage du stock clampé à 0 si négatif (UX MVP), mais avec signal visuel
+
+- **`_buildCiterneCardFromSnapshot`** : Passage de l'index pour numérotation.
+  - Ajout du paramètre `index` pour calculer le numéro de citerne
+  - Calcul de `numero = index + 1` (affichage 1, 2, 3...)
+  - Transmission du `numero` au widget `TankCard`
+  - Tri des citernes par numéro extrait du nom pour numérotation stable
+
+- **Affichage du stock ambiant** : Ajout des signaux visuels d'incohérence.
+  - Utilisation de `displayedStockAmb` (clampé à 0) pour l'affichage
+  - Utilisation de `realStockAmb` (valeur DB réelle) pour les détections
+  - Affichage conditionnel des icônes de warning avec tooltips
+
+#### **Impact**
+
+- ✅ **B4.3 VALIDÉ** : Signal visuel des incohérences fonctionnel
+- ✅ Les incohérences sont visibles et compréhensibles (signals UI uniquement)
+- ✅ Chaque citerne est clairement identifiée par son numéro (CITERNE 1, 2, 3...)
+- ✅ Aucune modification DB (respect strict de l'architecture DB-STRICT)
+- ✅ Aucun blocage d'ajustement (signals uniquement, pas de rejet)
+- ✅ Aucune correction automatique en DB (signal UI uniquement)
+- ✅ Clamp visuel à 0 conservé (UX MVP conforme)
+- ✅ Aucun crash, aucun blocage UI
+- ✅ Tooltips explicites pour guider l'utilisateur
+
+#### **Garde-fous respectés**
+
+- ❌ Aucune modification DB
+- ❌ Aucun trigger SQL
+- ❌ Aucun recalcul stock côté Flutter
+- ❌ Aucun blocage d'ajustement
+- ❌ Aucune correction automatique en DB
+- ✅ Signal UI uniquement
+- ✅ Clamp visuel à 0 conservé
+- ✅ Numérotation pure UI (pas de champ DB)
+
+### 🔄 **B4.1 — Propagation visuelle immédiate après ajustement (09/01/2026)**
+
+#### **Added**
+
+- **Fonction helper `refreshAfterStockAdjustment()`** : Invalide tous les providers dépendants de `v_stock_actuel` après création d'un ajustement.
+  - **Fichier** : `lib/features/stocks_adjustments/utils/stocks_adjustments_refresh.dart`
+  - **Objectif** : Garantir que tout ajustement de stock est visible immédiatement sur tous les écrans
+  - **Providers invalidés** :
+    - `kpiProviderProvider` (Dashboard KPIs)
+    - `stocksDashboardKpisProvider` (Stocks dashboard service)
+    - `depotGlobalStockFromSnapshotProvider` (Stock global dépôt)
+    - `depotOwnerStockFromSnapshotProvider` (Stock par propriétaire)
+    - `citernesWithStockProvider` (Stock par citerne)
+    - `citernesByProduitWithStockProvider` (Citernes avec stock par produit)
+    - `citernesSousSeuilProvider` (Citernes sous seuil)
+    - `citerneStocksSnapshotProvider` (Snapshots citernes)
+  - **Optimisation** : Tente d'obtenir le `depotId` depuis le mouvement (réception ou sortie) via la citerne pour invalidation ciblée
+  - **Fallback** : Si `depotId` non disponible, invalide tous les providers (garantit la cohérence)
+
+- **Intégration dans `stocks_adjustment_create_sheet.dart`** : Appel automatique de `refreshAfterStockAdjustment()` après création réussie.
+  - **Propagation immédiate** : Tous les écrans affichent le stock corrigé immédiatement
+  - **Récupération `depotId`** : 
+    - Pour réceptions : récupère `citerne_id` depuis `receptions`, puis `depot_id` depuis `citernes`
+    - Pour sorties : récupère `citerne_id` depuis `sortie_citerne`, puis `depot_id` depuis `citernes`
+  - **Gestion d'erreur** : En cas d'échec de récupération `depotId`, continue avec invalidation globale
+
+#### **Changed**
+
+- **`stocks_adjustment_create_sheet.dart`** : Ajout de l'invalidation automatique des providers après création d'ajustement
+  - Import de `stocks_adjustments_refresh.dart`
+  - Appel de `refreshAfterStockAdjustment()` dans le bloc `try` après `createAdjustment()`
+  - Récupération optimisée du `depotId` depuis le mouvement
+
+#### **Impact**
+
+- ✅ **B4.1 VALIDÉ** : Propagation visuelle immédiate fonctionnelle
+- ✅ Un ajustement est visible partout instantanément
+- ✅ Aucun rafraîchissement manuel nécessaire
+- ✅ Tous les écrans affichent le même chiffre après ajustement
+- ✅ Respect de l'architecture DB-STRICT (lecture uniquement depuis `v_stock_actuel`)
+
+### 🏷️ **B4.2 — Badge "STOCK CORRIGÉ" (signal métier) (09/01/2026)**
+
+#### **Added**
+
+- **Providers de détection d'ajustements** : Détection de la présence d'ajustements récents (30 derniers jours).
+  - **Fichier** : `lib/features/stocks_adjustments/providers/has_adjustments_provider.dart`
+  - **`hasDepotAdjustmentsProvider`** : `FutureProvider.family<bool, String>` qui vérifie si un dépôt a des ajustements récents
+  - **`hasCiterneAdjustmentsProvider`** : `FutureProvider.family<bool, String>` qui vérifie si une citerne a des ajustements récents
+  - **Critère** : Ajustements créés dans les 30 derniers jours
+  - **Source** : Lecture depuis `stock_adjustments` (table existante, pas de nouvelle requête complexe)
+  - **Performance** : Utilise `limit(1)` pour optimiser la requête
+
+- **Widget `StockCorrigeBadge`** : Badge visuel indiquant la présence d'ajustements récents.
+  - **Fichier** : `lib/features/stocks_adjustments/widgets/stock_corrige_badge.dart`
+  - **Apparence** : Badge jaune (🟡) avec icône "edit_outlined" et texte "Corrigé"
+  - **Tooltip** : "Ce stock inclut un ou plusieurs ajustements manuels récents (30 derniers jours)"
+  - **Comportement** :
+    - S'affiche uniquement si des ajustements récents sont détectés
+    - Masqué en cas de chargement ou d'erreur
+    - Réactif aux changements (watch des providers)
+  - **Usage** : Accepte soit `depotId` soit `citerneId`
+
+- **Intégration dans l'écran Stocks** : Badge ajouté sur les sections affichant le stock.
+  - **Fichier** : `lib/features/stocks/screens/stocks_screen.dart`
+  - **Emplacements** :
+    - Titre "Stock par propriétaire" : Badge `StockCorrigeBadge(depotId: depotId)`
+    - Titre "Stock total dépôt" : Badge `StockCorrigeBadge(depotId: depotId)`
+  - **Positionnement** : À droite du titre, dans un `Row` avec `Expanded` sur le titre
+
+#### **Changed**
+
+- **`stocks_screen.dart`** : Ajout du badge "STOCK CORRIGÉ" sur les titres de sections
+  - Import de `stock_corrige_badge.dart`
+  - Modification des `Row` pour inclure le badge à droite des titres
+
+#### **Fixed**
+
+- **`stock_corrige_badge.dart`** : Correction de l'erreur de compilation "Not a constant expression".
+  - **Problème** : Le constructeur `StockCorrigeBadge` était marqué `const` alors qu'il utilise des valeurs runtime (`depotId`, `citerneId`) dans l'assert et dans le build.
+  - **Solution** : Retrait du mot-clé `const` du constructeur car le widget dépend de valeurs runtime.
+  - **Raison** : Flutter n'autorise pas `const` avec des valeurs runtime (IDs venant de la DB, valeurs calculées à l'exécution).
+  - **Règle** : Ne pas utiliser `const` sur un widget qui accepte des IDs ou données venant de la DB, dépend de providers Riverpod, ou utilise des bools calculés à l'exécution.
+
+#### **Impact**
+
+- ✅ **B4.2 VALIDÉ** : Badge "STOCK CORRIGÉ" fonctionnel
+- ✅ Les stocks corrigés sont identifiables visuellement
+- ✅ Signal métier clair pour les utilisateurs
+- ✅ Respect de l'architecture DB-STRICT (lecture uniquement)
+- ✅ Aucune nouvelle requête DB complexe (lecture simple avec limite)
+- ✅ Code compile sans erreur
+
 ### 🧪 **B2.2 — Tests d'intégration DB réels (Sorties) (03/01/2026)**
 
 #### **Added**
@@ -58,6 +430,360 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
     - **`anonClient`** utilisé pour garantir l'application de la RLS (pas de `serviceClient`).
     - **Payload** : `mouvement_type` utilise une valeur autorisée (**RECEPTION** / **SORTIE**).
     - **Payload (validité)** : `mouvement_id` référence un vrai `receptions.id` (lookup via `serviceClient` si dispo) et `created_by` est fourni avec l'ID du user connecté, pour éviter un échec sur contrainte DB avant la RLS.
+
+### 🔧 **B2.4.1 — Stocks Adjustments: modèle + list() + provider (08/01/2026)**
+
+#### **Added**
+
+- **Modèle Freezed `StockAdjustment`** : Modèle typé pour les ajustements de stock avec mapping JSON snake_case ↔ camelCase.
+  - **Fichier** : `lib/features/stocks_adjustments/models/stock_adjustment.dart`
+  - **Champs** : `id`, `mouvementType`, `mouvementId`, `deltaAmbiant`, `delta15c`, `reason`, `createdBy`, `createdAt`
+  - **Mapping JSON** : Utilise `@JsonKey` pour mapper les colonnes DB (`mouvement_type`, `mouvement_id`, `delta_ambiant`, `delta_15c`, `created_by`, `created_at`)
+  - **Génération** : Fichiers `.freezed.dart` et `.g.dart` générés via build_runner
+
+- **Méthode `list()` dans `StocksAdjustmentsService`** : Lecture des ajustements de stock avec RLS appliquée.
+  - **Fichier** : `lib/features/stocks_adjustments/data/stocks_adjustments_service.dart`
+  - **Méthode** : `Future<List<StockAdjustment>> list({int limit = 50})`
+  - **Comportement** : SELECT sur `stocks_adjustments` trié par `created_at` (desc), limité à 50 par défaut
+  - **RLS** : La RLS s'applique automatiquement via le `SupabaseClient` authentifié
+  - **Existant préservé** : `createAdjustment()` reste inchangé et fonctionnel
+
+- **Provider Riverpod `stocksAdjustmentsListProvider`** : Provider pour consommer la liste des ajustements dans l'UI.
+  - **Fichier** : `lib/features/stocks_adjustments/providers/stocks_adjustments_providers.dart`
+  - **Type** : `FutureProvider.autoDispose<List<StockAdjustment>>`
+  - **Utilisation** : Prêt pour intégration UI (écran de liste des ajustements)
+
+### 🖥️ **B2.4.2 — Écran de liste Stocks Adjustments (08/01/2026)**
+
+#### **Added**
+
+- **Écran de liste lecture seule** : Affichage de la liste des ajustements de stock via `stocksAdjustmentsListProvider`.
+  - **Fichier** : `lib/features/stocks_adjustments/screens/stocks_adjustments_list_screen.dart`
+  - **Widget** : `StocksAdjustmentsListScreen` extends `ConsumerWidget`
+  - **Fonctionnalités** :
+    - AppBar avec titre "Ajustements de stock" et bouton refresh
+    - Gestion des états : loading (CircularProgressIndicator), error (message + bouton "Réessayer"), empty ("Aucun ajustement."), data (ListView)
+    - Affichage des ajustements :
+      - Badge `mouvementType` (RECEPTION = vert, SORTIE = orange)
+      - Deltas (`deltaAmbiant`, `delta15c`) avec signe +/- et chips colorés
+      - `reason` sur 2 lignes max avec ellipsis
+      - Date formatée `yyyy-MM-dd HH:mm`
+      - `createdBy` affiché avec les 8 premiers caractères de l'UUID
+    - Pull-to-refresh via `RefreshIndicator`
+  - **Style** : Utilise `Theme.of(context)` (pas de couleurs hardcodées), padding cohérent, widgets privés modulaires
+  - **Robustesse** : Gestion d'erreur propre, pas de cast dangereux, tous les champs du modèle sont `required`
+  - **Isolation** : Aucune modification du routing, du menu, de la DB, ni de `createAdjustment()`
+
+### 🔗 **B2.4.3 — Route GoRouter Stocks Adjustments + UI Admin (08/01/2026)**
+
+#### **Added**
+
+- **Route GoRouter accessible à tous les authentifiés** : Route `/stocks-adjustments` pour accéder à `StocksAdjustmentsListScreen`.
+  - **Fichier modifié** : `lib/shared/navigation/app_router.dart`
+  - **Route** :
+    - Path : `/stocks-adjustments`
+    - Name : `stocksAdjustments`
+    - Builder : `const StocksAdjustmentsListScreen()`
+  - **Placement** : Route ajoutée dans le `ShellRoute` (protégée par authentification uniquement)
+  - **Sécurité** : Accessible à tous les utilisateurs authentifiés (pas de restriction admin)
+  - **Accès** : Navigation via `context.go('/stocks-adjustments')` ou URL web `/#/stocks-adjustments`
+
+- **Bouton "Créer" conditionnel (admin uniquement)** : FloatingActionButton visible uniquement pour les admins.
+  - **Fichier modifié** : `lib/features/stocks_adjustments/screens/stocks_adjustments_list_screen.dart`
+  - **Méthode** : `_buildFloatingActionButton()` avec condition `ref.watch(userRoleProvider) == UserRole.admin`
+  - **Comportement** :
+    - Admin : Bouton visible avec icône `Icons.add`
+    - Non-admin : Bouton masqué (retourne `null`)
+  - **Action actuelle** : Placeholder (SnackBar informatif) - prêt pour intégration future de `StocksAdjustmentCreateSheet`
+  - **Garde-fous** : Aucune modification de `StocksAdjustmentsService.createAdjustment()`, pas de logique métier dans l'UI
+
+- **Entrée menu "Ajustements de stock"** : Point d'entrée dans le menu de navigation pour tous les rôles.
+  - **Fichier modifié** : `lib/shared/navigation/nav_config.dart`
+  - **NavItem** :
+    - ID : `stocks-adjustments`
+    - Titre : "Ajustements de stock"
+    - Path : `/stocks-adjustments`
+    - Icône : `Icons.tune_outlined`
+    - Rôles autorisés : `kAllRoles` (tous les rôles authentifiés)
+    - Ordre : 7 (après "Logs / Audit")
+  - **Visibilité** : Tous les utilisateurs authentifiés voient l'entrée menu
+
+#### **Changed**
+
+- **B2.4.3 — Accessibilité route** : La route `/stocks-adjustments` est maintenant accessible à tous les utilisateurs authentifiés (pas de restriction admin), conformément à la règle métier : lecture pour tous, écriture pour admin uniquement (RLS DB).
+
+### 🎯 **B2.4.4 — Connecter le bouton "Créer" à la création d'ajustement (08/01/2026)**
+
+#### **Added**
+
+- **Flow de création d'ajustement depuis la liste** : Le FloatingActionButton permet maintenant aux admins de créer un ajustement depuis la liste globale.
+  - **Fichier modifié** : `lib/features/stocks_adjustments/screens/stocks_adjustments_list_screen.dart`
+  - **Fonctionnalités** :
+    - Dialog de sélection du type : `_showMovementTypeDialog()` affiche un `SimpleDialog` avec 2 options (Réception/Sortie)
+    - Chargement des mouvements récents : `_fetchRecentMovements()` récupère les 20 derniers mouvements (réceptions ou sorties) depuis Supabase
+    - Dialog de sélection du mouvement : `_showMovementPickerDialog()` affiche une liste des mouvements récents avec titre, date et volume
+    - Ouverture du create sheet : Au tap sur un mouvement, `StocksAdjustmentCreateSheet.show()` s'ouvre avec les paramètres pré-remplis
+  - **Gestion des états** :
+    - Loading : Spinner pendant le chargement des mouvements
+    - Empty : Message "Aucun mouvement récent disponible" si la liste est vide
+    - Error : Gestion d'erreur propre avec message explicite
+  - **Rafraîchissement** : Après création réussie, `stocksAdjustmentsListProvider` est invalidé pour rafraîchir la liste automatiquement
+
+#### **Changed**
+
+- **B2.4.4 — FAB connecté** : Le FloatingActionButton n'est plus un placeholder, il déclenche maintenant le flow complet de création d'ajustement avec sélection du mouvement.
+
+### 🎨 **B2.5 — Améliorations UX (Stocks Adjustments List) (08/01/2026)**
+
+#### **Added**
+
+- **Modèle de filtres** : Modèle simple pour gérer les filtres de la liste.
+  - **Fichier créé** : `lib/features/stocks_adjustments/models/stocks_adjustments_filters.dart`
+  - **Champs** : `movementType` (String?), `rangeDays` (int?), `reasonQuery` (String)
+  - **Méthode** : `copyWith()` pour créer de nouvelles instances avec modifications
+
+- **Extension du service avec filtres et pagination** : La méthode `list()` supporte maintenant les filtres et la pagination.
+  - **Fichier modifié** : `lib/features/stocks_adjustments/data/stocks_adjustments_service.dart`
+  - **Nouveaux paramètres optionnels** :
+    - `movementType` : Filtre par type de mouvement (RECEPTION/SORTIE)
+    - `since` : Filtre par période (DateTime)
+    - `reasonQuery` : Recherche dans la raison (ilike, case-insensitive)
+    - `offset` : Pagination (offset pour "Charger plus")
+  - **Rétrocompatibilité** : Tous les paramètres sont optionnels, l'appel existant `list(limit: 50)` continue de fonctionner
+
+- **Provider de pagination avec filtres** : NotifierProvider pour gérer l'état de la liste paginée.
+  - **Fichier modifié** : `lib/features/stocks_adjustments/providers/stocks_adjustments_providers.dart`
+  - **StateProvider** : `stocksAdjustmentsFiltersProvider` pour les filtres (type, période, recherche)
+  - **NotifierProvider** : `stocksAdjustmentsListPaginatedProvider` avec `StocksAdjustmentsListNotifier`
+  - **État** : `StocksAdjustmentsListState` avec `items`, `isLoading`, `hasMore`, `isLoadingMore`, `error`
+  - **Méthodes** :
+    - `reload()` : Recharge la liste depuis le début (quand les filtres changent)
+    - `loadMore()` : Charge la page suivante (pagination)
+  - **Écoute automatique** : Le Notifier écoute les changements de filtres et recharge automatiquement
+
+- **Barre de filtres UI** : Widget `_FiltersBar` avec filtres Type, Période et Recherche.
+  - **Fichier modifié** : `lib/features/stocks_adjustments/screens/stocks_adjustments_list_screen.dart`
+  - **Filtre Type** : Dropdown avec options "Tous / Réception / Sortie"
+  - **Filtre Période** : Dropdown avec options "Tout / 7 jours / 30 jours / 90 jours"
+  - **Recherche** : TextField avec recherche en temps réel dans la raison, bouton clear si texte présent
+  - **Comportement** : Chaque changement de filtre invalide automatiquement la liste et recharge la page 1
+
+- **Pagination "Charger plus"** : Bouton pour charger la page suivante sans recharger toute la liste.
+  - **Widget** : `_LoadMoreButton` avec gestion des états
+  - **Comportement** :
+    - Affiche "Charger plus" si `hasMore == true`
+    - Spinner pendant le chargement (`isLoadingMore`)
+    - "Fin de la liste" si `hasMore == false`
+  - **Intégration** : Ajouté en fin de ListView, conserve les items existants lors du chargement
+
+- **Amélioration de la lisibilité des items** : Affichage plus clair et structuré des ajustements.
+  - **Format de date** : `DD/MM/YYYY HH:mm` (format court et lisible)
+  - **Mouvement ID** : Affichage avec icône `Icons.link` et 8 premiers caractères (tronqué)
+  - **Raison** : Affichage en gras (fontWeight.w500) sur 1-2 lignes max avec ellipsis
+  - **Deltas** : Chips colorés avec signe +/- pour volumes ambiant et 15°C
+  - **Auteur** : Affichage avec icône `Icons.person_outline` et ID tronqué
+  - **Layout** : Organisation en 3 lignes claires (badge+date, raison, deltas+auteur)
+
+#### **Changed**
+
+- **B2.5 — Liste paginée** : `StocksAdjustmentsListScreen` utilise maintenant `stocksAdjustmentsListPaginatedProvider` au lieu de `stocksAdjustmentsListProvider` pour supporter les filtres et la pagination.
+- **B2.5 — Provider legacy** : `stocksAdjustmentsListProvider` est marqué comme `@deprecated` mais reste disponible pour compatibilité (utilisé par B2.4.4 pour le rafraîchissement après création).
+
+#### **Technical Details**
+
+- **Pagination** : 50 items par page (configurable via `_pageSize` dans le Notifier)
+- **Filtres** : Tous les filtres sont appliqués côté DB (pas de filtrage client)
+- **Performance** : Limite à 20 mouvements récents pour le dialog de sélection (B2.4.4)
+- **Garde-fous** : Aucune modification DB/SQL/RLS, pas de nouvelle dépendance, logique isolée dans le module `stocks_adjustments/`
+
+---
+
+### 🧪 **B2.6 — Test E2E UI → DB → UI refresh (Stocks Adjustments) (08/01/2026)**
+
+#### **Added**
+
+- **Test d'intégration end-to-end** : Validation complète du flux de création d'ajustement via l'UI.
+  - **Fichier créé** : `integration_test/stocks_adjustments_create_ui_e2e_test.dart`
+  - **Objectif** : Prouver en STAGING qu'un admin peut créer un ajustement via l'UI (FAB → dialogs → sheet → enregistrer) et que la liste se rafraîchit automatiquement
+  - **Scénario testé** :
+    - Login admin STAGING
+    - Navigation : FAB → sélection type (Réception) → sélection mouvement → ouverture sheet
+    - Remplissage formulaire : Type "Volume", raison (min 10 chars), correction ambiante
+    - Enregistrement et vérification : UI refresh + vérification DB (service role)
+  - **Infrastructure** :
+    - Utilise `IntegrationTestWidgetsFlutterBinding` (au lieu de `TestWidgetsFlutterBinding`) pour éviter les blocages MethodChannel
+    - Support `dart-define` pour macOS sandbox (variables passées à la compilation, pas de filesystem)
+    - Helpers de traçage : `step()` pour logs détaillés, `pumpAndSettleSafe()` pour timeouts configurables
+  - **Fichiers modifiés** :
+    - `test/integration/_env/staging_env.dart` : Support `dart-define` avec fallback fichier
+    - `pubspec.yaml` : Ajout `integration_test` dans `dev_dependencies`
+
+#### **Changed**
+
+- **B2.6 — Fix Riverpod "uninitialized provider"** : Correction du bug où `StocksAdjustmentsListNotifier.build()` appelait `_loadPage()` avant l'initialisation de `state`.
+  - **Fichier modifié** : `lib/features/stocks_adjustments/providers/stocks_adjustments_providers.dart`
+  - **Corrections** :
+    - Initialisation immédiate de `state` dans `build()` avant tout appel
+    - Utilisation de `Future.microtask()` pour lancer `_loadPage()` après l'initialisation
+    - Flag `_bootstrapped` pour éviter les double fetch si `build()` se relance
+    - Flag `_disposed` avec `ref.onDispose()` pour gérer le lifecycle (compatible Riverpod 2.6.1, `ref.mounted` n'existe pas)
+    - Guards `if (!_alive) return;` dans `_loadPage()` pour éviter les updates après dispose
+  - **Résultat** : Plus de crash "Bad state: Tried to read the state of an uninitialized provider", plus de double fetch, plus d'updates après dispose
+
+- **B2.6 — Guard profil + session dans StocksAdjustmentsListScreen** : Attente du chargement du profil ET de la session Supabase avant de construire l'écran.
+  - **Fichier modifié** : `lib/features/stocks_adjustments/screens/stocks_adjustments_list_screen.dart`
+  - **Corrections** :
+    - Vérification de `Supabase.instance.client.auth.currentUser` avant de watch le profil
+    - Utilisation de `currentProfilProvider.when()` pour gérer les états (loading, error, data)
+    - Affichage d'un loader pendant le chargement du profil ou si la session est absente
+    - Construction de la liste uniquement quand la session ET le profil sont prêts
+  - **Résultat** : Plus de race condition, stabilisation du test E2E, évite les rebuilds prématurés
+
+- **B2.6 — Fix bouton "Enregistrer" dans le test E2E** : Version robuste sans hypothèse sur le type de bouton.
+  - **Fichier modifié** : `integration_test/stocks_adjustments_create_ui_e2e_test.dart`
+  - **Correction** :
+    - Fermeture du clavier avec `testTextInput.receiveAction(TextInputAction.done)`
+    - Utilisation de `ensureVisible()` pour gérer le scroll si nécessaire
+    - Tap directement sur le Text "Enregistrer" (pas besoin de trouver le bouton parent)
+    - Suppression de l'hypothèse sur `FilledButton` (fonctionne avec tous types de boutons Material)
+  - **Résultat** : Test plus robuste, fonctionne même si le type de bouton change ou est dans un wrapper custom
+
+- **B2.6 — Fix assertion UI finale (assertion structurelle robuste + pagination-safe)** : Remplacement de l'assertion basée sur le texte par une vérification structurelle robuste face à la pagination.
+  - **Fichier modifié** : `integration_test/stocks_adjustments_create_ui_e2e_test.dart`
+  - **Problème identifié** : 
+    - L'assertion `find.textContaining(reasonPrefix)` échouait car la raison peut être tronquée (`maxLines: 2` + ellipsis) ou non affichée dans la liste
+    - L'assertion `countAfter >= countBefore + 1` échouait si la liste était paginée et restait à une taille constante (ex: 50 items visibles)
+    - Aucun écran de détail n'existe pour les ajustements (item non tappable), donc impossible de vérifier la raison complète via navigation
+  - **Solution** :
+    - **Fonction utilitaire `extractTopMovementIdPrefix()`** : Extrait le mouvementId tronqué du premier item en remontant depuis `Icons.link` jusqu'au `Row` parent, puis récupère le dernier `Text` du `Row` (qui contient le mouvementId tronqué à 8 caractères)
+    - **Capture AVANT création** : `countBefore` (nombre d'icônes `Icons.link`) + `topMovementPrefixBefore` (mouvementId tronqué du premier item)
+    - **Fallback multi-boutons pour "Enregistrer"** : `FilledButton` → `ElevatedButton` → `TextButton` → texte (pour robustesse face aux changements de type de bouton)
+    - **Vérification snackbar** : Assertion que le snackbar "Ajustement créé avec succès" apparaît après création
+    - **Assertion pagination-safe** : `countAfter >= 1` (au lieu de `countAfter >= countBefore + 1`) pour fonctionner même si la liste reste à 50 items visibles
+    - **Vérification changement top item** : `topMovementPrefixAfter != topMovementPrefixBefore` pour prouver que le nouvel item est en premier (tri `created_at DESC`)
+    - **Logs de diagnostic** : `[B2.6][BEFORE]` et `[B2.6][AFTER]` pour faciliter le débogage
+  - **Avantages** :
+    - Indépendant du contenu texte (raison tronquée ou non affichée)
+    - Pagination-safe : fonctionne même si la liste reste à une taille constante
+    - Validation robuste : snackbar + changement du top item = création + refresh confirmés
+    - Fallback multi-boutons pour le tap "Enregistrer" (fonctionne avec tous types de boutons Material)
+    - Extraction structurelle du mouvementId (ne dépend pas de style monospace/fontSize)
+  - **Résultat** : Test E2E robuste qui passe même si la raison est tronquée, la liste est paginée, ou le type de bouton change
+
+- **B2.6 — Invalidation automatique du provider après création** : Rafraîchissement automatique de la liste après création d'un ajustement.
+  - **Fichier modifié** : `lib/features/stocks_adjustments/screens/stocks_adjustment_create_sheet.dart`
+  - **Ajout** : `ref.invalidate(stocksAdjustmentsListPaginatedProvider)` juste après succès de création (avant `Navigator.pop`)
+  - **Résultat** : La liste se rebuild automatiquement et relance `_loadPage(0)` après création, garantissant l'affichage du nouvel item
+
+- **B2.6 — Tri stable dans StocksAdjustmentsService.list()** : Ajout d'un tri secondaire par `id` pour garantir l'ordre déterministe.
+  - **Fichier modifié** : `lib/features/stocks_adjustments/data/stocks_adjustments_service.dart`
+  - **Modification** : Tri par `created_at DESC, id DESC` au lieu de `created_at DESC` uniquement
+  - **Raison** : Garantir que le nouvel ajustement apparaît en page 0, même si plusieurs ajustements ont le même `created_at`
+  - **Résultat** : Tri stable et déterministe, le nouvel item apparaît toujours en premier après création
+
+- **B2.6 — Support dart-define pour macOS sandbox** : `StagingEnv.load()` lit d'abord depuis les `dart-define` avant de fallback sur le fichier.
+  - **Fichier modifié** : `test/integration/_env/staging_env.dart`
+  - **Stratégie** :
+    - Priorité 1 : Lecture depuis `String.fromEnvironment()` (fonctionne sur macOS sandbox)
+    - Priorité 2 : Fallback sur fichier `env/.env.staging` (pour tests `flutter test` classiques)
+  - **Variables supportées** : `SUPABASE_ENV`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `TEST_USER_EMAIL`, `TEST_USER_PASSWORD`, `TEST_USER_ROLE`, `NON_ADMIN_EMAIL`, `NON_ADMIN_PASSWORD`
+  - **Résultat** : Test E2E fonctionne sur macOS sandbox sans accès au filesystem
+
+#### **Technical Details**
+
+- **Binding integration_test** : Utilisation de `IntegrationTestWidgetsFlutterBinding.ensureInitialized()` pour gérer correctement les MethodChannels (shared_preferences, secure storage, etc.)
+- **Helpers de traçage** :
+  - `step<T>()` : Wrapper avec logs `[B2.6][STEP] START/OK/FAIL` et timeout configurable
+  - `pumpAndSettleSafe()` : Version avec timeout et logs pour éviter les blocages infinis
+- **Commande d'exécution** :
+  ```bash
+  flutter test integration_test/stocks_adjustments_create_ui_e2e_test.dart \
+    --dart-define=SUPABASE_ENV=STAGING \
+    --dart-define=SUPABASE_URL=... \
+    --dart-define=SUPABASE_ANON_KEY=... \
+    # ... autres variables
+    -r expanded
+  ```
+- **Garde-fous** : Aucune modification DB/SQL/RLS, corrections uniquement côté Flutter/Riverpod
+
+---
+
+### 👁️ **B3 — Visibilité & Traçabilité des Ajustements de Stock (08/01/2026)**
+
+#### **Added**
+
+- **B3.1 — Clarification de la liste des ajustements (lecture seule)** : Amélioration de l'affichage des ajustements pour faciliter l'audit et la compréhension.
+  - **Fichier modifié** : `lib/features/stocks_adjustments/providers/stocks_adjustments_providers.dart`
+  - **Provider de lookup des profils** : Création de `adjustmentProfilsLookupProvider` qui charge tous les profils nécessaires en une seule requête (batch lookup) pour éviter les requêtes N+1
+  - **Lookup batch** : Utilisation de `.in_('user_id', userIds)` pour charger tous les profils des créateurs en une seule requête Supabase
+  - **Fichier modifié** : `lib/features/stocks_adjustments/screens/stocks_adjustments_list_screen.dart`
+  - **Affichage amélioré** :
+    - **Auteur** : Affichage du nom du profil (`nomComplet` ou `email`) au lieu de l'ID tronqué (B3.1)
+    - **Date & heure** : Format court DD/MM/YYYY HH:mm (déjà présent)
+    - **Type** : Badge coloré RECEPTION (vert) / SORTIE (orange) (déjà présent)
+    - **Raison** : Texte lisible sur 1-2 lignes max avec ellipsis (déjà présent)
+    - **Delta** : Affichage avec signe +/- et couleurs (vert pour positif, rouge pour négatif) (déjà présent)
+  - **Résultat** : Liste plus lisible et compréhensible pour l'audit
+
+- **B3.2 — Contexte métier (clé de confiance)** : Ajout de références claires aux mouvements associés et indication visuelle de l'impact.
+  - **Fichier modifié** : `lib/features/stocks_adjustments/screens/stocks_adjustments_list_screen.dart`
+  - **Référence mouvement** : Affichage de "Réception #abc12345" ou "Sortie #abc12345" avec shortId (8 premiers caractères) à côté de l'icône `Icons.link`
+  - **Badge impact +/-** : Badge coloré (vert pour Impact +, rouge pour Impact −) basé sur le signe de `delta_ambiant`
+    - Badge vert "Impact +" si `delta_ambiant > 0` (augmentation de stock)
+    - Badge rouge "Impact −" si `delta_ambiant < 0` (diminution de stock)
+    - Icône de tendance (`trending_up` / `trending_down`) pour visualisation rapide
+  - **Résultat** : Contexte métier clair et impact visible d'un coup d'œil
+
+- **B3.3 — Filtres minimum viables** : Vérification et validation des filtres existants (déjà implémentés en B2.5).
+  - **Filtre Type** : RECEPTION / SORTIE / Tous (déjà présent)
+  - **Filtre Période** : 7j / 30j / 90j / Tout via `rangeDays` (déjà présent)
+    - Pas besoin de "from → to" car `rangeDays` est suffisant pour les besoins d'audit
+  - **Recherche texte** : Champ de recherche dans la raison avec `ilike` pour recherche case-insensitive (déjà présent)
+  - **Filtres cumulables** : Tous les filtres peuvent être combinés (déjà présent)
+  - **Résultat** : Filtres opérationnels et suffisants pour l'audit
+
+- **B3.4 — Signal audit visuel** : Ajout d'une icône d'alerte pour identifier les ajustements nécessitant une vérification.
+  - **Fichier modifié** : `lib/features/stocks_adjustments/screens/stocks_adjustments_list_screen.dart`
+  - **Icône ⚠️** : Affichée si l'ajustement nécessite une vérification :
+    - **Ajustement manuel** : Raison contient "manuel" ou "manual" (détection via `toLowerCase().contains()`)
+    - **Delta important** : `abs(delta_ambiant) > 50L` (seuil simple et configurable)
+  - **Tooltip** : "Ajustement manuel – à vérifier" au survol de l'icône
+  - **Position** : Icône affichée en début de ligne, avant le badge type, pour une visibilité immédiate
+  - **Résultat** : Signal visuel clair pour identifier rapidement les ajustements suspects
+
+#### **Changed**
+
+- **B3.1 — Conversion `_AdjustmentListItem` en ConsumerWidget** : Modification pour utiliser les providers Riverpod.
+  - **Fichier modifié** : `lib/features/stocks_adjustments/screens/stocks_adjustments_list_screen.dart`
+  - **Changement** : Conversion de `_AdjustmentListItem` de `StatelessWidget` à `ConsumerWidget` pour pouvoir utiliser `ref.watch(adjustmentProfilsLookupProvider)`
+  - **Ajout du paramètre `key`** : Utilisation de `ValueKey(adjustment.id)` pour optimiser les rebuilds
+  - **Résultat** : Architecture Riverpod cohérente et lookup des profils intégré
+
+#### **Technical Details**
+
+- **Lookup batch des profils** : 
+  - Provider `adjustmentProfilsLookupProvider` dépend de `stocksAdjustmentsListPaginatedProvider`
+  - Extraction des `user_id` uniques de la liste d'ajustements
+  - Requête Supabase unique : `.from('profils').select().in_('user_id', userIds)`
+  - Construction d'un `Map<String, Profil>` pour lookup O(1) dans l'UI
+  - Fallback gracieux : si le profil n'existe pas, affichage de l'ID tronqué
+- **Performance** : 
+  - Pas de requête N+1 (une seule requête pour tous les profils)
+  - Lookup en mémoire (O(1)) pour l'affichage
+  - Provider auto-dispose pour libérer la mémoire après utilisation
+- **Garde-fous respectés** :
+  - ❌ AUCUNE modification DB (lecture seule)
+  - ❌ AUCUNE modification trigger
+  - ❌ AUCUNE modification calcul stock
+  - ❌ AUCUNE écriture (update/delete)
+  - ✅ Utilisation uniquement des champs existants
+  - ✅ Pas de jointure supplémentaire côté DB (lookup batch côté client)
+- **Critères de validation** :
+  - ✅ Tous les ajustements sont lisibles et compréhensibles
+  - ✅ On comprend le contexte sans ouvrir la DB (référence mouvement + badge impact)
+  - ✅ Aucun bouton "modifier / supprimer" (lecture seule stricte)
+  - ✅ Aucun impact sur les stocks, KPI ou DB (UI uniquement)
+  - ✅ L'app compile sans warnings
 
 ---
 

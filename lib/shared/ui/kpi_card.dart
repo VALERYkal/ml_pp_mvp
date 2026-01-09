@@ -12,8 +12,10 @@ class KpiCard extends StatelessWidget {
   final Color tintColor;
   final VoidCallback? onTap;
   final Key? cardKey; // Key stable pour les tests
+  final Widget? titleTrailing; // B4.4 : Widget optionnel à afficher à droite du titre (ex: badge "Corrigé")
 
-  const KpiCard({
+  // ⚠️ Ne pas utiliser const : peut dépendre de titleTrailing (valeurs runtime)
+  KpiCard({
     super.key,
     required this.icon,
     required this.title,
@@ -26,6 +28,7 @@ class KpiCard extends StatelessWidget {
     required this.tintColor,
     this.onTap,
     this.cardKey,
+    this.titleTrailing,
   });
 
   @override
@@ -53,17 +56,24 @@ class KpiCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.max,
             children: [
-              // header
+              // header avec badge "Corrigé" optionnel (B4.4)
               Row(
                 children: [
                   _IconTint(icon: icon, color: tintColor),
                   const SizedBox(width: 12),
-                  Text(
-                    title,
-                    style: t.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: t.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
+                  // B4.4-B : Badge "Corrigé" pour KPI stock
+                  if (titleTrailing != null) ...[
+                    const SizedBox(width: 8),
+                    titleTrailing!,
+                  ],
                 ],
               ),
               const SizedBox(height: 12),

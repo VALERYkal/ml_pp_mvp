@@ -4,6 +4,8 @@ import '../../../shared/formatters.dart';
 import '../../profil/providers/profil_provider.dart';
 import '../widgets/stocks_kpi_cards.dart';
 import '../data/stocks_kpi_providers.dart';
+import '../../stocks_adjustments/widgets/stock_corrige_badge.dart'
+    show StockCorrectedBadge;
 
 /// Écran affichant les stocks du dépôt (KPI stocks par propriétaire).
 class StocksScreen extends ConsumerWidget {
@@ -65,13 +67,20 @@ class StocksScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Titre de section
-                    Text(
-                      'Stock par propriétaire',
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.onSurface,
-                      ),
+                    // Titre de section avec badge "STOCK CORRIGÉ" (B4.2)
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Stock par propriétaire',
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.onSurface,
+                            ),
+                          ),
+                        ),
+                        StockCorrectedBadge(depotId: depotId),
+                      ],
                     ),
                     const SizedBox(height: 16),
                     // Carte breakdown par propriétaire
@@ -81,13 +90,20 @@ class StocksScreen extends ConsumerWidget {
                       onTap: null,
                     ),
                     const SizedBox(height: 32),
-                    // Stock total dépôt
-                    Text(
-                      'Stock total dépôt',
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.onSurface,
-                      ),
+                    // Stock total dépôt avec badge "STOCK CORRIGÉ" (B4.2)
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Stock total dépôt',
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.onSurface,
+                            ),
+                          ),
+                        ),
+                        StockCorrectedBadge(depotId: depotId),
+                      ],
                     ),
                     const SizedBox(height: 16),
                     // KPI Stock total (réutilise le widget du dashboard)
@@ -107,6 +123,7 @@ class StocksScreen extends ConsumerWidget {
                             // Fallback gracieux : afficher 0.0
                             return _buildTotalStockCard(
                               context,
+                              depotId: depotId,
                               amb: 0.0,
                               v15: 0.0,
                               nbTanks: 0,
@@ -114,6 +131,7 @@ class StocksScreen extends ConsumerWidget {
                           },
                           data: (stock) => _buildTotalStockCard(
                             context,
+                            depotId: depotId,
                             amb: stock.amb,
                             v15: stock.v15,
                             nbTanks: stock.nbTanks,
@@ -130,6 +148,7 @@ class StocksScreen extends ConsumerWidget {
 
   Widget _buildTotalStockCard(
     BuildContext context, {
+    String? depotId,
     required double amb,
     required double v15,
     required int nbTanks,
@@ -153,6 +172,7 @@ class StocksScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // B4.4-B : Header avec badge "Corrigé"
             Row(
               children: [
                 Container(
@@ -172,12 +192,21 @@ class StocksScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Stock total',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.onSurface,
-                        ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Stock total',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: theme.colorScheme.onSurface,
+                              ),
+                            ),
+                          ),
+                          // B4.4-B : Badge "Corrigé" pour stock total dépôt
+                          if (depotId != null && depotId.isNotEmpty)
+                            StockCorrectedBadge(depotId: depotId),
+                        ],
                       ),
                       const SizedBox(height: 4),
                       Text(

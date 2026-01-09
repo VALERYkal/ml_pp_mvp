@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ml_pp_mvp/core/errors/stocks_adjustments_exception.dart';
+import '../models/stock_adjustment.dart';
 
 class StocksAdjustmentsService {
   final SupabaseClient _client;
@@ -109,6 +110,67 @@ class StocksAdjustmentsService {
       throw StocksAdjustmentsException(
         "Erreur lors de la création de l'ajustement.",
       );
+    }
+  }
+
+  /// Liste les ajustements de stock (lecture seule, RLS appliquée).
+  /// Retourne les ajustements triés par date de création (plus récents en premier).
+  Future<List<StockAdjustment>> list({
+    int limit = 50,
+    String? movementType,
+    DateTime? since,
+    String? reasonQuery,
+    int? offset,
+  }) async {
+    try {
+      var query = _client
+          .from('stocks_adjustments')
+          .select('*');
+
+      // Filtre par type de mouvement
+      if (movementType != null && movementType.isNotEmpty) {
+        query = query.eq('mouvement_type', movementType.toUpperCase());
+      }
+
+      // Filtre par période (since)
+      if (since != null) {
+        query = query.gte('created_at', since.toIso8601String());
+      }
+
+      // Filtre par recherche dans la raison (contains, case-insensitive)
+      if (reasonQuery != null && reasonQuery.isNotEmpty) {
+        query = query.ilike('reason', '%$reasonQuery%');
+      }
+
+      // Tri et pagination
+      // Tri par created_at DESC puis id DESC pour stabilité (même created_at, id plus récent en premier)
+      dynamic response;
+      if (offset != null && offset > 0) {
+        response = await query
+            .order('created_at', ascending: false)
+            .order('id', ascending: false)
+            .range(offset, offset + limit - 1);
+      } else {
+        response = await query
+            .order('created_at', ascending: false)
+            .order('id', ascending: false)
+            .limit(limit);
+      }
+
+      if (response is! List) {
+        return [];
+      }
+
+      return response
+          .map((json) => StockAdjustment.fromJson(
+                json as Map<String, dynamic>,
+              ))
+          .toList();
+    } catch (error) {
+      debugPrint(
+        '❌ [stocks_adjustments] Erreur lors de la récupération de la liste: $error',
+      );
+      rethrow;
     }
   }
 }

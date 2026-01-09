@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../providers/citerne_providers.dart';
 import '../domain/citerne_stock_snapshot.dart';
+import '../../stocks_adjustments/widgets/stock_corrige_badge.dart'
+    show StockCorrectedBadge;
 
 // Fonctions de formatage modernisées avec chiffres tabulaires
 final _n0 = NumberFormat.decimalPattern();
@@ -456,6 +458,7 @@ class CiterneListScreen extends ConsumerWidget {
                     context,
                     sortedCiternes[index],
                     theme,
+                    index,
                   ),
                   childCount: sortedCiternes.length,
                 ),
@@ -637,11 +640,15 @@ class CiterneListScreen extends ConsumerWidget {
     BuildContext context,
     CiterneStockSnapshot citerne,
     ThemeData theme,
+    int index,
   ) {
     final stock15c = citerne.stock15cTotal;
     final stockAmbiant = citerne.stockAmbiantTotal;
     final capacite = citerne.capaciteTotale;
     final utilPct = capacite > 0 ? (100 * stockAmbiant / capacite) : 0.0;
+
+    // B4.3-C : Numérotation des citernes (index + 1 pour affichage 1, 2, 3...)
+    final numero = index + 1;
 
     return TankCard(
       name: citerne.citerneNom,
@@ -650,6 +657,8 @@ class CiterneListScreen extends ConsumerWidget {
       capacity: capacite,
       utilPct: utilPct.toDouble(),
       lastUpdated: citerne.lastSnapshotAt,
+      numero: numero,
+      citerneId: citerne.citerneId, // B4.4-B : Pour badge "Corrigé"
     );
   }
 }
@@ -661,8 +670,11 @@ class TankCard extends StatelessWidget {
   final double capacity;
   final DateTime? lastUpdated;
   final double utilPct; // 0..100
+  final int? numero; // B4.3-C : Numéro de citerne pour affichage
+  final String? citerneId; // B4.4-B : ID de citerne pour badge "Corrigé"
 
-  const TankCard({
+  // ⚠️ Ne pas utiliser const : dépend de valeurs runtime (numero, stockAmb, capacity, citerneId)
+  TankCard({
     super.key,
     required this.name,
     required this.stock15c,
@@ -670,6 +682,8 @@ class TankCard extends StatelessWidget {
     required this.capacity,
     required this.utilPct,
     this.lastUpdated,
+    this.numero,
+    this.citerneId,
   });
 
   @override
@@ -677,6 +691,14 @@ class TankCard extends StatelessWidget {
     final t = Theme.of(context);
     final levelColor = _TankColors.getColorForLevel(utilPct);
     final isEmpty = utilPct <= 0;
+    
+    // B4.3-A : Détection stock réel négatif (sans modifier la valeur affichée)
+    final realStockAmb = stockAmb; // Valeur réelle depuis DB
+    final displayedStockAmb = realStockAmb < 0 ? 0.0 : realStockAmb; // Valeur clampée pour affichage
+    final isNegativeStock = realStockAmb < 0;
+    
+    // B4.3-B : Détection dépassement de capacité
+    final exceedsCapacity = realStockAmb > capacity;
 
     return Container(
       decoration: BoxDecoration(
@@ -749,16 +771,31 @@ class TankCard extends StatelessWidget {
                       ),
                     ),
                     Expanded(
-                      child: Text(
-                        name.toUpperCase(),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: t.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.5,
-                          color: const Color(0xFF1E293B),
-                          height: 1.2,
-                        ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              // B4.3-C : Numérotation visible des citernes
+                              numero != null 
+                                  ? 'CITERNE $numero'
+                                  : name.toUpperCase(),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: t.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.5,
+                                color: const Color(0xFF1E293B),
+                                height: 1.2,
+                              ),
+                            ),
+                          ),
+                          // B4.4-B : Badge "Corrigé" pour citerne
+                          if (citerneId != null && citerneId!.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 8),
+                              child: StockCorrectedBadge(citerneId: citerneId!),
+                            ),
+                        ],
                       ),
                     ),
                     const SizedBox(width: 6),
@@ -815,12 +852,45 @@ class TankCard extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             // RÈGLE MÉTIER : Stock ambiant = source de vérité opérationnelle (affiché en premier)
-                            _buildMetricRow(
-                              context,
-                              icon: Icons.water_drop_outlined,
-                              label: 'Amb',
-                              value: _fmtL(stockAmb),
-                              color: const Color(0xFF3B82F6),
+                            // B4.3-A & B4.3-B : Affichage avec signaux visuels pour incohérences
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildMetricRow(
+                                    context,
+                                    icon: Icons.water_drop_outlined,
+                                    label: 'Amb',
+                                    value: _fmtL(displayedStockAmb),
+                                    color: const Color(0xFF3B82F6),
+                                  ),
+                                ),
+                                // B4.3-A : Signal visuel si stock réel négatif
+                                if (isNegativeStock)
+                                  Tooltip(
+                                    message: 'Stock réel négatif suite à un ajustement. La valeur affichée est corrigée à 0 pour l\'affichage.',
+                                    child: const Padding(
+                                      padding: EdgeInsets.only(left: 4),
+                                      child: Icon(
+                                        Icons.warning_amber_rounded,
+                                        color: Colors.orange,
+                                        size: 16,
+                                      ),
+                                    ),
+                                  ),
+                                // B4.3-B : Signal visuel si stock > capacité
+                                if (exceedsCapacity)
+                                  Tooltip(
+                                    message: 'Stock supérieur à la capacité théorique de la citerne. Veuillez vérifier les ajustements.',
+                                    child: const Padding(
+                                      padding: EdgeInsets.only(left: 4),
+                                      child: Icon(
+                                        Icons.warning_amber_rounded,
+                                        color: Colors.orange,
+                                        size: 16,
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
                             const SizedBox(height: 6),
                             // Stock 15°C = valeur dérivée, analytique (affiché en secondaire)

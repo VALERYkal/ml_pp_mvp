@@ -105,6 +105,14 @@ class NavConfig {
       allowedRoles: kAllRoles,
       order: 6,
     ),
+    NavItem(
+      id: 'stocks-adjustments',
+      title: 'Ajustements de stock',
+      path: '/stocks-adjustments',
+      icon: Icons.tune_outlined,
+      allowedRoles: kAllRoles,
+      order: 7,
+    ),
   ];
 
   static List<NavItem> getItemsForRole(UserRole? role) {

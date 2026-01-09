@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ml_pp_mvp/data/repositories/stocks_kpi_repository.dart';
 import 'package:ml_pp_mvp/features/stocks/data/stocks_kpi_providers.dart';
 import 'package:ml_pp_mvp/shared/formatters.dart';
+import '../../stocks_adjustments/widgets/stock_corrige_badge.dart'
+    show StockCorrectedBadge;
 
 /// Carte affichant le breakdown des stocks par propriétaire (MONALUXE / PARTENAIRE).
 ///
@@ -157,7 +159,7 @@ class OwnerStockBreakdownCard extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Header
+              // Header avec badge "Corrigé" (B4.4-B)
               Row(
                 children: [
                   Container(
@@ -173,31 +175,36 @@ class OwnerStockBreakdownCard extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  Text(
-                    'Stock par propriétaire',
-                    style: t.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
+                  Expanded(
+                    child: Text(
+                      'Stock par propriétaire',
+                      style: t.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
+                  StockCorrectedBadge(depotId: depotId),
                 ],
               ),
               const SizedBox(height: 16),
-              // MONALUXE
+              // MONALUXE avec badge "Corrigé" (B4.4-B)
               _buildOwnerRow(
                 context,
                 label: 'MONALUXE',
                 ambiant: monaluxe.stockAmbiantTotal,
                 stock15c: monaluxe.stock15cTotal,
                 color: const Color(0xFF4CAF50),
+                depotId: depotId,
               ),
               const SizedBox(height: 12),
-              // PARTENAIRE
+              // PARTENAIRE avec badge "Corrigé" (B4.4-B)
               _buildOwnerRow(
                 context,
                 label: 'PARTENAIRE',
                 ambiant: partenaire.stockAmbiantTotal,
                 stock15c: partenaire.stock15cTotal,
                 color: const Color(0xFF2196F3),
+                depotId: depotId,
               ),
             ],
           ),
@@ -212,6 +219,7 @@ class OwnerStockBreakdownCard extends ConsumerWidget {
     required double ambiant,
     required double stock15c,
     required Color color,
+    String? depotId,
   }) {
     final t = Theme.of(context);
     return Container(
@@ -238,22 +246,32 @@ class OwnerStockBreakdownCard extends ConsumerWidget {
             ),
           ),
           const Spacer(),
-          // Volume ambiant (source de vérité opérationnelle)
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+          // Volume ambiant (source de vérité opérationnelle) avec badge "Corrigé" (B4.4-B)
+          Row(
             children: [
-              Text(
-                fmtL(ambiant),
-                style: t.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    fmtL(ambiant),
+                    style: t.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  Text(
+                    'Ambiant',
+                    style: t.textTheme.bodySmall?.copyWith(
+                      color: t.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
               ),
-              Text(
-                'Ambiant',
-                style: t.textTheme.bodySmall?.copyWith(
-                  color: t.colorScheme.onSurfaceVariant,
+              // B4.4-B : Badge "Corrigé" pour stock par propriétaire
+              if (depotId != null && depotId.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: StockCorrectedBadge(depotId: depotId),
                 ),
-              ),
             ],
           ),
           const SizedBox(width: 16),

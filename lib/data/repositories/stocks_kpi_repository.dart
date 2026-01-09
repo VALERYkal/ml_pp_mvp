@@ -454,7 +454,28 @@ class StocksKpiRepository {
     );
 
     // Agréger par (citerne_id, produit_id) tous propriétaires confondus
+    // Important : garder la date la plus récente par citerne (multi-dates acceptées)
     final Map<String, Map<String, dynamic>> aggregated = {};
+
+    // Helper pour parser une date depuis diverses sources
+    DateTime? parseDate(dynamic value) {
+      if (value == null) return null;
+      if (value is DateTime) return value;
+      if (value is String) {
+        try {
+          return DateTime.parse(value);
+        } catch (_) {
+          return null;
+        }
+      }
+      return null;
+    }
+
+    // Helper pour formater une date en string YYYY-MM-DD
+    String formatDate(DateTime? date) {
+      if (date == null) return DateTime.now().toIso8601String().split('T').first;
+      return date.toIso8601String().split('T').first;
+    }
 
     for (final row in rows) {
       final rowCiterneId = (row['citerne_id'] as String?) ?? '';
@@ -466,15 +487,23 @@ class StocksKpiRepository {
       }
 
       final key = '$rowCiterneId::$rowProduitId';
-
       final stockAmbiant = _toDouble(row['stock_ambiant'] ?? row['stock_ambiant_total'] ?? 0.0);
       final stock15c = _toDouble(row['stock_15c'] ?? row['stock_15c_total'] ?? 0.0);
+      final rowDate = parseDate(row['date_jour'] ?? row['updated_at']);
 
       if (aggregated.containsKey(key)) {
         final current = aggregated[key]!;
+        final currentDate = parseDate(current['updated_at'] ?? current['date_jour']);
+        
+        // Garder la date la plus récente lors de l'agrégation
+        final latestDate = (rowDate != null && currentDate != null)
+            ? (rowDate.isAfter(currentDate) ? rowDate : currentDate)
+            : (rowDate ?? currentDate);
+
         aggregated[key] = Map<String, dynamic>.from(current)
           ..['stock_ambiant_total'] = (_toDouble(current['stock_ambiant_total'] ?? 0.0) + stockAmbiant)
-          ..['stock_15c_total'] = (_toDouble(current['stock_15c_total'] ?? 0.0) + stock15c);
+          ..['stock_15c_total'] = (_toDouble(current['stock_15c_total'] ?? 0.0) + stock15c)
+          ..['updated_at'] = formatDate(latestDate);
       } else {
         aggregated[key] = {
           'citerne_id': rowCiterneId,
@@ -485,7 +514,7 @@ class StocksKpiRepository {
           'depot_nom': (row['depot_nom'] as String?) ?? '',
           'stock_ambiant_total': stockAmbiant,
           'stock_15c_total': stock15c,
-          'updated_at': row['updated_at'] ?? row['date_jour'],
+          'updated_at': formatDate(rowDate),
         };
       }
     }

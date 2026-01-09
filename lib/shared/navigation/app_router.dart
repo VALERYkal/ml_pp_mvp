@@ -28,6 +28,7 @@ import 'package:ml_pp_mvp/features/dashboard/widgets/dashboard_shell.dart';
 import 'package:ml_pp_mvp/features/logs/screens/logs_list_screen.dart';
 import 'package:ml_pp_mvp/features/citernes/screens/citerne_list_screen.dart';
 import 'package:ml_pp_mvp/features/stocks/screens/stocks_screen.dart';
+import 'package:ml_pp_mvp/features/stocks_adjustments/screens/stocks_adjustments_list_screen.dart';
 
 // Default home page for authenticated users
 const String kDefaultHome = '/receptions';
@@ -161,6 +162,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(path: '/stocks', builder: (ctx, st) => const StocksScreen()),
           GoRoute(path: '/logs', builder: (ctx, st) => const LogsListScreen()),
+          GoRoute(
+            path: '/stocks-adjustments',
+            name: 'stocksAdjustments',
+            builder: (ctx, st) => const StocksAdjustmentsListScreen(),
+          ),
         ],
       ),
     ],

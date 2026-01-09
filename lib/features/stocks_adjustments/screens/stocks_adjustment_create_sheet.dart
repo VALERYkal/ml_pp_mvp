@@ -10,6 +10,7 @@ import 'package:ml_pp_mvp/features/stocks_adjustments/providers/stocks_adjustmen
 import 'package:ml_pp_mvp/core/errors/stocks_adjustments_exception.dart';
 import 'package:ml_pp_mvp/shared/ui/toast.dart';
 import 'package:ml_pp_mvp/features/stocks_adjustments/domain/adjustment_compute.dart';
+import 'package:ml_pp_mvp/features/stocks_adjustments/utils/stocks_adjustments_refresh.dart';
 
 /// BottomSheet réutilisable pour créer un ajustement de stock
 class StocksAdjustmentCreateSheet extends ConsumerStatefulWidget {
@@ -204,6 +205,65 @@ class _StocksAdjustmentCreateSheetState
       );
 
       if (!mounted) return;
+
+      // B4.1 - Invalider le provider de liste pour forcer le refresh
+      ref.invalidate(stocksAdjustmentsListPaginatedProvider);
+
+      // B4.1 - Propagation visuelle immédiate : invalider tous les providers dépendants de v_stock_actuel
+      // Tenter d'obtenir le depotId depuis le mouvement pour optimiser l'invalidation
+      String? depotId;
+      try {
+        final client = Supabase.instance.client;
+        final tableName = widget.mouvementType == 'RECEPTION'
+            ? 'receptions'
+            : 'sorties_produit';
+        
+        // Récupérer le depotId depuis le mouvement via la citerne
+        // Pour les réceptions, utiliser directement la citerne_id
+        // Pour les sorties, utiliser sortie_citerne pour obtenir la citerne_id
+        String? citerneId;
+        if (widget.mouvementType == 'RECEPTION') {
+          final movementRes = await client
+              .from('receptions')
+              .select('citerne_id')
+              .eq('id', widget.mouvementId)
+              .maybeSingle();
+          
+          if (movementRes != null) {
+            citerneId = (movementRes as Map<String, dynamic>)['citerne_id'] as String?;
+          }
+        } else {
+          // Pour les sorties, récupérer via sortie_citerne
+          final sortieCiterneRes = await client
+              .from('sortie_citerne')
+              .select('citerne_id')
+              .eq('sortie_id', widget.mouvementId)
+              .maybeSingle();
+          
+          if (sortieCiterneRes != null) {
+            citerneId = (sortieCiterneRes as Map<String, dynamic>)['citerne_id'] as String?;
+          }
+        }
+        
+        // Récupérer le depotId depuis la citerne
+        if (citerneId != null) {
+          final citerneRes = await client
+              .from('citernes')
+              .select('depot_id')
+              .eq('id', citerneId)
+              .maybeSingle();
+          
+          if (citerneRes != null) {
+            depotId = (citerneRes as Map<String, dynamic>)['depot_id'] as String?;
+          }
+        }
+      } catch (e) {
+        // En cas d'erreur, on continue sans depotId (invalidation globale)
+        debugPrint('⚠️ [B4.1] Impossible d\'obtenir le depotId depuis le mouvement: $e');
+      }
+      
+      // Invalider tous les providers dépendants de v_stock_actuel
+      refreshAfterStockAdjustment(ref, depotId: depotId);
 
       // Fermer le BottomSheet
       Navigator.pop(context);

@@ -15,6 +15,8 @@ import 'package:ml_pp_mvp/features/stocks/widgets/stocks_kpi_cards.dart';
 import 'package:ml_pp_mvp/features/stocks/data/stocks_kpi_providers.dart';
 import 'package:ml_pp_mvp/data/repositories/stocks_kpi_repository.dart';
 import 'package:ml_pp_mvp/features/dashboard/providers/citernes_sous_seuil_provider.dart';
+import 'package:ml_pp_mvp/features/stocks_adjustments/widgets/stock_corrige_badge.dart'
+    show StockCorrectedBadge;
 import 'trucks_to_follow_card.dart';
 
 class RoleDashboard extends ConsumerStatefulWidget {
@@ -265,6 +267,10 @@ class _RoleDashboardState extends ConsumerState<RoleDashboard> {
                                                   'Capacité ${fmtL(capacityTotal, fixed: 0)}', // Utilise la nouvelle capacité
                                               onTap: () =>
                                                   context.go('/stocks'),
+                                              // B4.4-B : Badge "Corrigé" pour KPI stock dashboard
+                                              titleTrailing: depotId != null && depotId.isNotEmpty
+                                                  ? StockCorrectedBadge(depotId: depotId)
+                                                  : null,
                                             );
                                           },
                                           loading: () => KpiCard(
