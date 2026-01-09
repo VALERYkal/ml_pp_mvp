@@ -4,6 +4,37 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 
 ## [Unreleased]
 
+### 🔒 **[AXE C] — Sécurité & Accès (RLS S2) — 2026-01-09**
+
+#### **Ajouté**
+- Mise en place du **Row Level Security (RLS) S2** sur les tables critiques.
+- Création de helpers SQL sécurisés (`SECURITY DEFINER`) :
+  - `app_uid()`
+  - `app_current_role()`
+  - `app_current_depot_id()`
+  - `app_is_admin()`
+  - `app_is_cadre()`
+- Politique critique appliquée :
+  - **INSERT sur `stocks_adjustments` autorisé uniquement pour le rôle `admin`**.
+
+#### **Sécurité**
+- Les utilisateurs non-admin (ex: `lecture`) ne peuvent pas créer d'ajustements de stock.
+- Les lectures sont filtrées automatiquement par RLS selon le rôle et le dépôt.
+- Les règles métier AXE A (triggers, contraintes, calculs stock) restent inchangées.
+
+#### **Validation (staging)**
+- Validation réalisée sur environnement **staging minimal** avec :
+  - 1 utilisateur `admin`
+  - 1 utilisateur `lecture`
+- Résultats vérifiés :
+  - `admin` → INSERT `stocks_adjustments` : **OK**
+  - `lecture` → INSERT `stocks_adjustments` : **bloqué (ERROR 42501 RLS)**
+- Script de smoke test dédié mis à jour pour refléter cette configuration minimale.
+
+#### **Notes**
+- Les rôles `operateur`, `directeur`, `gerant`, `pca` ne sont pas encore présents en staging.
+- Les règles RLS correspondantes sont en place et seront validées dès création des utilisateurs.
+
 ### 🏁 **AXE B — Stock Adjustments (UI & Consistency) — CLOS (09/01/2026)**
 
 #### **Status**
