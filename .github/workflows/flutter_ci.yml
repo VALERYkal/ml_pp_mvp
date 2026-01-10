@@ -5,93 +5,140 @@ on:
     branches:
       - main
       - develop
-      - feature/**
   pull_request:
     branches:
       - main
       - develop
 
+# Cancel in-progress runs on same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
-    name: Run Flutter tests
+    name: D1 One-Shot Validation
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
-      # 1) Récupérer le code
+      # 1) Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2) Installer Java (nécessaire pour Flutter sur CI)
+      # 2) Install Java (required for Flutter on CI)
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
 
-      # 3) Installer Flutter (version épinglée)
-      - name: Set up Flutter (pinned)
+      # 3) Install Flutter (pinned version)
+      - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: "3.38.3"
           cache: true
 
-      # 4) Vérifier la version de Flutter (debug)
+      # 4) Verify Flutter version
       - name: Flutter doctor
         run: flutter doctor -v
 
-      # 5) Récupérer les dépendances
-      - name: Flutter pub get
-        run: flutter pub get
-
-      # 5bis) Générer les mocks nécessaires aux tests
-      - name: Generate mocks (build_runner)
-        run: flutter pub run build_runner build --delete-conflicting-outputs
-
-      # 5ter) Préparer un .env placeholder pour le CI
-      - name: Prepare .env (CI placeholder)
-        shell: bash
+      # 5) Audit: ensure no "flutter build ... -q/--quiet" commands exist
+      - name: Audit -q/--quiet usage (arguments only)
         run: |
-          if [ ! -f .env ]; then
-            echo "SUPABASE_URL=" > .env
-            echo "SUPABASE_ANON_KEY=" >> .env
+          if rg -n "flutter\s+build\b.*\s-(q|quiet)\b|flutter\s+build\b.*--quiet\b" . -S; then
+            echo "❌ Detected 'flutter build' with -q/--quiet flag (argument usage forbidden)."
+            echo "   Fix: remove -q/--quiet from build commands."
+            exit 1
           fi
+          echo "✅ No 'flutter build -q/--quiet' found (audit passed)."
 
-      # (Optionnel) 6) Analyse statique
-      # NOTE:
-      # flutter analyze is temporarily non-blocking for MVP delivery.
-      # Warnings remain visible in logs but do not fail the CI.
-      # Lint cleanup will be addressed in AXE B / post-MVP.
-      - name: Flutter analyze (non-blocking for MVP)
-        run: flutter analyze || true
-
-      # (Optionnel) 7) Vérifier le formatage
-      # NOTE:
-      # Dart format is temporarily non-blocking for MVP.
-      # Formatting issues are visible in logs but do not fail CI.
-      # Strict formatting will be re-enabled post-MVP.
-      - name: Dart format check (non-blocking for MVP)
-        run: dart format --output=none --set-exit-if-changed lib test || true
-
-      # 8) Lancer TOUTES les suites de tests
-  
-      - name: Flutter tests (unit & widget only)
-        shell: bash
+      # 6) Guard: working tree must be clean after pub get (no codegen surprises)
+      - name: Guard - Working tree clean
         run: |
-          set -euo pipefail
-          # Exclure les tests d'intégration (Supabase/plugins) en CI
-          TESTS=$(find test -type f -name "*_test.dart" \
-            ! -path "test/integration/*" \
-            ! -path "test/*/integration/*" \
-            ! -path "test/e2e/*" \
-            ! -path "test/*/e2e/*" \
-            ! -path "test/**/e2e/*" \
-            ! -name "*_e2e_test.dart" \
-            ! -name "*e2e_test.dart" \
-            | sort)
+          flutter pub get
+          if ! git diff --exit-code; then
+            echo "❌ Working tree is dirty after 'flutter pub get'."
+            echo "   This indicates generated files are missing or not committed."
+            git status --porcelain
+            exit 1
+          fi
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "❌ Untracked files detected after 'flutter pub get'."
+            git status --porcelain
+            exit 1
+          fi
+          echo "✅ Working tree is clean (no codegen issues)."
 
-          echo "COUNT=$(echo "$TESTS" | wc -l | tr -d ' ')"
-          # shellcheck disable=SC2086
-          flutter test -r expanded $TESTS
+      # 7) Execute D1 one-shot validation (single source of truth)
+      - name: D1 One-Shot (web)
+        id: d1_run
+        continue-on-error: true
+        run: |
+          chmod +x scripts/d1_one_shot.sh
+          ./scripts/d1_one_shot.sh web
+
+      # 8) Upload logs as artifacts (always, even on failure)
+      - name: Upload CI logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-logs-${{ github.run_id }}
+          path: .ci_logs/
+          retention-days: 7
+          if-no-files-found: warn
+
+      # 9) Generate Job Summary (always)
+      - name: Generate Job Summary
+        if: always()
+        run: |
+          echo "## 🔍 D1 One-Shot Validation Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Target:** web" >> $GITHUB_STEP_SUMMARY
+          echo "**Run ID:** ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -f .ci_logs/analyze.log ]; then
+            ERRORS=$(grep -c "error •" .ci_logs/analyze.log || echo "0")
+            WARNINGS=$(grep -c "warning •" .ci_logs/analyze.log || echo "0")
+            INFOS=$(grep -c "info •" .ci_logs/analyze.log || echo "0")
+            echo "### Flutter Analyze" >> $GITHUB_STEP_SUMMARY
+            echo "- ❌ Errors: $ERRORS" >> $GITHUB_STEP_SUMMARY
+            echo "- ⚠️  Warnings: $WARNINGS" >> $GITHUB_STEP_SUMMARY
+            echo "- ℹ️  Infos: $INFOS" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ -f .ci_logs/build.log ]; then
+            echo "### Build Status" >> $GITHUB_STEP_SUMMARY
+            if grep -q "Could not find an option or flag \"-q\"" .ci_logs/build.log; then
+              echo "❌ **Detected '-q' flag error**" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "This usually indicates an external wrapper or env modification." >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "**Diagnostic steps:**" >> $GITHUB_STEP_SUMMARY
+              echo '```bash' >> $GITHUB_STEP_SUMMARY
+              echo "env | grep -i flutter" >> $GITHUB_STEP_SUMMARY
+              echo "type flutter" >> $GITHUB_STEP_SUMMARY
+              echo "which flutter" >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+            elif [ "${{ steps.d1_run.outcome }}" == "success" ]; then
+              echo "✅ Build succeeded" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "❌ Build failed (see logs)" >> $GITHUB_STEP_SUMMARY
+            fi
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "📦 **Artifacts:** CI logs uploaded for this run" >> $GITHUB_STEP_SUMMARY
+
+      # 10) Fail job if D1 failed
+      - name: Check D1 result
+        if: steps.d1_run.outcome == 'failure'
+        run: exit 1
+
 
 
 

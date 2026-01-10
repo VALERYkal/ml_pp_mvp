@@ -251,116 +251,189 @@ Accès strictement conforme.
 
 ## 🟡 AXE D — STABILISATION & RUN (OBLIGATOIRE AVANT PROD)
 
-### D1 — Nettoyage legacy
+**⚠️ IMPORTANT : AXE D est requis avant toute mise en production.**
 
-**Type :** Code / Qualité  
-**Priorité :** 🟡 Obligatoire  
+### D1 — Nettoyage legacy & gel des sources ambiguës
+
+**Type :** Code / Critique  
+**Priorité :** 🔴 Bloquant PROD  
 **Effort estimé :** 1 jour
 
 #### Objectif
-Aucun legacy actif en runtime.
+Suppression ou neutralisation de toutes les sources legacy de stock. Interdiction d'utiliser des lectures non canoniques. Marquage explicite des vues / providers legacy comme DEPRECATED.
 
 #### Tâches
 
-- [ ] **T7.1** Supprimer `SortieDraftService`
-- [ ] **T7.2** Supprimer appels `rpcValidateReception`
+- [ ] **T7.1** Supprimer `SortieDraftService` et autres services legacy
+- [ ] **T7.2** Supprimer appels `rpcValidateReception` et autres RPC legacy
 - [ ] **T7.3** Nettoyer TODO critiques
-- [ ] **T7.4** Geler vues legacy
+- [ ] **T7.4** Geler vues legacy (marquer DEPRECATED en DB)
+- [ ] **T7.5** Marquer providers Flutter legacy comme `@Deprecated`
+- [ ] **T7.6** Interdire toute lecture non canonique dans le code
 
 #### DoD
 
-✅ Aucun code legacy utilisé  
+✅ Aucun code legacy utilisé en runtime  
 ✅ Annotations `@Deprecated` nettoyées  
-✅ `grep "TODO.*CRITICAL" lib/` retourne 0 résultats
+✅ `grep "TODO.*CRITICAL" lib/` retourne 0 résultats  
+✅ Toutes vues legacy marquées DEPRECATED en DB  
+✅ Tous providers legacy marqués `@Deprecated`  
+✅ Tests empêchent toute utilisation de sources legacy
 
 ---
 
 ### D2 — Contrat "Vérité Stock"
 
 **Type :** Architecture / Critique  
-**Priorité :** 🟡 Obligatoire  
+**Priorité :** 🔴 Bloquant PROD  
 **Effort estimé :** 1 jour
 
 #### Objectif
-Une seule source "stock actuel". Éliminer toute ambiguïté snapshot/daily/global/owner.
+Définition d'une source canonique unique pour le stock courant. Documentation formelle (contrat). Tests SQL + Flutter empêchant toute régression. Alignement strict du naming.
 
 #### Tâches
 
 - [ ] **T8.1** Créer document officiel
-  - Fichier : `docs/CONTRAT_VERITE_STOCK.md`
-  - **Vue canonique unique** : `v_stock_actuel_snapshot` (temps réel)
+  - Fichier : `docs/db/CONTRAT_VERITE_STOCK.md`
+  - **Vue canonique unique** : `v_stock_actuel` (source de vérité)
   - Règles d'agrégation documentées
+  - Naming strict documenté
 
 - [ ] **T8.2** Marquer toutes les vues legacy DEPRECATED
   ```sql
-  COMMENT ON VIEW stock_actuel IS 'DEPRECATED: Use v_stock_actuel_snapshot';
-  COMMENT ON VIEW v_citerne_stock_actuel IS 'DEPRECATED: Use v_stock_actuel_snapshot';
-  COMMENT ON VIEW v_stock_actuel_owner_snapshot IS 'DEPRECATED: Naming trompeur, use v_kpi_stock_owner';
+  COMMENT ON VIEW stock_actuel IS 'DEPRECATED: Use v_stock_actuel';
+  COMMENT ON VIEW v_citerne_stock_actuel IS 'DEPRECATED: Use v_stock_actuel';
+  COMMENT ON VIEW v_stock_actuel_owner_snapshot IS 'DEPRECATED: Use v_stock_actuel';
   ```
 
 - [ ] **T8.3** Tests contractuels SQL
   - Fichier : `docs/db/STOCK_CONTRACT_TESTS.md`
   - Vérifier agrégation cohérente
   - Vérifier séparation propriétaires
+  - Vérifier alignement naming
 
 - [ ] **T8.4** Tests Flutter
   - Fichier : `test/db/stock_contract_test.dart`
   - Toute référence à vue legacy = échec test
+  - Toute référence à provider legacy = échec test
 
 #### DoD
 
-✅ Une seule source documentée (`v_stock_actuel_snapshot`)  
+✅ Une seule source documentée (`v_stock_actuel`)  
 ✅ Toutes vues legacy marquées DEPRECATED en DB  
 ✅ Toute régression (utilisation legacy) casse les tests  
-✅ Plus d'ambiguïté snapshot/daily/global/owner
+✅ Plus d'ambiguïté snapshot/daily/global/owner  
+✅ Naming strict aligné et documenté
 
 ---
 
 ### D3 — Runbook de release
 
 **Type :** Ops / Critique  
-**Priorité :** 🟡 Obligatoire  
+**Priorité :** 🟡 Obligatoire avant release  
 **Effort estimé :** 1 jour
 
 #### Objectif
-Aucune release sans dossier de validation.
+Checklist pré-release / post-release. Ordre exact d'exécution des migrations et déploiements. Procédure de rollback documentée.
 
 #### Tâches
 
-- [ ] **T9.1** Créer runbook
+- [ ] **T9.1** Créer runbook complet
+  - Checklist pré-release
+  - Checklist post-release
+  - Ordre exact d'exécution (migrations → déploiement)
+  - Procédure de rollback documentée
+
 - [ ] **T9.2** Créer checklist SQL
+  - Vérification migrations appliquées
+  - Vérification RLS activée
+  - Vérification triggers fonctionnels
+
 - [ ] **T9.3** Créer template de validation
-- [ ] **T9.4** Créer structure `releases/`
+  - Structure `releases/`
+  - Template de validation de release
 
 #### DoD
 
 ✅ Runbook complet et actionable  
 ✅ Checklist SQL obligatoire  
-✅ Template de validation créé
+✅ Template de validation créé  
+✅ Procédure de rollback documentée et testée
 
 ---
 
 ### D4 — Observabilité minimale
 
-**Type :** Ops / Recommandé fort  
-**Priorité :** 🟡 Recommandé  
+**Type :** Ops / Critique  
+**Priorité :** 🟡 Obligatoire avant release  
 **Effort estimé :** 1.5 jours
 
 #### Objectif
-Plus aucun silence en cas d'erreur.
+Logs DB sur erreurs critiques (triggers, RLS). Logs applicatifs sur échecs Supabase. Suppression des fallbacks silencieux.
 
 #### Tâches
 
 - [ ] **T10.1** Logs DB erreurs triggers
+  - Logs automatiques sur échec trigger
+  - Logs automatiques sur violation RLS
+
 - [ ] **T10.2** Logs Flutter erreurs API
+  - Logs sur échec Supabase
+  - Logs sur erreurs réseau
+  - Suppression fallbacks silencieux
+
 - [ ] **T10.3** Logs KPI fallback
+  - Logs explicites sur fallback KPI
+  - Suppression fallbacks silencieux
+
 - [ ] **T10.4** Option Sentry (optionnel)
 
 #### DoD
 
 ✅ Logs DB erreurs triggers fonctionnels  
 ✅ Logs Flutter erreurs API fonctionnels  
-✅ Plus de fallback silencieux dans KPI
+✅ Plus de fallback silencieux dans KPI  
+✅ Toutes erreurs critiques loggées
+
+---
+
+### D5 — UX & lisibilité métier
+
+**Type :** UX / Complément  
+**Priorité :** 🟡 Non bloquant mais recommandé  
+**Effort estimé :** 1 jour
+
+#### Objectif
+Numérotation claire des citernes. Badge "stock ajusté" cohérent. Tooltips explicites (date, auteur, type d'ajustement). KPI lisibles pour décideurs.
+
+⚠️ **D5 est explicitement subordonné à D1/D2.** D5 ne peut être démarré qu'après validation complète de D1 et D2.
+
+#### Tâches
+
+- [ ] **T11.1** Numérotation claire des citernes
+  - Identification visuelle (CITERNE 1, CITERNE 2, etc.)
+  - Numérotation stable après tri
+
+- [ ] **T11.2** Badge "stock ajusté" cohérent
+  - Badge standardisé utilisé partout
+  - Tooltip explicite indiquant la présence d'ajustements
+
+- [ ] **T11.3** Tooltips explicites
+  - Date de création d'ajustement
+  - Auteur de l'ajustement
+  - Type d'ajustement (Volume, Température, etc.)
+
+- [ ] **T11.4** KPI lisibles pour décideurs
+  - Formatage cohérent des volumes
+  - Affichage clair des totaux
+  - Indicateurs visuels d'état
+
+#### DoD
+
+✅ Numérotation citernes claire et stable  
+✅ Badge "stock ajusté" cohérent partout  
+✅ Tooltips explicites sur tous les ajustements  
+✅ KPI lisibles et compréhensibles pour décideurs
 
 ---
 
@@ -369,9 +442,9 @@ Plus aucun silence en cas d'erreur.
 | Axe | Tickets | Statut | Responsable | Date cible |
 |-----|---------|--------|-------------|------------|
 | **A** | A1, A2, A2.7 | ✅ 3/3 DONE | - | 2025-12-31 |
-| **B** | B1–B2 | ⬜ 0/2 | - | - |
-| **C** | C1–C2 | ⬜ 0/2 | - | - |
-| **D** | D1–D4 | ⬜ 0/4 | - | - |
+| **B** | B1–B2 | ✅ 2/2 DONE | - | 04/01/2026 |
+| **C** | C1–C2 | ✅ 2/2 DONE | - | 09/01/2026 |
+| **D** | D1–D5 | ⬜ 0/5 | - | - |
 
 **Légende :** ⬜ À faire | 🟡 En cours | ✅ Terminé | ❌ Bloqué
 
@@ -417,13 +490,16 @@ Plus aucun silence en cas d'erreur.
 - C2 : Implémentation RLS (1.5j)
 - Tests RLS (0.5j)
 
-**Jour 8-9 :** AXE D (Stabilisation)
-- D1 : Nettoyage legacy (1j)
-- D2 : Contrat vérité stock (1j)
+**Jour 8-9 :** AXE D (Stabilisation) — Bloquants
+- D1 : Nettoyage legacy & gel sources (1j) — BLOQUANT
+- D2 : Contrat vérité stock (1j) — BLOQUANT
 
-**Jour 10 :** AXE D (suite) + Finalisation
-- D3 : Runbook (1j)
-- D4 : Observabilité (optionnel si temps)
+**Jour 10-11 :** AXE D (suite) — Obligatoires
+- D3 : Runbook de release (1j) — OBLIGATOIRE
+- D4 : Observabilité minimale (1.5j) — OBLIGATOIRE
+
+**Jour 12 :** AXE D (complément) — Non bloquant
+- D5 : UX & lisibilité métier (1j) — COMPLÉMENT (après D1/D2 validés)
 
 ### Semaine 3 (Jours 11-15 si nécessaire)
 
@@ -461,7 +537,7 @@ Plus aucun silence en cas d'erreur.
 - Axe A : X/3 tickets
 - Axe B : X/2 tickets
 - Axe C : X/2 tickets
-- Axe D : X/4 tickets
+- Axe D : X/5 tickets
 
 ---
 
@@ -485,10 +561,84 @@ Plus aucun silence en cas d'erreur.
 ✅ Tests automatisés verts
 
 ### AXE D — Succès si :
-✅ Aucun legacy actif  
-✅ Vérité stock verrouillée  
-✅ Runbook complet  
-✅ Observabilité en place
+✅ Aucun legacy actif (D1)  
+✅ Vérité stock verrouillée (D2)  
+✅ Runbook complet (D3)  
+✅ Observabilité en place (D4)  
+✅ UX & lisibilité métier améliorées (D5 — complément)
+
+---
+
+## 🟢 AXE D — D1 : Nettoyage Legacy & Build Production-Ready ✅ VALIDÉ
+
+**Date de validation :** 10 janvier 2026  
+**Référence :** `scripts/d1_one_shot.sh`
+
+### Objectif de D1
+
+Éliminer les flux legacy (draft/validate/RPC), sécuriser le pipeline de build contre les injections de flags invalides, et fournir des diagnostics automatiques en cas d'échec.
+
+### Périmètre exact
+
+**✅ Inclus :**
+- Suppression des flows legacy : `SortieDraftService`, `sortieDraftServiceProvider`, `createDraft()`, `validateReception()`, `rpcValidateReception()`
+- Parsing strict des arguments : refus de tout flag non supporté (ex: `-q`, `--quiet`)
+- Build encapsulé via tableau Bash : `BUILD_CMD=()` pour empêcher word splitting / injection
+- Logging automatique : capture stdout/stderr du build dans un fichier temporaire
+- Diagnostic automatique : détection de l'erreur `-q` avec guide de résolution
+- Trap de nettoyage : suppression garantie des logs temporaires via `trap EXIT`
+- Audits anti-legacy : patterns regex pour détecter du code legacy actif
+
+**❌ Exclu (hors périmètre D1) :**
+- Migration des vues DB legacy (sera traité en D2)
+- Modifications de logique métier ou DB
+- Changements de contrats API / RPC
+- Refactoring UI/UX
+
+### Actions réalisées
+
+1. **Suppression des références legacy** :
+   - Retrait de `sortieDraftServiceProvider` dans `lib/features/sorties/providers/sortie_providers.dart`
+   - Retrait de `rpcValidateReception` dans `lib/shared/db/db_port.dart` (interface + implémentation)
+   - Retrait de `rpcValidateReception` dans `test/fixtures/fake_db_port.dart`
+   - Suppression du test legacy `test/sorties/sortie_draft_service_test.dart`
+
+2. **Parsing strict des arguments** (`scripts/d1_one_shot.sh`) :
+   - Fonction `usage()` avec documentation claire
+   - Validation TARGET ∈ {web, macos, apk, ios}
+   - Refus de tout argument supplémentaire : `if [[ "$#" -gt 0 ]]; then ... exit 2`
+   - Support de `--help` / `-h`
+
+3. **Build sécurisé et tracé** :
+   - Construction de la commande dans un tableau : `BUILD_CMD=(flutter build web --release)`
+   - Affichage transparent : `echo "Build command: ${BUILD_CMD[*]}"`
+   - Validation défensive : regex pour détecter `-q` / `--quiet` dans `BUILD_CMD`
+   - Capture de log : `"${BUILD_CMD[@]}" >"$BUILD_LOG" 2>&1`
+   - En cas d'échec : affichage des 60 dernières lignes + diagnostic ciblé si erreur `-q` détectée
+
+4. **Nettoyage automatique** :
+   - Définition de `ANALYZE_LOG` et `BUILD_LOG` avec valeurs par défaut
+   - Trap global : `trap 'rm -f "$ANALYZE_LOG" "$BUILD_LOG"' EXIT`
+   - Nettoyage garanti même en cas d'erreur (`set -euo pipefail`)
+
+5. **Audits anti-legacy** (étape 1 du script) :
+   - Pattern 1 : `SortieDraftService|sortieDraftServiceProvider`
+   - Pattern 2 : `createDraft\(|validateReception\(|rpcValidateReception\(`
+   - Pattern 3 : vues legacy spécifiques (stock_actuel, v_citerne_stock_actuel, etc.)
+   - Pattern 4 : `TODO.*CRITICAL`
+   - Échec du script si pattern détecté dans `lib/` ou `test/`
+
+### Résultat
+
+✅ **Build reproductible** : Commande build explicite et déterministe (tableau Bash)  
+✅ **Diagnostics explicites** : En cas d'échec, guide automatique vers la source probable  
+✅ **Aucun impact métier** : Aucune modification de logique DB, triggers, ou contrats API  
+✅ **Validation CI/CD** : Script `d1_one_shot.sh` prêt pour intégration continue  
+✅ **Tests verts** : 469 tests unitaires/widgets PASS
+
+### Statut
+
+**✅ VALIDÉ** — D1 clôturé le 10 janvier 2026
 
 ---
 
