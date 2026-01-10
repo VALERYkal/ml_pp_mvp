@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' as Riverpod;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../data/sortie_service.dart';
-import '../data/sortie_draft_service.dart';
 import 'package:ml_pp_mvp/data/repositories/repositories.dart'
     show supabaseClientProvider;
 
@@ -30,10 +29,6 @@ class CiterneWithStockForSortie {
 final sortieServiceProvider = Riverpod.Provider<SortieService>((ref) {
   final client = ref.watch(supabaseClientProvider);
   return SortieService(client);
-});
-
-final sortieDraftServiceProvider = Riverpod.Provider<SortieDraftService>((ref) {
-  return SortieDraftService(Supabase.instance.client);
 });
 
 /// Liste des sorties (lecture simple MVP)
