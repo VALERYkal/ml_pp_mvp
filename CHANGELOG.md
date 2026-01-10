@@ -4,6 +4,99 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 
 ## [Unreleased]
 
+### 🤖 **[AXE D — D2-CI] — CI Hardening & Production-Ready Pipeline — 2026-01-10**
+
+#### **Added**
+- **GitHub Actions single source of truth** :
+  - Le workflow CI exécute **uniquement** `./scripts/d1_one_shot.sh web` (plus de duplication de commandes `flutter` dans le YAML).
+  - Concurrency : annulation automatique des runs précédents sur même branche.
+  - Permissions minimales (contents: read).
+
+- **Mode CI non-destructif dans `d1_one_shot.sh`** :
+  - Détection CI automatique (`CI=true` ou `GITHUB_ACTIONS=true`).
+  - Logs persistés dans `.ci_logs/` (analyze.log + build.log) pour artefacts.
+  - `flutter pub get` exécuté uniquement en CI (rend le job autonome).
+  - Pas de cleanup en CI (logs conservés) ; cleanup reste actif en local.
+
+- **Quality gates explicites** :
+  - Résumé `flutter analyze` : `errors=X warnings=Y infos=Z` (basé sur regex puces).
+  - Par défaut : échoue uniquement sur `errors > 0`.
+  - Option `ANALYZE_STRICT=1` : échoue si `warnings > 0`.
+
+- **Diagnostics CI automatiques** :
+  - Upload artefacts `.ci_logs/**` (retention 7 jours, `if: always()`).
+  - Job Summary GitHub : target, analyze summary, build status, diagnostic `-q` si détecté.
+
+- **Audits CI de sécurité** :
+  - Audit arguments-only : refuse toute commande `flutter build ... -q/--quiet`.
+  - Garde-fou "working tree clean" : vérifie que `flutter pub get` ne génère aucun fichier non commité.
+
+#### **Changed**
+- Workflow CI modernisé : `.github/workflows/flutter_ci.yml` n'appelle plus `flutter analyze`, `flutter test`, `flutter build` directement.
+- Script `d1_one_shot.sh` : comportement local **inchangé**, mode CI ajouté de façon non cassante.
+
+#### **Impact**
+- ✅ CI déterministe et reproductible (single source of truth).
+- ✅ Diagnostics explicites en cas d'échec (logs + summary).
+- ✅ Aucun changement de logique métier ou DB.
+- ✅ Aucune utilisation de `-q/--quiet` comme argument de build (audit passé).
+
+#### **Statut**
+- **D2-CI VALIDÉ** le 10/01/2026
+- CI prête pour production
+
+---
+
+### 🛠️ **[AXE D — D1] — Build & Tooling (Production-Ready Pipeline) — 2026-01-10**
+
+#### **Removed**
+- Suppression des flows legacy (draft/validate/RPC) :
+  - `SortieDraftService` et `sortieDraftServiceProvider` retirés de `lib/features/sorties/providers/sortie_providers.dart`
+  - `rpcValidateReception()` retiré de `lib/shared/db/db_port.dart` (interface + implémentation)
+  - `rpcValidateReception()` retiré de `test/fixtures/fake_db_port.dart`
+  - Test legacy `test/sorties/sortie_draft_service_test.dart` supprimé
+- Audits anti-legacy intégrés au pipeline D1 (patterns regex pour détecter code legacy actif)
+
+#### **Added**
+- **Parsing strict des arguments** dans `scripts/d1_one_shot.sh` :
+  - Validation TARGET ∈ {web, macos, apk, ios}
+  - Refus de tout argument supplémentaire (ex: `-q`, `--quiet`)
+  - Support de `--help` / `-h` avec documentation complète
+  - Exit code `2` pour erreurs de parsing
+
+- **Build encapsulé et tracé** :
+  - Construction de la commande via tableau Bash : `BUILD_CMD=(flutter build web --release)`
+  - Affichage transparent : `echo "Build command: ${BUILD_CMD[*]}"`
+  - Validation défensive : regex pour détecter `-q` / `--quiet` dans `BUILD_CMD`
+  - Capture automatique de stdout/stderr dans `$BUILD_LOG`
+
+- **Diagnostic automatique en cas d'échec** :
+  - Affichage des 60 dernières lignes du log build
+  - Détection spéciale de l'erreur `-q` avec guide de résolution
+  - Instructions pour tracer l'origine : `env | grep -i flutter`, `type flutter`, `bash -x`
+
+- **Nettoyage automatique** :
+  - Trap global : `trap 'rm -f "$ANALYZE_LOG" "$BUILD_LOG"' EXIT`
+  - Suppression garantie des logs temporaires même en cas d'erreur
+
+#### **Changed**
+- Script `d1_one_shot.sh` maintenant **robuste pour CI/CD** :
+  - Distinction claire entre erreurs bloquantes (errors) et signaux informatifs (warnings/infos)
+  - Build déterministe et reproductible
+  - Diagnostics explicites en cas d'échec
+
+#### **Impact**
+- ✅ Aucune modification de logique métier ou DB
+- ✅ Aucun changement de contrats API / RPC
+- ✅ Build reproductible avec logging complet
+- ✅ 469 tests unitaires/widgets PASS
+
+#### **Statut**
+- **D1 VALIDÉ** le 10/01/2026
+- Prêt pour audit DB (D2)
+
+---
+
 ### 🔒 **[AXE C] — Sécurité & Accès (RLS S2) — 2026-01-09**
 
 #### **Ajouté**

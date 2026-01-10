@@ -110,6 +110,42 @@ Voir `docs/B2_INTEGRATION_TESTS.md` pour la documentation complète.
 
 ---
 
+## 🤖 CI / One-Shot Build (D1)
+
+### Exécution locale
+
+Le script **D1 one-shot** (`scripts/d1_one_shot.sh`) exécute la validation complète du projet :
+
+```bash
+./scripts/d1_one_shot.sh web
+```
+
+**Étapes exécutées :**
+1. Anti-legacy audit (patterns regex)
+2. `flutter analyze` (errors only par défaut)
+3. `flutter build <target> --release`
+4. `flutter test` (unit + widget)
+5. Tests d'intégration DB (optional)
+
+### Options disponibles
+
+- **ANALYZE_STRICT=1** : Échoue si warnings > 0 (par défaut : warnings tolérés)
+  ```bash
+  ANALYZE_STRICT=1 ./scripts/d1_one_shot.sh web
+  ```
+
+### GitHub Actions
+
+Le workflow CI (`.github/workflows/flutter_ci.yml`) exécute **uniquement** `./scripts/d1_one_shot.sh web` pour garantir un comportement déterministe.
+
+**En CI :**
+- Logs persistés dans `.ci_logs/` (uploadés en artefacts)
+- Job Summary généré automatiquement (errors/warnings/infos)
+- Quality gates : échoue uniquement sur erreurs `flutter analyze`
+- Garde-fous : working tree clean + audit `-q/--quiet`
+
+---
+
 ## 📍Où placer ce README
 
 ✅ Place-le dans la racine du projet :  
