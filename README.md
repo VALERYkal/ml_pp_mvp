@@ -115,4 +115,4 @@ Voir `docs/B2_INTEGRATION_TESTS.md` pour la documentation complète.
 ✅ Place-le dans la racine du projet :  
 `/ml_pp_mvp/README.md` (remplace l’ancien si besoin)
 
-Ainsi, il sera reconnu par Cursor **automatiquement**, et accessible à tous les développeurs humains.
+Ainsi, il sera reconnu par Cursor **automatiquement**, et accessible à tous les développeurs humains. pour la suite
