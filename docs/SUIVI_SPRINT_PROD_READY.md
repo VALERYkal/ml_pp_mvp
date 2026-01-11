@@ -20,10 +20,10 @@
 |-----|-----|---------|-----------|---|--------|
 | 🟢 A | DB-STRICT & Intégrité | 3 | 3/3 | 100% | ✅ DONE |
 | 🟢 B | Tests DB Réels | 2 | 2/2 | 100% | ✅ DONE |
-| 🔴 C | Sécurité & Contrat | 2 | 0/2 | 0% | ⬜ À faire |
-| 🟡 D | Stabilisation & Run | 4 | 0/4 | 0% | ⬜ À faire |
+| 🟢 C | Sécurité & Contrat | 2 | 2/2 | 100% | ✅ DONE |
+| 🟢 D | Stabilisation & Run | 4 | 4/4 | 100% | ✅ DONE |
 
-**Total :** 5/11 tickets (45%)
+**Total :** 11/11 tickets (100%)
 
 ---
 
@@ -52,23 +52,31 @@
 
 ---
 
-## 🔴 AXE C — SÉCURITÉ & CONTRAT PROD
+## 🟢 AXE C — SÉCURITÉ & CONTRAT PROD ✅ DONE
+
+**⚠️ IMPORTANT** : AXE C verrouillé (10/01/2026). Les règles de sécurité et de contrat PROD sont validées. Les accès DB sont conformes aux rôles définis, les décisions RLS sont formalisées et appliquées. Toute modification future nécessite une mise à jour explicite du contrat de sécurité.
 
 | Ticket | Titre | Effort | Statut | Assigné | Date |
 |--------|-------|--------|--------|---------|------|
-| C1 | Décision RLS PROD | 0.5j | ⬜ | - | - |
-| C2 | Implémentation RLS | 1.5j | ⬜ | - | - |
+| C1 | Décision RLS PROD | 0.5j | ✅ DONE | - | 10/01/2026 |
+| C2 | Implémentation RLS | 1.5j | ✅ DONE | - | 10/01/2026 |
+
+**Documentation** : `supabase/migrations/20260109041723_axe_c_rls_s2.sql`
 
 ---
 
-## 🟡 AXE D — STABILISATION & RUN
+## 🟢 AXE D — STABILISATION & RUN ✅ DONE
+
+**⚠️ IMPORTANT** : AXE D verrouillé (10/01/2026). La chaîne de livraison est stable et industrialisée : CI fiable, tests maîtrisés (quarantine flaky), release gate opérationnel, observabilité minimale en place. Le projet est livrable en production sans action technique supplémentaire.
 
 | Ticket | Titre | Effort | Statut | Assigné | Date |
 |--------|-------|--------|--------|---------|------|
-| D1 | Nettoyage legacy | 1j | ⬜ | - | - |
-| D2 | Contrat "Vérité Stock" | 1j | ⬜ | - | - |
-| D3 | Runbook de release | 1j | ⬜ | - | - |
-| D4 | Observabilité minimale | 1.5j | ⬜ | - | - |
+| D1 | Nettoyage legacy | 1j | ✅ DONE | - | 10/01/2026 |
+| D2 | Contrat "Vérité Stock" | 1j | ✅ DONE | - | 10/01/2026 |
+| D3 | Runbook de release | 1j | ✅ DONE | - | 10/01/2026 |
+| D4 | Observabilité minimale | 1.5j | ✅ DONE | - | 10/01/2026 |
+
+**Documentation** : `docs/RELEASE_RUNBOOK.md`, `docs/D3_D6_ROADMAP.md`
 
 ---
 
@@ -85,7 +93,7 @@
    ❌ 1 seul ticket A/B/C non terminé
 ```
 
-**Statut actuel :** ❌ NO-GO (3/7 tickets bloquants complétés — AXE A terminé, AXE B/C restants)
+**Statut actuel :** 🟢 GO PROD INDUSTRIEL (11/11 tickets complétés — Tous les axes terminés)
 
 ---
 
@@ -126,5 +134,42 @@
 
 ---
 
-**Dernière mise à jour :** 04/01/2026
+### 10/01/2026 - Finalisation AXE C
+
+**Tickets complétés :**
+- ✅ C1 — Décision RLS PROD
+- ✅ C2 — Implémentation RLS (S2)
+
+**Notes :**
+- Règles de sécurité et de contrat PROD validées
+- Accès DB conformes aux rôles définis
+- Décisions RLS formalisées et appliquées
+- Migration SQL : `supabase/migrations/20260109041723_axe_c_rls_s2.sql`
+- **⚠️ IMPORTANT** : AXE C verrouillé. Toute modification future nécessite une mise à jour explicite du contrat de sécurité.
+
+---
+
+### 10/01/2026 - Finalisation AXE D
+
+**Tickets complétés :**
+- ✅ D1 — Nettoyage legacy (Build one-shot, scripts centralisés)
+- ✅ D2 — Contrat "Vérité Stock" (CI stable, tests maîtrisés)
+- ✅ D3 — Runbook de release (Release gate opérationnel)
+- ✅ D4 — Observabilité minimale (Logs propres, anti-secrets, timings)
+
+**Notes :**
+- Chaîne de livraison stable et industrialisée
+- CI fiable : PR light + nightly full
+- Tests maîtrisés : quarantine flaky opérationnelle
+- Release gate : `scripts/d4_release_gate.sh` opérationnel
+- Observabilité minimale : logs structurés, timings, anti-secrets
+- Documentation : `docs/RELEASE_RUNBOOK.md`, `docs/D3_D6_ROADMAP.md`
+- **⚠️ IMPORTANT** : AXE D verrouillé. Le projet est livrable en production sans action technique supplémentaire.
+
+---
+
+**Sprint PROD-READY clôturé le 10/01/2026**  
+Le projet ML_PP MVP est officiellement **PROD READY**.
+
+**Dernière mise à jour :** 10/01/2026
 

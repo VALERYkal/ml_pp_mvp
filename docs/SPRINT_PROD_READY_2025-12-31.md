@@ -199,22 +199,25 @@ Vérifier triggers + RLS + stock réel.
 
 ---
 
-## 🔴 AXE C — SÉCURITÉ & CONTRAT PROD (BLOQUANT)
+## 🟢 AXE C — SÉCURITÉ & CONTRAT PROD (BLOQUANT) ✅ DONE
 
-### C1 — Décision RLS PROD
+**⚠️ IMPORTANT** : AXE C verrouillé (10/01/2026). Les règles de sécurité et de contrat PROD sont validées. Les accès DB sont conformes aux rôles définis, les décisions RLS sont formalisées et appliquées. Toute modification future nécessite une mise à jour explicite du contrat de sécurité.
+
+### C1 — Décision RLS PROD ✅ DONE
 
 **Type :** Gouvernance / Critique  
 **Priorité :** 🔴 Bloquant  
-**Effort estimé :** 0.5 jour
+**Effort estimé :** 0.5 jour  
+**Date complétion :** 10/01/2026
 
 #### Objectif
 Décision écrite et validée.
 
 #### Tâches
 
-- [ ] **T6.1** Documenter les options
-- [ ] **T6.2** Prendre décision formelle
-- [ ] **T6.3** Documenter implications
+- [x] **T6.1** Documenter les options
+- [x] **T6.2** Prendre décision formelle
+- [x] **T6.3** Documenter implications
 
 #### DoD
 
@@ -223,23 +226,24 @@ Décision écrite et validée.
 
 ---
 
-### C2 — Implémentation RLS
+### C2 — Implémentation RLS ✅ DONE
 
 **Type :** DB / Critique  
 **Priorité :** 🔴 Bloquant  
-**Effort estimé :** 1.5 jours
+**Effort estimé :** 1.5 jours  
+**Date complétion :** 10/01/2026
 
 #### Objectif
 Accès strictement conforme.
 
 #### Tâches
 
-- [ ] **T6.4** Implémenter policies `SELECT`
-- [ ] **T6.5** Implémenter policies `INSERT`
-- [ ] **T6.6** Implémenter policies `UPDATE`
-- [ ] **T6.7** Répéter pour toutes tables critiques
-- [ ] **T6.8** Créer migration SQL
-- [ ] **T6.9** Tests de permissions par rôle
+- [x] **T6.4** Implémenter policies `SELECT`
+- [x] **T6.5** Implémenter policies `INSERT`
+- [x] **T6.6** Implémenter policies `UPDATE`
+- [x] **T6.7** Répéter pour toutes tables critiques
+- [x] **T6.8** Créer migration SQL
+- [x] **T6.9** Tests de permissions par rôle
 
 #### DoD
 
@@ -247,25 +251,30 @@ Accès strictement conforme.
 ✅ Tests automatisés verts  
 ✅ Aucune fuite de données entre dépôts
 
+**Documentation** : `supabase/migrations/20260109041723_axe_c_rls_s2.sql`
+
 ---
 
-## 🟡 AXE D — STABILISATION & RUN (OBLIGATOIRE AVANT PROD)
+## 🟢 AXE D — STABILISATION & RUN (OBLIGATOIRE AVANT PROD) ✅ DONE
 
-### D1 — Nettoyage legacy
+**⚠️ IMPORTANT** : AXE D verrouillé (10/01/2026). La chaîne de livraison est stable et industrialisée : CI fiable, tests maîtrisés (quarantine flaky), release gate opérationnel, observabilité minimale en place. Le projet est livrable en production sans action technique supplémentaire.
+
+### D1 — Nettoyage legacy ✅ DONE
 
 **Type :** Code / Qualité  
 **Priorité :** 🟡 Obligatoire  
-**Effort estimé :** 1 jour
+**Effort estimé :** 1 jour  
+**Date complétion :** 10/01/2026
 
 #### Objectif
 Aucun legacy actif en runtime.
 
 #### Tâches
 
-- [ ] **T7.1** Supprimer `SortieDraftService`
-- [ ] **T7.2** Supprimer appels `rpcValidateReception`
-- [ ] **T7.3** Nettoyer TODO critiques
-- [ ] **T7.4** Geler vues legacy
+- [x] **T7.1** Supprimer `SortieDraftService`
+- [x] **T7.2** Supprimer appels `rpcValidateReception`
+- [x] **T7.3** Nettoyer TODO critiques
+- [x] **T7.4** Geler vues legacy
 
 #### DoD
 
@@ -275,35 +284,36 @@ Aucun legacy actif en runtime.
 
 ---
 
-### D2 — Contrat "Vérité Stock"
+### D2 — Contrat "Vérité Stock" ✅ DONE
 
 **Type :** Architecture / Critique  
 **Priorité :** 🟡 Obligatoire  
-**Effort estimé :** 1 jour
+**Effort estimé :** 1 jour  
+**Date complétion :** 10/01/2026
 
 #### Objectif
 Une seule source "stock actuel". Éliminer toute ambiguïté snapshot/daily/global/owner.
 
 #### Tâches
 
-- [ ] **T8.1** Créer document officiel
+- [x] **T8.1** Créer document officiel
   - Fichier : `docs/CONTRAT_VERITE_STOCK.md`
   - **Vue canonique unique** : `v_stock_actuel_snapshot` (temps réel)
   - Règles d'agrégation documentées
 
-- [ ] **T8.2** Marquer toutes les vues legacy DEPRECATED
+- [x] **T8.2** Marquer toutes les vues legacy DEPRECATED
   ```sql
   COMMENT ON VIEW stock_actuel IS 'DEPRECATED: Use v_stock_actuel_snapshot';
   COMMENT ON VIEW v_citerne_stock_actuel IS 'DEPRECATED: Use v_stock_actuel_snapshot';
   COMMENT ON VIEW v_stock_actuel_owner_snapshot IS 'DEPRECATED: Naming trompeur, use v_kpi_stock_owner';
   ```
 
-- [ ] **T8.3** Tests contractuels SQL
+- [x] **T8.3** Tests contractuels SQL
   - Fichier : `docs/db/STOCK_CONTRACT_TESTS.md`
   - Vérifier agrégation cohérente
   - Vérifier séparation propriétaires
 
-- [ ] **T8.4** Tests Flutter
+- [x] **T8.4** Tests Flutter
   - Fichier : `test/db/stock_contract_test.dart`
   - Toute référence à vue legacy = échec test
 
@@ -316,21 +326,22 @@ Une seule source "stock actuel". Éliminer toute ambiguïté snapshot/daily/glob
 
 ---
 
-### D3 — Runbook de release
+### D3 — Runbook de release ✅ DONE
 
 **Type :** Ops / Critique  
 **Priorité :** 🟡 Obligatoire  
-**Effort estimé :** 1 jour
+**Effort estimé :** 1 jour  
+**Date complétion :** 10/01/2026
 
 #### Objectif
 Aucune release sans dossier de validation.
 
 #### Tâches
 
-- [ ] **T9.1** Créer runbook
-- [ ] **T9.2** Créer checklist SQL
-- [ ] **T9.3** Créer template de validation
-- [ ] **T9.4** Créer structure `releases/`
+- [x] **T9.1** Créer runbook
+- [x] **T9.2** Créer checklist SQL
+- [x] **T9.3** Créer template de validation
+- [x] **T9.4** Créer structure `releases/`
 
 #### DoD
 
@@ -338,29 +349,34 @@ Aucune release sans dossier de validation.
 ✅ Checklist SQL obligatoire  
 ✅ Template de validation créé
 
+**Documentation** : `docs/RELEASE_RUNBOOK.md`
+
 ---
 
-### D4 — Observabilité minimale
+### D4 — Observabilité minimale ✅ DONE
 
 **Type :** Ops / Recommandé fort  
 **Priorité :** 🟡 Recommandé  
-**Effort estimé :** 1.5 jours
+**Effort estimé :** 1.5 jours  
+**Date complétion :** 10/01/2026
 
 #### Objectif
 Plus aucun silence en cas d'erreur.
 
 #### Tâches
 
-- [ ] **T10.1** Logs DB erreurs triggers
-- [ ] **T10.2** Logs Flutter erreurs API
-- [ ] **T10.3** Logs KPI fallback
-- [ ] **T10.4** Option Sentry (optionnel)
+- [x] **T10.1** Logs DB erreurs triggers
+- [x] **T10.2** Logs Flutter erreurs API
+- [x] **T10.3** Logs KPI fallback
+- [x] **T10.4** Option Sentry (optionnel)
 
 #### DoD
 
 ✅ Logs DB erreurs triggers fonctionnels  
 ✅ Logs Flutter erreurs API fonctionnels  
 ✅ Plus de fallback silencieux dans KPI
+
+**Documentation** : `docs/RELEASE_RUNBOOK.md`, `docs/D3_D6_ROADMAP.md`
 
 ---
 
@@ -369,9 +385,9 @@ Plus aucun silence en cas d'erreur.
 | Axe | Tickets | Statut | Responsable | Date cible |
 |-----|---------|--------|-------------|------------|
 | **A** | A1, A2, A2.7 | ✅ 3/3 DONE | - | 2025-12-31 |
-| **B** | B1–B2 | ⬜ 0/2 | - | - |
-| **C** | C1–C2 | ⬜ 0/2 | - | - |
-| **D** | D1–D4 | ⬜ 0/4 | - | - |
+| **B** | B1–B2 | ✅ 2/2 DONE | - | 04/01/2026 |
+| **C** | C1–C2 | ✅ 2/2 DONE | - | 10/01/2026 |
+| **D** | D1–D4 | ✅ 4/4 DONE | - | 10/01/2026 |
 
 **Légende :** ⬜ À faire | 🟡 En cours | ✅ Terminé | ❌ Bloqué
 
@@ -385,6 +401,8 @@ Plus aucun silence en cas d'erreur.
 ✅ **Tous les tickets D = DONE** (obligatoires)  
 ✅ **CI verte** + intégration DB verte  
 ✅ **Runbook rempli** et archivé
+
+**Statut actuel :** 🟢 **GO PROD INDUSTRIEL** (11/11 tickets complétés — Tous les axes terminés)
 
 ### ❌ NO-GO si :
 
@@ -506,8 +524,37 @@ Plus aucun silence en cas d'erreur.
 ---
 
 **Document créé le :** 31 décembre 2025  
-**Dernière mise à jour :** 31 décembre 2025  
-**Version :** 1.1
+**Dernière mise à jour :** 10 janvier 2026  
+**Version :** 2.0
 
-**⚠️ IMPORTANT** : AXE A verrouillé côté DB (2025-12-31). Toute régression Flutter ou SQL est interdite sans modification explicite du contrat `docs/db/AXE_A_DB_STRICT.md`.
+---
+
+## 🏁 CLÔTURE DU SPRINT PROD-READY
+
+**Sprint PROD-READY clôturé le 10/01/2026**  
+Le projet ML_PP MVP est officiellement **PROD READY**.
+
+### Statut Final
+
+- ✅ **AXE A** : DB-STRICT & Intégrité — **DONE** (3/3 tickets)
+- ✅ **AXE B** : Tests DB Réels — **DONE** (2/2 tickets)
+- ✅ **AXE C** : Sécurité & Contrat PROD — **DONE** (2/2 tickets)
+- ✅ **AXE D** : Stabilisation & Run — **DONE** (4/4 tickets)
+
+**Total : 11/11 tickets complétés (100%)**
+
+### Verrous Actifs
+
+**⚠️ IMPORTANT** : 
+- **AXE A verrouillé** côté DB (2025-12-31). Toute régression Flutter ou SQL est interdite sans modification explicite du contrat `docs/db/AXE_A_DB_STRICT.md`.
+- **AXE C verrouillé** (10/01/2026). Les règles de sécurité et de contrat PROD sont validées. Toute modification future nécessite une mise à jour explicite du contrat de sécurité.
+- **AXE D verrouillé** (10/01/2026). La chaîne de livraison est stable et industrialisée. Le projet est livrable en production sans action technique supplémentaire.
+
+### Livrables
+
+- ✅ CI stable (PR light + nightly full)
+- ✅ Tests maîtrisés (quarantine flaky)
+- ✅ Release gate opérationnel (`scripts/d4_release_gate.sh`)
+- ✅ Observabilité minimale (logs propres, anti-secrets, timings)
+- ✅ Documentation complète (runbook, roadmap, contrats)
 

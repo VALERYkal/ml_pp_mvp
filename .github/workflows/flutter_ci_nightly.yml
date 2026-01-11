@@ -1,60 +1,53 @@
-name: Flutter CI
+name: Flutter CI Nightly (Full Suite)
 
 on:
-  push:
-    branches:
-      - main
-      - develop
-      - feature/**
-  pull_request:
-    branches:
-      - main
-      - develop
+  schedule:
+    # Run every day at 02:00 UTC
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+    # Allow manual trigger from GitHub Actions UI
 
 jobs:
   test:
-    name: Run Flutter tests
+    name: Nightly full validation
     runs-on: ubuntu-latest
 
     steps:
-      # 1) Récupérer le code
+      # 1) Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2) Installer Java (nécessaire pour Flutter sur CI)
+      # 2) Install Java (required for Flutter on CI)
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
 
-      # 3) Installer Flutter (version épinglée)
+      # 3) Install Flutter (pinned version)
       - name: Set up Flutter (pinned)
         uses: subosito/flutter-action@v2
         with:
           flutter-version: "3.38.3"
           cache: true
 
-      # 4) Vérifier la version de Flutter (debug)
+      # 4) Verify Flutter version
       - name: Flutter doctor
         run: flutter doctor -v
 
-      # 5) Execute D1 one-shot validation (LIGHT mode: fast PR feedback)
-      # Source of truth: scripts/d1_one_shot.sh (pub get + analyze + build_runner + tests)
-      - name: D1 One-Shot (light)
+      # 5) Execute D1 one-shot validation (FULL mode: all tests including integration/e2e)
+      # Source of truth: scripts/d1_one_shot.sh --full
+      - name: D1 One-Shot (full)
         run: |
           chmod +x scripts/d1_one_shot.sh
-          ./scripts/d1_one_shot.sh web
+          ./scripts/d1_one_shot.sh web --full
 
       # 6) Upload CI logs (always, even on failure)
       - name: Upload CI logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ci-logs-pr-${{ github.run_id }}
+          name: ci-logs-nightly-${{ github.run_id }}
           path: .ci_logs/
-          retention-days: 7
+          retention-days: 14
           if-no-files-found: warn
-
-
-
