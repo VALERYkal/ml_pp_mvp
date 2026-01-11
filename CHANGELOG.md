@@ -4,6 +4,99 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 
 ## [Unreleased]
 
+### 🤖 **[AXE D — D2 PRO] — CI Hardening (PR light + nightly full) — 2026-01-10**
+
+#### **Added**
+- **Workflow PR light** (`.github/workflows/flutter_ci.yml`) :
+  - Job "Run Flutter tests" préservé (required status check).
+  - Single source of truth : exécute uniquement `./scripts/d1_one_shot.sh web`.
+  - Mode LIGHT : unit + widget only (~450 tests, feedback rapide).
+  - Upload artefacts `.ci_logs/` (always, retention 7 jours).
+
+- **Workflow nightly full** (`.github/workflows/flutter_ci_nightly.yml`) :
+  - Déclenchement : schedule (02:00 UTC) + manual (workflow_dispatch).
+  - Mode FULL : `./scripts/d1_one_shot.sh web --full`.
+  - Tests complets : unit + widget + integration + e2e (~475 tests).
+  - Upload artefacts `.ci_logs/` (always, retention 14 jours).
+
+- **Script `d1_one_shot.sh` flexible** :
+  - Parsing flag `--full` : bascule entre mode LIGHT et FULL.
+  - Logs structurés : `.ci_logs/d1_analyze.log`, `.ci_logs/d1_build.log`, `.ci_logs/d1_test.log`.
+  - Exécution : pub get → analyze → build_runner → tests.
+  - Exit code non-zero si tests échouent.
+
+#### **Changed**
+- Workflow PR simplifié : suppression de 55 lignes dupliquées (pub get, build_runner, analyze, format, find tests).
+- Comportement CI identique mais maintenant centralisé dans le script.
+
+#### **Impact**
+- ✅ PR feedback rapide (~2-3 min, unit/widget only).
+- ✅ Nightly validation complète (tous les tests).
+- ✅ Logs persistés et consultables en artefacts.
+- ✅ Required check "Run Flutter tests" préservé.
+
+#### **Statut**
+- **D2 PRO VERROUILLÉ** le 10/01/2026
+- CI production-ready, PR light + nightly full opérationnels
+
+---
+
+### 🧪 **[AXE D — D3.1] — Test Discovery Centralisée (anti-fragile) — 2026-01-10**
+
+#### **Changed**
+- **Centralisation de la logique de test discovery** dans `scripts/d1_one_shot.sh`.
+- Mode LIGHT : `find test -name "*_test.dart" ! -path "test/integration/*" ! -path "test/e2e/*"...`
+- Mode FULL : `flutter test` (tous les tests).
+- Pattern d'exclusion défini UNE SEULE fois (dans le script), plus de duplication dans le workflow YAML.
+- Affichage du nombre de tests découverts pour validation immédiate.
+
+#### **Impact**
+- ✅ Zéro duplication de patterns find entre script et workflow.
+- ✅ Source unique de vérité pour "qu'est-ce qu'un test light".
+- ✅ Robuste aux ajouts de tests (pas de manifest à maintenir).
+
+#### **Approche**
+- Approche "manifest avec imports explicites" abandonnée (trop fragile pour ~100 fichiers de tests).
+- Solution retenue : `find` centralisé et commenté dans le script, avec compteur de tests pour détection de régressions.
+
+#### **Statut**
+- **D3.1 TERMINÉ** le 10/01/2026
+
+### 🧪 **[AXE D — D3.2] — Quarantine Tests Flaky (PR stable) — 2026-01-10**
+
+#### **Added**
+- **Détection automatique des tests flaky** dans `scripts/d1_one_shot.sh` :
+  - File-based : `*_flaky_test.dart`
+  - Tag-based : `@Tags(['flaky'])`
+  - Fonction helper `is_flaky_test()` (ripgrep si disponible, sinon grep fallback)
+
+- **Flag `--include-flaky`** :
+  - Mode LIGHT (défaut) : exclut les tests flaky
+  - Mode FULL (`--full`) : inclut automatiquement les tests flaky
+  - Option explicite : `--include-flaky` force l'inclusion
+
+- **Logs séparés** :
+  - `.ci_logs/d1_test.log` : tests normaux
+  - `.ci_logs/d1_flaky.log` : tests flaky (phase B en mode full)
+
+- **Tests POC marqués flaky** (2 fichiers de démonstration) :
+  - `test/features/stocks_adjustments/stocks_adjustments_timing_flaky_test.dart` (file-based)
+  - `test/features/receptions/reception_async_flaky_test.dart` (tag-based)
+
+#### **Changed**
+- **Discovery en 2 phases** :
+  - Phase A : tests normaux (gating, doit passer)
+  - Phase B : tests flaky (si `--include-flaky`, log séparé, actuellement gating aussi pour truthfulness)
+- Affichage compteurs : `X normal + Y flaky = Z total`
+
+#### **Impact**
+- ✅ PR light exclut les tests flaky → feedback stable
+- ✅ Nightly full inclut les tests flaky → truthful validation
+- ✅ Tests flaky trackés et visibles (pas supprimés, juste quarantainés)
+- ✅ Convention claire : file-based ou tag-based
+
+---
+
 ### 🔒 **[AXE C] — Sécurité & Accès (RLS S2) — 2026-01-09**
 
 #### **Ajouté**
@@ -6687,3 +6780,66 @@ Cette version représente une refonte complète du module "Cours de Route" avec 
 #### 🔒 **LOGIQUE MÉTIER PRÉSERVÉE À 100%**
 - ✅ **Fonctionnalités** intactes
 - ✅ **Providers Riverpod** maintenus
+#### **Validation Officielle (10/01/2026)**
+- ✅ **Infrastructure de quarantaine opérationnelle** : détection automatique (file-based + tag-based), exécution en 2 phases, logs séparés, compteurs visibles
+- ✅ **PR light stable** : feedback rapide et fiable (exclut tests flaky)
+- ✅ **Nightly/full exhaustif** : validation complète et truthful (inclut tests flaky)
+- ✅ **POC propres** : 2 tests de démonstration (file-based + tag-based), commentaires clairs, tracking documenté
+- ✅ **CI-compatible** : PR light = stable, nightly/full = exhaustif
+
+**Note importante** : Les tests flaky POC sont des `expect(true, isTrue)` par design. D3.2 valide l'infrastructure, pas la correction des flaky. C'est exactement l'objectif.
+
+#### **Statut**
+- **D3.2 TERMINÉ & VERROUILLÉ** le 10/01/2026
+- Infrastructure opérationnelle, prête pour identification des vrais tests flaky via logs CI
+- Documentation officielle : `docs/D3_2_VALIDATION_OFFICIELLE.md`
+
+---
+
+### 🚀 **[AXE D — D4] — Release Gate + Observabilité Minimale (prod-ready) — 2026-01-10**
+
+#### **Added**
+- **Script `scripts/d4_release_gate.sh`** (orchestrateur release gate) :
+  - Une seule commande pour valider si un commit est livrable
+  - Étapes : pub get → analyze → tests light (non-flaky) → build(s) essentiels
+  - Flags optionnels : `--android`, `--ios` (web par défaut)
+  - Logs structurés : `.ci_logs/d4_*.log` (analyze, tests, builds)
+  - Timings : `.ci_logs/d4_timings.txt` (durée par phase)
+  - Header observabilité : timestamp, git SHA, flutter version
+
+- **Script `scripts/d4_env_guard.sh`** (anti-secrets + env) :
+  - Vérification `SUPABASE_ENV` obligatoire (PROD ou STAGING)
+  - Scan automatique des logs pour patterns sensibles (sans exposer les valeurs)
+  - Patterns détectés : `SUPABASE_ANON_KEY`, `eyJhbGciOi`, `service_role`, `Authorization: Bearer`
+  - Échec propre si secrets détectés (message clair, pas de fuite)
+
+- **Flags non cassants dans `scripts/d1_one_shot.sh`** (pour éviter duplication) :
+  - `--skip-pub-get` : skip flutter pub get
+  - `--skip-analyze` : skip flutter analyze
+  - `--skip-build-runner` : skip build_runner
+  - `--skip-build` : skip build step
+  - `--tests-only` : alias qui active tous les skip sauf tests
+  - **Backward-compatible** : comportement par défaut inchangé (aucun flag = D1 identique)
+
+- **Documentation `docs/RELEASE_RUNBOOK.md`** :
+  - Commandes locales (web, android, ios)
+  - Où trouver les logs
+  - Troubleshooting (3 points)
+  - Checklist Release Candidate (5 items)
+
+#### **Changed**
+- `scripts/d1_one_shot.sh` : ajout de flags skip (non cassants, backward-compatible)
+
+#### **Impact**
+- ✅ **Une seule commande** pour valider un commit livrable
+- ✅ **Logs propres** : pas de secrets exposés (vérifié automatiquement)
+- ✅ **Observabilité** : timings, git SHA, flutter version dans header
+- ✅ **Diagnostic rapide** : tail 60 lignes en cas d'échec
+- ✅ **Sécurité stricte** : `SUPABASE_ENV` obligatoire, scan anti-secrets
+
+#### **Statut**
+- **D4 TERMINÉ** le 10/01/2026
+- Release gate opérationnel, prêt pour validation locale et future intégration CI
+- Documentation : `docs/RELEASE_RUNBOOK.md`
+
+---
