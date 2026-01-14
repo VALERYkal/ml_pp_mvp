@@ -5,19 +5,36 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 enum UserRole { admin, operateur }
 
-final roleProvider = StateProvider<UserRole>((_) => UserRole.operateur);
+/// Provider local isolé (pas de variable globale partagée)
+final _roleProvider = StateProvider<UserRole>((_) => UserRole.operateur);
 
-class _App extends ConsumerWidget {
-  const _App({super.key});
+/// Widget de test qui crée son propre router isolé dans build()
+class _TestApp extends ConsumerWidget {
+  final UserRole role;
+  final String initialLocation;
+  final GoRouter? externalRouter; // Pour les tests avec router.go()
+
+  const _TestApp({
+    required this.role,
+    this.initialLocation = '/admin',
+    this.externalRouter,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Créer le router dans build() pour avoir accès à ref
+    // Si un router externe est fourni, l'utiliser directement
+    if (externalRouter != null) {
+      return MaterialApp.router(routerConfig: externalRouter!);
+    }
+
+    // Sinon, créer un nouveau router isolé pour ce test
+    // Le router lit le rôle depuis ref (contexte du widget)
     final router = GoRouter(
-      initialLocation: '/admin',
+      initialLocation: initialLocation,
       redirect: (_, s) {
-        final role = ref.read(roleProvider);
-        if (s.matchedLocation == '/admin' && role != UserRole.admin) {
+        // Lire le rôle depuis le contexte du widget (ref)
+        final currentRole = ref.read(_roleProvider);
+        if (s.matchedLocation == '/admin' && currentRole != UserRole.admin) {
           return '/forbidden';
         }
         return null;
@@ -82,140 +99,210 @@ String currentLocation(GoRouter router) {
 
 void main() {
   testWidgets('operateur ne peut pas accéder à /admin', (tester) async {
-    await tester.pumpWidget(const ProviderScope(child: _App()));
-    
+    // Créer un ProviderContainer isolé pour ce test
+    final container = ProviderContainer(
+      overrides: [
+        _roleProvider.overrideWith((_) => UserRole.operateur),
+      ],
+    );
+
+    // Créer le widget avec le container isolé
+    // Le widget créera son propre router dans build()
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const _TestApp(
+          role: UserRole.operateur,
+          initialLocation: '/admin',
+        ),
+      ),
+    );
+
     // Attendre que la navigation et le redirect soient complétés
     await tester.pump();
     await pumpUntilSettled(tester);
-    
+    await tester.pumpAndSettle();
+
     // Obtenir le router depuis le contexte
     final context = tester.element(find.byType(Scaffold));
-    final router = GoRouter.of(context);
-    
+    final contextRouter = GoRouter.of(context);
+
     // Vérifier que l'écran forbidden est affiché
     expect(find.byKey(const Key('screen_forbidden')), findsOneWidget);
-    
+
     // Vérifier que la location n'est PAS /admin (assertion robuste)
-    final loc = currentLocation(router);
+    final loc = currentLocation(contextRouter);
     expect(loc.contains('/admin'), isFalse, reason: 'Operateur ne doit pas pouvoir accéder à /admin');
+
+    // Nettoyer le container isolé
+    container.dispose();
   });
 
   testWidgets('admin accède à /admin', (tester) async {
+    // Créer un ProviderContainer isolé pour ce test
+    final container = ProviderContainer(
+      overrides: [
+        _roleProvider.overrideWith((_) => UserRole.admin),
+      ],
+    );
+
+    // Créer le widget avec le container isolé
+    // Le widget créera son propre router dans build()
     await tester.pumpWidget(
-      ProviderScope(
-        overrides: [roleProvider.overrideWith((_) => UserRole.admin)],
-        child: const _App(),
+      UncontrolledProviderScope(
+        container: container,
+        child: const _TestApp(
+          role: UserRole.admin,
+          initialLocation: '/admin',
+        ),
       ),
     );
-    
+
     // Attendre que la navigation soit complète
     await tester.pump();
     await pumpUntilSettled(tester);
-    
+    await tester.pumpAndSettle();
+
     // Obtenir le router depuis le contexte
     final context = tester.element(find.byType(Scaffold));
-    final router = GoRouter.of(context);
-    
+    final contextRouter = GoRouter.of(context);
+
     // Vérifier que l'écran admin est affiché
     expect(find.byKey(const Key('screen_admin')), findsOneWidget);
-    
+
     // Vérifier que la location contient /admin (assertion robuste)
-    final loc = currentLocation(router);
+    final loc = currentLocation(contextRouter);
     expect(loc.contains('/admin'), isTrue, reason: 'Admin doit pouvoir accéder à /admin');
+
+    // Nettoyer le container isolé
+    container.dispose();
   });
 
   testWidgets('operateur redirigé après router.go(/admin)', (tester) async {
-    GoRouter? testRouter;
-    
-    // Widget qui expose le router
-    final app = ProviderScope(
-      child: Consumer(
-        builder: (context, ref, _) {
-          testRouter = GoRouter(
-            initialLocation: '/forbidden',
-            redirect: (_, s) {
-              final role = ref.read(roleProvider);
-              if (s.matchedLocation == '/admin' && role != UserRole.admin) {
-                return '/forbidden';
-              }
-              return null;
-            },
-            routes: [
-              GoRoute(
-                path: '/admin',
-                builder: (_, __) => const _Screen('ADMIN', 'screen_admin'),
-              ),
-              GoRoute(
-                path: '/forbidden',
-                builder: (_, __) => const _Screen('FORBIDDEN', 'screen_forbidden'),
-              ),
-            ],
-          );
-          return MaterialApp.router(routerConfig: testRouter!);
-        },
+    // Créer un ProviderContainer isolé pour ce test
+    final container = ProviderContainer(
+      overrides: [
+        _roleProvider.overrideWith((_) => UserRole.operateur),
+      ],
+    );
+
+    // Créer un router isolé pour ce test (commence sur /forbidden)
+    // Ce router doit pouvoir lire le rôle depuis le container
+    final router = GoRouter(
+      initialLocation: '/forbidden',
+      redirect: (context, s) {
+        // Lire le rôle depuis le container via le contexte
+        final container = ProviderScope.containerOf(context);
+        final currentRole = container.read(_roleProvider);
+        if (s.matchedLocation == '/admin' && currentRole != UserRole.admin) {
+          return '/forbidden';
+        }
+        return null;
+      },
+      routes: [
+        GoRoute(
+          path: '/admin',
+          builder: (_, __) => const _Screen('ADMIN', 'screen_admin'),
+        ),
+        GoRoute(
+          path: '/forbidden',
+          builder: (_, __) => const _Screen('FORBIDDEN', 'screen_forbidden'),
+        ),
+      ],
+    );
+
+    // Créer le widget avec le container et le router isolés
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: _TestApp(
+          role: UserRole.operateur,
+          initialLocation: '/forbidden',
+          externalRouter: router,
+        ),
       ),
     );
-    
-    await tester.pumpWidget(app);
+
     await tester.pump();
     await pumpUntilSettled(tester);
-    
-    // Naviguer vers /admin
-    testRouter!.go('/admin');
+    await tester.pumpAndSettle();
+
+    // Naviguer vers /admin (après pumpWidget)
+    router.go('/admin');
     await tester.pump();
     await pumpUntilSettled(tester);
-    
+    await tester.pumpAndSettle();
+
     // Vérifier la redirection
-    final loc = currentLocation(testRouter!);
+    final loc = currentLocation(router);
     expect(loc.contains('/admin'), isFalse, reason: 'Operateur doit être redirigé depuis /admin');
     expect(find.byKey(const Key('screen_forbidden')), findsOneWidget);
+
+    // Nettoyer le container isolé
+    container.dispose();
   });
 
   testWidgets('admin peut naviguer vers /admin via router.go', (tester) async {
-    GoRouter? testRouter;
-    
-    // Widget qui expose le router
-    final app = ProviderScope(
-      overrides: [roleProvider.overrideWith((_) => UserRole.admin)],
-      child: Consumer(
-        builder: (context, ref, _) {
-          testRouter = GoRouter(
-            initialLocation: '/forbidden',
-            redirect: (_, s) {
-              final role = ref.read(roleProvider);
-              if (s.matchedLocation == '/admin' && role != UserRole.admin) {
-                return '/forbidden';
-              }
-              return null;
-            },
-            routes: [
-              GoRoute(
-                path: '/admin',
-                builder: (_, __) => const _Screen('ADMIN', 'screen_admin'),
-              ),
-              GoRoute(
-                path: '/forbidden',
-                builder: (_, __) => const _Screen('FORBIDDEN', 'screen_forbidden'),
-              ),
-            ],
-          );
-          return MaterialApp.router(routerConfig: testRouter!);
-        },
+    // Créer un ProviderContainer isolé pour ce test
+    final container = ProviderContainer(
+      overrides: [
+        _roleProvider.overrideWith((_) => UserRole.admin),
+      ],
+    );
+
+    // Créer un router isolé pour ce test (commence sur /forbidden)
+    // Ce router doit pouvoir lire le rôle depuis le container
+    final router = GoRouter(
+      initialLocation: '/forbidden',
+      redirect: (context, s) {
+        // Lire le rôle depuis le container via le contexte
+        final container = ProviderScope.containerOf(context);
+        final currentRole = container.read(_roleProvider);
+        if (s.matchedLocation == '/admin' && currentRole != UserRole.admin) {
+          return '/forbidden';
+        }
+        return null;
+      },
+      routes: [
+        GoRoute(
+          path: '/admin',
+          builder: (_, __) => const _Screen('ADMIN', 'screen_admin'),
+        ),
+        GoRoute(
+          path: '/forbidden',
+          builder: (_, __) => const _Screen('FORBIDDEN', 'screen_forbidden'),
+        ),
+      ],
+    );
+
+    // Créer le widget avec le container et le router isolés
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: _TestApp(
+          role: UserRole.admin,
+          initialLocation: '/forbidden',
+          externalRouter: router,
+        ),
       ),
     );
-    
-    await tester.pumpWidget(app);
+
     await tester.pump();
     await pumpUntilSettled(tester);
-    
-    // Naviguer vers /admin
-    testRouter!.go('/admin');
+    await tester.pumpAndSettle();
+
+    // Naviguer vers /admin (après pumpWidget)
+    router.go('/admin');
     await tester.pump();
     await pumpUntilSettled(tester);
-    
+    await tester.pumpAndSettle();
+
     // Vérifier que l'admin peut accéder
-    final loc = currentLocation(testRouter!);
+    final loc = currentLocation(router);
     expect(loc.contains('/admin'), isTrue, reason: 'Admin doit pouvoir accéder à /admin');
     expect(find.byKey(const Key('screen_admin')), findsOneWidget);
+
+    // Nettoyer le container isolé
+    container.dispose();
   });
 }
