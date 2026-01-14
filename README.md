@@ -9,10 +9,10 @@
 **Objectif Sprint :** ML_PP MVP déployable en production industrielle auditée
 
 **Avancement :** 0/11 tickets (0%)
-- 🔴 AXE A (DB-STRICT) : 0/3
-- 🔴 AXE B (Tests DB) : 0/2
-- 🔴 AXE C (Sécurité) : 0/2
-- 🟡 AXE D (Stabilisation) : 0/4
+- 🟢 AXE A (DB-STRICT) : TERMINÉ
+- 🟢 AXE B (Tests DB) : TERMINÉ
+- 🟢 AXE C (Sécurité) : TERMINÉ (2026-01-14) — [Déclaration de clôture](docs/AXE_C_CLOSURE.md)
+- 🟢 AXE D (Stabilisation) : TERMINÉ
 
 **Verdict actuel :**
 - 🟢 **Fonctionnel : GO** (production interne contrôlée)
