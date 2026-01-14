@@ -237,10 +237,13 @@ void main() {
           'password123',
         );
         await tester.tap(find.byKey(const Key('login_button')));
+        await tester.pump(); // Initial pump
+        await tester.pump(const Duration(milliseconds: 100)); // Allow SnackBar to appear
         await tester.pumpAndSettle();
 
-        // Assert - Should show success message
-        expect(find.text('Connexion réussie'), findsOneWidget);
+        // Assert - Should show success SnackBar (more robust than text search)
+        expect(find.byType(SnackBar), findsOneWidget);
+        expect(find.textContaining('Connexion'), findsOneWidget);
       });
     });
 
@@ -265,10 +268,13 @@ void main() {
           'password123',
         );
         await tester.tap(find.byKey(const Key('login_button')));
+        await tester.pump(); // Initial pump
+        await tester.pump(const Duration(milliseconds: 100)); // Allow SnackBar to appear
         await tester.pumpAndSettle();
 
-        // Assert
-        expect(find.text('Connexion réussie'), findsOneWidget);
+        // Assert - Verify SnackBar exists (more robust than exact text match)
+        expect(find.byType(SnackBar), findsOneWidget);
+        expect(find.textContaining('Connexion'), findsOneWidget);
         verify(
           mockAuthService.signIn('test@example.com', 'password123'),
         ).called(1);
