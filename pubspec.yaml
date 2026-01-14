@@ -59,4 +59,3 @@ flutter:
   assets:
     - lib/shared/assets/images/logo.png
     - .env
-    - .env.local
