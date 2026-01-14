@@ -1,6 +1,51 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+/// Helper pour formater une date en string YYYY-MM-DD
+String _formatDate(DateTime date) {
+  return date.toIso8601String().split('T').first;
+}
+
+/// Helper pour trouver la dernière date_jour disponible dans stocks_journaliers pour un dépôt
+Future<DateTime?> _findLatestDateJour({
+  required SupabaseClient client,
+  required String depotId,
+}) async {
+  try {
+    // Requête probe : trouver la dernière date_jour disponible
+    final probeQuery = client
+        .from('stocks_journaliers')
+        .select('date_jour')
+        .eq('depot_id', depotId)
+        .order('date_jour', ascending: false)
+        .limit(1);
+
+    final probeResult = await probeQuery;
+    if (probeResult.isEmpty) {
+      return null;
+    }
+
+    final dateStr = probeResult.first['date_jour'];
+    if (dateStr == null) {
+      return null;
+    }
+
+    // Parser la date (peut être String ou DateTime)
+    if (dateStr is DateTime) {
+      return DateTime(dateStr.year, dateStr.month, dateStr.day);
+    }
+    if (dateStr is String) {
+      return DateTime.parse(dateStr);
+    }
+    return null;
+  } catch (e) {
+    if (kDebugMode) {
+      debugPrint('⚠️ _findLatestDateJour: Erreur $e');
+    }
+    return null;
+  }
+}
+
 /// Helper pour convertir proprement toute valeur numérique en double.
 double _toDouble(dynamic value) {
   if (value == null) {
@@ -216,27 +261,97 @@ class StocksKpiRepository {
 
   /// Retourne les totaux globaux par dépôt & produit.
   ///
-  /// SOURCE CANONIQUE — inclut adjustments (AXE A)
-  /// Lit depuis v_stock_actuel et agrège côté Dart par (depot_id, produit_id).
+  /// ROUTING SELON dateJour :
+  /// - [dateJour] == null → utilise `v_stock_actuel` (état actuel en temps réel)
+  /// - [dateJour] != null → utilise `stocks_journaliers` (snapshot historique)
+  ///   - Si aucun snapshot pour dateJour, fallback automatique sur la dernière date_jour disponible
   ///
-  /// Si [depotId] est fourni, on filtre sur ce dépôt (requis pour fetchStockActuelRows).
-  /// Si [produitId] est fourni, on filtre sur ce produit.
-  /// ⚠️ [dateJour] est ignoré : v_stock_actuel = toujours état actuel.
+  /// SOURCE CANONIQUE — inclut adjustments (AXE A)
+  /// - Mode actuel (dateJour == null) : lit depuis v_stock_actuel et agrège côté Dart par (depot_id, produit_id)
+  /// - Mode historique (dateJour != null) : lit depuis stocks_journaliers filtré par date_jour
+  ///
+  /// [depotId] : Requis, filtre par dépôt
+  /// [produitId] : Optionnel, filtre par produit
+  /// [dateJour] : Optionnel, si fourni utilise stocks_journaliers (historique), sinon v_stock_actuel (actuel)
   Future<List<DepotGlobalStockKpi>> fetchDepotProductTotals({
     String? depotId,
     String? produitId,
-    DateTime? dateJour, // Ignoré : v_stock_actuel = toujours état actuel
+    DateTime? dateJour,
   }) async {
     if (depotId == null) {
       // Si pas de depotId, retourner liste vide (comportement conservé)
       return [];
     }
 
-    // SOURCE CANONIQUE — inclut adjustments (AXE A)
-    final rows = await fetchStockActuelRows(
-      depotId: depotId,
-      produitId: produitId,
-    );
+    // Si dateJour est fourni, utiliser stocks_journaliers avec filtre date_jour
+    List<Map<String, dynamic>> rows;
+    if (dateJour != null) {
+      final dateStr = _formatDate(dateJour);
+
+      // Requête A : snapshot filtré par dateJour
+      var query = _client
+          .from('stocks_journaliers')
+          .select<List<Map<String, dynamic>>>()
+          .eq('depot_id', depotId)
+          .eq('date_jour', dateStr);
+
+      if (produitId != null) {
+        query = query.eq('produit_id', produitId);
+      }
+
+      rows = await query;
+
+      // Log résultat requête A
+      if (kDebugMode) {
+        debugPrint('🟠 [STOCK SNAPSHOT] today=$dateStr rows=${rows.length}');
+      }
+
+      // Si 0 lignes → activer FALLBACK
+      if (rows.isEmpty) {
+        if (kDebugMode) {
+          debugPrint('🟠 [STOCK SNAPSHOT] 0 lignes pour dateJour=$dateStr → fallback last snapshot');
+        }
+
+        // Requête B : probe pour trouver la dernière date_jour disponible
+        final fallbackDate = await _findLatestDateJour(
+          client: _client,
+          depotId: depotId,
+        );
+
+        if (fallbackDate == null) {
+          if (kDebugMode) {
+            debugPrint('🟥 [STOCK SNAPSHOT] aucun snapshot en base (fallback impossible)');
+          }
+          return [];
+        }
+
+        final fallbackDateStr = _formatDate(fallbackDate);
+        if (kDebugMode) {
+          debugPrint('🟢 [STOCK SNAPSHOT] fallbackDate_jour=$fallbackDateStr utilisé');
+        }
+
+        // Relancer la requête avec fallbackDate
+        var fallbackQuery = _client
+            .from('stocks_journaliers')
+            .select<List<Map<String, dynamic>>>()
+            .eq('depot_id', depotId)
+            .eq('date_jour', fallbackDateStr);
+
+        if (produitId != null) {
+          fallbackQuery = fallbackQuery.eq('produit_id', produitId);
+        }
+
+        rows = await fallbackQuery;
+      }
+    } else {
+      // Si dateJour n'est pas fourni, utiliser v_stock_actuel (comportement actuel)
+      // SOURCE CANONIQUE — inclut adjustments (AXE A)
+      final rowsActuel = await fetchStockActuelRows(
+        depotId: depotId,
+        produitId: produitId,
+      );
+      rows = rowsActuel;
+    }
 
     // Agréger par (depot_id, produit_id) tous propriétaires confondus
     final Map<String, ({
@@ -295,26 +410,134 @@ class StocksKpiRepository {
   /// Retourne les totaux par dépôt, propriétaire & produit.
   ///
   /// Utilisé pour le breakdown MONALUXE vs PARTENAIRE.
-  /// ⚠️ [dateJour] est ignoré : v_stock_actuel = toujours état actuel.
+  ///
+  /// ROUTING SELON dateJour :
+  /// - [dateJour] == null → utilise `v_stock_actuel` (état actuel en temps réel)
+  /// - [dateJour] != null → utilise `stocks_journaliers` (snapshot historique)
+  ///   - Si aucun snapshot pour dateJour, fallback automatique sur la dernière date_jour disponible
   ///
   /// SOURCE CANONIQUE — inclut adjustments (AXE A)
-  /// Lit depuis v_stock_actuel et agrège côté Dart par proprietaire_type.
+  /// - Mode actuel (dateJour == null) : lit depuis v_stock_actuel et agrège côté Dart par proprietaire_type
+  /// - Mode historique (dateJour != null) : lit depuis stocks_journaliers filtré par date_jour
+  ///
+  /// [depotId] : Requis, filtre par dépôt
+  /// [produitId] : Optionnel, filtre par produit
+  /// [proprietaireType] : Optionnel, filtre par propriétaire (MONALUXE/PARTENAIRE)
+  /// [dateJour] : Optionnel, si fourni utilise stocks_journaliers (historique), sinon v_stock_actuel (actuel)
   Future<List<DepotOwnerStockKpi>> fetchDepotOwnerTotals({
     String? depotId,
     String? produitId,
     String? proprietaireType,
-    DateTime? dateJour, // Ignoré : v_stock_actuel = toujours état actuel
+    DateTime? dateJour,
   }) async {
     if (depotId == null) {
       // Si pas de depotId, retourner liste vide (comportement conservé)
       return [];
     }
 
-    // SOURCE CANONIQUE — inclut adjustments (AXE A)
-    final rows = await fetchStockActuelRows(
-      depotId: depotId,
-      produitId: produitId,
-    );
+    // Si dateJour est fourni, utiliser stocks_journaliers avec filtre date_jour
+    List<Map<String, dynamic>> rows;
+    if (dateJour != null) {
+      final dateStr = _formatDate(dateJour);
+
+      // Requête A : snapshot filtré par dateJour
+      var query = _client
+          .from('stocks_journaliers')
+          .select<List<Map<String, dynamic>>>()
+          .eq('depot_id', depotId)
+          .eq('date_jour', dateStr);
+
+      if (produitId != null) {
+        query = query.eq('produit_id', produitId);
+      }
+
+      rows = await query;
+
+      // Log résultat requête A
+      if (kDebugMode) {
+        debugPrint('🟠 [OWNER SNAPSHOT] today=$dateStr rows=${rows.length}');
+      }
+
+      // Si 0 lignes → activer FALLBACK
+      if (rows.isEmpty) {
+        if (kDebugMode) {
+          debugPrint('🟠 [OWNER SNAPSHOT] 0 lignes pour dateJour=$dateStr → fallback last snapshot');
+        }
+
+        // Requête B : probe pour trouver la dernière date_jour disponible
+        final fallbackDate = await _findLatestDateJour(
+          client: _client,
+          depotId: depotId,
+        );
+
+        if (fallbackDate == null) {
+          if (kDebugMode) {
+            debugPrint('🟥 [OWNER SNAPSHOT] aucun snapshot en base (fallback impossible)');
+          }
+          // Retourner MONALUXE et PARTENAIRE avec 0.0 (comportement actuel)
+          String depotNom = '';
+          try {
+            final depotRow =
+                await _client
+                        .from('depots')
+                        .select('id, nom')
+                        .eq('id', depotId)
+                        .maybeSingle()
+                    as Map<String, dynamic>?;
+            depotNom = (depotRow?['nom'] as String?) ?? '';
+          } catch (_) {
+            // Ignorer si erreur récupération dépôt
+          }
+
+          return [
+            DepotOwnerStockKpi(
+              depotId: depotId,
+              depotNom: depotNom,
+              proprietaireType: 'MONALUXE',
+              produitId: produitId ?? '',
+              produitNom: '',
+              stockAmbiantTotal: 0.0,
+              stock15cTotal: 0.0,
+            ),
+            DepotOwnerStockKpi(
+              depotId: depotId,
+              depotNom: depotNom,
+              proprietaireType: 'PARTENAIRE',
+              produitId: produitId ?? '',
+              produitNom: '',
+              stockAmbiantTotal: 0.0,
+              stock15cTotal: 0.0,
+            ),
+          ];
+        }
+
+        final fallbackDateStr = _formatDate(fallbackDate);
+        if (kDebugMode) {
+          debugPrint('🟢 [OWNER SNAPSHOT] fallbackDate_jour=$fallbackDateStr utilisé');
+        }
+
+        // Relancer la requête avec fallbackDate
+        var fallbackQuery = _client
+            .from('stocks_journaliers')
+            .select<List<Map<String, dynamic>>>()
+            .eq('depot_id', depotId)
+            .eq('date_jour', fallbackDateStr);
+
+        if (produitId != null) {
+          fallbackQuery = fallbackQuery.eq('produit_id', produitId);
+        }
+
+        rows = await fallbackQuery;
+      }
+    } else {
+      // Si dateJour n'est pas fourni, utiliser v_stock_actuel (comportement actuel)
+      // SOURCE CANONIQUE — inclut adjustments (AXE A)
+      final rowsActuel = await fetchStockActuelRows(
+        depotId: depotId,
+        produitId: produitId,
+      );
+      rows = rowsActuel;
+    }
 
     // Agréger par (depot_id, produit_id, proprietaire_type)
     final Map<String, ({
@@ -338,7 +561,7 @@ class StocksKpiRepository {
       }
 
       final rowProduitId = (row['produit_id'] as String?) ?? '';
-      final key = '$depotId::${rowProduitId}::$rowProprietaireType';
+      final key = '$depotId::$rowProduitId::$rowProprietaireType';
 
       final stockAmbiant = _toDouble(row['stock_ambiant'] ?? row['stock_ambiant_total'] ?? 0.0);
       final stock15c = _toDouble(row['stock_15c'] ?? row['stock_15c_total'] ?? 0.0);
@@ -622,29 +845,166 @@ class StocksKpiRepository {
     return result;
   }
 
-  /// [DEPRECATED] Alias de compatibilité pour fetchCiterneGlobalSnapshots.
+  /// Retourne les snapshots globaux de stock par citerne (tous propriétaires confondus).
   ///
-  /// ⚠️ Cette méthode est maintenue uniquement pour compatibilité avec le code existant.
+  /// ROUTING SELON dateJour :
+  /// - [dateJour] == null → utilise `v_stock_actuel` agrégé côté Dart (état actuel en temps réel)
+  /// - [dateJour] != null → utilise `v_stocks_citerne_global_daily` (snapshot journalier)
+  ///   - Si aucun snapshot pour dateJour, fallback automatique sur la dernière date_jour disponible
+  ///
   /// SOURCE CANONIQUE — inclut adjustments (AXE A)
-  /// Utilise v_stock_actuel via fetchCiterneStocksFromSnapshot() (ignore dateJour car v_stock_actuel = état actuel).
+  /// - Mode actuel (dateJour == null) : lit depuis v_stock_actuel via fetchCiterneStocksFromSnapshot() et agrège côté Dart
+  /// - Mode historique (dateJour != null) : lit depuis v_stocks_citerne_global_daily filtré par date_jour
   ///
-  /// [depotId] : Optionnel, filtre par dépôt
+  /// [depotId] : Requis, filtre par dépôt
   /// [citerneId] : Optionnel, filtre par citerne
   /// [produitId] : Optionnel, filtre par produit
-  /// [dateJour] : Ignoré (v_stock_actuel = toujours état actuel)
+  /// [dateJour] : Optionnel, si fourni utilise v_stocks_citerne_global_daily (historique), sinon v_stock_actuel (actuel)
   ///
-  /// Retourne : Liste de CiterneGlobalStockSnapshot mappée depuis v_stock_actuel (agrégation Dart)
-  @Deprecated(
-    'Utiliser fetchCiterneStocksFromSnapshot() directement. Cette méthode est maintenue pour compatibilité.',
-  )
+  /// Retourne : Liste de CiterneGlobalStockSnapshot avec capacités et noms enrichis depuis table citernes
   Future<List<CiterneGlobalStockSnapshot>> fetchCiterneGlobalSnapshots({
     String? depotId,
     String? citerneId,
     String? produitId,
-    DateTime? dateJour, // Ignoré : v_stock_actuel = toujours état actuel
+    DateTime? dateJour,
   }) async {
+    if (depotId == null) {
+      return [];
+    }
+
+    // Si dateJour est fourni, utiliser v_stocks_citerne_global_daily (vue snapshot journalière)
+    if (dateJour != null) {
+      final dateStr = _formatDate(dateJour);
+      
+      // Requête A : snapshot filtré par dateJour
+      var query = _client
+          .from('v_stocks_citerne_global_daily')
+          .select<List<Map<String, dynamic>>>()
+          .eq('depot_id', depotId)
+          .eq('date_jour', dateStr);
+
+      if (citerneId != null) {
+        query = query.eq('citerne_id', citerneId);
+      }
+      if (produitId != null) {
+        query = query.eq('produit_id', produitId);
+      }
+
+      var stockRows = await query;
+
+      // Log résultat requête A
+      if (kDebugMode) {
+        debugPrint('🟠 [STOCK SNAPSHOT] today=$dateStr rows=${stockRows.length}');
+      }
+
+      // Si 0 lignes → activer FALLBACK
+      if (stockRows.isEmpty) {
+        if (kDebugMode) {
+          debugPrint('🟠 [STOCK SNAPSHOT] 0 lignes pour dateJour=$dateStr → fallback last snapshot');
+        }
+
+        // Requête B : probe pour trouver la dernière date_jour disponible
+        final fallbackDate = await _findLatestDateJour(
+          client: _client,
+          depotId: depotId,
+        );
+
+        if (fallbackDate == null) {
+          if (kDebugMode) {
+            debugPrint('🟥 [STOCK SNAPSHOT] aucun snapshot en base (fallback impossible)');
+          }
+          return [];
+        }
+
+        final fallbackDateStr = _formatDate(fallbackDate);
+        if (kDebugMode) {
+          debugPrint('🟢 [STOCK SNAPSHOT] fallbackDate_jour=$fallbackDateStr utilisé');
+        }
+
+        // Relancer la requête avec fallbackDate
+        var fallbackQuery = _client
+            .from('v_stocks_citerne_global_daily')
+            .select<List<Map<String, dynamic>>>()
+            .eq('depot_id', depotId)
+            .eq('date_jour', fallbackDateStr);
+
+        if (citerneId != null) {
+          fallbackQuery = fallbackQuery.eq('citerne_id', citerneId);
+        }
+        if (produitId != null) {
+          fallbackQuery = fallbackQuery.eq('produit_id', produitId);
+        }
+
+        stockRows = await fallbackQuery;
+      }
+
+      // Récupérer les citernes pour obtenir capacite_totale, capacite_securite et noms
+      final citerneIds = stockRows
+          .map((r) => r['citerne_id'] as String?)
+          .whereType<String>()
+          .toSet()
+          .toList();
+
+      final citernesMap = <String, Map<String, dynamic>>{};
+      if (citerneIds.isNotEmpty) {
+        final citernesQuery = _client
+            .from('citernes')
+            .select<List<Map<String, dynamic>>>(
+              'id, nom, capacite_totale, capacite_securite, produit_id',
+            )
+            .in_('id', citerneIds);
+
+        final citernesRows = await citernesQuery;
+        for (final c in citernesRows) {
+          final id = c['id'] as String?;
+          if (id != null) {
+            citernesMap[id] = c;
+          }
+        }
+      }
+
+      // Récupérer les produits pour obtenir les noms
+      final produitIds = stockRows
+          .map((r) => r['produit_id'] as String?)
+          .whereType<String>()
+          .toSet()
+          .toList();
+
+      final produitsMap = <String, String>{};
+      if (produitIds.isNotEmpty) {
+        final produits =
+            await _client.from('produits').select('id, nom').in_('id', produitIds)
+                as List;
+        for (final p in produits) {
+          final id = p['id'] as String?;
+          final nom = p['nom'] as String?;
+          if (id != null && nom != null) {
+            produitsMap[id] = nom;
+          }
+        }
+      }
+
+      // Mapper les stocks vers CiterneGlobalStockSnapshot
+      return stockRows.map((m) {
+        final map = Map<String, dynamic>.from(m);
+        final citerneId = map['citerne_id'] as String?;
+        final produitId = map['produit_id'] as String?;
+        final citerneData = citernesMap[citerneId ?? ''];
+
+        map['capacite_totale'] ??=
+            (citerneData?['capacite_totale'] as num?)?.toDouble() ?? 0.0;
+        map['capacite_securite'] ??=
+            (citerneData?['capacite_securite'] as num?)?.toDouble() ?? 0.0;
+
+        map['citerne_nom'] ??= (citerneData?['nom'] as String?) ?? 'Citerne';
+        map['produit_nom'] ??= produitsMap[produitId ?? ''] ?? '';
+
+        return CiterneGlobalStockSnapshot.fromMap(map);
+      }).toList();
+    }
+
+    // Si dateJour n'est pas fourni, utiliser v_stock_actuel (comportement actuel)
     // SOURCE CANONIQUE — inclut adjustments (AXE A)
-    // Récupérer les stocks depuis v_stock_actuel (via fetchCiterneStocksFromSnapshot)
     final stockRows = await fetchCiterneStocksFromSnapshot(
       depotId: depotId,
       citerneId: citerneId,
@@ -729,32 +1089,45 @@ class StocksKpiRepository {
     }).toList();
   }
 
-  /// [DEPRECATED] Alias de compatibilité pour fetchCiterneOwnerSnapshots.
+  /// Retourne les snapshots de stock par citerne, propriétaire et produit.
   ///
-  /// ⚠️ Cette méthode est maintenue uniquement pour compatibilité avec le code existant.
+  /// ⚠️ IMPORTANT : Cette méthode retourne TOUJOURS l'état actuel depuis `v_stock_actuel`.
+  /// Le paramètre [dateJour] est IGNORÉ pour cette méthode.
+  ///
+  /// Pour obtenir des snapshots historiques par date, utilisez `fetchCiterneGlobalSnapshots(dateJour: ...)`
+  /// qui supporte le routing vers `v_stocks_citerne_global_daily`.
+  ///
   /// SOURCE CANONIQUE — inclut adjustments (AXE A)
   /// Lit depuis v_stock_actuel et agrège côté Dart par (citerne, produit, propriétaire).
   ///
-  /// [depotId] : Optionnel, filtre par dépôt (requis pour fetchStockActuelRows)
+  /// [depotId] : Requis, filtre par dépôt
   /// [citerneId] : Optionnel, filtre par citerne (appliqué côté Dart)
-  /// [produitId] : Optionnel, filtre par produit (peut être passé à fetchStockActuelRows)
+  /// [produitId] : Optionnel, filtre par produit
   /// [proprietaireType] : Optionnel, filtre par propriétaire (appliqué côté Dart)
-  /// [dateJour] : Ignoré (v_stock_actuel = toujours état actuel)
+  /// [dateJour] : DEPRECATED PARAM — Ignoré, cette méthode retourne toujours l'état actuel
   ///
   /// Retourne : Liste de CiterneOwnerStockSnapshot avec l'état actuel par (citerne, produit, propriétaire)
-  @Deprecated(
-    'Utiliser les providers snapshot directement. Cette méthode est maintenue pour compatibilité.',
-  )
   Future<List<CiterneOwnerStockSnapshot>> fetchCiterneOwnerSnapshots({
     String? depotId,
     String? citerneId,
     String? produitId,
     String? proprietaireType,
-    DateTime? dateJour, // Ignoré : v_stock_actuel = toujours état actuel
+    @Deprecated(
+      'Ignored: fetchCiterneOwnerSnapshots returns current stock only (v_stock_actuel). '
+      'Use fetchCiterneGlobalSnapshots(dateJour: ...) for daily snapshots.',
+    )
+    DateTime? dateJour,
   }) async {
     if (depotId == null) {
       // Si pas de depotId, retourner liste vide (comportement conservé)
       return [];
+    }
+
+    // Warning debug si dateJour est fourni (ignoré)
+    if (kDebugMode && dateJour != null) {
+      debugPrint(
+        '⚠️ fetchCiterneOwnerSnapshots: dateJour ignored (uses v_stock_actuel only)',
+      );
     }
 
     // SOURCE CANONIQUE — inclut adjustments (AXE A)
@@ -821,6 +1194,105 @@ class StocksKpiRepository {
     return aggregated.values.map((map) {
       return CiterneOwnerStockSnapshot.fromMap(map);
     }).toList();
+  }
+
+  // ============================================================================
+  // WRAPPERS EXPLICITES — API claire pour stock actuel vs historique
+  // ============================================================================
+
+  /// Wrapper explicite pour récupérer les totaux globaux par dépôt & produit (état actuel).
+  ///
+  /// Appelle `fetchDepotProductTotals(dateJour: null)` pour utiliser `v_stock_actuel`.
+  Future<List<DepotGlobalStockKpi>> fetchDepotProductTotalsActuel({
+    required String depotId,
+    String? produitId,
+  }) async {
+    return fetchDepotProductTotals(
+      depotId: depotId,
+      produitId: produitId,
+      dateJour: null,
+    );
+  }
+
+  /// Wrapper explicite pour récupérer les totaux globaux par dépôt & produit (snapshot historique).
+  ///
+  /// Appelle `fetchDepotProductTotals(dateJour: dateJour)` pour utiliser `stocks_journaliers`.
+  Future<List<DepotGlobalStockKpi>> fetchDepotProductTotalsJournalier({
+    required String depotId,
+    required DateTime dateJour,
+    String? produitId,
+  }) async {
+    return fetchDepotProductTotals(
+      depotId: depotId,
+      produitId: produitId,
+      dateJour: dateJour,
+    );
+  }
+
+  /// Wrapper explicite pour récupérer les totaux par dépôt, propriétaire & produit (état actuel).
+  ///
+  /// Appelle `fetchDepotOwnerTotals(dateJour: null)` pour utiliser `v_stock_actuel`.
+  Future<List<DepotOwnerStockKpi>> fetchDepotOwnerTotalsActuel({
+    required String depotId,
+    String? produitId,
+    String? proprietaireType,
+  }) async {
+    return fetchDepotOwnerTotals(
+      depotId: depotId,
+      produitId: produitId,
+      proprietaireType: proprietaireType,
+      dateJour: null,
+    );
+  }
+
+  /// Wrapper explicite pour récupérer les totaux par dépôt, propriétaire & produit (snapshot historique).
+  ///
+  /// Appelle `fetchDepotOwnerTotals(dateJour: dateJour)` pour utiliser `stocks_journaliers`.
+  Future<List<DepotOwnerStockKpi>> fetchDepotOwnerTotalsJournalier({
+    required String depotId,
+    required DateTime dateJour,
+    String? produitId,
+    String? proprietaireType,
+  }) async {
+    return fetchDepotOwnerTotals(
+      depotId: depotId,
+      produitId: produitId,
+      proprietaireType: proprietaireType,
+      dateJour: dateJour,
+    );
+  }
+
+  /// Wrapper explicite pour récupérer les snapshots globaux par citerne (état actuel).
+  ///
+  /// Appelle `fetchCiterneGlobalSnapshots(dateJour: null)` pour utiliser `v_stock_actuel`.
+  Future<List<CiterneGlobalStockSnapshot>> fetchCiterneGlobalSnapshotsActuel({
+    required String depotId,
+    String? citerneId,
+    String? produitId,
+  }) async {
+    return fetchCiterneGlobalSnapshots(
+      depotId: depotId,
+      citerneId: citerneId,
+      produitId: produitId,
+      dateJour: null,
+    );
+  }
+
+  /// Wrapper explicite pour récupérer les snapshots globaux par citerne (snapshot historique).
+  ///
+  /// Appelle `fetchCiterneGlobalSnapshots(dateJour: dateJour)` pour utiliser `v_stocks_citerne_global_daily`.
+  Future<List<CiterneGlobalStockSnapshot>> fetchCiterneGlobalSnapshotsJournalier({
+    required String depotId,
+    required DateTime dateJour,
+    String? citerneId,
+    String? produitId,
+  }) async {
+    return fetchCiterneGlobalSnapshots(
+      depotId: depotId,
+      citerneId: citerneId,
+      produitId: produitId,
+      dateJour: dateJour,
+    );
   }
 
   /// Récupère la capacité totale d'un dépôt (somme de toutes les citernes actives)

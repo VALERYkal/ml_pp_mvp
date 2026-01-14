@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:convert';
 import '../providers/logs_providers.dart';
+import '../providers/logs_refs_provider.dart';
 import '../services/logs_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -213,19 +214,12 @@ class LogsListScreen extends ConsumerWidget {
                     return const Center(child: Text('Aucun log'));
                   }
 
-                  // Récupérer les maps de lookup pour les libellés
-                  final citMap = ref
-                      .watch(citerneLookupProvider)
-                      .maybeWhen(
-                        data: (m) => m,
-                        orElse: () => <String, String>{},
-                      );
-                  final prodMap = ref
-                      .watch(produitLookupProvider)
-                      .maybeWhen(
-                        data: (m) => m,
-                        orElse: () => <String, String>{},
-                      );
+                  // Extraire les IDs uniques pour cette page
+                  final refsRequest = LogsRefsRequest.fromLogEntryViews(items);
+                  
+                  // Résoudre les références en batch
+                  final refsAsync = ref.watch(logsRefsProvider(refsRequest));
+                  
                   final usersMap = ref
                       .watch(usersLookupProvider)
                       .maybeWhen(
@@ -233,81 +227,81 @@ class LogsListScreen extends ConsumerWidget {
                         orElse: () => const <String, String>{},
                       );
 
+                  // Obtenir les références résolues (avec fallback)
+                  final refs = refsAsync.maybeWhen(
+                    data: (r) => r,
+                    orElse: () => const LogsRefs(
+                      produitsLabelById: {},
+                      citernesLabelById: {},
+                    ),
+                  );
+
                   return SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: DataTable(
                       columns: const [
-                        DataColumn(label: Text('Date')),
+                        DataColumn(label: Text('Date/Heure')),
+                        DataColumn(label: Text('Niveau')),
                         DataColumn(label: Text('Module')),
                         DataColumn(label: Text('Action')),
-                        DataColumn(label: Text('Niveau')),
-                        DataColumn(label: Text('User')),
-                        DataColumn(label: Text('Citerne')),
-                        DataColumn(label: Text('Produit')),
-                        DataColumn(label: Text('Vol (L)')),
-                        DataColumn(label: Text('15°C (L)')),
-                        DataColumn(label: Text('Date op.')),
-                        DataColumn(
-                          label: Text('Details'),
-                        ), // compact brut (optionnel)
+                        DataColumn(label: Text('Résumé')),
                       ],
                       rows: items.map((e) {
-                        String fmtDt(DateTime? d) => d == null
-                            ? '-'
-                            : d.toLocal().toString().split('.').first;
-                        String fmtD(DateTime? d) => d == null
-                            ? '-'
-                            : '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+                        String fmtDt(DateTime d) {
+                          final local = d.toLocal();
+                          return '${local.year}-${local.month.toString().padLeft(2, '0')}-${local.day.toString().padLeft(2, '0')} ${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
+                        }
 
-                        // Résolution des IDs en libellés lisibles
-                        final citerneLabel = e.citerneId == null
-                            ? '-'
-                            : (citMap[e.citerneId!] ??
-                                  e.citerneId!.substring(0, 8));
-                        final produitLabel = e.produitId == null
-                            ? '-'
-                            : (prodMap[e.produitId!] ??
-                                  e.produitId!.substring(0, 8));
+                        // Couleur du niveau
+                        Color levelColor(String niveau) {
+                          switch (niveau.toUpperCase()) {
+                            case 'CRITICAL':
+                              return Colors.red;
+                            case 'WARNING':
+                              return Colors.orange;
+                            case 'INFO':
+                            default:
+                              return Colors.blue;
+                          }
+                        }
 
                         return DataRow(
-                          onSelectChanged: (_) => _showLogDetails(context, e),
+                          onSelectChanged: (_) => _showLogDetails(context, e, refs),
                           cells: [
-                            DataCell(Text(fmtDt(e.createdAt))),
-                            DataCell(Text(e.module)),
-                            DataCell(Text(e.action)),
-                            DataCell(Text(e.niveau)),
+                            DataCell(Text(fmtDt(e.createdAtLocal))),
                             DataCell(
-                              Text(
-                                e.userId == null
-                                    ? '-'
-                                    : (usersMap[e.userId!] ??
-                                          e.userId!.substring(0, 8)),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: levelColor(e.niveau).withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: levelColor(e.niveau),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Text(
+                                  e.levelLabel,
+                                  style: TextStyle(
+                                    color: levelColor(e.niveau),
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ),
                             ),
-                            DataCell(Text(citerneLabel)),
-                            DataCell(Text(produitLabel)),
+                            DataCell(Text(e.moduleLabel)),
+                            DataCell(Text(e.actionLabel)),
                             DataCell(
-                              Text(
-                                e.volAmb == null
-                                    ? '-'
-                                    : e.volAmb!.toStringAsFixed(1),
-                              ),
-                            ),
-                            DataCell(
-                              Text(
-                                e.vol15c == null
-                                    ? '-'
-                                    : e.vol15c!.toStringAsFixed(1),
-                              ),
-                            ),
-                            DataCell(Text(fmtD(e.dateOp))),
-                            // détail compact (facilite le debug si une clé manque)
-                            DataCell(
-                              Text(
-                                e.rawDetails == null
-                                    ? ''
-                                    : e.rawDetails.toString(),
-                                overflow: TextOverflow.ellipsis,
+                              ConstrainedBox(
+                                constraints: const BoxConstraints(maxWidth: 300),
+                                child: Text(
+                                  e.buildHumanSummary(refs: refs),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
                             ),
                           ],
@@ -340,82 +334,224 @@ class LogsListScreen extends ConsumerWidget {
       : '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
   String _fmtNum(double? v) => v == null ? '-' : v.toStringAsFixed(1);
 
-  void _showLogDetails(BuildContext context, LogEntryView e) {
+  void _showLogDetails(BuildContext context, LogEntryView e, LogsRefs refs) async {
     // Récupérer les maps de lookup pour les libellés via ProviderScope
     final container = ProviderScope.containerOf(context);
     final usersMap = container
         .read(usersLookupProvider)
         .maybeWhen(data: (m) => m, orElse: () => const <String, String>{});
-    final citMap = container
-        .read(citerneLookupProvider)
-        .maybeWhen(data: (m) => m, orElse: () => <String, String>{});
-    final prodMap = container
-        .read(produitLookupProvider)
-        .maybeWhen(data: (m) => m, orElse: () => <String, String>{});
 
-    showDialog(
+    // Couleur du niveau
+    Color levelColor(String niveau) {
+      switch (niveau.toUpperCase()) {
+        case 'CRITICAL':
+          return Colors.red;
+        case 'WARNING':
+          return Colors.orange;
+        case 'INFO':
+        default:
+          return Colors.blue;
+      }
+    }
+
+    final userName = e.userId == null
+        ? '-'
+        : (usersMap[e.userId!] ?? e.userId!.substring(0, 8));
+    
+    final detailsMap = e.detailsMap;
+    final prettyJson = detailsMap == null
+        ? '{}'
+        : const JsonEncoder.withIndent('  ').convert(detailsMap);
+    
+    final chips = e.buildChips(refs: refs);
+
+    await showDialog(
       context: context,
       builder: (ctx) {
-        final userName = e.userId == null
-            ? '-'
-            : (usersMap[e.userId!] ?? e.userId!.substring(0, 8));
-        final citerneName = e.citerneId == null
-            ? '-'
-            : (citMap[e.citerneId!] ?? e.citerneId!.substring(0, 8));
-        final produitName = e.produitId == null
-            ? '-'
-            : (prodMap[e.produitId!] ?? e.produitId!.substring(0, 8));
-        final prettyJson = e.rawDetails == null
-            ? ''
-            : const JsonEncoder.withIndent('  ').convert(e.rawDetails);
-
         return AlertDialog(
-          title: Text('${e.module} • ${e.action}'),
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('${e.moduleLabel} • ${e.actionLabel}'),
+              const SizedBox(height: 4),
+              Text(
+                '${e.createdAtLocal.year}-${e.createdAtLocal.month.toString().padLeft(2, '0')}-${e.createdAtLocal.day.toString().padLeft(2, '0')} ${e.createdAtLocal.hour.toString().padLeft(2, '0')}:${e.createdAtLocal.minute.toString().padLeft(2, '0')}:${e.createdAtLocal.second.toString().padLeft(2, '0')}',
+                style: Theme.of(ctx).textTheme.bodySmall,
+              ),
+            ],
+          ),
           content: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 720),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _line(
-                  'Date log',
-                  e.createdAt.toLocal().toString().split('.').first,
-                ),
-                _line('Utilisateur', userName),
-                const SizedBox(height: 8),
-                if (e.citerneId != null || e.produitId != null) ...[
-                  _line('Citerne', citerneName),
-                  _line('Produit', produitName),
-                ],
-                if (e.volAmb != null ||
-                    e.vol15c != null ||
-                    e.dateOp != null) ...[
-                  _line('Volume (L)', _fmtNum(e.volAmb)),
-                  _line('15°C (L)', _fmtNum(e.vol15c)),
-                  _line('Date opération', _fmtYmd(e.dateOp)),
-                ],
-                const SizedBox(height: 12),
-                Text(
-                  'Détails (JSON)',
-                  style: Theme.of(ctx).textTheme.labelLarge,
-                ),
-                const SizedBox(height: 4),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Theme.of(ctx).colorScheme.surfaceContainerHighest
-                        .withValues(alpha: 0.5),
-                    borderRadius: BorderRadius.circular(8),
+            constraints: const BoxConstraints(maxWidth: 720, maxHeight: 600),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Niveau + Utilisateur
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: levelColor(e.niveau).withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: levelColor(e.niveau),
+                            width: 1,
+                          ),
+                        ),
+                        child: Text(
+                          e.levelLabel,
+                          style: TextStyle(
+                            color: levelColor(e.niveau),
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Utilisateur: $userName',
+                          style: Theme.of(ctx).textTheme.bodyMedium,
+                        ),
+                      ),
+                    ],
                   ),
-                  child: SingleChildScrollView(
-                    child: Text(
-                      prettyJson.isEmpty ? '{}' : prettyJson,
-                      style: const TextStyle(fontFamily: 'monospace'),
+                  const SizedBox(height: 16),
+                  
+                  // Résumé
+                  Text(
+                    'Résumé',
+                    style: Theme.of(ctx).textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 8),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Theme.of(ctx).colorScheme.primaryContainer
+                          .withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(e.buildHumanSummary(refs: refs)),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Champs clés (chips)
+                  if (chips.isNotEmpty) ...[
+                    Text(
+                      'Champs clés',
+                      style: Theme.of(ctx).textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: chips.map((chip) {
+                        return Chip(
+                          label: Text('${chip.label}: ${chip.value}'),
+                          avatar: const Icon(Icons.label, size: 16),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  
+                  // JSON complet
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'JSON complet',
+                        style: Theme.of(ctx).textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      TextButton.icon(
+                        onPressed: () async {
+                          await Clipboard.setData(ClipboardData(text: prettyJson));
+                          if (ctx.mounted) {
+                            ScaffoldMessenger.of(ctx).showSnackBar(
+                              const SnackBar(
+                                content: Text('JSON copié dans le presse-papiers'),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                          }
+                        },
+                        icon: const Icon(Icons.copy, size: 16),
+                        label: const Text('Copier'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    width: double.infinity,
+                    constraints: const BoxConstraints(maxHeight: 300),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Theme.of(ctx).colorScheme.surfaceContainerHighest
+                          .withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Theme.of(ctx).dividerColor,
+                        width: 1,
+                      ),
+                    ),
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: SingleChildScrollView(
+                        child: SelectableText(
+                          prettyJson,
+                          style: const TextStyle(
+                            fontFamily: 'monospace',
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  
+                  // ID cible (si présent)
+                  if (e.cibleId != null) ...[
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'ID cible',
+                          style: Theme.of(ctx).textTheme.labelLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        TextButton.icon(
+                          onPressed: () async {
+                            await Clipboard.setData(ClipboardData(text: e.cibleId!));
+                            if (ctx.mounted) {
+                              ScaffoldMessenger.of(ctx).showSnackBar(
+                                const SnackBar(
+                                  content: Text('ID copié dans le presse-papiers'),
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                            }
+                          },
+                          icon: const Icon(Icons.copy, size: 16),
+                          label: Text(e.cibleId!.substring(0, 8)),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
             ),
           ),
           actions: [

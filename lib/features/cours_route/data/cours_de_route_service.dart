@@ -4,6 +4,7 @@
 // 🗃️ Source SQL : Table `public.cours_de_route`
 // 🧭 Description : Service de gestion des cours de route avec Supabase
 
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cdr_etat.dart';
@@ -172,6 +173,8 @@ class CoursDeRouteService {
   /// await service.create(nouveauCours);
   /// ```
   Future<void> create(CoursDeRoute cours) async {
+    debugPrint('🔵 [CDR SERVICE] cours.produitId = ${cours.produitId}');
+    
     // Validations de création
     if (cours.fournisseurId.isEmpty ||
         cours.depotDestinationId.isEmpty ||
@@ -202,6 +205,7 @@ class CoursDeRouteService {
         'statut': cours.statut.db,
         'note': cours.note,
       };
+      debugPrint('🔴 [CDR SERVICE] payload.produit_id = ${payload['produit_id']}');
       await _supabase.from('cours_de_route').insert(payload);
     } on PostgrestException catch (e) {
       throw Exception('Erreur lors de la création du cours: ${e.message}');

@@ -3,39 +3,42 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'shared/navigation/app_router.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'core/config/app_env.dart';
 import 'features/profil/providers/profil_provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
 
   // Initialiser le formatage des dates pour le package intl
   await initializeDateFormatting('fr', null);
 
-  final urlFromDefine = const String.fromEnvironment('SUPABASE_URL');
-  final keyFromDefine = const String.fromEnvironment('SUPABASE_ANON_KEY');
+  // Charger la configuration de l'environnement
+  final appEnv = await AppEnv.load();
+  
+  // Validation fail-fast: vérifier que l'URL correspond à l'ENV déclaré
+  appEnv.validateOrThrow();
 
-  final supabaseUrl = urlFromDefine.isNotEmpty
-      ? urlFromDefine
-      : (dotenv.env['SUPABASE_URL'] ?? '');
-  final supabaseAnonKey = keyFromDefine.isNotEmpty
-      ? keyFromDefine
-      : (dotenv.env['SUPABASE_ANON_KEY'] ?? '');
-
-  assert(
-    supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty,
-    'Supabase URL/KEY manquants (définis via --dart-define ou .env)',
+  // Initialiser Supabase
+  await Supabase.initialize(
+    url: appEnv.supabaseUrl,
+    anonKey: appEnv.supabaseAnonKey,
   );
 
-  await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
-
-  runApp(const ProviderScope(child: MyApp()));
+  runApp(
+    ProviderScope(
+      overrides: [
+        appEnvSyncProvider.overrideWithValue(appEnv),
+      ],
+      child: MyApp(appEnv: appEnv),
+    ),
+  );
 }
 
 class MyApp extends ConsumerWidget {
-  const MyApp({super.key});
+  final AppEnv appEnv;
+
+  const MyApp({super.key, required this.appEnv});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

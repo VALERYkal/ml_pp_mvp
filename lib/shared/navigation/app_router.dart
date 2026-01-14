@@ -179,26 +179,31 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final isAuthenticated = ref.read(isAuthenticatedProvider);
       final role = ref.read(userRoleProvider); // UserRole? nullable
 
-      // 🧪 Logs ciblés (temporaires)
+      // 🧪 Logs diagnostiques (temporaires pour debug Android)
       debugPrint(
-        '🔁 RedirectEval: loc=$loc, auth=$isAuthenticated, role=$role',
+        '🔁 RouterRedirect: loc=$loc, isAuth=$isAuthenticated, role=$role, from=${state.uri}',
       );
 
       // 1) Non connecté -> /login sauf si on y est déjà
       if (!isAuthenticated) {
+        debugPrint('   ➜ Not authenticated -> redirecting to /login');
         return (loc == '/login') ? null : '/login';
       }
 
       // 2) Connecté mais rôle pas encore prêt -> /splash (neutre si déjà dessus)
       if (role == null) {
+        debugPrint('   ➜ Authenticated but role not ready -> redirecting to /splash');
         return (loc == '/splash') ? null : '/splash';
       }
 
       // 3) Connecté + rôle prêt : normalisation
       if (loc.isEmpty || loc == '/' || loc == '/login' || loc == '/dashboard') {
-        return role.dashboardPath; // ton getter existant
+        final targetPath = role.dashboardPath;
+        debugPrint('   ➜ Authenticated + role ready -> redirecting to $targetPath');
+        return targetPath; // ton getter existant
       }
 
+      debugPrint('   ➜ No redirect needed, staying at $loc');
       return null; // rien à faire
     },
   );

@@ -15,6 +15,7 @@ import 'package:ml_pp_mvp/shared/referentiels/referentiels.dart' as refs;
 import 'package:ml_pp_mvp/shared/providers/ref_data_provider.dart' as rfd;
 import 'package:ml_pp_mvp/shared/referentiels/role_provider.dart';
 import 'package:ml_pp_mvp/shared/utils/volume_calc.dart';
+import 'package:ml_pp_mvp/shared/utils/citerne_sorting.dart';
 import 'package:ml_pp_mvp/features/receptions/data/reception_input.dart';
 import 'package:ml_pp_mvp/features/receptions/data/reception_service.dart'
     show ReceptionService, receptionServiceProvider;
@@ -632,18 +633,20 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
                     final filtered = (pid == null)
                         ? <refs.CiterneRef>[]
                         : list.where((c) => c.produitId == pid).toList();
+                    // 2.5) Trier par numéro de citerne (TANK1, TANK2, ...)
+                    final sortedCiternes = sortCiternesForReception(filtered);
                     // 3) Auto-select citerne when only one choice
                     // Pré-sélection automatique si une seule citerne disponible et aucune sélection manuelle existante
-                    if (filtered.length == 1 && _selectedCiterneId == null) {
+                    if (sortedCiternes.length == 1 && _selectedCiterneId == null) {
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         if (mounted && _selectedCiterneId == null) {
                           setState(
-                            () => _selectedCiterneId = filtered.first.id,
+                            () => _selectedCiterneId = sortedCiternes.first.id,
                           );
                         }
                       });
                     }
-                    if (filtered.isEmpty) {
+                    if (sortedCiternes.isEmpty) {
                       return const Text(
                         'Aucune citerne active disponible pour ce produit',
                       );
@@ -655,7 +658,7 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
                         children: [
                           const Text('Citerne *'),
                           const SizedBox(height: 4),
-                          for (final c in filtered)
+                          for (final c in sortedCiternes)
                             RadioListTile<String>(
                               dense: true,
                               value: c.id,

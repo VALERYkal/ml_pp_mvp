@@ -9,5 +9,8 @@ export 'models/profil.dart';
 export 'models/user_role.dart';
 export 'models/user_role_converter.dart';
 
+// Export de la configuration
+export 'config/app_env.dart';
+
 // Export des services
 export 'services/auth_service.dart';
