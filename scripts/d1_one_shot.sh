@@ -141,6 +141,7 @@ else
     ! -path "test/**/e2e/*" \
     ! -name "*_e2e_test.dart" \
     ! -name "*e2e_test.dart" \
+    ! -name "widget_test.dart" \
     | sort)
 fi
 
