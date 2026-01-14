@@ -97,6 +97,62 @@ Contient toutes les spécifications et documents nécessaires :
 
 ---
 
+## 🚀 Lancement en STAGING (local/dev)
+
+Par défaut, l'app se connecte à **STAGING** (`ml_pp_mvp_staging`) en local/dev.
+
+### Configuration initiale
+
+1. Créer `.env.local` depuis le template :
+   ```bash
+   cp .env.example .env.local
+   ```
+
+2. Remplir les valeurs réelles dans `.env.local` :
+   ```bash
+   SUPABASE_ENV=STAGING
+   SUPABASE_URL=https://jgquhldzcisjnbotnskr.supabase.co
+   SUPABASE_ANON_KEY=votre_clé_ici
+   ```
+
+   ⚠️ **Important** : `.env.local` est dans `.gitignore` et ne sera jamais commité.
+
+### Lancement
+
+**Web (recommandé avec --dart-define)** :
+```bash
+flutter run -d chrome \
+  --dart-define=SUPABASE_ENV=STAGING \
+  --dart-define=SUPABASE_URL=https://jgquhldzcisjnbotnskr.supabase.co \
+  --dart-define=SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpncXVobGR6Y2lzam5ib3Ruc2tyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc0NTI4MjcsImV4cCI6MjA4MzAyODgyN30.SancVahxyR1HtcrxGvO0KBqUZms_4W4D3Pei2C5uNak
+```
+
+**Web (via script)** :
+```bash
+./scripts/run_web_staging.sh
+```
+
+**macOS** :
+```bash
+./scripts/run_macos_staging.sh
+```
+
+> ⚠️ **Note WEB** : Sur Flutter Web, les `--dart-define` sont **obligatoires** (pas de fallback `.env.local`). Le script `run_web_staging.sh` les injecte automatiquement.
+
+### Badge ENV dans l'UI
+
+Un badge affiche l'environnement actif en haut à droite de l'app :
+- 🟠 **STAGING** : Environnement de staging (par défaut local)
+- 🔴 **PROD** : Production (bloqué en debug)
+- ⚫ **DEV** : Développement
+
+### Garde-fous
+
+- **PROD bloqué en debug** : Pour éviter les connexions accidentelles, PROD est bloqué en mode DEBUG sauf si `ALLOW_PROD_DEBUG=true` via `--dart-define`.
+- **Priorité des variables** : Les `--dart-define` (utilisés en CI/Release) ont toujours la priorité sur `.env.local`.
+
+---
+
 ## 🧪 Tests d'intégration DB réels
 
 Le projet inclut des tests d'intégration DB réels exécutés contre l'environnement STAGING :
