@@ -11,8 +11,9 @@ import 'package:flutter_test/flutter_test.dart';
 // import 'package:ml_pp_mvp/main.dart';
 
 void main() {
-  testWidgets('placeholder', (WidgetTester tester) async {
-    // Test placeholder désactivé car l\'app requiert Supabase.initialize
-    expect(true, isTrue);
-  });
+  testWidgets(
+    'placeholder',
+    (WidgetTester tester) async {},
+    skip: true, // désactivé : test boilerplate Flutter
+  );
 }
