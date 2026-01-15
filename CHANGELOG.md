@@ -4,6 +4,58 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 
 ## [Unreleased]
 
+### ✅ **[Tests] — Fix Tests Déterministes (100% Passants) — 2026-01-15**
+
+#### **Problème**
+- **Widget test** `dashboard_screens_smoke_test.dart` échouait avec `PostgrestException 400` car les providers stocks KPI tentaient de faire des requêtes Supabase réelles pendant les tests
+- **Layout overflow** : `RenderFlex overflowed by 5.4 pixels` dans `role_dashboard.dart` section "Détail par propriétaire"
+- **Test E2E sorties** : `UnimplementedError` dans `RoleDepotChips` (appEnvSyncProvider non overridé) + RenderFlex overflow
+- **Test KPI repository** : Dépendance à des données staging réelles dans `stocks_journaliers` au lieu d'utiliser la vue `v_stocks_citerne_global_daily`
+
+#### **Solution — Fake Repository Pattern**
+**Création de `_FakeStocksKpiRepository extends StocksKpiRepository`** dans le test :
+- Override de `stocksKpiRepositoryProvider.overrideWithValue(_FakeStocksKpiRepository())` pour couper le réseau
+- Stub implementations pour toutes les méthodes utilisées par les providers dashboard :
+  - `fetchDepotProductTotals()` → Données de test (10000L ambiant, 9500L @15°C)
+  - `fetchDepotOwnerTotals()` → MONALUXE (7000L) + PARTENAIRE (3000L)
+  - `fetchCiterneGlobalSnapshots()` → 2 citernes de test (TANK 1: 6000L, TANK 2: 4000L)
+  - `fetchDepotTotalCapacity()` → Capacité totale 30000L
+  - `fetchStockActuelRows()` → Liste vide (stub minimal)
+  - Wrappers `*Journalier()` délèguent aux méthodes de base
+- **Pattern clean** : Extend la classe concrète `StocksKpiRepository` (pas abstract), satisfaire le constructeur avec un fake `SupabaseClient`, override uniquement les méthodes nécessaires
+
+#### **Solution — Layout Overflow**
+**Optimisation des espacements dans `lib/features/dashboard/widgets/role_dashboard.dart`** :
+- Section "Détail par propriétaire" (data & error states) :
+  - `SizedBox(height: 16)` → `SizedBox(height: 12)` (avant le titre)
+  - `SizedBox(height: 12)` → `SizedBox(height: 8)` (avant LayoutBuilder et entre colonnes mobile)
+- Gain de 10 pixels d'espacement vertical élimine l'overflow de 5.4px
+
+#### **Résultat**
+- ✅ **7 tests dashboard smoke passent** sans erreur réseau
+- ✅ **Plus d'overflow** dans les écrans dashboard (tous rôles)
+- ✅ **498 tests passent** au total (100% de succès pour tests unitaires + widget + E2E UI)
+- ⏭️ **8 tests skipped** (tests d'intégration DB-STRICT marqués `@Tags(['integration'])`)
+- ✅ **0 tests échouent** — Tous les tests déterministes passent maintenant !
+
+#### **Changed**
+- **`test/features/dashboard/screens/dashboard_screens_smoke_test.dart`** :
+  - Ajout de `_FakeStocksKpiRepository` avec 10 méthodes stubées
+  - Import de `stocks_kpi_repository.dart` et `stocks_kpi_providers.dart`
+  - Override de `stocksKpiRepositoryProvider` dans `_createTestContainer()`
+- **`lib/features/dashboard/widgets/role_dashboard.dart`** :
+  - Réduction des espacements dans sections "Détail par propriétaire" (2 occurrences)
+- **`test/features/sorties/sorties_e2e_test.dart`** :
+  - Ajout de `appEnvSyncProvider.overrideWithValue(AppEnv.forTest(envName: 'STAGING'))` pour fixer `RoleDepotChips`
+  - Ajout de `await tester.binding.setSurfaceSize(const Size(1280, 900))` pour stabiliser la taille écran et éviter RenderFlex overflow
+  - Import de `app_env.dart`
+- **`test/features/stocks/stocks_kpi_repository_test.dart`** :
+  - Alignement sur la logique réelle du repository : utilisation de `v_stocks_citerne_global_daily` au lieu de `stocks_journaliers`
+  - Test 100% fake (plus de dépendance à des données staging réelles)
+  - Données simplifiées (déjà agrégées par la vue, format `stock_ambiant_total` / `stock_15c_total`)
+
+---
+
 ### 🛡️ **[AXE C] — Clôture Administrative Sécurité & RLS — 2026-01-14**
 
 #### **Clôture Formelle**
@@ -34,6 +86,27 @@ L'**AXE C — Sécurité & Accès** est déclaré **TERMINÉ (ADMINISTRATIF)**.
 - [Matrice des droits](docs/SECURITY_RLS_MATRIX.md)
 - [Preuves RLS](docs/SECURITY_RLS_STAGING_PROOFS.md)
 - [Rapport non-bypass UI](docs/SECURITY_UI_NON_BYPASS.md)
+
+---
+
+### 🐛 **[Tests] — Correction FakeFilterBuilder.limit() — 2026-01-14**
+
+#### **Problem**
+Le test `stocks_kpi_repository_test.dart` échouait avec l'erreur :
+```
+no instance method limit with matching arguments
+```
+Le code réel de `StocksKpiRepository` appelle `limit()` sur le builder Supabase/Postgrest, mais `_FakeFilterBuilder<T>` n'implémentait pas cette méthode.
+
+#### **Fixed**
+- **`test/features/stocks/stocks_kpi_repository_test.dart`** :
+  - Ajout de la méthode `limit(int count, {String? foreignTable})` dans `_FakeFilterBuilder<T>`
+  - Signature tolérante avec paramètre nommé `foreignTable` (compatible avec les versions Supabase/Postgrest)
+  - Méthode chainable qui retourne `this` (comme les autres méthodes du builder)
+
+#### **Changed**
+- **`test/features/stocks/stocks_kpi_repository_test.dart`** :
+  - `_FakeFilterBuilder<T>` implémente maintenant complètement l'interface `PostgrestFilterBuilder<T>` pour les méthodes utilisées par le repository
 
 ---
 
@@ -106,6 +179,47 @@ Le job CI "D1 One-Shot (light)" échouait de manière intermittente sur Linux (G
 - ✅ Aucun test flaky restant
 - ✅ Logs CI toujours générés pour le debugging
 - ✅ Tests robustes aux différences de locale et de timing
+
+---
+
+### 🔧 **[Tests] — Correction FakeStocksKpiRepository — 2026-01-14**
+
+#### **Problem**
+Les classes de test `FakeStocksKpiRepository` et `_CapturingStocksKpiRepository` ne compilaient plus car :
+- L'interface `StocksKpiRepository` a été enrichie avec 6 nouvelles méthodes wrapper (Actuel/Journalier)
+- Les méthodes avaient des signatures `async;` sans corps (non compilables)
+- Les classes de test n'implémentaient pas toutes les méthodes requises
+
+#### **Fixed**
+
+##### **test/features/stocks/depot_stocks_snapshot_provider_test.dart**
+- **`FakeStocksKpiRepository`** :
+  - Ajout des implémentations minimales (stubs) pour toutes les méthodes existantes
+  - Remplacement de `throw UnimplementedError()` par des retours neutres (`[]`, `0.0`)
+  - Ajout des 6 nouvelles méthodes wrapper :
+    - `fetchDepotProductTotalsActuel`
+    - `fetchDepotProductTotalsJournalier`
+    - `fetchDepotOwnerTotalsActuel`
+    - `fetchDepotOwnerTotalsJournalier`
+    - `fetchCiterneGlobalSnapshotsActuel`
+    - `fetchCiterneGlobalSnapshotsJournalier`
+
+- **`_CapturingStocksKpiRepository`** :
+  - Ajout des implémentations qui délèguent au `_delegate`
+  - Capture de `dateJour` : `onDateJour(null)` pour méthodes "Actuel", `onDateJour(dateJour)` pour "Journalier"
+  - Ajout des 6 nouvelles méthodes wrapper avec délégation
+
+##### **test/features/stocks/widgets/stocks_kpi_cards_test.dart**
+- **`FakeStocksKpiRepositoryForWidget`** :
+  - Ajout des 6 nouvelles méthodes wrapper
+  - Implémentations cohérentes avec le pattern existant (retourne les données du `snapshot` si disponible)
+  - Aucune DB, aucun fake Postgrest, juste des retours de snapshot (widget-test friendly)
+
+#### **Result**
+- ✅ Toutes les classes de test compilent sans erreurs
+- ✅ Tous les tests passent (6/6 pour `depot_stocks_snapshot_provider_test.dart`, 1/1 pour `stocks_kpi_cards_test.dart`)
+- ✅ Les classes implémentent maintenant complètement l'interface `StocksKpiRepository`
+- ✅ Aucune erreur de lint
 
 ---
 
