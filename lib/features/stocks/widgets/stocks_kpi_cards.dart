@@ -177,9 +177,9 @@ class OwnerStockBreakdownCard extends ConsumerWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Stock par propriétaire',
-                      style: t.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
+                    'Stock par propriétaire',
+                    style: t.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
@@ -228,10 +228,11 @@ class OwnerStockBreakdownCard extends ConsumerWidget {
         borderRadius: BorderRadius.circular(16),
         color: t.colorScheme.surfaceVariant.withOpacity(0.25),
       ),
-      child: Row(
-        children: [
-          // Label avec badge coloré
-          Container(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isNarrow = constraints.maxWidth < 360;
+
+          final ownerChip = Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
               color: color.withOpacity(0.1),
@@ -239,62 +240,103 @@ class OwnerStockBreakdownCard extends ConsumerWidget {
             ),
             child: Text(
               label,
-              style: t.textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: color,
-              ),
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
             ),
-          ),
-          const Spacer(),
-          // Volume ambiant (source de vérité opérationnelle) avec badge "Corrigé" (B4.4-B)
-          Row(
+          );
+
+          final ambiantBlock = Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Column(
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
                     fmtL(ambiant),
-                    style: t.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
                   ),
                   Text(
                     'Ambiant',
-                    style: t.textTheme.bodySmall?.copyWith(
-                      color: t.colorScheme.onSurfaceVariant,
-                    ),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                   ),
                 ],
               ),
-              // B4.4-B : Badge "Corrigé" pour stock par propriétaire
               if (depotId != null && depotId.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(left: 8),
                   child: StockCorrectedBadge(depotId: depotId),
                 ),
             ],
-          ),
-          const SizedBox(width: 16),
-          // Volume 15°C (valeur dérivée, analytique)
-          Column(
+          );
+
+          final stock15cBlock = Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
                 fmtL(stock15c),
-                style: t.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w500,
-                  color: t.colorScheme.onSurfaceVariant,
-                ),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w500,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
               ),
               Text(
                 '≈ 15°C',
-                style: t.textTheme.bodySmall?.copyWith(
-                  color: t.colorScheme.onSurfaceVariant,
-                ),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
               ),
             ],
-          ),
-        ],
+          );
+
+          if (!isNarrow) {
+            // Large: row classique (comme avant) mais sans overflow
+            return Row(
+              children: [
+                ownerChip,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Wrap(
+                      alignment: WrapAlignment.end,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 16,
+                      runSpacing: 8,
+                      children: [
+                        ambiantBlock,
+                        stock15cBlock,
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            );
+          }
+
+          // Narrow: colonne => aucun risque d'overflow
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ownerChip,
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(child: ambiantBlock),
+                  const SizedBox(width: 12),
+                  stock15cBlock,
+                ],
+              ),
+            ],
+          );
+        },
       ),
     );
   }

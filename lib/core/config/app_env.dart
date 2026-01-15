@@ -19,6 +19,38 @@ class AppEnv {
     required this.supabaseAnonKey,
   });
 
+  /// Factory pour les tests uniquement (déterministe, sans dépendance à .env)
+  ///
+  /// Crée un AppEnv avec des valeurs fake pour les tests.
+  /// Ne doit jamais être utilisé en production.
+  @visibleForTesting
+  static AppEnv forTest({required String envName}) {
+    // Normaliser envName en MAJUSCULES
+    final normalizedEnv = envName.toUpperCase();
+    
+    // Valider que envName est dans la liste autorisée
+    if (normalizedEnv != 'DEV' && normalizedEnv != 'STAGING' && normalizedEnv != 'PROD') {
+      throw ArgumentError(
+        'envName must be one of: DEV, STAGING, PROD. Got: $envName',
+      );
+    }
+
+    // Valeurs fake pour les tests (pas de secrets réels)
+    final fakeUrl = normalizedEnv == 'STAGING'
+        ? 'https://jgquhldzcisjnbotnskr.supabase.co'
+        : normalizedEnv == 'PROD'
+            ? 'https://prod-fake-ref.supabase.co'
+            : 'https://dev-fake-ref.supabase.co';
+    
+    const fakeAnonKey = 'fake-anon-key-for-testing-only';
+
+    return AppEnv._(
+      envName: normalizedEnv,
+      supabaseUrl: fakeUrl,
+      supabaseAnonKey: fakeAnonKey,
+    );
+  }
+
   /// Charger la configuration depuis dart-define, puis .env.local, puis .env
   static Future<AppEnv> load() async {
     // 1. Priorité absolue: dart-define (CI/Release)

@@ -72,11 +72,11 @@ class StocksScreen extends ConsumerWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            'Stock par propriétaire',
-                            style: theme.textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: theme.colorScheme.onSurface,
-                            ),
+                      'Stock par propriétaire',
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.onSurface,
+                      ),
                           ),
                         ),
                         StockCorrectedBadge(depotId: depotId),
@@ -95,11 +95,11 @@ class StocksScreen extends ConsumerWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            'Stock total dépôt',
-                            style: theme.textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: theme.colorScheme.onSurface,
-                            ),
+                      'Stock total dépôt',
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.onSurface,
+                      ),
                           ),
                         ),
                         StockCorrectedBadge(depotId: depotId),
@@ -196,11 +196,11 @@ class StocksScreen extends ConsumerWidget {
                         children: [
                           Expanded(
                             child: Text(
-                              'Stock total',
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: theme.colorScheme.onSurface,
-                              ),
+                        'Stock total',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.onSurface,
+                        ),
                             ),
                           ),
                           // B4.4-B : Badge "Corrigé" pour stock total dépôt

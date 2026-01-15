@@ -63,9 +63,9 @@ class KpiCard extends StatelessWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      title,
-                      style: t.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
+                    title,
+                    style: t.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
