@@ -134,8 +134,11 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
 
   /// Initialise le formulaire avec les valeurs par défaut
   void _initializeForm() {
-    // Définir le produit par défaut (AGO)
-    selectedProduitId = CoursRouteConstants.produitAgoId;
+    debugPrint('🟣 [CDR FORM] _initializeForm() called');
+    debugPrint('🟣 [CDR FORM] selectedProduitId (before init) = $selectedProduitId');
+    
+    // ⚠️ IMPORTANT: Pas de pré-sélection de produit (évite FK violation en STAGING)
+    // selectedProduitId reste null jusqu'à sélection explicite par l'utilisateur
 
     // Date de chargement par défaut (aujourd'hui)
     dateChargement = DateTime.now();
@@ -144,6 +147,8 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
     if (widget.coursId != null) {
       _loadExistingCours();
     }
+    
+    debugPrint('🟣 [CDR FORM] selectedProduitId (after init) = $selectedProduitId');
   }
 
   /// Construit le formulaire
@@ -166,8 +171,8 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
           _buildFournisseurDropdown(refData),
           const SizedBox(height: 16),
 
-          // Produit - Toggle ESS/AGO
-          _buildProduitToggle(),
+          // Produit - Dropdown depuis DB (zéro UUID hardcodé)
+          _buildProduitSelector(refData),
           const SizedBox(height: 16),
 
           // Dépôt destination - Lecture seule
@@ -345,81 +350,60 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
     );
   }
 
-  /// Construit le toggle produit ESS/AGO (responsive)
-  Widget _buildProduitToggle() {
-    return InputDecorator(
-      decoration: const InputDecoration(
-        labelText: 'Produit *',
-        border: OutlineInputBorder(),
-      ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final isWide = constraints.maxWidth >= 600;
+  /// Sélection produit depuis la DB (zéro UUID hardcodé)
+  Widget _buildProduitSelector(RefDataCache refData) {
+    final produits = refData.produits; // Map<String, String> : id -> nom
+    final produitCodes = refData.produitCodes; // Map<String, String> : id -> code
+    final hasProduits = produits.isNotEmpty;
 
-          if (isWide) {
-            // Desktop/Tablet : côte à côte
-            return Row(
-              children: [
-                Expanded(
-                  child: RadioListTile<String>(
-                    title: const Text('Essence'),
-                    value: CoursRouteConstants.produitEssId,
-                    groupValue: selectedProduitId,
-                    onChanged: (value) {
-                      setState(() {
-                        selectedProduitId = value;
-                        _dirty = true;
-                      });
-                    },
-                  ),
-                ),
-                Expanded(
-                  child: RadioListTile<String>(
-                    title: const Text('Gasoil / AGO'),
-                    value: CoursRouteConstants.produitAgoId,
-                    groupValue: selectedProduitId,
-                    onChanged: (value) {
-                      setState(() {
-                        selectedProduitId = value;
-                        _dirty = true;
-                      });
-                    },
-                  ),
-                ),
-              ],
-            );
-          } else {
-            // Mobile : empilés verticalement
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                RadioListTile<String>(
-                  title: const Text('Essence'),
-                  value: CoursRouteConstants.produitEssId,
-                  groupValue: selectedProduitId,
-                  onChanged: (value) {
-                    setState(() {
-                      selectedProduitId = value;
-                      _dirty = true;
-                    });
-                  },
-                ),
-                RadioListTile<String>(
-                  title: const Text('Gasoil / AGO'),
-                  value: CoursRouteConstants.produitAgoId,
-                  groupValue: selectedProduitId,
-                  onChanged: (value) {
-                    setState(() {
-                      selectedProduitId = value;
-                      _dirty = true;
-                    });
-                  },
-                ),
-              ],
-            );
-          }
-        },
+    // Si le produit sélectionné n'existe plus (changement DB), on reset
+    final selectedIsValid = selectedProduitId != null &&
+        produits.containsKey(selectedProduitId);
+    if (selectedProduitId != null && !selectedIsValid) {
+      // Important: reset sans setState (on est dans build)
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {
+            selectedProduitId = null;
+          });
+        }
+      });
+    }
+
+    // Construire le label pour chaque produit : "CODE — Nom" ou "Nom"
+    String buildProduitLabel(String produitId) {
+      final nom = produits[produitId] ?? 'Produit';
+      final code = produitCodes[produitId]?.trim();
+      if (code != null && code.isNotEmpty) {
+        return '$code — $nom';
+      }
+      return nom;
+    }
+
+    return DropdownButtonFormField<String>(
+      value: selectedIsValid ? selectedProduitId : null,
+      decoration: InputDecoration(
+        labelText: 'Produit *',
+        border: const OutlineInputBorder(),
+        hintText: hasProduits ? 'Sélectionner un produit' : 'Aucun produit disponible',
+        errorText: selectedProduitId == null ? 'Produit requis' : null,
       ),
+      items: produits.entries
+          .map(
+            (entry) => DropdownMenuItem<String>(
+              value: entry.key,
+              child: Text(buildProduitLabel(entry.key)),
+            ),
+          )
+          .toList(),
+      onChanged: hasProduits
+          ? (value) {
+              setState(() {
+                selectedProduitId = value;
+                _dirty = true;
+              });
+            }
+          : null,
     );
   }
 
@@ -526,6 +510,14 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
   /// Construit le bouton de soumission
   Widget _buildSubmitButton() {
     final refDataAsync = ref.watch(refDataProvider);
+    
+    // Désactiver le bouton si :
+    // - En cours de sauvegarde
+    // - Référentiels en chargement
+    // - Produit non sélectionné (obligatoire)
+    final isDisabled = isSaving || 
+                       refDataAsync.isLoading || 
+                       selectedProduitId == null;
 
     return ElevatedButton.icon(
       icon: isSaving
@@ -536,7 +528,7 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
             )
           : const Icon(Icons.save),
       label: Text(isSaving ? 'Enregistrement...' : 'Enregistrer'),
-      onPressed: (isSaving || refDataAsync.isLoading) ? null : _submitForm,
+      onPressed: isDisabled ? null : _submitForm,
       style: ElevatedButton.styleFrom(
         minimumSize: const Size(double.infinity, 48),
       ),
@@ -545,6 +537,21 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
 
   /// Soumet le formulaire
   Future<void> _submitForm() async {
+    debugPrint('🟡 [CDR FORM] submitForm()');
+    debugPrint('🟡 [CDR FORM] selectedProduitId = $selectedProduitId');
+    
+    // Validation produit obligatoire (fail-fast avant validation formulaire)
+    if (selectedProduitId == null) {
+      if (mounted) {
+        showAppToast(
+          context,
+          'Veuillez sélectionner un produit.',
+          type: ToastType.error,
+        );
+      }
+      return;
+    }
+
     final isValid = _formKey.currentState?.validate() ?? false;
 
     if (!isValid) {
@@ -566,6 +573,8 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
       double parseVolume(String s) => double.parse(s.replaceAll(',', '.'));
       String? emptyToNull(String? s) => (s?.trim().isEmpty ?? true) ? null : s;
 
+      debugPrint('🟠 [CDR FORM] creating CoursDeRoute with produitId = $selectedProduitId');
+      
       final cours = CoursDeRoute(
         id: isEditing
             ? widget.coursId!

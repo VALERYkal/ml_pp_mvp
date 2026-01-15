@@ -36,10 +36,10 @@ void main() {
       proprietaireType: 'MONALUXE',
       note: 'test',
       dateSortie: DateTime(2025, 8, 14),
-      chauffeurNom: 'John',
-      plaqueCamion: 'ABC-123',
+      chauffeurNom: 'TEST CHAUFFEUR',
+      plaqueCamion: 'AA-123-BB',
       plaqueRemorque: null,
-      transporteur: 'DHL',
+      transporteur: 'TEST TRANSPORTEUR',
     );
 
     expect(input.citerneId, 'c1');
@@ -47,8 +47,8 @@ void main() {
     expect(input.indexAvant, 1000);
     expect(input.indexApres, 1100);
     expect(input.proprietaireType, 'MONALUXE');
-    expect(input.chauffeurNom, 'John');
-    expect(input.transporteur, 'DHL');
+    expect(input.chauffeurNom, 'TEST CHAUFFEUR');
+    expect(input.transporteur, 'TEST TRANSPORTEUR');
   });
 
   test('SortieInput: validation des indices cohérents', () {
@@ -65,10 +65,10 @@ void main() {
       proprietaireType: 'MONALUXE',
       note: null,
       dateSortie: DateTime(2025, 8, 14),
-      chauffeurNom: 'John',
-      plaqueCamion: 'ABC-123',
+      chauffeurNom: 'TEST CHAUFFEUR',
+      plaqueCamion: 'AA-123-BB',
       plaqueRemorque: null,
-      transporteur: 'DHL',
+      transporteur: 'TEST TRANSPORTEUR',
     );
 
     final volumeAmbiant = (input.indexApres ?? 0) - (input.indexAvant ?? 0);
@@ -90,10 +90,10 @@ void main() {
       proprietaireType: 'MONALUXE', // ✅ Valide
       note: null,
       dateSortie: DateTime(2025, 8, 14),
-      chauffeurNom: 'John',
-      plaqueCamion: 'ABC-123',
+      chauffeurNom: 'TEST CHAUFFEUR',
+      plaqueCamion: 'AA-123-BB',
       plaqueRemorque: null,
-      transporteur: 'DHL',
+      transporteur: 'TEST TRANSPORTEUR',
     );
 
     final input2 = SortieInput(
@@ -108,10 +108,10 @@ void main() {
       proprietaireType: 'PARTENAIRE', // ✅ Valide
       note: null,
       dateSortie: DateTime(2025, 8, 14),
-      chauffeurNom: 'John',
-      plaqueCamion: 'ABC-123',
+      chauffeurNom: 'TEST CHAUFFEUR',
+      plaqueCamion: 'AA-123-BB',
       plaqueRemorque: null,
-      transporteur: 'DHL',
+      transporteur: 'TEST TRANSPORTEUR',
     );
 
     expect(input1.proprietaireType, 'MONALUXE');
@@ -132,10 +132,10 @@ void main() {
       proprietaireType: 'MONALUXE',
       note: null,
       dateSortie: DateTime(2025, 8, 14),
-      chauffeurNom: 'John',
-      plaqueCamion: 'ABC-123',
+      chauffeurNom: 'TEST CHAUFFEUR',
+      plaqueCamion: 'AA-123-BB',
       plaqueRemorque: null,
-      transporteur: 'DHL',
+      transporteur: 'TEST TRANSPORTEUR',
     );
 
     // Au moins un des deux doit être non-null
@@ -156,10 +156,10 @@ void main() {
       proprietaireType: 'MONALUXE',
       note: null,
       dateSortie: DateTime(2025, 8, 14),
-      chauffeurNom: 'John Doe', // ✅ Non vide
-      plaqueCamion: 'ABC-123', // ✅ Non vide
+      chauffeurNom: 'TEST CHAUFFEUR', // ✅ Non vide
+      plaqueCamion: 'AA-123-BB', // ✅ Non vide
       plaqueRemorque: null, // Optionnel
-      transporteur: 'DHL', // ✅ Non vide
+      transporteur: 'TEST TRANSPORTEUR', // ✅ Non vide
     );
 
     expect(input.chauffeurNom?.isNotEmpty ?? false, isTrue);

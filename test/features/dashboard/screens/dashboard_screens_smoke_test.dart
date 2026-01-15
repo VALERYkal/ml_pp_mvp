@@ -19,10 +19,154 @@ import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart';
 import 'package:ml_pp_mvp/core/models/profil.dart';
 import 'package:ml_pp_mvp/core/models/user_role.dart';
 import 'package:ml_pp_mvp/shared/providers/session_provider.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart' as Riverpod;
 import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart'
     show CurrentProfilNotifier;
 import 'package:ml_pp_mvp/features/dashboard/providers/citernes_sous_seuil_provider.dart';
+import 'package:ml_pp_mvp/data/repositories/repositories.dart';
+import 'package:ml_pp_mvp/data/repositories/stocks_kpi_repository.dart';
+import 'package:ml_pp_mvp/features/stocks/data/stocks_kpi_providers.dart';
+import 'package:ml_pp_mvp/core/config/app_env.dart';
+import 'package:supabase/supabase.dart';
+
+/// Fake repository pour les tests smoke du dashboard
+class _FakeStocksKpiRepository extends StocksKpiRepository {
+  _FakeStocksKpiRepository()
+      : super(SupabaseClient('https://fake.supabase.co', 'fake-anon-key'));
+
+  @override
+  Future<List<DepotGlobalStockKpi>> fetchDepotProductTotals({
+    String? depotId,
+    String? produitId,
+    DateTime? dateJour,
+  }) async {
+    return [
+      DepotGlobalStockKpi(
+        depotId: depotId ?? 'test-depot',
+        depotNom: 'DEPOT TEST',
+        produitId: produitId ?? 'P1',
+        produitNom: 'DIESEL',
+        stockAmbiantTotal: 10000,
+        stock15cTotal: 9500,
+      ),
+    ];
+  }
+
+  @override
+  Future<List<DepotOwnerStockKpi>> fetchDepotOwnerTotals({
+    String? depotId,
+    String? produitId,
+    String? proprietaireType,
+    DateTime? dateJour,
+  }) async {
+    return [
+      DepotOwnerStockKpi(
+        depotId: depotId ?? 'test-depot',
+        depotNom: 'DEPOT TEST',
+        proprietaireType: 'MONALUXE',
+        produitId: produitId ?? 'P1',
+        produitNom: 'DIESEL',
+        stockAmbiantTotal: 7000,
+        stock15cTotal: 6650,
+      ),
+      DepotOwnerStockKpi(
+        depotId: depotId ?? 'test-depot',
+        depotNom: 'DEPOT TEST',
+        proprietaireType: 'PARTENAIRE',
+        produitId: produitId ?? 'P1',
+        produitNom: 'DIESEL',
+        stockAmbiantTotal: 3000,
+        stock15cTotal: 2850,
+      ),
+    ];
+  }
+
+  @override
+  Future<List<CiterneGlobalStockSnapshot>> fetchCiterneGlobalSnapshots({
+    String? depotId,
+    String? citerneId,
+    String? produitId,
+    DateTime? dateJour,
+  }) async {
+    final d = dateJour ?? DateTime(2026, 1, 15);
+    return [
+      CiterneGlobalStockSnapshot(
+        citerneId: 'C1',
+        citerneNom: 'TANK 1',
+        produitId: produitId ?? 'P1',
+        produitNom: 'DIESEL',
+        dateJour: d,
+        stockAmbiantTotal: 6000,
+        stock15cTotal: 5700,
+        capaciteTotale: 15000,
+        capaciteSecurite: 0,
+      ),
+      CiterneGlobalStockSnapshot(
+        citerneId: 'C2',
+        citerneNom: 'TANK 2',
+        produitId: produitId ?? 'P1',
+        produitNom: 'DIESEL',
+        dateJour: d,
+        stockAmbiantTotal: 4000,
+        stock15cTotal: 3800,
+        capaciteTotale: 15000,
+        capaciteSecurite: 0,
+      ),
+    ];
+  }
+
+  @override
+  Future<double> fetchDepotTotalCapacity({
+    required String depotId,
+    String? produitId,
+  }) async {
+    return 30000;
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> fetchStockActuelRows({
+    required String depotId,
+    String? produitId,
+  }) async {
+    return [];
+  }
+
+  // Wrappers Journalier (délégation vers méthodes de base)
+  @override
+  Future<List<DepotGlobalStockKpi>> fetchDepotProductTotalsJournalier({
+    required String depotId,
+    required DateTime dateJour,
+    String? produitId,
+  }) =>
+      fetchDepotProductTotals(depotId: depotId, produitId: produitId, dateJour: dateJour);
+
+  @override
+  Future<List<DepotOwnerStockKpi>> fetchDepotOwnerTotalsJournalier({
+    required String depotId,
+    required DateTime dateJour,
+    String? produitId,
+    String? proprietaireType,
+  }) =>
+      fetchDepotOwnerTotals(
+        depotId: depotId,
+        produitId: produitId,
+        proprietaireType: proprietaireType,
+        dateJour: dateJour,
+      );
+
+  @override
+  Future<List<CiterneGlobalStockSnapshot>> fetchCiterneGlobalSnapshotsJournalier({
+    required String depotId,
+    required DateTime dateJour,
+    String? citerneId,
+    String? produitId,
+  }) =>
+      fetchCiterneGlobalSnapshots(
+        depotId: depotId,
+        citerneId: citerneId,
+        produitId: produitId,
+        dateJour: dateJour,
+      );
+}
 
 /// Fake notifier pour currentProfilProvider dans les tests
 class _FakeProfilNotifier extends CurrentProfilNotifier {
@@ -95,8 +239,16 @@ void main() {
             trucksToFollow: KpiTrucksToFollow.zero,
           );
 
+      final appEnv = AppEnv.forTest(envName: 'STAGING');
       return ProviderContainer(
         overrides: [
+          // ✅ Évite Supabase.instance.client (non initialisé en widget tests)
+          appEnvSyncProvider.overrideWithValue(appEnv),
+          supabaseClientProvider.overrideWithValue(
+            SupabaseClient('https://fake.supabase.co', 'fake-anon-key'),
+          ),
+          // ✅ IMPORTANT: coupe le réseau pour les KPI stocks
+          stocksKpiRepositoryProvider.overrideWithValue(_FakeStocksKpiRepository()),
           // Override auth state pour simuler un utilisateur connecté
           // Utilise un Stream qui émet immédiatement une valeur puis se termine
           appAuthStateProvider.overrideWith(

@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ml_pp_mvp/features/sorties/data/sortie_service.dart' as sorties;
 import 'package:ml_pp_mvp/features/sorties/providers/sortie_providers.dart'
     as sp;
@@ -197,6 +198,29 @@ Future<void> _enterTextInTextFieldByLabel(
   await tester.enterText(fieldFinder, value);
 }
 
+Widget _wrapWithRouter(Widget child, {String initialLocation = '/'}) {
+  final router = GoRouter(
+    initialLocation: initialLocation,
+    routes: [
+      GoRoute(
+        path: '/',
+        builder: (context, state) => child,
+      ),
+      // optionnel: routes cibles si le submit navigue vers une route précise
+      GoRoute(
+        path: '/sorties',
+        builder: (context, state) => child,
+      ),
+      GoRoute(
+        path: '/dashboard',
+        builder: (context, state) => child,
+      ),
+    ],
+  );
+
+  return MaterialApp.router(routerConfig: router);
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -225,8 +249,6 @@ void main() {
         {'id': 'client-1', 'nom': 'Client Test'},
       ];
 
-      // Utiliser MaterialApp simple au lieu de MaterialApp.router
-      // pour éviter les problèmes de scope Riverpod imbriqués
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -245,8 +267,8 @@ void main() {
               (ref) async => <Map<String, String>>[],
             ),
           ],
-          child: MaterialApp(
-            home: SortieFormScreen(
+          child: _wrapWithRouter(
+            SortieFormScreen(
               debugSortieService: spy, // 🔥 Injection directe du spy
             ),
           ),

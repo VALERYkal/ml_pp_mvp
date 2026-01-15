@@ -4,9 +4,19 @@ import 'package:flutter/material.dart'
     show DateTimeRange; // for DateTimeRange filter state
 import 'package:flutter_riverpod/flutter_riverpod.dart' as Riverpod;
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dart:convert';
+import 'logs_refs_provider.dart';
 
 // Utils pour les dates
 String _iso(DateTime d) => d.toIso8601String().split('.').first + 'Z';
+
+/// Données pour un chip (label, valeur)
+class ChipData {
+  final String label;
+  final String value;
+
+  const ChipData({required this.label, required this.value});
+}
 
 /// Modèle "vue" enrichi avec parsing des détails JSONB
 class LogEntryView {
@@ -41,6 +51,208 @@ class LogEntryView {
     this.vol15c,
     this.dateOp,
   });
+
+  /// Date/heure locale formatée
+  DateTime get createdAtLocal => createdAt.toLocal();
+
+  /// Label du niveau (INFO/WARNING/CRITICAL)
+  String get levelLabel => niveau.toUpperCase();
+
+  /// Label du module (capitalisé)
+  String get moduleLabel {
+    if (module.isEmpty) return '';
+    return module[0].toUpperCase() + module.substring(1).replaceAll('_', ' ');
+  }
+
+  /// Label de l'action (capitalisé)
+  String get actionLabel {
+    if (action.isEmpty) return '';
+    return action[0].toUpperCase() +
+        action.substring(1).replaceAll('_', ' ').toLowerCase();
+  }
+
+  /// Parser robuste de details (String JSON ou Map)
+  Map<String, dynamic>? get detailsMap {
+    if (rawDetails == null) return null;
+    if (rawDetails is Map) {
+      return rawDetails!.cast<String, dynamic>();
+    }
+    // Si c'est une String, essayer de parser
+    if (rawDetails is String) {
+      try {
+        final decoded = jsonDecode(rawDetails as String);
+        if (decoded is Map) {
+          return decoded.cast<String, dynamic>();
+        }
+      } catch (_) {
+        // Ignorer les erreurs de parsing
+      }
+    }
+    return null;
+  }
+
+  /// ID de la cible (reception_id, sortie_id, citerne_id, etc.)
+  String? get cibleId {
+    return receptionId ?? citerneId ?? produitId;
+  }
+
+  /// Construire un résumé humain selon module/action/details
+  String buildHumanSummary({LogsRefs? refs}) {
+    // Mapping par action connue
+    final actionLower = action.toLowerCase();
+    
+    // Helper local pour shortId (évite dépendance circulaire)
+    String _shortIdHelper(String id) => id.length >= 8 ? id.substring(0, 8) : id;
+    
+    // Obtenir les labels si disponibles
+    final produitLabel = refs != null && produitId != null
+        ? refs.getProduitLabel(produitId)
+        : (produitId != null ? _shortIdHelper(produitId!) : null);
+    final citerneLabel = refs != null && citerneId != null
+        ? refs.getCiterneLabel(citerneId)
+        : (citerneId != null ? _shortIdHelper(citerneId!) : null);
+    
+    if (actionLower.contains('reception')) {
+      if (actionLower.contains('cree') || actionLower.contains('create')) {
+        if (produitLabel != null && citerneLabel != null) {
+          return 'Réception enregistrée — $produitLabel dans $citerneLabel';
+        }
+        if (vol15c != null) {
+          return 'Réception enregistrée (+${vol15c!.toStringAsFixed(1)} L à 15°C)';
+        }
+        return 'Réception enregistrée';
+      }
+      if (actionLower.contains('valide') || actionLower.contains('validate')) {
+        if (produitLabel != null && citerneLabel != null) {
+          return 'Réception validée — $produitLabel dans $citerneLabel';
+        }
+        if (vol15c != null) {
+          return 'Réception validée (+${vol15c!.toStringAsFixed(1)} L à 15°C)';
+        }
+        return 'Réception validée';
+      }
+      return 'Réception : ${actionLabel}';
+    }
+    
+    if (actionLower.contains('sortie')) {
+      if (actionLower.contains('cree') || actionLower.contains('create')) {
+        if (produitLabel != null && citerneLabel != null) {
+          return 'Sortie enregistrée — $produitLabel depuis $citerneLabel';
+        }
+        if (vol15c != null) {
+          return 'Sortie enregistrée (-${vol15c!.toStringAsFixed(1)} L à 15°C)';
+        }
+        return 'Sortie enregistrée';
+      }
+      if (actionLower.contains('valide') || actionLower.contains('validate')) {
+        if (produitLabel != null && citerneLabel != null) {
+          return 'Sortie validée — $produitLabel depuis $citerneLabel';
+        }
+        if (vol15c != null) {
+          return 'Sortie validée (-${vol15c!.toStringAsFixed(1)} L à 15°C)';
+        }
+        return 'Sortie validée';
+      }
+      return 'Sortie : ${actionLabel}';
+    }
+    
+    if (actionLower.contains('stock') && actionLower.contains('journalier')) {
+      return 'Stock journalier généré';
+    }
+    
+    if (actionLower.contains('stock') && actionLower.contains('adjustment')) {
+      return 'Ajustement de stock créé';
+    }
+    
+    // Fallback: utiliser module + action
+    return '$moduleLabel : $actionLabel';
+  }
+
+  /// Construire les chips pour les champs clés
+  List<ChipData> buildChips({LogsRefs? refs}) {
+    final chips = <ChipData>[];
+    final details = detailsMap;
+    
+    if (details == null) return chips;
+    
+    // Helper local pour shortId (évite dépendance circulaire)
+    String shortIdHelper(String id) => id.length >= 8 ? id.substring(0, 8) : id;
+    
+    // Volume 15°C
+    if (vol15c != null) {
+      final sign = action.toLowerCase().contains('sortie') ? '-' : '+';
+      chips.add(ChipData(
+        label: 'Volume (15°C)',
+        value: '$sign${vol15c!.toStringAsFixed(1)} L',
+      ));
+    }
+    
+    // Volume ambiant
+    if (volAmb != null) {
+      chips.add(ChipData(
+        label: 'Volume (ambiant)',
+        value: '${volAmb!.toStringAsFixed(1)} L',
+      ));
+    }
+    
+    // Citerne (avec label si disponible)
+    if (citerneId != null) {
+      final label = refs != null
+          ? refs.getCiterneLabel(citerneId)
+          : shortIdHelper(citerneId!);
+      chips.add(ChipData(
+        label: 'Citerne',
+        value: label,
+      ));
+    }
+    
+    // Produit (avec label si disponible)
+    if (produitId != null) {
+      final label = refs != null
+          ? refs.getProduitLabel(produitId)
+          : shortIdHelper(produitId!);
+      chips.add(ChipData(
+        label: 'Produit',
+        value: label,
+      ));
+    }
+    
+    // Réception
+    if (receptionId != null) {
+      chips.add(ChipData(
+        label: 'Réception',
+        value: receptionId!.substring(0, 8),
+      ));
+    }
+    
+    // Sortie
+    final sortieId = details['sortie_id']?.toString();
+    if (sortieId != null) {
+      chips.add(ChipData(
+        label: 'Sortie',
+        value: sortieId.substring(0, 8),
+      ));
+    }
+    
+    // Statut
+    final statut = details['statut']?.toString();
+    if (statut != null && statut.isNotEmpty) {
+      chips.add(ChipData(
+        label: 'Statut',
+        value: statut,
+      ));
+    }
+    
+    // Date opération
+    if (dateOp != null) {
+      chips.add(ChipData(
+        label: 'Date op.',
+        value: '${dateOp!.year}-${dateOp!.month.toString().padLeft(2, '0')}-${dateOp!.day.toString().padLeft(2, '0')}',
+      ));
+    }
+    
+    return chips;
+  }
 }
 
 /// Utilitaires de parsing pour les détails JSONB

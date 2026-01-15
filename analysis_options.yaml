@@ -6,6 +6,7 @@ analyzer:
     - "test_legacy/**"
     - "**/*.g.dart"
     - "**/*.freezed.dart"
+    - "integration_test/**"
   errors:
     # Faux positif connu : @JsonKey sur paramètres de factory Freezed est valide
     # Freezed transforme ces paramètres en getters dans le code généré

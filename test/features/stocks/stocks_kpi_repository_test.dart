@@ -28,6 +28,13 @@ class _FakeFilterBuilder<T> implements PostgrestFilterBuilder<T> {
     String? foreignTable,
   }) => this;
 
+  @override
+  PostgrestFilterBuilder<T> limit(
+    int count, {
+    String? foreignTable,
+  }) =>
+      this;
+
   // Match supabase_flutter/postgrest signature variations in tests.
   _FakeFilterBuilder<T> in_(String column, List values) {
     return this;
@@ -206,13 +213,25 @@ void main() {
             'updated_at': '2025-12-10T10:00:00Z',
           },
         ];
-        fakeClient.setViewData('v_stock_actuel', rowsToReturn);
+        final snapshotRows = rowsToReturn.map((r) {
+          return {
+            ...r,
+            // adapter au schéma attendu par le repo snapshot
+            'date_jour': '2025-12-10',
+            'stock_ambiant_total': r['stock_ambiant'],
+            'stock_15c_total': r['stock_15c'],
+          }..remove('stock_ambiant')
+           ..remove('stock_15c')
+           ..remove('updated_at');
+        }).toList();
+
+        fakeClient.setViewData('stocks_journaliers', snapshotRows);
 
         final repo = StocksKpiRepository(fakeClient);
 
         // Act
         final result = await repo.fetchDepotOwnerTotals(
-          dateJour: DateTime(2025, 12, 10), // Ignored: v_stock_actuel = toujours état actuel
+          dateJour: DateTime(2025, 12, 10),
           depotId: 'depot-1',
         );
 
@@ -220,10 +239,9 @@ void main() {
         expect(result, isNotEmpty);
 
         // Vérifier que la vue correcte a été utilisée (critique : on teste la bonne source SQL)
-        expect(fakeClient.fromCalls, contains('v_stock_actuel'));
+        expect(fakeClient.fromCalls, contains('stocks_journaliers'));
 
-        // Note: v_stock_actuel ignore dateJour (toujours état actuel)
-        // Le test vérifie que la vue correcte est utilisée et que les données sont agrégées
+        // Le test vérifie que stocks_journaliers est utilisé avec dateJour et que les données sont agrégées
         expect(result.length, 2);
 
         // Vérifier que les stocks sont agrégés correctement par propriétaire
@@ -369,49 +387,40 @@ void main() {
         );
       });
 
-      test('aggregates by citerne_id from v_stock_actuel (all owners combined)', () async {
-        // Arrange: créer un fake client avec des données v_stock_actuel (format granulaire)
-        // Test non-régression: 2 lignes v_stock_actuel même citerne_id (MONALUXE + PARTENAIRE)
+      test('aggregates by citerne_id from stocks_journaliers (all owners combined)', () async {
+        // Arrange: mode HISTORIQUE (dateJour != null)
+        // Le repository route sur `v_stocks_citerne_global_daily` (snapshot journalier global, tous propriétaires confondus).
+        // Ce test vérifie que :
+        // - la source snapshot est bien utilisée
+        // - les valeurs retournées sont bien "all owners combined" par citerne_id
         final fakeClient = _FakeSupabaseClient();
-        final rowsToReturn = [
+        // ✅ La vue v_stocks_citerne_global_daily retourne déjà les totaux par citerne (owners combinés)
+        // - citerne-1: 600+400=1000 (ambiant), 590+360=950 (15c)
+        // - citerne-2: 2000 (ambiant), 1900 (15c)
+        fakeClient.setViewData('v_stocks_citerne_global_daily', [
           {
+            'date_jour': '2025-12-10',
             'depot_id': 'depot-1',
             'depot_nom': 'Depot A',
             'citerne_id': 'citerne-1',
             'citerne_nom': 'Tank A',
             'produit_id': 'prod-1',
             'produit_nom': 'Gasoil',
-            'proprietaire_type': 'MONALUXE',
-            'stock_ambiant': 600.0,
-            'stock_15c': 590.0,
-            'updated_at': '2025-12-09T10:00:00Z',
+            'stock_ambiant_total': 1000.0,
+            'stock_15c_total': 950.0,
           },
           {
-            'depot_id': 'depot-1',
-            'depot_nom': 'Depot A',
-            'citerne_id': 'citerne-1',
-            'citerne_nom': 'Tank A',
-            'produit_id': 'prod-1',
-            'produit_nom': 'Gasoil',
-            'proprietaire_type': 'PARTENAIRE',
-            'stock_ambiant': 400.0,
-            'stock_15c': 360.0,
-            'updated_at': '2025-12-09T10:00:00Z',
-          },
-          {
+            'date_jour': '2025-12-10',
             'depot_id': 'depot-1',
             'depot_nom': 'Depot A',
             'citerne_id': 'citerne-2',
             'citerne_nom': 'Tank B',
             'produit_id': 'prod-1',
             'produit_nom': 'Gasoil',
-            'proprietaire_type': 'MONALUXE',
-            'stock_ambiant': 2000.0,
-            'stock_15c': 1900.0,
-            'updated_at': '2025-12-09T10:00:00Z',
+            'stock_ambiant_total': 2000.0,
+            'stock_15c_total': 1900.0,
           },
-        ];
-        fakeClient.setViewData('v_stock_actuel', rowsToReturn);
+        ]);
         // Mock pour les capacités des citernes
         fakeClient.setViewData('citernes', [
           {
@@ -437,18 +446,17 @@ void main() {
 
         // Act
         final result = await repo.fetchCiterneGlobalSnapshots(
-          dateJour: DateTime(2025, 12, 10), // Ignored: v_stock_actuel = toujours état actuel
+          dateJour: DateTime(2025, 12, 10),
           depotId: 'depot-1',
         );
 
         // Assert
         expect(result, isNotEmpty);
 
-        // Vérifier que la vue correcte a été utilisée
-        expect(fakeClient.fromCalls, contains('v_stock_actuel'));
+        // Vérifier que la vue snapshot correcte a été utilisée
+        expect(fakeClient.fromCalls, contains('v_stocks_citerne_global_daily'));
 
-        // Note: v_stock_actuel ignore dateJour (toujours état actuel)
-        // Le test vérifie que la vue correcte est utilisée et que les données sont agrégées
+        // Le test vérifie que la source snapshot est utilisée et que les données sont agrégées
 
         // Vérifier que citerne-1 agrège correctement MONALUXE + PARTENAIRE
         // Total: 600 + 400 = 1000 (ambiant), 590 + 360 = 950 (15c)

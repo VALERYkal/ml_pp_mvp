@@ -1,6 +1,14 @@
 import 'package:flutter/material.dart';
 
 /// Grille moderne pour organiser les cartes KPI avec design professionnel
+///
+/// **Breakpoints MVP Responsive** :
+/// - Mobile (< 600px) : 1 colonne → 1 carte par ligne
+/// - Tablet (600-1199px) : 2 colonnes
+/// - Desktop (1200-1599px) : 3 colonnes
+/// - Large Desktop (>= 1600px) : 4 colonnes
+///
+/// Aspect ratios ajustés par taille pour éviter overflow
 class DashboardGrid extends StatelessWidget {
   final List<Widget> children;
   final int? crossAxisCount;
@@ -68,29 +76,33 @@ class DashboardGrid extends StatelessWidget {
   }
 
   int _calculateColumns(double maxWidth) {
-    if (maxWidth >= 1600) return 4; // Très large écran
+    // Breakpoints MVP responsive
+    if (maxWidth >= 1600) return 4; // Très large écran (4K+)
     if (maxWidth >= 1200) return 3; // Desktop large
-    if (maxWidth >= 800) return 2; // Desktop/Tablet
-    return 1; // Mobile (< 800px)
+    if (maxWidth >= 600) return 2;  // Tablet/Desktop (600-1199px)
+    return 1; // Mobile (< 600px) - MVP: 1 carte par ligne
   }
 
   double _calculateAspectRatio(double maxWidth, int columns) {
     // Aspect ratio plus petit = carte plus haute (meilleur pour contenu vertical)
-    // Breakpoints ajustés pour éviter l'overflow sur la carte "Camions à suivre"
+    // MVP: Ajusté pour éviter overflow sur mobile (< 600px)
 
     if (columns == 1) {
-      // Mobile : cartes en colonne unique, besoin de beaucoup de hauteur
-      if (maxWidth < 400) return 0.85; // Très petit écran : très haut
-      if (maxWidth < 600) return 0.95; // Petit mobile
-      return 1.0; // Mobile large
+      // Mobile (< 600px) : cartes en colonne unique
+      // Aspect ratio généreux pour éviter overflow vertical
+      if (maxWidth < 360) return 0.75; // Très petit mobile (Galaxy Fold, etc.)
+      if (maxWidth < 400) return 0.85; // Petit mobile
+      if (maxWidth < 500) return 0.95; // Mobile standard
+      return 1.0; // Mobile large (< 600px mais proche de tablet)
     }
     if (columns == 2) {
-      // Tablet : 2 colonnes, besoin d'équilibre
-      if (maxWidth < 1000) return 0.9; // Tablet étroit
-      return 1.0; // Tablet large
+      // Tablet (600-1199px) : 2 colonnes
+      if (maxWidth < 800) return 0.85;  // Tablet portrait
+      if (maxWidth < 1000) return 0.90; // Tablet paysage
+      return 1.0; // Desktop étroit
     }
-    if (columns == 3) return 1.1; // Desktop : légèrement plus large
-    return 1.2; // Très large écran : plus compact
+    if (columns == 3) return 1.1; // Desktop large (1200-1599px)
+    return 1.2; // Très large écran (>= 1600px) : plus compact
   }
 }
 

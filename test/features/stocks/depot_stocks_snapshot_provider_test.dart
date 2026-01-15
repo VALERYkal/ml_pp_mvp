@@ -44,7 +44,7 @@ class FakeStocksKpiRepository implements StocksKpiRepository {
     String? proprietaireType,
     DateTime? dateJour,
   }) async {
-    throw UnimplementedError();
+    return <CiterneOwnerStockSnapshot>[];
   }
 
   @override
@@ -87,7 +87,62 @@ class FakeStocksKpiRepository implements StocksKpiRepository {
     required String depotId,
     String? produitId,
   }) async {
-    return [];
+    return <Map<String, dynamic>>[];
+  }
+
+  @override
+  Future<List<DepotGlobalStockKpi>> fetchDepotProductTotalsActuel({
+    required String depotId,
+    String? produitId,
+  }) async {
+    return _globalTotals;
+  }
+
+  @override
+  Future<List<DepotGlobalStockKpi>> fetchDepotProductTotalsJournalier({
+    required String depotId,
+    required DateTime dateJour,
+    String? produitId,
+  }) async {
+    return _globalTotals;
+  }
+
+  @override
+  Future<List<DepotOwnerStockKpi>> fetchDepotOwnerTotalsActuel({
+    required String depotId,
+    String? produitId,
+    String? proprietaireType,
+  }) async {
+    return _ownerTotals;
+  }
+
+  @override
+  Future<List<DepotOwnerStockKpi>> fetchDepotOwnerTotalsJournalier({
+    required String depotId,
+    required DateTime dateJour,
+    String? produitId,
+    String? proprietaireType,
+  }) async {
+    return _ownerTotals;
+  }
+
+  @override
+  Future<List<CiterneGlobalStockSnapshot>> fetchCiterneGlobalSnapshotsActuel({
+    required String depotId,
+    String? citerneId,
+    String? produitId,
+  }) async {
+    return _citerneSnapshots;
+  }
+
+  @override
+  Future<List<CiterneGlobalStockSnapshot>> fetchCiterneGlobalSnapshotsJournalier({
+    required String depotId,
+    required DateTime dateJour,
+    String? citerneId,
+    String? produitId,
+  }) async {
+    return _citerneSnapshots;
   }
 }
 
@@ -596,6 +651,92 @@ class _CapturingStocksKpiRepository implements StocksKpiRepository {
   }) async {
     return _delegate.fetchStockActuelRows(
       depotId: depotId,
+      produitId: produitId,
+    );
+  }
+
+  @override
+  Future<List<DepotGlobalStockKpi>> fetchDepotProductTotalsActuel({
+    required String depotId,
+    String? produitId,
+  }) async {
+    onDateJour(null);
+    return _delegate.fetchDepotProductTotalsActuel(
+      depotId: depotId,
+      produitId: produitId,
+    );
+  }
+
+  @override
+  Future<List<DepotGlobalStockKpi>> fetchDepotProductTotalsJournalier({
+    required String depotId,
+    required DateTime dateJour,
+    String? produitId,
+  }) async {
+    onDateJour(dateJour);
+    return _delegate.fetchDepotProductTotalsJournalier(
+      depotId: depotId,
+      dateJour: dateJour,
+      produitId: produitId,
+    );
+  }
+
+  @override
+  Future<List<DepotOwnerStockKpi>> fetchDepotOwnerTotalsActuel({
+    required String depotId,
+    String? produitId,
+    String? proprietaireType,
+  }) async {
+    onDateJour(null);
+    return _delegate.fetchDepotOwnerTotalsActuel(
+      depotId: depotId,
+      produitId: produitId,
+      proprietaireType: proprietaireType,
+    );
+  }
+
+  @override
+  Future<List<DepotOwnerStockKpi>> fetchDepotOwnerTotalsJournalier({
+    required String depotId,
+    required DateTime dateJour,
+    String? produitId,
+    String? proprietaireType,
+  }) async {
+    onDateJour(dateJour);
+    return _delegate.fetchDepotOwnerTotalsJournalier(
+      depotId: depotId,
+      dateJour: dateJour,
+      produitId: produitId,
+      proprietaireType: proprietaireType,
+    );
+  }
+
+  @override
+  Future<List<CiterneGlobalStockSnapshot>> fetchCiterneGlobalSnapshotsActuel({
+    required String depotId,
+    String? citerneId,
+    String? produitId,
+  }) async {
+    onDateJour(null);
+    return _delegate.fetchCiterneGlobalSnapshotsActuel(
+      depotId: depotId,
+      citerneId: citerneId,
+      produitId: produitId,
+    );
+  }
+
+  @override
+  Future<List<CiterneGlobalStockSnapshot>> fetchCiterneGlobalSnapshotsJournalier({
+    required String depotId,
+    required DateTime dateJour,
+    String? citerneId,
+    String? produitId,
+  }) async {
+    onDateJour(dateJour);
+    return _delegate.fetchCiterneGlobalSnapshotsJournalier(
+      depotId: depotId,
+      dateJour: dateJour,
+      citerneId: citerneId,
       produitId: produitId,
     );
   }

@@ -6,6 +6,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../shared/providers/auth_service_provider.dart';
 
@@ -139,11 +140,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         _passwordController.text,
       );
 
-      // Succès de connexion
+      // ✅ Succès de connexion
+      debugPrint('✅ Login OK, session=${Supabase.instance.client.auth.currentSession?.user.id}');
+      
       _showSuccess('Connexion réussie');
 
-      // La redirection sera gérée par le router
-      // qui attendra que le profil soit créé/récupéré
+      // 🔄 Fallback navigation: force GoRouter à recalculer le redirect
+      // (nécessaire sur Android où le refreshListenable peut avoir un délai)
+      if (!mounted) return;
+      
+      // On navigue vers "/" pour déclencher le redirect central du router
+      // qui redirigera automatiquement vers le dashboard selon le rôle
+      debugPrint('🔄 Triggering navigation fallback to / ...');
+      context.go('/');
     } on AuthException catch (e) {
       // Gestion des erreurs d'authentification
       _showError(_mapAuthError(e.message));

@@ -5,6 +5,7 @@ import '../providers/citerne_providers.dart';
 import '../domain/citerne_stock_snapshot.dart';
 import '../../stocks_adjustments/widgets/stock_corrige_badge.dart'
     show StockCorrectedBadge;
+import 'package:ml_pp_mvp/shared/utils/citerne_sorting.dart';
 
 // Fonctions de formatage modernisées avec chiffres tabulaires
 final _n0 = NumberFormat.decimalPattern();
@@ -454,12 +455,17 @@ class CiterneListScreen extends ConsumerWidget {
                   childAspectRatio: 1.35,
                 ),
                 delegate: SliverChildBuilderDelegate(
-                  (context, index) => _buildCiterneCardFromSnapshot(
-                    context,
-                    sortedCiternes[index],
-                    theme,
-                    index,
-                  ),
+                  (context, index) {
+                    final c = sortedCiternes[index];
+                    final extracted = extractFirstNumber(c.citerneNom);
+                    final numero = extracted == 999999 ? (index + 1) : extracted;
+                    return _buildCiterneCardFromSnapshot(
+                      context,
+                      c,
+                      theme,
+                      numero,
+                    );
+                  },
                   childCount: sortedCiternes.length,
                 ),
               );
@@ -640,15 +646,12 @@ class CiterneListScreen extends ConsumerWidget {
     BuildContext context,
     CiterneStockSnapshot citerne,
     ThemeData theme,
-    int index,
+    int numero,
   ) {
     final stock15c = citerne.stock15cTotal;
     final stockAmbiant = citerne.stockAmbiantTotal;
     final capacite = citerne.capaciteTotale;
     final utilPct = capacite > 0 ? (100 * stockAmbiant / capacite) : 0.0;
-
-    // B4.3-C : Numérotation des citernes (index + 1 pour affichage 1, 2, 3...)
-    final numero = index + 1;
 
     return TankCard(
       name: citerne.citerneNom,

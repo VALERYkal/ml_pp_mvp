@@ -389,7 +389,7 @@ class _RoleDashboardState extends ConsumerState<RoleDashboard> {
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.start,
                                               children: [
-                                                const SizedBox(height: 16),
+                                                const SizedBox(height: 12),
                                                 Text(
                                                   'Détail par propriétaire',
                                                   style: Theme.of(context)
@@ -400,7 +400,7 @@ class _RoleDashboardState extends ConsumerState<RoleDashboard> {
                                                             FontWeight.w600,
                                                       ),
                                                 ),
-                                                const SizedBox(height: 12),
+                                                const SizedBox(height: 8),
                                                 // Layout responsive : Row sur grand écran, Column sur mobile
                                                 LayoutBuilder(
                                                   builder: (context, constraints) {
@@ -451,7 +451,7 @@ class _RoleDashboardState extends ConsumerState<RoleDashboard> {
                                                             mon15c,
                                                           ),
                                                           const SizedBox(
-                                                            height: 12,
+                                                            height: 8,
                                                           ),
                                                           _buildOwnerDetailColumn(
                                                             context,
@@ -480,7 +480,7 @@ class _RoleDashboardState extends ConsumerState<RoleDashboard> {
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.start,
                                               children: [
-                                                const SizedBox(height: 16),
+                                                const SizedBox(height: 12),
                                                 Text(
                                                   'Détail par propriétaire',
                                                   style: Theme.of(context)
@@ -491,7 +491,7 @@ class _RoleDashboardState extends ConsumerState<RoleDashboard> {
                                                             FontWeight.w600,
                                                       ),
                                                 ),
-                                                const SizedBox(height: 12),
+                                                const SizedBox(height: 8),
                                                 LayoutBuilder(
                                                   builder: (context, constraints) {
                                                     final isWide =
@@ -539,7 +539,7 @@ class _RoleDashboardState extends ConsumerState<RoleDashboard> {
                                                             0.0,
                                                           ),
                                                           const SizedBox(
-                                                            height: 12,
+                                                            height: 8,
                                                           ),
                                                           _buildOwnerDetailColumn(
                                                             context,

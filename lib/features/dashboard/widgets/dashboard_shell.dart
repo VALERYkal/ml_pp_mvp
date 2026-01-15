@@ -10,6 +10,7 @@ import 'package:ml_pp_mvp/shared/navigation/nav_config.dart';
 import 'package:ml_pp_mvp/features/depots/providers/depots_provider.dart';
 import 'package:ml_pp_mvp/shared/dev/hot_reload_hooks.dart';
 import 'package:ml_pp_mvp/features/kpi/providers/kpi_providers.dart';
+import 'role_depot_chips.dart';
 
 /// Titre dynamique basé sur la route courante
 class _DashboardTitle extends ConsumerWidget {
@@ -21,32 +22,6 @@ class _DashboardTitle extends ConsumerWidget {
     final location = GoRouterState.of(context).uri.toString();
     final title = NavConfig.getPageTitle(location, role);
     return Text(title);
-  }
-}
-
-/// Chips pour afficher le rôle et le dépôt
-class _RoleDepotChips extends StatelessWidget {
-  final UserRole role;
-  final String depotName;
-
-  const _RoleDepotChips({required this.role, required this.depotName});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Chip(
-          label: Text(role.value),
-          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-        ),
-        const SizedBox(width: 8),
-        InputChip(
-          label: Text(depotName),
-          avatar: const Icon(Icons.home_work, size: 18),
-        ),
-        const SizedBox(width: 8),
-      ],
-    );
   }
 }
 
@@ -83,7 +58,9 @@ class DashboardShell extends ConsumerWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isWide = constraints.maxWidth >= 1000;
+        // Breakpoints MVP responsive
+        final isMobile = constraints.maxWidth < 600;  // Mobile: < 600px
+        final isWide = constraints.maxWidth >= 1000;  // Desktop large: >= 1000px
 
         // NavigationRail pour desktop
         final rail = NavigationRail(
@@ -149,41 +126,88 @@ class DashboardShell extends ConsumerWidget {
           ),
         );
 
+        // Handlers pour refresh et logout (réutilisables)
+        void onRefresh() {
+          ref.invalidate(refDataProvider);
+          ref.invalidate(kpiProviderProvider);
+          debugPrint(
+            '🔄 Dashboard: manual refresh -> invalidate kpiProviderProvider',
+          );
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Données rafraîchies')),
+          );
+        }
+
+        Future<void> onLogout() async {
+          await ref.read(authServiceProvider).signOut();
+          if (context.mounted) {
+            context.go('/login');
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Déconnecté')),
+            );
+          }
+        }
+
         final shell = Scaffold(
           appBar: AppBar(
             title: const _DashboardTitle(),
             centerTitle: false,
-            actions: [
-              IconButton(
-                tooltip: 'Rafraîchir',
-                onPressed: () {
-                  ref.invalidate(refDataProvider);
-                  ref.invalidate(kpiProviderProvider);
-                  debugPrint(
-                    '🔄 Dashboard: manual refresh -> invalidate kpiProviderProvider',
-                  );
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Données rafraîchies')),
-                  );
-                },
-                icon: const Icon(Icons.refresh),
-              ),
-              const SizedBox(width: 4),
-              _RoleDepotChips(role: safeRole, depotName: depotLabel),
-              IconButton(
-                tooltip: 'Déconnexion',
-                onPressed: () async {
-                  await ref.read(authServiceProvider).signOut();
-                  if (context.mounted) {
-                    context.go('/login');
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(const SnackBar(content: Text('Déconnecté')));
-                  }
-                },
-                icon: const Icon(Icons.logout),
-              ),
-            ],
+            
+            // Actions selon breakpoint :
+            // - Mobile (< 600px) : refresh + logout (icônes compactes)
+            // - Tablet/Desktop (>= 600px) : refresh + chips + logout
+            actions: isMobile
+                ? [
+                    // Mobile : actions compactes (icônes uniquement)
+                    IconButton(
+                      tooltip: 'Rafraîchir',
+                      onPressed: onRefresh,
+                      icon: const Icon(Icons.refresh),
+                    ),
+                    IconButton(
+                      tooltip: 'Déconnexion',
+                      onPressed: onLogout,
+                      icon: const Icon(Icons.logout),
+                    ),
+                  ]
+                : [
+                    // Tablet/Desktop : tout dans actions
+                    IconButton(
+                      tooltip: 'Rafraîchir',
+                      onPressed: onRefresh,
+                      icon: const Icon(Icons.refresh),
+                    ),
+                    const SizedBox(width: 4),
+                    RoleDepotChips(role: safeRole, depotName: depotLabel),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      tooltip: 'Déconnexion',
+                      onPressed: onLogout,
+                      icon: const Icon(Icons.logout),
+                    ),
+                  ],
+            
+            // Bottom bar uniquement sur mobile : chips avec scroll horizontal
+            bottom: isMobile
+                ? PreferredSize(
+                    preferredSize: const Size.fromHeight(56),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            RoleDepotChips(
+                              role: safeRole,
+                              depotName: depotLabel,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                : null, // Tablet/Desktop : pas de bottom bar
           ),
           body: Row(
             children: [

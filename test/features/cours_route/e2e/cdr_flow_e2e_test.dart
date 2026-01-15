@@ -34,6 +34,8 @@ import 'package:ml_pp_mvp/features/cours_route/screens/cours_route_list_screen.d
 import 'package:ml_pp_mvp/features/cours_route/screens/cours_route_form_screen.dart';
 import 'package:ml_pp_mvp/shared/providers/ref_data_provider.dart';
 import 'package:ml_pp_mvp/features/dashboard/widgets/dashboard_shell.dart';
+import 'package:ml_pp_mvp/core/config/app_env.dart';
+import 'package:ml_pp_mvp/data/repositories/repositories.dart';
 import '../../../integration/mocks.mocks.dart';
 import 'package:mockito/mockito.dart';
 
@@ -322,9 +324,15 @@ Future<void> pumpCdrTestApp(
   final initialAuthState = buildAuthenticatedState(mockUser);
 
   // 3. Construire un ProviderScope avec overrides
+  final appEnv = AppEnv.forTest(envName: 'STAGING');
+  final fakeSupabaseClient = SupabaseClient('http://localhost', 'anon');
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
+        // Override AppEnv (doit être en premier)
+        appEnvSyncProvider.overrideWithValue(appEnv),
+        // Override SupabaseClient pour éviter Supabase.instance
+        supabaseClientProvider.overrideWithValue(fakeSupabaseClient),
         // Overrides Auth
         authServiceProvider.overrideWithValue(mockAuthService),
         profilServiceProvider.overrideWithValue(mockProfilService),

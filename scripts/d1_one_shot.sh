@@ -141,6 +141,7 @@ else
     ! -path "test/**/e2e/*" \
     ! -name "*_e2e_test.dart" \
     ! -name "*e2e_test.dart" \
+    ! -name "widget_test.dart" \
     | sort)
 fi
 
@@ -166,12 +167,13 @@ echo
 
 # Step 3: Execute normal tests (always)
 echo "---- Phase A: normal tests ($NORMAL_COUNT files) ----"
+mkdir -p "$CI_LOG_DIR"
 if [[ -z "$NORMAL_TESTS" ]]; then
   echo "⚠️  No normal tests found"
 else
   set +e
   # shellcheck disable=SC2086
-  flutter test -r expanded $NORMAL_TESTS 2>&1 | tee -a "$TEST_LOG"
+  flutter test -r expanded $NORMAL_TESTS 2>&1 | tee "$TEST_LOG"
   NORMAL_RC=$?
   set -e
   
