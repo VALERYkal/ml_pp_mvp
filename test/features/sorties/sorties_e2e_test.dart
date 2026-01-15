@@ -29,6 +29,7 @@ import 'package:ml_pp_mvp/features/stocks/data/stocks_kpi_providers.dart';
 import 'package:ml_pp_mvp/features/stocks/data/stocks_kpi_service.dart';
 import 'package:ml_pp_mvp/data/repositories/stocks_kpi_repository.dart';
 import 'package:ml_pp_mvp/features/stocks/domain/depot_stocks_snapshot.dart';
+import 'package:ml_pp_mvp/core/config/app_env.dart';
 import '../../../test/integration/mocks.mocks.dart';
 import 'package:mockito/mockito.dart';
 
@@ -233,6 +234,10 @@ Future<void> pumpAppAsRole(
   required MockUser mockUser,
   required _FakeSortieService fakeSortieService,
 }) async {
+  // ✅ Stabiliser la surface de test (desktop/web) pour éviter les RenderFlex overflow
+  // (notamment quand le layout bascule en mode compact par défaut en tests).
+  await tester.binding.setSurfaceSize(const Size(1280, 900));
+
   // 1. Construire le Profil pour ce rôle
   final profil = buildProfilForRole(
     role: role,
@@ -252,6 +257,8 @@ Future<void> pumpAppAsRole(
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
+        // ✅ Obligatoire : RoleDepotChips lit appEnvSyncProvider (sinon UnimplementedError)
+        appEnvSyncProvider.overrideWithValue(AppEnv.forTest(envName: 'STAGING')),
         authServiceProvider.overrideWithValue(mockAuthService),
         profilServiceProvider.overrideWithValue(mockProfilService),
         currentProfilProvider.overrideWith(
