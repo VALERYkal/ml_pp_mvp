@@ -44,6 +44,7 @@ import 'package:ml_pp_mvp/features/receptions/models/owner_type.dart'
     as owner_type;
 import 'package:ml_pp_mvp/features/receptions/data/citerne_info_provider.dart';
 import 'package:ml_pp_mvp/features/receptions/data/partenaires_provider.dart';
+import 'package:ml_pp_mvp/core/config/app_env.dart';
 
 // ════════════════════════════════════════════════════════════════════════════
 // FAKE SERVICES POUR TESTS E2E UI-ONLY
@@ -214,8 +215,11 @@ ProviderContainer createE2EUITestContainer({
   UserRole userRole = UserRole.gerant,
   String? depotId,
 }) {
+  final appEnv = AppEnv.forTest(envName: 'STAGING');
   return ProviderContainer(
     overrides: [
+      // Override AppEnv (doit être en premier)
+      appEnvSyncProvider.overrideWithValue(appEnv),
       // Override du service de réception
       rp.receptionServiceProvider.overrideWith((ref) => fakeService),
       // Override du repository KPI
@@ -404,8 +408,9 @@ void main() {
         fakeKpiRepo.setKpi(KpiNumberVolume.zero);
 
         // Créer l'app avec les providers overridés
+        final appEnv = AppEnv.forTest(envName: 'STAGING');
         await tester.pumpWidget(
-          UncontrolledProviderScope(container: container, child: const MyApp()),
+          UncontrolledProviderScope(container: container, child: MyApp(appEnv: appEnv)),
         );
         await tester.pumpAndSettle();
 

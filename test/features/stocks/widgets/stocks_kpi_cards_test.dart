@@ -95,6 +95,69 @@ class FakeStocksKpiRepositoryForWidget implements StocksKpiRepository {
     // Aucune donnée réelle n'est nécessaire.
     return [];
   }
+
+  // ---- New interface methods (Actuel / Journalier) ----
+
+  @override
+  Future<List<DepotGlobalStockKpi>> fetchDepotProductTotalsActuel({
+    required String depotId,
+    String? produitId,
+  }) async {
+    if (snapshot != null) return [snapshot!.totals];
+    return [];
+  }
+
+  @override
+  Future<List<DepotGlobalStockKpi>> fetchDepotProductTotalsJournalier({
+    required String depotId,
+    required DateTime dateJour,
+    String? produitId,
+  }) async {
+    if (snapshot != null) return [snapshot!.totals];
+    return [];
+  }
+
+  @override
+  Future<List<DepotOwnerStockKpi>> fetchDepotOwnerTotalsActuel({
+    required String depotId,
+    String? produitId,
+    String? proprietaireType,
+  }) async {
+    if (snapshot != null) return snapshot!.owners;
+    return [];
+  }
+
+  @override
+  Future<List<DepotOwnerStockKpi>> fetchDepotOwnerTotalsJournalier({
+    required String depotId,
+    required DateTime dateJour,
+    String? produitId,
+    String? proprietaireType,
+  }) async {
+    if (snapshot != null) return snapshot!.owners;
+    return [];
+  }
+
+  @override
+  Future<List<CiterneGlobalStockSnapshot>> fetchCiterneGlobalSnapshotsActuel({
+    String? depotId,
+    String? citerneId,
+    String? produitId,
+  }) async {
+    if (snapshot != null) return snapshot!.citerneRows;
+    return [];
+  }
+
+  @override
+  Future<List<CiterneGlobalStockSnapshot>> fetchCiterneGlobalSnapshotsJournalier({
+    String? depotId,
+    String? citerneId,
+    String? produitId,
+    required DateTime dateJour,
+  }) async {
+    if (snapshot != null) return snapshot!.citerneRows;
+    return [];
+  }
 }
 
 void main() {
