@@ -28,9 +28,11 @@ class PartenaireAutocomplete extends ConsumerWidget {
             return list.where((o) => o.nom.toLowerCase().contains(q));
           },
           onSelected: onSelected,
-          fieldViewBuilder: (ctx, ctrl, focus, onSubmit) => TextField(
+          fieldViewBuilder: (ctx, ctrl, focus, onSubmit) => TextFormField(
+            key: const Key('reception_partenaire_field'),
             controller: ctrl,
             focusNode: focus,
+            onFieldSubmitted: (value) => onSubmit(),
             decoration: const InputDecoration(
               labelText: 'Partenaire',
               hintText: 'Rechercher partenaire…',
