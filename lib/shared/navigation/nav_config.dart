@@ -51,9 +51,9 @@ class NavConfig {
   static const List<NavItem> _allItems = [
     NavItem(
       id: 'dashboard',
-      title: 'Tableau de bord',
+      title: 'Accueil',
       path: '/dashboard', // remplacé dynamiquement selon le rôle
-      icon: Icons.space_dashboard_outlined,
+      icon: Icons.dashboard_outlined,
       isDashboard: true,
       order: 0,
     ),
@@ -61,7 +61,7 @@ class NavConfig {
       id: 'receptions',
       title: 'Réceptions',
       path: '/receptions',
-      icon: Icons.move_to_inbox_outlined,
+      icon: Icons.download_outlined,
       allowedRoles: kAllRoles,
       order: 1,
     ),
@@ -69,7 +69,7 @@ class NavConfig {
       id: 'sorties',
       title: 'Sorties',
       path: '/sorties',
-      icon: Icons.outbox_outlined,
+      icon: Icons.upload_outlined,
       allowedRoles: kAllRoles,
       order: 2,
     ),
@@ -77,7 +77,7 @@ class NavConfig {
       id: 'stocks',
       title: 'Stocks',
       path: '/stocks',
-      icon: Icons.inventory_2_outlined,
+      icon: Icons.inventory_outlined,
       allowedRoles: kAllRoles,
       order: 3,
     ),
@@ -126,6 +126,6 @@ class NavConfig {
       final p = effectivePath(item, role);
       if (location.startsWith(p)) return item.title;
     }
-    return 'Tableau de bord';
+    return 'Accueil';
   }
 }

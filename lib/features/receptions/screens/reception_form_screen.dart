@@ -940,37 +940,52 @@ class _HeaderCoursHeader extends ConsumerWidget {
         : const SizedBox.shrink();
 
     final detail = (cours != null)
-        ? Text(
-            '${_fmtDate(cours!.dateChargement)} • ${cours!.pays ?? "—"}'
-            '  —  Fournisseur: $fournisseurNom'
-            '  · Prod: $prodCode $prodNom'
-            '  · Vol: ${_fmtVol(cours!.volume)}'
-            '  · Camion: ${cours!.plaqueCamion ?? "—"}'
-            '${(cours!.plaqueRemorque ?? "").isNotEmpty ? " / ${cours!.plaqueRemorque}" : ""}'
-            '  · Transp: ${cours!.transporteur ?? "—"}',
+        ? DefaultTextStyle.merge(
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+            softWrap: true,
+            child: Text(
+              '${_fmtDate(cours!.dateChargement)} • ${cours!.pays ?? "—"}'
+              '  —  Fournisseur: $fournisseurNom'
+              '  · Prod: $prodCode $prodNom'
+              '  · Vol: ${_fmtVol(cours!.volume)}'
+              '  · Camion: ${cours!.plaqueCamion ?? "—"}'
+              '${(cours!.plaqueRemorque ?? "").isNotEmpty ? " / ${cours!.plaqueRemorque}" : ""}'
+              '  · Transp: ${cours!.transporteur ?? "—"}',
+            ),
           )
         : const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            chip,
-            const Spacer(),
-            Chip(
-              avatar: const Icon(Icons.event, size: 16),
-              label: Text(dateStr),
-            ),
-            if (onUnlink != null) ...[
-              const SizedBox(width: 8),
-              TextButton.icon(
-                onPressed: onUnlink,
-                icon: const Icon(Icons.link_off),
-                label: const Text('Dissocier'),
-              ),
-            ],
-          ],
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final isCompact = constraints.maxWidth < 380;
+            return Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                chip,
+                Chip(
+                  avatar: const Icon(Icons.event, size: 16),
+                  label: Text(dateStr),
+                ),
+                if (onUnlink != null)
+                  isCompact
+                      ? IconButton(
+                          tooltip: 'Dissocier',
+                          icon: const Icon(Icons.link_off),
+                          onPressed: onUnlink,
+                        )
+                      : TextButton.icon(
+                          onPressed: onUnlink,
+                          icon: const Icon(Icons.link_off),
+                          label: const Text('Dissocier'),
+                        ),
+              ],
+            );
+          },
         ),
         const SizedBox(height: 8),
         detail,

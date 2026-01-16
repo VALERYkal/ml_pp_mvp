@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ml_pp_mvp/features/sorties/models/sortie_row_vm.dart';
@@ -12,7 +13,9 @@ import 'package:ml_pp_mvp/shared/referentiels/referentiels.dart' as refs;
 final sortiesTableProvider = FutureProvider.autoDispose<List<SortieRowVM>>((
   ref,
 ) async {
-  final supa = Supabase.instance.client;
+  debugPrint('[sortiesTableProvider] fetching...');
+  try {
+    final supa = Supabase.instance.client;
 
   // 1) Sorties (noyau)
   final sortiesRows = await supa
@@ -105,5 +108,10 @@ final sortiesTableProvider = FutureProvider.autoDispose<List<SortieRowVM>>((
       ),
     );
   }
+  debugPrint('[sortiesTableProvider] rows=${out.length}');
   return out;
+  } catch (e, st) {
+    debugPrint('[sortiesTableProvider] error=$e');
+    rethrow;
+  }
 });

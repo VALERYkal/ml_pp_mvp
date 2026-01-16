@@ -41,6 +41,146 @@ class LogEntryView {
     this.vol15c,
     this.dateOp,
   });
+
+  /// Retourne un résumé humain (jamais de JSON brut)
+  String buildHumanSummary() {
+    final d = rawDetails ?? {};
+    if (d.isEmpty) return '—';
+
+    final actionUpper = action.toUpperCase();
+    final moduleLower = module.toLowerCase();
+
+    // Helpers robustes
+    String _s(String key) {
+      final v = d[key];
+      if (v == null) return '';
+      return v.toString().trim();
+    }
+
+    num? _n(String key) {
+      final v = d[key];
+      if (v == null) return null;
+      if (v is num) return v;
+      return double.tryParse(v.toString());
+    }
+
+    String _fmtL(num? v) => v == null ? '' : '${v.toStringAsFixed(1)} L';
+
+    String _pickFirstNonEmpty(List<String> keys) {
+      for (final k in keys) {
+        final v = _s(k);
+        if (v.isNotEmpty) return v;
+      }
+      return '';
+    }
+
+    // Résumés pour actions principales
+    if (actionUpper.contains('RECEPTION')) {
+      if (actionUpper.contains('VALIDE') || actionUpper.contains('VALIDEE')) {
+        final produit = _pickFirstNonEmpty([
+          'produit_nom',
+          'produit',
+          'product_name',
+        ]);
+        final citerne = _pickFirstNonEmpty([
+          'citerne_nom',
+          'citerne',
+          'citerne_name',
+        ]);
+        final volAmb = _fmtL(_n('vol_ambiant') ?? _n('volume_ambiant') ?? _n('ambient_volume'));
+        final vol15c = _fmtL(_n('vol_15c') ?? _n('volume_15c') ?? _n('volume15c'));
+
+        final parts = <String>['Réception validée'];
+        if (produit.isNotEmpty) parts.add(produit);
+        if (citerne.isNotEmpty) parts.add(citerne);
+        if (volAmb.isNotEmpty || vol15c.isNotEmpty) {
+          parts.add(volAmb.isNotEmpty && vol15c.isNotEmpty
+              ? '$volAmb / $vol15c'
+              : (volAmb.isNotEmpty ? volAmb : vol15c));
+        }
+        return parts.join(' • ');
+      } else if (actionUpper.contains('CREEE') || actionUpper.contains('CREATED')) {
+        return 'Réception enregistrée';
+      }
+    }
+
+    if (actionUpper.contains('SORTIE')) {
+      if (actionUpper.contains('VALIDE') || actionUpper.contains('VALIDEE')) {
+        final client = _pickFirstNonEmpty([
+          'client_nom',
+          'client',
+          'client_name',
+        ]);
+        final produit = _pickFirstNonEmpty([
+          'produit_nom',
+          'produit',
+          'product_name',
+        ]);
+        final citerne = _pickFirstNonEmpty([
+          'citerne_nom',
+          'citerne',
+          'citerne_name',
+        ]);
+        final volAmb = _fmtL(_n('vol_ambiant') ?? _n('volume_ambiant') ?? _n('ambient_volume'));
+        final vol15c = _fmtL(_n('vol_15c') ?? _n('volume_15c') ?? _n('volume15c'));
+
+        final parts = <String>['Sortie validée'];
+        if (client.isNotEmpty) parts.add(client);
+        if (produit.isNotEmpty) parts.add(produit);
+        if (citerne.isNotEmpty) parts.add(citerne);
+        if (volAmb.isNotEmpty || vol15c.isNotEmpty) {
+          parts.add(volAmb.isNotEmpty && vol15c.isNotEmpty
+              ? '$volAmb / $vol15c'
+              : (volAmb.isNotEmpty ? volAmb : vol15c));
+        }
+        return parts.join(' • ');
+      } else if (actionUpper.contains('CREEE') || actionUpper.contains('CREATED')) {
+        return 'Sortie enregistrée';
+      }
+    }
+
+    if (actionUpper.contains('STOCK') && actionUpper.contains('ADJUSTMENT')) {
+      return 'Ajustement de stock créé';
+    }
+
+    // Fallback : texte neutre (jamais JSON)
+    return 'Détails disponibles';
+  }
+
+  /// Retourne les chips de données clés
+  List<ChipData> buildChips() {
+    final chips = <ChipData>[];
+
+    if (userId != null) {
+      chips.add(ChipData(label: 'User', value: userId!));
+    }
+    if (citerneId != null) {
+      chips.add(ChipData(label: 'Citerne', value: citerneId!));
+    }
+    if (produitId != null) {
+      chips.add(ChipData(label: 'Produit', value: produitId!));
+    }
+    if (volAmb != null) {
+      chips.add(ChipData(label: 'Amb', value: '${volAmb!.toStringAsFixed(1)} L'));
+    }
+    if (vol15c != null) {
+      chips.add(ChipData(label: '15°C', value: '${vol15c!.toStringAsFixed(1)} L'));
+    }
+    if (dateOp != null) {
+      final dateStr = '${dateOp!.year}-${dateOp!.month.toString().padLeft(2, '0')}-${dateOp!.day.toString().padLeft(2, '0')}';
+      chips.add(ChipData(label: 'Date op', value: dateStr));
+    }
+
+    return chips;
+  }
+}
+
+/// Données pour un chip
+class ChipData {
+  final String label;
+  final String value;
+
+  ChipData({required this.label, required this.value});
 }
 
 /// Utilitaires de parsing pour les détails JSONB

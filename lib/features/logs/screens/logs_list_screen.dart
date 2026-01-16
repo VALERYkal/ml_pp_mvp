@@ -233,33 +233,21 @@ class LogsListScreen extends ConsumerWidget {
                         orElse: () => const <String, String>{},
                       );
 
-                  return SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: DataTable(
-                      columns: const [
-                        DataColumn(label: Text('Date')),
-                        DataColumn(label: Text('Module')),
-                        DataColumn(label: Text('Action')),
-                        DataColumn(label: Text('Niveau')),
-                        DataColumn(label: Text('User')),
-                        DataColumn(label: Text('Citerne')),
-                        DataColumn(label: Text('Produit')),
-                        DataColumn(label: Text('Vol (L)')),
-                        DataColumn(label: Text('15°C (L)')),
-                        DataColumn(label: Text('Date op.')),
-                        DataColumn(
-                          label: Text('Details'),
-                        ), // compact brut (optionnel)
-                      ],
-                      rows: items.map((e) {
+                  final narrow = _isNarrow(context);
+
+                  if (narrow) {
+                    // Mobile: ListView avec cards
+                    return ListView.separated(
+                      itemCount: items.length,
+                      padding: const EdgeInsets.only(bottom: 24),
+                      separatorBuilder: (_, __) => const SizedBox(height: 10),
+                      itemBuilder: (ctx, i) {
+                        final e = items[i];
+
                         String fmtDt(DateTime? d) => d == null
                             ? '-'
                             : d.toLocal().toString().split('.').first;
-                        String fmtD(DateTime? d) => d == null
-                            ? '-'
-                            : '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
-                        // Résolution des IDs en libellés lisibles
                         final citerneLabel = e.citerneId == null
                             ? '-'
                             : (citMap[e.citerneId!] ??
@@ -268,51 +256,174 @@ class LogsListScreen extends ConsumerWidget {
                             ? '-'
                             : (prodMap[e.produitId!] ??
                                   e.produitId!.substring(0, 8));
+                        final userLabel = e.userId == null
+                            ? '-'
+                            : (usersMap[e.userId!] ??
+                                  e.userId!.substring(0, 8));
 
-                        return DataRow(
-                          onSelectChanged: (_) => _showLogDetails(context, e),
-                          cells: [
-                            DataCell(Text(fmtDt(e.createdAt))),
-                            DataCell(Text(e.module)),
-                            DataCell(Text(e.action)),
-                            DataCell(Text(e.niveau)),
-                            DataCell(
-                              Text(
-                                e.userId == null
-                                    ? '-'
-                                    : (usersMap[e.userId!] ??
-                                          e.userId!.substring(0, 8)),
+                        return InkWell(
+                          onTap: () => _showLogDetails(context, e),
+                          borderRadius: BorderRadius.circular(16),
+                          child: Card(
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Header: date + niveau
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          fmtDt(e.createdAt),
+                                          style: Theme.of(ctx)
+                                              .textTheme
+                                              .labelLarge,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        e.niveau,
+                                        style: Theme.of(ctx)
+                                            .textTheme
+                                            .labelMedium,
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    '${e.module} • ${e.action}',
+                                    style: Theme.of(ctx).textTheme.titleMedium,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    children: [
+                                      _chip(ctx, 'User', userLabel),
+                                      if (e.citerneId != null)
+                                        _chip(ctx, 'Citerne', citerneLabel),
+                                      if (e.produitId != null)
+                                        _chip(ctx, 'Produit', produitLabel),
+                                      if (e.volAmb != null)
+                                        _chip(
+                                          ctx,
+                                          'Amb',
+                                          '${e.volAmb!.toStringAsFixed(1)} L',
+                                        ),
+                                      if (e.vol15c != null)
+                                        _chip(
+                                          ctx,
+                                          '15°C',
+                                          '${e.vol15c!.toStringAsFixed(1)} L',
+                                        ),
+                                      if (e.dateOp != null)
+                                        _chip(
+                                          ctx,
+                                          'Date op',
+                                          '${e.dateOp!.year}-${e.dateOp!.month.toString().padLeft(2, '0')}-${e.dateOp!.day.toString().padLeft(2, '0')}',
+                                        ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    e.buildHumanSummary(),
+                                    style: Theme.of(ctx).textTheme.bodyMedium,
+                                  ),
+                                ],
                               ),
                             ),
-                            DataCell(Text(citerneLabel)),
-                            DataCell(Text(produitLabel)),
-                            DataCell(
-                              Text(
-                                e.volAmb == null
-                                    ? '-'
-                                    : e.volAmb!.toStringAsFixed(1),
-                              ),
-                            ),
-                            DataCell(
-                              Text(
-                                e.vol15c == null
-                                    ? '-'
-                                    : e.vol15c!.toStringAsFixed(1),
-                              ),
-                            ),
-                            DataCell(Text(fmtD(e.dateOp))),
-                            // détail compact (facilite le debug si une clé manque)
-                            DataCell(
-                              Text(
-                                e.rawDetails == null
-                                    ? ''
-                                    : e.rawDetails.toString(),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
+                          ),
                         );
-                      }).toList(),
+                      },
+                    );
+                  }
+
+                  // Large screens: DataTable scrollable (horizontal + vertical)
+                  return Scrollbar(
+                    thumbVisibility: true,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(minWidth: 900),
+                        child: SingleChildScrollView(
+                          child: DataTable(
+                            columns: const [
+                              DataColumn(label: Text('Date')),
+                              DataColumn(label: Text('Module')),
+                              DataColumn(label: Text('Action')),
+                              DataColumn(label: Text('Niveau')),
+                              DataColumn(label: Text('User')),
+                              DataColumn(label: Text('Citerne')),
+                              DataColumn(label: Text('Produit')),
+                              DataColumn(label: Text('Vol (L)')),
+                              DataColumn(label: Text('15°C (L)')),
+                              DataColumn(label: Text('Date op.')),
+                              DataColumn(label: Text('Details')),
+                            ],
+                            rows: items.map((e) {
+                              String fmtDt(DateTime? d) => d == null
+                                  ? '-'
+                                  : d.toLocal().toString().split('.').first;
+                              String fmtD(DateTime? d) => d == null
+                                  ? '-'
+                                  : '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+                              final citerneLabel = e.citerneId == null
+                                  ? '-'
+                                  : (citMap[e.citerneId!] ??
+                                        e.citerneId!.substring(0, 8));
+                              final produitLabel = e.produitId == null
+                                  ? '-'
+                                  : (prodMap[e.produitId!] ??
+                                        e.produitId!.substring(0, 8));
+
+                              return DataRow(
+                                onSelectChanged: (_) =>
+                                    _showLogDetails(context, e),
+                                cells: [
+                                  DataCell(Text(fmtDt(e.createdAt))),
+                                  DataCell(Text(e.module)),
+                                  DataCell(Text(e.action)),
+                                  DataCell(Text(e.niveau)),
+                                  DataCell(Text(
+                                    e.userId == null
+                                        ? '-'
+                                        : (usersMap[e.userId!] ??
+                                              e.userId!.substring(0, 8)),
+                                  )),
+                                  DataCell(Text(citerneLabel)),
+                                  DataCell(Text(produitLabel)),
+                                  DataCell(Text(
+                                    e.volAmb == null
+                                        ? '-'
+                                        : e.volAmb!.toStringAsFixed(1),
+                                  )),
+                                  DataCell(Text(
+                                    e.vol15c == null
+                                        ? '-'
+                                        : e.vol15c!.toStringAsFixed(1),
+                                  )),
+                                  DataCell(Text(fmtD(e.dateOp))),
+                                  DataCell(
+                                    Text(
+                                      e.rawDetails == null
+                                          ? ''
+                                          : e.rawDetails.toString(),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                      ),
                     ),
                   );
                 },
@@ -460,5 +571,26 @@ class LogsListScreen extends ConsumerWidget {
     } catch (_) {
       return m.toString();
     }
+  }
+
+  // Helper pour détecter les écrans étroits
+  bool _isNarrow(BuildContext context) =>
+      MediaQuery.sizeOf(context).width < 700;
+
+  // Helper pour afficher les chips dans les cards
+  Widget _chip(BuildContext context, String label, String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        color: Colors.black.withValues(alpha: 0.04),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.08)),
+      ),
+      child: Text(
+        '$label: $value',
+        overflow: TextOverflow.ellipsis,
+        style: Theme.of(context).textTheme.labelSmall,
+      ),
+    );
   }
 }

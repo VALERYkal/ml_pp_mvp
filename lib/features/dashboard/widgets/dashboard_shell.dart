@@ -84,15 +84,34 @@ class DashboardShell extends ConsumerWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isWide = constraints.maxWidth >= 1000;
+        final isMobile = constraints.maxWidth < 600;
 
-        // NavigationRail pour desktop
+        // Filtrer les items pour mobile (exclure Logs et Ajustements)
+        final mobileItems = items.where((item) {
+          return item.id != 'logs' && item.id != 'stocks-adjustments';
+        }).toList();
+
+        // Items pour desktop (tous les items)
+        final desktopItems = items;
+
+        // Sélectionner les items selon le breakpoint
+        final effectiveItems = isMobile ? mobileItems : desktopItems;
+
+        // Recalculer l'index sélectionné avec les items filtrés
+        final effectiveSelectedIndex = _selectedIndexFor(
+          location,
+          effectiveItems,
+          role,
+        );
+
+        // NavigationRail pour desktop/tablet
         final rail = NavigationRail(
-          selectedIndex: selectedIndex,
+          selectedIndex: effectiveSelectedIndex,
           onDestinationSelected: (i) =>
-              context.go(effectivePath(items[i], role)),
+              context.go(effectivePath(effectiveItems[i], role)),
           extended: isWide,
           destinations: [
-            for (final item in items)
+            for (final item in effectiveItems)
               NavigationRailDestination(
                 icon: Icon(item.icon),
                 selectedIcon: Icon(item.icon),
@@ -101,18 +120,22 @@ class DashboardShell extends ConsumerWidget {
           ],
         );
 
-        // BottomNavigationBar pour mobile
+        // BottomNavigationBar pour mobile (4-5 items max)
         final bottom = NavigationBar(
-          selectedIndex: selectedIndex,
+          selectedIndex: effectiveSelectedIndex,
           onDestinationSelected: (i) =>
-              context.go(effectivePath(items[i], role)),
+              context.go(effectivePath(effectiveItems[i], role)),
           destinations: [
-            for (final item in items)
-              NavigationDestination(icon: Icon(item.icon), label: item.title),
+            for (final item in effectiveItems)
+              NavigationDestination(
+                icon: Icon(item.icon),
+                selectedIcon: Icon(item.icon),
+                label: item.title,
+              ),
           ],
         );
 
-        // Drawer pour mobile
+        // Drawer pour mobile (tous les items, y compris Logs et Ajustements)
         final drawer = Drawer(
           child: ListView(
             children: [
@@ -135,6 +158,7 @@ class DashboardShell extends ConsumerWidget {
                   ],
                 ),
               ),
+              // Drawer affiche tous les items (même Logs et Ajustements)
               for (int i = 0; i < items.length; i++)
                 ListTile(
                   leading: Icon(items[i].icon),
@@ -187,8 +211,8 @@ class DashboardShell extends ConsumerWidget {
           ),
           body: Row(
             children: [
-              if (isWide) rail,
-              if (isWide) const VerticalDivider(width: 1),
+              if (!isMobile) rail,
+              if (!isMobile) const VerticalDivider(width: 1),
               Expanded(
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 200),
@@ -197,8 +221,8 @@ class DashboardShell extends ConsumerWidget {
               ),
             ],
           ),
-          bottomNavigationBar: isWide ? null : bottom,
-          drawer: isWide ? null : drawer,
+          bottomNavigationBar: isMobile ? bottom : null,
+          drawer: isMobile ? drawer : null,
         );
 
         if (kDebugMode) {
