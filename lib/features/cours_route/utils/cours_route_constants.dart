@@ -12,7 +12,7 @@
 class CoursRouteConstants {
   // UUIDs des produits (existants dans le code)
   static const String produitEssId = '640cf7ec-1616-4503-a484-0a61afb20005';
-  static const String produitAgoId = '452b557c-e974-4315-b6c2-cda8487db428';
+  static const String produitAgoId = '22222222-2222-2222-2222-222222222222';
 
   // Liste des pays pour l'autocomplete
   static const List<String> paysSuggestions = [

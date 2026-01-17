@@ -208,3 +208,50 @@ Aucun test n'est désactivé sans raison explicite.
 **Statut** : ✅ **TERMINÉ**
 
 **Clôture définitive (17/01/2026)** : AXE D — Clôturé au 17 janvier 2026 : l'ensemble des mécanismes CI/CD, scripts de stabilisation, politiques de tests (exécutés, opt-in DB, suites dépréciées), ainsi que la documentation associée (CHANGELOG et SPRINT_PROD_READY) sont alignés avec l'état réel du code et des tests, sans ambiguïté ni élément non justifié.
+
+---
+
+## 🅱️ Exploitation STAGING prolongée — Plan de validation finale
+
+### Contexte
+Bien que le projet soit PROD-READY sur le plan technique,
+une phase d'exploitation STAGING prolongée est engagée afin de :
+
+- Valider la navigation réelle par rôle
+- Garantir la compréhension métier (PCA)
+- Tester le système en conditions réelles par Directeur et Gérant
+- Sécuriser l'acceptation finale du projet
+
+### Phases de validation (avec checklist)
+
+| PHASE | DESCRIPTION | STATUT | VALIDATION |
+|-------|-------------|--------|------------|
+| **PHASE 0** | Diagnostic CDR STAGING | ✅ | "CDR — OK" (VALIDÉ) |
+| **PHASE 1** | STAGING propre (reset transactionnel) | ⬜ | "STAGING PROPRE — OK" |
+| **PHASE 2** | Dépôt réaliste (citernes & capacités) | ⬜ | "STAGING RÉALISTE — OK" |
+| **PHASE 3A** | PCA — navigation & lecture seule | ⬜ | "PCA — ACCEPTE" |
+| **PHASE 3B** | Directeur / Gérant — usage réel | ⬜ | "DIRECTEUR / GÉRANT — OK" |
+| **PHASE 4** | Exploitation STAGING contrôlée | ⬜ | "STAGING VALIDÉ" |
+
+### Clôture Phase 0 — Diagnostic CDR STAGING
+
+**Statut** : ✅ **CLÔTURÉE ET VALIDÉE**
+
+**Objectif atteint** : Identification de l'origine des erreurs de création CDR en STAGING.
+
+**Résultats** :
+- Payload analysé : conforme (Web & Android)
+- Champ `produit_id` : correctement transmis
+- Erreur identifiée : contrainte DB métier `uniq_open_cdr_per_truck` (1 camion = 1 CDR ouvert)
+- Comportement : identique sur Chrome et Android
+- **Décision** : Aucun correctif applicatif requis — comportement attendu conforme à la règle métier
+
+**Impact** : Clarification de la règle métier CDR. Risque résiduel : Aucun.
+
+**Préparation** : Phase 0 verrouillée définitivement. Passage en exploitation STAGING prolongée autorisé.
+
+### Règles de validation
+
+- ⚠️ **Aucune phase ne peut être validée sans clôture de la précédente**
+- ⚠️ **Le GO PROD ne peut être déclaré qu'après validation complète de toutes les phases**
+- ✅ **Chaque validation doit être datée et signée par le décideur concerné**

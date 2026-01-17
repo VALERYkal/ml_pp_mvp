@@ -6,6 +6,35 @@
 
 ---
 
+## 🔍 Statut PROD-READY — Validation métier en cours (STAGING)
+
+### État actuel
+- **PROD-READY technique** : ✅
+- **PROD-READY métier (acceptation)** : 🟡 EN COURS
+
+### Suivi détaillé des validations
+
+**Checklist officielle** :
+
+- ✅ CDR — OK (Phase 0 — Diagnostic CDR STAGING validé)
+- ⬜ STAGING PROPRE — OK
+- ⬜ STAGING RÉALISTE — OK
+- ⬜ PCA — ACCEPTE
+- ⬜ DIRECTEUR / GÉRANT — OK
+- ⬜ STAGING VALIDÉ
+
+### Règle de clôture
+Le projet sera déclaré **"PROD-READY FINAL"** uniquement lorsque toutes les cases ci-dessus
+seront cochées et datées.
+
+### Validation finale (à compléter)
+
+- **Date de validation finale** : _[À compléter]_
+- **Décideur (PCA / Direction)** : _[À compléter]_
+- **Commentaire d'acceptation** : _[À compléter]_
+
+---
+
 ## 1️⃣ Résumé Exécutif
 
 Au **15 janvier 2026**, le projet **ML_PP MVP** a atteint un niveau **prod-ready technique et fonctionnel** sur les axes suivants :
