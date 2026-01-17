@@ -97,12 +97,12 @@
 
 ---
 
-### 17/01/2025 — Tests LoginScreen stabilisés
+### 17/01/2026 — Tests LoginScreen stabilisés
 
-Les tests de l'écran de connexion utilisent désormais des attentes déterministes (`pumpUntilFound` / `pumpUntilAnyFound`) pour éliminer les flakiness liées au timing UI. Validation locale réussie sur l'ensemble du fichier `login_screen_test.dart`.
+Les tests de l'écran de connexion utilisent désormais des attentes déterministes (`pumpUntilFound` / `pumpUntilAnyFound`) afin d'éliminer les flakiness liées au timing UI (SnackBar, messages de succès/erreur).  
+Validation locale confirmée sur l'ensemble du fichier `login_screen_test.dart`.
 
 ---
-
 ## 🎯 Décisions Techniques Clés
 
 ### 1. Fake Repository Pattern
