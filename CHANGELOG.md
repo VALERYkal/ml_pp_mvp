@@ -97,6 +97,42 @@ Validation locale confirmée :
 
 ## [Unreleased]
 
+### 🟡 STAGING — Exploitation prolongée (Validation métier & acceptation)
+
+- Activation du mode "STAGING prolongé (sécuritaire)"
+- Objectif : acceptation PCA / Directeur / Gérant avant GO PROD
+- Aucune modification d'architecture, triggers SQL ou logique stock autorisée
+- Corrections limitées à UX, navigation et garde-fous UI
+
+**Phases de validation** :
+
+- ✅ PHASE 0 — Diagnostic CDR STAGING (VALIDÉ — Aucun correctif requis)
+- ⬜ PHASE 1 — Reset transactionnel total STAGING
+- ⬜ PHASE 2 — Simulation réaliste du dépôt (citernes & capacités)
+- ⬜ PHASE 3 — Validation navigation & permissions par rôle
+  - ⬜ PCA — lecture seule globale
+  - ⬜ Directeur / Gérant — usage réel
+- ⬜ PHASE 4 — Exploitation STAGING contrôlée (cycles réels)
+
+*Chaque phase devra être cochée (⬜ → ✅) uniquement après validation formelle.*
+
+---
+
+### ✅ Phase 0 — Diagnostic CDR STAGING (VALIDÉ)
+
+**Objectif** : Identifier l'origine des erreurs de création de Cours de Route (CDR) en environnement STAGING.
+
+**Résultats** :
+- Analyse du payload réel : conforme (Web & Android)
+- Validation du champ `produit_id` : correctement transmis
+- Identification de l'erreur : contrainte DB métier `uniq_open_cdr_per_truck` (1 camion = 1 CDR ouvert)
+- Comportement identique : Chrome et Android
+- **Décision** : Aucun correctif applicatif requis — comportement attendu conforme à la règle métier
+
+**Statut final** : ✅ **VALIDÉ** — Phase clôturée définitivement.
+
+---
+
 ### 📱 **[UI/UX] — Fix Mobile Logs/Audit (List Cards + Double Scroll) — 2026-01-15**
 
 #### **Problème**
