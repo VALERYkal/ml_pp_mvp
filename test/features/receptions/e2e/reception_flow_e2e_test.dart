@@ -205,6 +205,22 @@ String _capitalizeRole(String roleName) {
   return '${roleName[0].toUpperCase()}${roleName.substring(1)}';
 }
 
+/// Helper déterministe pour attendre qu'un widget apparaisse
+/// Évite les pumpAndSettle() infinis et les timeouts aléatoires
+Future<void> pumpUntilFound(
+  WidgetTester tester,
+  Finder finder, {
+  Duration timeout = const Duration(seconds: 5),
+  Duration step = const Duration(milliseconds: 50),
+}) async {
+  final end = DateTime.now().add(timeout);
+  while (DateTime.now().isBefore(end)) {
+    await tester.pump(step);
+    if (finder.evaluate().isNotEmpty) return;
+  }
+  throw TestFailure('Timeout waiting for: $finder');
+}
+
 /// Crée un ProviderContainer avec les providers mockés pour les tests E2E UI-only
 ProviderContainer createE2EUITestContainer({
   required FakeReceptionService fakeService,
@@ -477,31 +493,92 @@ void main() {
           await tester.pumpAndSettle(const Duration(seconds: 1));
 
           // Sélectionner un partenaire via l'autocomplete
-          // Le PartenaireAutocomplete contient un TextField avec label "Partenaire"
-          final partenaireField = find.text('Partenaire');
-          if (partenaireField.evaluate().isNotEmpty) {
-            // Trouver le TextField parent
-            final partenaireTextField = find.ancestor(
-              of: partenaireField.first,
-              matching: find.byType(TextField),
-            );
-            if (partenaireTextField.evaluate().isNotEmpty) {
-              // Taper dans le champ pour ouvrir l'autocomplete
-              await tester.enterText(
-                partenaireTextField.first,
-                'Partenaire Test',
+          // Le PartenaireAutocomplete contient un TextFormField avec label "Partenaire"
+          // PRIORITÉ 1: Utiliser la Key stable si disponible
+          final partenaireFieldByKey = find.byKey(
+            const Key('reception_partenaire_field'),
+          );
+          Finder partenaireTextField;
+          if (partenaireFieldByKey.evaluate().isNotEmpty) {
+            partenaireTextField = partenaireFieldByKey;
+            debugPrint('✅ Champ partenaire trouvé via Key');
+          } else {
+            // PRIORITÉ 2: Fallback via label "Partenaire" puis TextFormField/TextField
+            final partenaireLabel = find.text('Partenaire');
+            if (partenaireLabel.evaluate().isNotEmpty) {
+              // Chercher le TextFormField ou TextField parent
+              partenaireTextField = find.ancestor(
+                of: partenaireLabel.first,
+                matching: find.byType(TextFormField),
               );
-              await tester.pumpAndSettle();
-
-              // Sélectionner le premier résultat de l'autocomplete
-              final listTile = find.text('Partenaire Test');
-              if (listTile.evaluate().isNotEmpty) {
-                await tester.tap(listTile.first);
-                await tester.pumpAndSettle();
-                debugPrint('✅ Partenaire sélectionné');
+              if (partenaireTextField.evaluate().isEmpty) {
+                // Fallback: chercher TextField (TextFormField en contient un)
+                partenaireTextField = find.ancestor(
+                  of: partenaireLabel.first,
+                  matching: find.byType(TextField),
+                );
               }
+            } else {
+              partenaireTextField = find.byType(TextFormField);
             }
           }
+
+          // OBLIGATOIRE en mode PARTENAIRE : sélectionner un partenaire avant de continuer
+          expect(
+            partenaireTextField.evaluate().isNotEmpty,
+            isTrue,
+            reason:
+                'En mode PARTENAIRE, le champ partenaire doit être présent et visible',
+          );
+
+          // S'assurer que le champ est visible
+          await tester.ensureVisible(partenaireTextField.first);
+          await tester.pumpAndSettle();
+
+          // Taper dans le champ pour ouvrir l'autocomplete
+          await tester.enterText(partenaireTextField.first, 'Partenaire Test');
+          await tester.pump();
+
+          // Attendre que l'autocomplete s'ouvre et affiche les résultats
+          // Utiliser pumpUntilFound pour éviter les timeouts aléatoires
+          final listTile = find.text('Partenaire Test');
+          await pumpUntilFound(
+            tester,
+            listTile,
+            timeout: const Duration(seconds: 3),
+          );
+
+          debugPrint(
+            '✅ Autocomplete ouvert, partenaire "Partenaire Test" trouvé',
+          );
+
+          // Sélectionner le premier résultat de l'autocomplete
+          // Le menu peut apparaître dans un overlay, utiliser .last pour être sûr
+          await tester.ensureVisible(listTile.last);
+          await tester.tap(listTile.last);
+          await tester.pump();
+
+          // Attendre que la sélection soit effective (le champ se met à jour)
+          // Utiliser pumpUntilFound pour attendre que le partenaire soit visible dans le champ
+          await pumpUntilFound(
+            tester,
+            find.descendant(
+              of: partenaireTextField.first,
+              matching: find.textContaining('Partenaire Test'),
+            ),
+            timeout: const Duration(seconds: 2),
+          );
+
+          debugPrint('✅ Partenaire sélectionné et UI stabilisée');
+
+          // Vérification explicite que le partenaire est bien sélectionné
+          // Le champ doit afficher "Partenaire Test" ou le partenaire doit être visible dans l'UI
+          expect(
+            find.text('Partenaire Test'),
+            findsWidgets,
+            reason:
+                'Le partenaire sélectionné "Partenaire Test" doit être visible dans l\'UI après sélection',
+          );
         }
 
         // Sélectionner un produit (ChoiceChip avec le code du produit)
@@ -741,16 +818,56 @@ void main() {
         debugPrint(
           '   - Citerne sélectionnée: devrait être "citerne-1" (pré-sélectionnée automatiquement)',
         );
-        debugPrint(
-          '   - Propriétaire: PARTENAIRE (mais partenaireId peut être null)',
-        );
+        debugPrint('   - Propriétaire: PARTENAIRE');
+
+        // Vérification explicite que le partenaire est sélectionné en mode PARTENAIRE
+        // (nécessaire pour que la validation du formulaire passe)
+        // Vérifier si on est en mode PARTENAIRE en cherchant le chip ou le texte
+        final isPartenaireMode = find.text('PARTENAIRE').evaluate().isNotEmpty;
+        if (isPartenaireMode) {
+          // Vérifier que le partenaire est bien visible dans l'UI
+          // Utiliser pumpUntilFound pour attendre que le partenaire soit visible
+          await pumpUntilFound(
+            tester,
+            find.text('Partenaire Test'),
+            timeout: const Duration(seconds: 2),
+          );
+          expect(
+            find.text('Partenaire Test'),
+            findsWidgets,
+            reason:
+                'En mode PARTENAIRE, le partenaire "Partenaire Test" doit être sélectionné et visible avant la soumission',
+          );
+          debugPrint('   - Partenaire: "Partenaire Test" (sélectionné) ✅');
+        }
 
         // Cliquer directement sur le texte "Enregistrer la réception"
         // Le Text est dans un FilledButton, donc il devrait être cliquable
         // Si le bouton est désactivé, le tap ne fera rien, mais on essaie quand même
         await tester.tap(submitButtonText, warnIfMissed: false);
-        // Attendre que la soumission soit traitée (sans attendre de redirection automatique)
-        await tester.pumpAndSettle(const Duration(seconds: 2));
+        await tester.pump();
+
+        // Attendre un signal stable de succès (navigation OU SnackBar OU élément dans la liste)
+        // Utiliser pumpUntilFound pour éviter les timeouts aléatoires
+        final successSignal = find.byType(ReceptionListScreen);
+        try {
+          await pumpUntilFound(
+            tester,
+            successSignal,
+            timeout: const Duration(seconds: 5),
+          );
+          debugPrint('✅ Navigation vers la liste des réceptions confirmée');
+        } catch (e) {
+          // Fallback : vérifier si un SnackBar de succès apparaît
+          final snackBar = find.byType(SnackBar);
+          if (snackBar.evaluate().isNotEmpty) {
+            debugPrint('✅ SnackBar de succès détecté');
+          } else {
+            // Si aucun signal n'est trouvé, continuer quand même (le test échouera ailleurs si nécessaire)
+            debugPrint('⚠️  Aucun signal de succès détecté, continuation...');
+            await tester.pumpAndSettle(const Duration(seconds: 1));
+          }
+        }
 
         // ------------------------------------------------------------------
         // 6. Vérifier la navigation et l'affichage de la liste

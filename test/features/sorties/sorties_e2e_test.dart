@@ -29,6 +29,8 @@ import 'package:ml_pp_mvp/features/stocks/data/stocks_kpi_providers.dart';
 import 'package:ml_pp_mvp/features/stocks/data/stocks_kpi_service.dart';
 import 'package:ml_pp_mvp/data/repositories/stocks_kpi_repository.dart';
 import 'package:ml_pp_mvp/features/stocks/domain/depot_stocks_snapshot.dart';
+import 'package:ml_pp_mvp/features/sorties/providers/sorties_table_provider.dart';
+import 'package:ml_pp_mvp/features/sorties/models/sortie_row_vm.dart';
 import '../../../test/integration/mocks.mocks.dart';
 import 'package:mockito/mockito.dart';
 
@@ -120,6 +122,21 @@ class _FakeSortieService extends sorties.SortieService {
         note: note,
       ),
     );
+  }
+}
+
+/// Fake source de données pour sortiesTableProvider (évite Supabase.instance crash)
+class _FakeSortieTableSource {
+  final List<SortieRowVM> _rows = [];
+
+  List<SortieRowVM> get rows => List.unmodifiable(_rows);
+
+  void addRow(SortieRowVM row) {
+    _rows.add(row);
+  }
+
+  void clear() {
+    _rows.clear();
   }
 }
 
@@ -232,6 +249,7 @@ Future<void> pumpAppAsRole(
   required MockProfilService mockProfilService,
   required MockUser mockUser,
   required _FakeSortieService fakeSortieService,
+  _FakeSortieTableSource? fakeSortieTableSource,
 }) async {
   // 1. Construire le Profil pour ce rôle
   final profil = buildProfilForRole(
@@ -294,6 +312,10 @@ Future<void> pumpAppAsRole(
         goRouterRefreshProvider.overrideWith((ref) => _DummyRefresh(ref)),
         // Override du service de sortie (spécifique au module Sorties)
         sp.sortieServiceProvider.overrideWithValue(fakeSortieService),
+        // Override de sortiesTableProvider pour éviter Supabase.instance crash
+        sortiesTableProvider.overrideWith(
+          (ref) async => fakeSortieTableSource?.rows ?? <SortieRowVM>[],
+        ),
         // Override des référentiels (spécifique au module Sorties)
         refs.produitsRefProvider.overrideWith(
           (ref) async => [
@@ -458,6 +480,26 @@ Future<void> _enterTextInFieldByIndex(
   await tester.pumpAndSettle(const Duration(milliseconds: 100));
 }
 
+/// Helper pour attendre de manière déterministe qu'un widget existe
+/// Évite les assertions fragiles sur des textes qui peuvent varier selon locale/layout
+Future<void> pumpUntilFound(
+  WidgetTester tester,
+  Finder finder, {
+  Duration timeout = const Duration(seconds: 3),
+  Duration step = const Duration(milliseconds: 50),
+}) async {
+  final endTime = DateTime.now().add(timeout);
+  while (DateTime.now().isBefore(endTime)) {
+    await tester.pump(step);
+    if (finder.evaluate().isNotEmpty) {
+      return;
+    }
+  }
+  throw TimeoutException(
+    'Timeout waiting for widget: $finder (timeout: $timeout)',
+  );
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -466,12 +508,14 @@ void main() {
     late MockProfilService mockProfilService;
     late MockUser mockUser;
     late _FakeSortieService fakeSortieService;
+    late _FakeSortieTableSource fakeSortieTableSource;
 
     setUp(() {
       mockAuthService = MockAuthService();
       mockProfilService = MockProfilService();
       mockUser = MockUser();
       fakeSortieService = _FakeSortieService();
+      fakeSortieTableSource = _FakeSortieTableSource();
 
       // Configurer les mocks
       when(mockAuthService.isAuthenticated).thenReturn(true);
@@ -489,34 +533,22 @@ void main() {
           mockProfilService: mockProfilService,
           mockUser: mockUser,
           fakeSortieService: fakeSortieService,
+          fakeSortieTableSource: fakeSortieTableSource,
         );
 
-        // Utiliser pump avec délais au lieu de pumpAndSettle pour éviter les timeouts
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 200));
-        await tester.pump(const Duration(milliseconds: 200));
-        await tester.pump(const Duration(milliseconds: 200));
-
         // Vérifier qu'on est bien sur le dashboard opérateur
-        // Attendre que le dashboard soit chargé
-        await tester.pump(const Duration(milliseconds: 200));
-        expect(find.textContaining('Tableau de bord'), findsWidgets);
+        // Utiliser des assertions structurelles stables au lieu de textes fragiles
+        await pumpUntilFound(tester, find.byType(DashboardShell));
+        expect(find.byType(DashboardShell), findsOneWidget);
 
-        // ACT – Naviguer vers l'écran Sorties
-        // Option 1 : Via le menu de navigation (si visible)
-        final sortiesMenu = find.text('Sorties');
-        if (sortiesMenu.evaluate().isNotEmpty) {
-          await tester.tap(sortiesMenu);
-          await tester.pumpAndSettle();
-        } else {
-          // Option 2 : Navigation directe via GoRouter
-          final context = tester.element(find.byType(DashboardShell));
-          GoRouter.of(context).go('/sorties');
-          await tester.pumpAndSettle();
-        }
+        // ACT – Naviguer directement vers l'écran Sorties via GoRouter (évite tap() hit-test fragile)
+        final context = tester.element(find.byType(DashboardShell));
+        GoRouter.of(context).go('/sorties');
+        await tester.pumpAndSettle(const Duration(milliseconds: 200));
 
         // Vérifier qu'on est sur l'écran Sorties
-        // On cible le titre "Sorties" dans l'AppBar uniquement
+        // Utiliser pumpUntilFound pour attendre le titre de manière déterministe
+        await pumpUntilFound(tester, find.text('Sorties'));
         final sortiesAppBarTitle = find.descendant(
           of: find.byType(AppBar),
           matching: find.text('Sorties'),
@@ -691,27 +723,22 @@ void main() {
         }
         await tester.pumpAndSettle(const Duration(seconds: 2));
 
-        // Vérification E2E centrée sur l'UI uniquement.
-        //
-        // ⚠ Important : dans ce test E2E, le formulaire utilise encore
-        // le SortieService réel (prod) et pas forcément le _FakeSortieService
-        // injecté par le test.
-        // Du coup, vérifier fakeSortieService.callsCount > 0
-        // est fragile et peut être faux-rouge alors que l'app fonctionne.
-        //
-        // On garde la logique de capture pour debug éventuel, mais on ne
-        // fait plus d'assertion bloquante dessus.
-        //
-        // TODO(ml_pp_mvp): si un jour on veut absolument vérifier
-        // l'appel createValidated() ici, il faudra s'assurer que
-        // le provider utilisé par l'écran est bien override vers
-        // _FakeSortieService dans ce test.
+        // Injecter la sortie créée dans fakeSortieTableSource pour qu'elle apparaisse dans la liste
+        // (simule ce que ferait le provider réel après création)
         if (fakeSortieService.calls.isNotEmpty) {
-          // Log purement informatif
-          // ignore: avoid_print
-          print(
-            'E2E Sorties – SortieService.createValidated a été appelé '
-            '${fakeSortieService.calls.length} fois (debug).',
+          final lastCall = fakeSortieService.lastCall!;
+          fakeSortieTableSource.addRow(
+            SortieRowVM(
+              id: 'sortie-${fakeSortieService.callsCount}',
+              dateSortie: lastCall.dateSortie ?? DateTime.now(),
+              propriete: lastCall.proprietaireType,
+              produitLabel: 'G.O · Gasoil/AGO',
+              citerneNom: 'TANK1',
+              vol15: lastCall.volumeCorrige15C,
+              volAmb: (lastCall.indexApres - lastCall.indexAvant) * 1000.0,
+              beneficiaireNom: lastCall.clientId != null ? 'Client Test' : null,
+              statut: 'brouillon',
+            ),
           );
         }
 

@@ -38,6 +38,11 @@ String _formatVolume(double? volume) {
   return '$spacedInteger$decimalPart L';
 }
 
+/// Helper pour détecter les petits écrans (mobile)
+/// Mobile-safe (no overflow)
+bool _isCompactWidth(BuildContext context) =>
+    MediaQuery.sizeOf(context).width < 420;
+
 // Couleurs modernes pour les niveaux de remplissage
 class _TankColors {
   static const Color empty = Color(0xFF94A3B8); // Gris slate
@@ -330,55 +335,116 @@ class CiterneListScreen extends ConsumerWidget {
     return CustomScrollView(
       slivers: [
         // En-tête avec statistiques
+        // Mobile-safe (no overflow)
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Cartes de statistiques modernisées
-                GridView.count(
-                  crossAxisCount: 4,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  childAspectRatio: 1.7,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  children: [
-                    _buildStatCard(
-                      context,
-                      'Total Citernes',
-                      totalCiternes.toString(),
-                      Icons.storage_rounded,
-                      const Color(0xFF3B82F6),
-                      theme,
-                    ),
-                    _buildStatCard(
-                      context,
-                      'Alertes',
-                      alertesCiternes.toString(),
-                      Icons.warning_amber_rounded,
-                      alertesCiternes > 0
-                          ? const Color(0xFFEF4444)
-                          : const Color(0xFF94A3B8),
-                      theme,
-                    ),
-                    _buildStatCard(
-                      context,
-                      'Capacité Totale',
-                      _formatVolume(capaciteTotale),
-                      Icons.straighten_rounded,
-                      const Color(0xFF8B5CF6),
-                      theme,
-                    ),
-                    // RÈGLE MÉTIER : Stock ambiant = source de vérité opérationnelle
-                    _buildStockTotalCard(
-                      context,
-                      stockTotalAmbiant,
-                      stockTotal15c,
-                      theme,
-                    ),
-                  ],
+                // Cartes de statistiques modernisées - KPI header responsive
+                Builder(
+                  builder: (context) {
+                    final isCompact = _isCompactWidth(context);
+                    if (isCompact) {
+                      // Mobile : Wrap pour retour à la ligne automatique
+                      return Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        children: [
+                          SizedBox(
+                            width: (MediaQuery.sizeOf(context).width - 32 - 12) / 2,
+                            child: _buildStatCard(
+                              context,
+                              'Total Citernes',
+                              totalCiternes.toString(),
+                              Icons.storage_rounded,
+                              const Color(0xFF3B82F6),
+                              theme,
+                            ),
+                          ),
+                          SizedBox(
+                            width: (MediaQuery.sizeOf(context).width - 32 - 12) / 2,
+                            child: _buildStatCard(
+                              context,
+                              'Alertes',
+                              alertesCiternes.toString(),
+                              Icons.warning_amber_rounded,
+                              alertesCiternes > 0
+                                  ? const Color(0xFFEF4444)
+                                  : const Color(0xFF94A3B8),
+                              theme,
+                            ),
+                          ),
+                          SizedBox(
+                            width: (MediaQuery.sizeOf(context).width - 32 - 12) / 2,
+                            child: _buildStatCard(
+                              context,
+                              'Capacité Totale',
+                              _formatVolume(capaciteTotale),
+                              Icons.straighten_rounded,
+                              const Color(0xFF8B5CF6),
+                              theme,
+                            ),
+                          ),
+                          SizedBox(
+                            width: (MediaQuery.sizeOf(context).width - 32 - 12) / 2,
+                            child: _buildStockTotalCard(
+                              context,
+                              stockTotalAmbiant,
+                              stockTotal15c,
+                              theme,
+                            ),
+                          ),
+                        ],
+                      );
+                    } else {
+                      // Tablet/Desktop : GridView avec 4 colonnes
+                      return GridView.count(
+                        crossAxisCount: 4,
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        childAspectRatio: 1.7,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                        children: [
+                          _buildStatCard(
+                            context,
+                            'Total Citernes',
+                            totalCiternes.toString(),
+                            Icons.storage_rounded,
+                            const Color(0xFF3B82F6),
+                            theme,
+                          ),
+                          _buildStatCard(
+                            context,
+                            'Alertes',
+                            alertesCiternes.toString(),
+                            Icons.warning_amber_rounded,
+                            alertesCiternes > 0
+                                ? const Color(0xFFEF4444)
+                                : const Color(0xFF94A3B8),
+                            theme,
+                          ),
+                          _buildStatCard(
+                            context,
+                            'Capacité Totale',
+                            _formatVolume(capaciteTotale),
+                            Icons.straighten_rounded,
+                            const Color(0xFF8B5CF6),
+                            theme,
+                          ),
+                          // RÈGLE MÉTIER : Stock ambiant = source de vérité opérationnelle
+                          _buildStockTotalCard(
+                            context,
+                            stockTotalAmbiant,
+                            stockTotal15c,
+                            theme,
+                          ),
+                        ],
+                      );
+                    }
+                  },
                 ),
                 const SizedBox(height: 20),
                 // Titre de section
@@ -426,11 +492,12 @@ class CiterneListScreen extends ConsumerWidget {
           ),
         ),
 
-        // Grille des citernes
+        // Grille des citernes - Grid citernes responsive
+        // Mobile-safe (no overflow)
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          sliver: Builder(
-            builder: (context) {
+          sliver: SliverLayoutBuilder(
+            builder: (context, constraints) {
               // Tri des citernes par ordre naturel (TANK1, TANK2, TANK3, ...)
               final sortedCiternes = [...citernes]
                 ..sort((a, b) {
@@ -446,12 +513,31 @@ class CiterneListScreen extends ConsumerWidget {
                   return a.citerneNom.compareTo(b.citerneNom);
                 });
 
+              // Calcul responsive du nombre de colonnes selon la largeur
+              final width = constraints.crossAxisExtent;
+              int crossAxisCount;
+              double childAspectRatio;
+
+              if (width < 420) {
+                // Mobile : 1 colonne
+                crossAxisCount = 1;
+                childAspectRatio = 1.8;
+              } else if (width < 720) {
+                // Tablet : 2 colonnes
+                crossAxisCount = 2;
+                childAspectRatio = 1.5;
+              } else {
+                // Desktop : 3 colonnes
+                crossAxisCount = 3;
+                childAspectRatio = 1.35;
+              }
+
               return SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
                   crossAxisSpacing: 14,
                   mainAxisSpacing: 14,
-                  childAspectRatio: 1.35,
+                  childAspectRatio: childAspectRatio,
                 ),
                 delegate: SliverChildBuilderDelegate(
                   (context, index) => _buildCiterneCardFromSnapshot(
@@ -497,7 +583,7 @@ class CiterneListScreen extends ConsumerWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisSize: MainAxisSize.min, // Mobile-safe (no unbounded height)
         children: [
           Container(
             padding: const EdgeInsets.all(8),
@@ -511,7 +597,7 @@ class CiterneListScreen extends ConsumerWidget {
             ),
             child: Icon(Icons.inventory_2_rounded, size: 18, color: color),
           ),
-          const Spacer(),
+          const SizedBox(height: 8), // Remplace Spacer() pour éviter unbounded height
           // Valeur principale : Stock ambiant
           Text(
             _formatVolume(stockAmbiant),
@@ -574,7 +660,7 @@ class CiterneListScreen extends ConsumerWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisSize: MainAxisSize.min, // Mobile-safe (no unbounded height)
         children: [
           Container(
             padding: const EdgeInsets.all(8),
@@ -588,7 +674,7 @@ class CiterneListScreen extends ConsumerWidget {
             ),
             child: Icon(icon, size: 18, color: color),
           ),
-          const Spacer(),
+          const SizedBox(height: 8), // Remplace Spacer() pour éviter unbounded height
           Text(
             value,
             style: theme.textTheme.titleMedium?.copyWith(
@@ -746,8 +832,10 @@ class TankCard extends StatelessWidget {
             padding: const EdgeInsets.all(14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min, // Mobile-safe (no unbounded height)
               children: [
                 // En-tête : Nom + Badge pourcentage
+                // Mobile-safe (no overflow)
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -773,7 +861,7 @@ class TankCard extends StatelessWidget {
                     Expanded(
                       child: Row(
                         children: [
-                          Expanded(
+                          Flexible(
                             child: Text(
                               // B4.3-C : Numérotation visible des citernes
                               numero != null 
@@ -792,7 +880,7 @@ class TankCard extends StatelessWidget {
                           // B4.4-B : Badge "Corrigé" pour citerne
                           if (citerneId != null && citerneId!.isNotEmpty)
                             Padding(
-                              padding: const EdgeInsets.only(left: 8),
+                              padding: const EdgeInsets.only(left: 4),
                               child: StockCorrectedBadge(citerneId: citerneId!),
                             ),
                         ],
@@ -840,8 +928,10 @@ class TankCard extends StatelessWidget {
 
                 const SizedBox(height: 12),
 
-                // Métriques
-                Expanded(
+                // Métriques - Mobile-safe (no overflow)
+                // Remplace Expanded par Flexible pour éviter unbounded height
+                Flexible(
+                  fit: FlexFit.loose, // Mobile-safe (no unbounded height)
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -850,12 +940,13 @@ class TankCard extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min, // Mobile-safe (no unbounded height)
                           children: [
                             // RÈGLE MÉTIER : Stock ambiant = source de vérité opérationnelle (affiché en premier)
                             // B4.3-A & B4.3-B : Affichage avec signaux visuels pour incohérences
                             Row(
                               children: [
-                                Expanded(
+                                Flexible(
                                   child: _buildMetricRow(
                                     context,
                                     icon: Icons.water_drop_outlined,
@@ -908,8 +999,7 @@ class TankCard extends StatelessWidget {
                       const SizedBox(width: 8),
 
                       // Colonne droite : Capacité + MAJ
-                      SizedBox(
-                        width: 115,
+                      Flexible(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           mainAxisAlignment: MainAxisAlignment.start,

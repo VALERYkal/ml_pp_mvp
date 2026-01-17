@@ -1,3 +1,10 @@
+> ⚠️ DOCUMENT ARCHIVÉ  
+> Ce document correspond au **plan initial PROD-READY arrêté au 31/12/2025**.  
+> Il n’est **plus la source de vérité** de l’état du projet.  
+>  
+> 👉 La source de vérité actuelle est : **SPRINT_PROD_READY_2026_01.md**  
+> (aligné avec le CHANGELOG et le tag `v1.0.0-prod-ready`).
+
 # 🎯 SPRINT PROD-READY — ML_PP MVP
 
 **Date de démarrage :** À définir  
@@ -549,6 +556,8 @@ Le projet ML_PP MVP est officiellement **PROD READY**.
 - **AXE A verrouillé** côté DB (2025-12-31). Toute régression Flutter ou SQL est interdite sans modification explicite du contrat `docs/db/AXE_A_DB_STRICT.md`.
 - **AXE C verrouillé** (10/01/2026). Les règles de sécurité et de contrat PROD sont validées. Toute modification future nécessite une mise à jour explicite du contrat de sécurité.
 - **AXE D verrouillé** (10/01/2026). La chaîne de livraison est stable et industrialisée. Le projet est livrable en production sans action technique supplémentaire.
+
+**Clôture définitive (17/01/2026)** : AXE D — Clôturé au 17 janvier 2026 : l'ensemble des mécanismes CI/CD, scripts de stabilisation, politiques de tests (exécutés, opt-in DB, suites dépréciées), ainsi que la documentation associée (CHANGELOG et SPRINT_PROD_READY) sont alignés avec l'état réel du code et des tests, sans ambiguïté ni élément non justifié.
 
 ### Livrables
 

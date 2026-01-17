@@ -130,15 +130,21 @@ class DashboardHeader extends ConsumerWidget {
             color: theme.colorScheme.primary,
           ),
           const SizedBox(width: 12),
-          Text(
-            _getCurrentDate(),
-            style: theme.textTheme.bodyLarge?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
-              fontWeight: FontWeight.w500,
-              letterSpacing: 0.1,
+          // ✅ Titre flexible (ne déborde plus) - Mobile-safe (no overflow)
+          Expanded(
+            child: Text(
+              _getCurrentDate(),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0.1,
+              ),
             ),
           ),
-          const Spacer(),
+          const SizedBox(width: 8),
+          // ✅ Actions compactes (heure courte, pas besoin de Wrap)
           Icon(
             Icons.access_time_outlined,
             size: 18,

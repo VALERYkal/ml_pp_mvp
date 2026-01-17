@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -127,49 +128,170 @@ class _ReceptionListScreenState extends ConsumerState<ReceptionListScreen> {
             sorted.sort((a, b) => v(a).compareTo(v(b)) * (_sortAsc ? 1 : -1));
           }
 
+          // Safe clamp: avoid PaginatedDataTable crash when rowsPerPage > rowCount
+          final rowCount = sorted.length;
+          final safeRowsPerPage = rowCount == 0
+              ? 1
+              : (_rowsPerPage > rowCount ? rowCount : _rowsPerPage);
+
           final source = _ReceptionDataSource(
             context: context,
             rows: sorted,
             onTap: (id) => context.go('/receptions/$id'),
           );
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: PaginatedDataTable(
-              header: const Text('Réceptions'),
-              showCheckboxColumn: false,
-              rowsPerPage: _rowsPerPage,
-              onRowsPerPageChanged: (v) {
-                if (v != null) setState(() => _rowsPerPage = v);
-              },
-              sortAscending: _sortAsc,
-              sortColumnIndex: _sortColumnIndex,
-              columns: [
-                DataColumn(
-                  label: const Text('Date'),
-                  onSort: (_, asc) => setState(() {
-                    _sortColumnIndex = 0;
-                    _sortAsc = asc;
-                  }),
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final isMobile = constraints.maxWidth < 700;
+
+              if (isMobile) {
+                // ✅ MOBILE: List cards (lisible)
+                return RefreshIndicator(
+                  onRefresh: () async =>
+                      ref.invalidate(receptionsTableProvider),
+                  child: ListView.separated(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: sorted.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, i) {
+                      final r = sorted[i];
+                      return InkWell(
+                        onTap: () => context.go('/receptions/${r.id}'),
+                        borderRadius: BorderRadius.circular(16),
+                        child: Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        _fmtDate(r.dateReception),
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.titleMedium,
+                                      ),
+                                    ),
+                                    _MiniChip(r.propriete),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  '${r.produitLabel} • ${r.citerneNom}',
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text('15°C: ${_fmtVol(r.vol15)}'),
+                                    ),
+                                    Expanded(
+                                      child: Text('Amb: ${_fmtVol(r.volAmb)}'),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        'CDR: ${_cdrCell(r)}',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    if (r.sourceLabel != '—')
+                                      _ModernChip(
+                                        text: r.sourceLabel,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.tertiary,
+                                        icon: Icons.business,
+                                      ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              }
+
+              // Web/Desktop fix: RefreshIndicator requires a vertical Scrollable; keep horizontal scroll inside.
+              // Fix largeur infinie: SizedBox(width: tableWidth) au lieu de ConstrainedBox(minWidth) pour éviter assert PaginatedDataTable
+              // ✅ TABLET / WEB: Table + scroll horizontal
+              final tableWidth = constraints.maxWidth > 1100
+                  ? constraints.maxWidth
+                  : 1100;
+              return RefreshIndicator(
+                onRefresh: () async => ref.invalidate(receptionsTableProvider),
+                notificationPredicate: (n) => n.depth == 0,
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: SizedBox(
+                        width: tableWidth.toDouble(), // ✅ largeur FINIE (pas ∞)
+                        child: Builder(
+                          builder: (context) {
+                            debugPrint(
+                              '[TABLE Réceptions] rowCount=$rowCount _rowsPerPage=$_rowsPerPage safe=$safeRowsPerPage',
+                            );
+                            return PaginatedDataTable(
+                              header: const Text('Réceptions'),
+                              showCheckboxColumn: false,
+                              rowsPerPage: safeRowsPerPage,
+                              onRowsPerPageChanged: (v) {
+                                if (v != null) setState(() => _rowsPerPage = v);
+                              },
+                              sortAscending: _sortAsc,
+                              sortColumnIndex: _sortColumnIndex,
+                              columns: [
+                                DataColumn(
+                                  label: const Text('Date'),
+                                  onSort: (_, asc) => setState(() {
+                                    _sortColumnIndex = 0;
+                                    _sortAsc = asc;
+                                  }),
+                                ),
+                                const DataColumn(label: Text('Propriété')),
+                                const DataColumn(label: Text('Produit')),
+                                const DataColumn(label: Text('Citerne')),
+                                DataColumn(
+                                  label: const Text('Vol @15°C'),
+                                  numeric: true,
+                                  onSort: (_, asc) => setState(() {
+                                    _sortColumnIndex = 4;
+                                    _sortAsc = asc;
+                                  }),
+                                ),
+                                const DataColumn(
+                                  label: Text('Vol ambiant'),
+                                  numeric: true,
+                                ),
+                                const DataColumn(label: Text('CDR')),
+                                const DataColumn(label: Text('Source')),
+                                const DataColumn(label: Text('Actions')),
+                              ],
+                              source: source,
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const DataColumn(label: Text('Propriété')),
-                const DataColumn(label: Text('Produit')),
-                const DataColumn(label: Text('Citerne')),
-                DataColumn(
-                  label: const Text('Vol @15°C'),
-                  numeric: true,
-                  onSort: (_, asc) => setState(() {
-                    _sortColumnIndex = 4;
-                    _sortAsc = asc;
-                  }),
-                ),
-                const DataColumn(label: Text('Vol ambiant'), numeric: true),
-                const DataColumn(label: Text('CDR')),
-                const DataColumn(label: Text('Source')),
-                const DataColumn(label: Text('Actions')),
-              ],
-              source: source,
-            ),
+              );
+            },
           );
         },
       ),
@@ -266,16 +388,16 @@ class _ReceptionDataSource extends DataTableSource {
   int get rowCount => rows.length;
   @override
   int get selectedRowCount => 0;
-
-  String _cdrCell(dynamic r) {
-    if (r.cdrShort == null) return '—';
-    final plaque = (r.cdrPlaques ?? '').isNotEmpty ? ' · ${r.cdrPlaques}' : '';
-    return '${r.cdrShort}$plaque';
-  }
 }
 
 String _fmtDate(DateTime d) => DateFormatter.formatDate(d);
 String _fmtVol(double? v) => VolumeFormatter.formatVolume(v);
+
+String _cdrCell(dynamic r) {
+  if (r.cdrShort == null) return '—';
+  final plaque = (r.cdrPlaques ?? '').isNotEmpty ? ' · ${r.cdrPlaques}' : '';
+  return '${r.cdrShort}$plaque';
+}
 
 class _MiniChip extends StatelessWidget {
   final String text;
