@@ -355,4 +355,63 @@ void main() {
       );
     });
   });
+
+  group('CDR Detail Screen - PCA Read-Only', () {
+    testWidgets('CDR Detail (PCA) n\'affiche pas les actions Modifier/Supprimer', (
+      tester,
+    ) async {
+      // Arrange
+      final cdrTransit = createTestCdrDetail(
+        id: 'cdr-pca-test',
+        statut: StatutCours.transit,
+      );
+      final fakeService = FakeCoursDeRouteServiceForDetail(cours: cdrTransit);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            coursDeRouteServiceProvider.overrideWithValue(fakeService),
+            coursDeRouteByIdProvider(
+              cdrTransit.id,
+            ).overrideWith((ref) async => cdrTransit),
+            userRoleProvider.overrideWith((ref) => UserRole.pca),
+            refDataProvider.overrideWith((ref) async => createFakeRefData()),
+          ],
+          child: MaterialApp(
+            home: CoursRouteDetailScreen(coursId: cdrTransit.id),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Assert: Les boutons "Modifier" et "Supprimer" ne doivent pas être visibles
+      expect(
+        find.text('Modifier'),
+        findsNothing,
+        reason: 'Le bouton "Modifier" ne doit pas être affiché pour le rôle PCA',
+      );
+
+      expect(
+        find.text('Supprimer'),
+        findsNothing,
+        reason: 'Le bouton "Supprimer" ne doit pas être affiché pour le rôle PCA',
+      );
+
+      // Vérifier que la card "Actions" n'est pas affichée pour PCA
+      // (puisque nous la masquons complètement)
+      expect(
+        find.text('Actions'),
+        findsNothing,
+        reason: 'La card "Actions" ne doit pas être affichée pour le rôle PCA',
+      );
+
+      // Vérifier que l'écran se charge correctement malgré tout
+      expect(
+        find.byType(CoursRouteDetailScreen),
+        findsOneWidget,
+        reason: 'L\'écran de détail doit être affiché même pour PCA',
+      );
+    });
+  });
 }

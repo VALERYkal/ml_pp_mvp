@@ -286,21 +286,22 @@ class CoursRouteDetailScreen extends ConsumerWidget {
                               ],
                             ),
                             const SizedBox(height: 16),
-                            // Actions principales
-                            ModernActionCard(
-                              title: 'Actions',
-                              subtitle: c.statut == StatutCours.decharge
-                                  ? 'Cours déchargé - Actions limitées'
-                                  : 'Modifier ou supprimer le cours',
-                              icon: Icons.settings,
-                              accentColor: Colors.orange,
-                              actions: _buildActionButtons(
-                                context,
-                                ref,
-                                c,
-                                userRole,
+                            // Actions principales (masquée pour PCA)
+                            if (!(userRole == UserRole.pca))
+                              ModernActionCard(
+                                title: 'Actions',
+                                subtitle: c.statut == StatutCours.decharge
+                                    ? 'Cours déchargé - Actions limitées'
+                                    : 'Modifier ou supprimer le cours',
+                                icon: Icons.settings,
+                                accentColor: Colors.orange,
+                                actions: _buildActionButtons(
+                                  context,
+                                  ref,
+                                  c,
+                                  userRole,
+                                ),
                               ),
-                            ),
                             // Message informatif pour les cours déchargés
                             if (c.statut == StatutCours.decharge &&
                                 userRole?.isAdmin != true)
@@ -427,22 +428,23 @@ class CoursRouteDetailScreen extends ConsumerWidget {
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Expanded(
-                                child: ModernActionCard(
-                                  title: 'Actions',
-                                  subtitle: c.statut == StatutCours.decharge
-                                      ? 'Cours déchargé - Actions limitées'
-                                      : 'Modifier ou supprimer le cours',
-                                  icon: Icons.settings,
-                                  accentColor: Colors.orange,
-                                  actions: _buildActionButtons(
-                                    context,
-                                    ref,
-                                    c,
-                                    userRole,
+                              if (!(userRole == UserRole.pca))
+                                Expanded(
+                                  child: ModernActionCard(
+                                    title: 'Actions',
+                                    subtitle: c.statut == StatutCours.decharge
+                                        ? 'Cours déchargé - Actions limitées'
+                                        : 'Modifier ou supprimer le cours',
+                                    icon: Icons.settings,
+                                    accentColor: Colors.orange,
+                                    actions: _buildActionButtons(
+                                      context,
+                                      ref,
+                                      c,
+                                      userRole,
+                                    ),
                                   ),
                                 ),
-                              ),
                               if ((c.note ?? '').trim().isNotEmpty) ...[
                                 const SizedBox(width: 16),
                                 Expanded(
@@ -703,6 +705,7 @@ class CoursRouteDetailScreen extends ConsumerWidget {
 
     final actions = <ModernActionButton>[];
 
+    // Ne pas ajouter le bouton "Modifier" si l'utilisateur ne peut pas modifier
     if (canEdit) {
       actions.add(
         ModernActionButton(
@@ -712,18 +715,9 @@ class CoursRouteDetailScreen extends ConsumerWidget {
           onPressed: () => context.push('/cours/${cours.id}/edit'),
         ),
       );
-    } else {
-      // Bouton désactivé
-      actions.add(
-        ModernActionButton(
-          label: 'Modifier',
-          icon: Icons.edit,
-          accentColor: Colors.grey,
-          onPressed: null,
-        ),
-      );
     }
 
+    // Ne pas ajouter le bouton "Supprimer" si l'utilisateur ne peut pas supprimer
     if (canDelete) {
       actions.add(
         ModernActionButton(
@@ -731,16 +725,6 @@ class CoursRouteDetailScreen extends ConsumerWidget {
           icon: Icons.delete,
           isDanger: true,
           onPressed: () => _confirmDelete(context, ref, cours.id),
-        ),
-      );
-    } else {
-      // Bouton désactivé
-      actions.add(
-        ModernActionButton(
-          label: 'Supprimer',
-          icon: Icons.delete,
-          isDanger: true,
-          onPressed: null,
         ),
       );
     }
@@ -757,6 +741,12 @@ class CoursRouteDetailScreen extends ConsumerWidget {
       '🔍 _canEditCours: statut=${cours.statut.name}, userRole=$userRole, effectiveRole=$effectiveRole, isAdmin=${effectiveRole.isAdmin}',
     );
 
+    // PCA : lecture seule, jamais de modification
+    if (effectiveRole == UserRole.pca) {
+      debugPrint('🔍 _canEditCours: rôle PCA, canEdit=false');
+      return false;
+    }
+
     // Si le cours est déchargé, seul un admin peut le modifier
     if (cours.statut == StatutCours.decharge) {
       final canEdit = effectiveRole.isAdmin;
@@ -764,7 +754,7 @@ class CoursRouteDetailScreen extends ConsumerWidget {
       return canEdit;
     }
 
-    // Pour les autres statuts, tous les utilisateurs authentifiés peuvent modifier
+    // Pour les autres statuts, tous les utilisateurs authentifiés (sauf PCA) peuvent modifier
     final canEdit = userRole != null;
     debugPrint('🔍 _canEditCours: cours non déchargé, canEdit=$canEdit');
     return canEdit;
@@ -779,6 +769,12 @@ class CoursRouteDetailScreen extends ConsumerWidget {
       '🔍 _canDeleteCours: statut=${cours.statut.name}, userRole=$userRole, effectiveRole=$effectiveRole, isAdmin=${effectiveRole.isAdmin}',
     );
 
+    // PCA : lecture seule, jamais de suppression
+    if (effectiveRole == UserRole.pca) {
+      debugPrint('🔍 _canDeleteCours: rôle PCA, canDelete=false');
+      return false;
+    }
+
     // Si le cours est déchargé, seul un admin peut le supprimer
     if (cours.statut == StatutCours.decharge) {
       final canDelete = effectiveRole.isAdmin;
@@ -786,7 +782,7 @@ class CoursRouteDetailScreen extends ConsumerWidget {
       return canDelete;
     }
 
-    // Pour les autres statuts, tous les utilisateurs authentifiés peuvent supprimer
+    // Pour les autres statuts, tous les utilisateurs authentifiés (sauf PCA) peuvent supprimer
     final canDelete = userRole != null;
     debugPrint('🔍 _canDeleteCours: cours non déchargé, canDelete=$canDelete');
     return canDelete;
