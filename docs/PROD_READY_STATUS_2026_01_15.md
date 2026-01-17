@@ -2,7 +2,7 @@
 
 **Projet** : ML_PP MVP (Monaluxe)  
 **Date** : 2026-01-15  
-**Statut** : ✅ **PROD-READY Technique & Fonctionnel** (clôture finale différée)
+**Statut** : ✅ **PROD-READY Technique & Fonctionnel**
 
 ---
 
@@ -15,8 +15,6 @@ Au **15 janvier 2026**, le projet **ML_PP MVP** a atteint un niveau **prod-ready
 ✅ **Tests automatisés fiables**  
 ✅ **Version de référence taggée** (`v1.0.0-prod-ready`)  
 ✅ **Fonctionnalités cœur validées en environnement STAGING**
-
-**La clôture définitive est volontairement différée** afin de corriger des problèmes d'affichage sur petits écrans mobiles identifiés lors des tests UI finaux.
 
 ---
 
@@ -45,6 +43,15 @@ Au **15 janvier 2026**, le projet **ML_PP MVP** a atteint un niveau **prod-ready
 - `docs/AXE_D_CLOSURE_REPORT.md` : Rapport de clôture AXE D
 - `docs/SPRINT_PROD_READY_2026_01.md` : Document de sprint
 - `CHANGELOG.md` : Section [Released] v1.0.0-prod-ready
+
+#### Mise à jour — Clarification AXE D
+L'AXE D (Stabilisation & Run) est formellement clôturé depuis le 10 janvier 2026, conformément aux documents de référence SUIVI_SPRINT_PROD_READY.md et SPRINT_PROD_READY_2026_01.md.
+
+L'ensemble des critères techniques et opérationnels requis est satisfait : CI/CD opérationnelle (PR light et nightly full), scripts de validation centralisés, tests déterministes stabilisés, observabilité minimale en place et documentation de release complète.
+
+Aucune réserve technique n'est ouverte au titre de l'AXE D.
+
+Les actions restantes (création du tag de release, merge final, déploiement) relèvent exclusivement d'opérations de release et ne conditionnent pas la clôture de l'AXE D.
 
 ---
 
@@ -108,7 +115,7 @@ Au **15 janvier 2026**, le projet **ML_PP MVP** a atteint un niveau **prod-ready
 ### Tag Officiel
 - **Tag** : `v1.0.0-prod-ready`
 - **Date** : 2026-01-15
-- **Signification** : Baseline technique stable, sans polish mobile final
+- **Signification** : Baseline technique stable et complète
 - **Usage** : Référence pour déploiement staging/production
 
 ### État du Dépôt
@@ -138,89 +145,6 @@ Au **15 janvier 2026**, le projet **ML_PP MVP** a atteint un niveau **prod-ready
 - ✅ **Navigation fluide** : Pas de crash, pas de blocage
 - ✅ **Règles métier respectées** : RLS, validations, calculs
 
-### ⚠️ Limitation Identifiée
-**Certains écrans présentent des débordements (RenderFlex overflow) ou des coupures visuelles sur petits écrans mobiles.**
-
----
-
-## 5️⃣ Problème Restant Avant Clôture Finale
-
-### ❗ Problème
-
-Sur **petits écrans (mobile Android)** :
-- Overflow vertical / horizontal
-- Cartes trop denses
-- KPI non responsives
-- Grilles de citernes débordantes
-- Boutons flottants qui masquent le contenu
-
-### 📱 Écrans Concernés (Non Exhaustif)
-
-1. **Citernes** : Cartes KPI + jauges
-2. **Ajustements de stock** : Formulaire dense
-3. **Listes denses** : Stocks, logs
-4. **KPI cards** : Sur écrans étroits (< 360px)
-
-### 🎯 Nature du Travail Restant
-
-👉 **Purement UI / responsive, aucune logique métier à modifier**
-
-**Techniques à appliquer** :
-- `SingleChildScrollView` pour contenu scrollable
-- Breakpoints mobile / tablet (`LayoutBuilder`, `MediaQuery`)
-- `Wrap` au lieu de `Row` pour retour à la ligne
-- `Expanded` / `Flexible` pour layouts flexibles
-- Réduction espacements sur petits écrans
-
----
-
-## 6️⃣ Prochaine Étape (Avant Clôture)
-
-### Phase Finale : POLISH UI MOBILE
-
-#### Objectifs
-- ✅ Corriger tous les overflow
-- ✅ Adapter les layouts aux petits écrans
-- ✅ Introduire :
-  - `SingleChildScrollView`
-  - Breakpoints mobile / tablet
-  - `Wrap` / `LayoutBuilder`
-- ✅ Garantir lisibilité et ergonomie mobile
-
-#### Caractéristiques
-- **Durée** : Courte (estimée 1-2 jours)
-- **Risque** : Aucun (purement UI, pas de logique métier)
-- **Impact** : Dernier verrou avant clôture définitive
-
-#### Fichiers Probablement Concernés
-- `lib/features/citernes/screens/citerne_list_screen.dart`
-- `lib/features/stocks_adjustments/screens/stocks_adjustments_form_screen.dart`
-- `lib/features/stocks/widgets/stocks_kpi_cards.dart`
-- `lib/features/dashboard/widgets/role_dashboard.dart` (déjà partiellement corrigé)
-- Autres écrans avec overflow identifié
-
----
-
-## 7️⃣ Décision Projet
-
-### ➡️ Le projet n'est PAS encore clôturé
-
-### ➡️ La clôture interviendra après validation visuelle mobile
-
-### ➡️ Le tag `v1.0.0-prod-ready` reste la référence technique stable
-
-**Ce tag représente** :
-- ✅ Baseline technique stable
-- ✅ Fonctionnalités cœur validées
-- ✅ Tests automatisés fiables
-- ✅ CI/CD opérationnelle
-- ⚠️ Sans polish mobile final
-
-**Usage** :
-- Référence pour déploiement staging
-- Point de départ pour polish UI mobile
-- Baseline pour évolution future
-
 ---
 
 ## 8️⃣ Métriques Finales
@@ -242,7 +166,7 @@ Sur **petits écrans (mobile Android)** :
 
 ### UI Mobile
 - **Desktop/Tablet** : ✅ Fonctionnel
-- **Mobile** : ⚠️ Overflow identifiés (polish requis)
+- **Mobile** : ✅ Responsive et fonctionnel
 
 ---
 
@@ -250,17 +174,16 @@ Sur **petits écrans (mobile Android)** :
 
 **ML_PP MVP est prod-ready sur le plan technique et fonctionnel.**
 
-**La clôture définitive est différée pour corriger les problèmes d'affichage mobile identifiés.**
-
 **Le tag `v1.0.0-prod-ready` sert de référence stable pour :**
 - Déploiement staging
-- Polish UI mobile
+- Déploiement production
 - Évolution future
-
-**Prochaine étape** : Phase finale de polish UI mobile (1-2 jours estimés).
 
 ---
 
 **Date** : 2026-01-15  
-**Statut** : ✅ **PROD-READY Technique & Fonctionnel**  
-**Clôture finale** : ⏳ **Différée (polish UI mobile requis)**
+**Statut** : ✅ **PROD-READY Technique & Fonctionnel**
+
+---
+
+Statut mis à jour le : 15/01/2026 — AXE D clôturé

@@ -9,8 +9,16 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 #### **Clôture Formelle**
 L'**AXE D — Prod Ready** est déclaré **TERMINÉ**.
 
+**Clôture définitive (17/01/2026)** : AXE D — Clôturé au 17 janvier 2026 : l'ensemble des mécanismes CI/CD, scripts de stabilisation, politiques de tests (exécutés, opt-in DB, suites dépréciées), ainsi que la documentation associée (CHANGELOG et SPRINT_PROD_READY) sont alignés avec l'état réel du code et des tests, sans ambiguïté ni élément non justifié.
+
 #### **Résumé Exécutif**
-- ✅ **482/490 tests passants** (98.4% de succès, 100% des tests déterministes)
+- ✅ **Baseline tests (Flutter / CI Linux)**
+  - PASS : 482
+  - FAIL : 0 (le run se termine par "All tests passed!")
+  - **Interprétation opposable** :
+    - Tous les tests exécutés et déterministes sont verts (0 échec).
+    - La condition CI verte est définie comme absence totale de tests en échec sur le périmètre exécuté.
+  - **Note d'exécution** : des erreurs console runtime liées à Supabase.instance non initialisé ont été observées lors de certains tests (ex. dashboard). Ces erreurs n'ont pas provoqué d'échec sur cette baseline mais sont tracées comme point de vigilance CI.
 - ✅ **CI opérationnelle** : Workflow PR light + nightly full
 - ✅ **Baseline stabilisée** : Fake repositories, layout fixes, tests déterministes
 - ✅ **Documentation complète** : CHANGELOG, rapports de clôture
@@ -31,9 +39,22 @@ L'**AXE D — Prod Ready** est déclaré **TERMINÉ**.
   - Fix tests `SortieInput` (champs transport requis)
   - Désactivation test placeholder `widget_test.dart`
   - Fix tests `volume_calc` (tolérance floating-point)
-  - Stabilisation tests `login_screen` (pumpUntilFound)
   - Isolation complète tests `route_permissions`
 - **Résultat** : ✅ Tous les tests passent en CI Linux, aucun test flaky
+
+##### **Tests LoginScreen — stabilisation (17/01/2025)**
+Ajout d'attentes déterministes dans `login_screen_test.dart` (`pumpUntilFound` / `pumpUntilAnyFound`) afin de fiabiliser les tests sensibles au timing (SnackBar, messages de succès/erreur).  
+Validation locale confirmée :  
+`flutter test test/features/auth/screens/login_screen_test.dart -r expanded` → All tests passed.
+
+##### **Tests — état vérifié (17/01/2026)**
+- Tous les tests exécutables passent en `flutter test`.
+- Tests désactivés (skip) :
+  - 3 suites annotées `@Skip(...)` (intégration Supabase non exécutée par défaut).
+  - 6 tests individuels avec `skip:` justifié :
+    - 4 liés à l'intégration DB / STAGING / RLS (opt-in explicite).
+    - 2 suites KPI dépréciées, conservées à titre historique.
+- Aucun `skip:` vide.
 
 ##### **CI Hardening (2026-01-10)**
 - **Workflow PR light** : Feedback rapide (~2-3 min, unit/widget only)
@@ -47,7 +68,7 @@ L'**AXE D — Prod Ready** est déclaré **TERMINÉ**.
 - `test/sorties/sortie_draft_service_test.dart` (champs transport requis)
 - `test/widget_test.dart` (désactivation)
 - `test/unit/volume_calc_test.dart` (tolérance floating-point)
-- `test/features/auth/screens/login_screen_test.dart` (pumpUntilFound)
+- `test/features/auth/screens/login_screen_test.dart` (pumpUntilFound / pumpUntilAnyFound)
 - `test/security/route_permissions_test.dart` (isolation complète)
 - `scripts/d1_one_shot.sh` (mode LIGHT/FULL)
 - `.github/workflows/flutter_ci.yml` (PR light)
@@ -55,7 +76,13 @@ L'**AXE D — Prod Ready** est déclaré **TERMINÉ**.
 - `CHANGELOG.md` (documentation complète)
 
 #### **État Final**
-- ✅ **Tests** : 482/490 passants (98.4%), 8 skipped (intégration DB-STRICT)
+- ✅ **Baseline tests (Flutter / CI Linux)**
+  - PASS : 482
+  - FAIL : 0 (le run se termine par "All tests passed!")
+  - **Interprétation opposable** :
+    - Tous les tests exécutés et déterministes sont verts (0 échec).
+    - La condition CI verte est définie comme absence totale de tests en échec sur le périmètre exécuté.
+  - **Note d'exécution** : des erreurs console runtime liées à Supabase.instance non initialisé ont été observées lors de certains tests (ex. dashboard). Ces erreurs n'ont pas provoqué d'échec sur cette baseline mais sont tracées comme point de vigilance CI.
 - ✅ **CI** : Verte, workflows opérationnels
 - ✅ **Baseline** : Stabilisée, fake repositories en place
 - ✅ **Documentation** : Complète et opposable

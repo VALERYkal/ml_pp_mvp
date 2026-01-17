@@ -97,6 +97,12 @@
 
 ---
 
+### 17/01/2025 — Tests LoginScreen stabilisés
+
+Les tests de l'écran de connexion utilisent désormais des attentes déterministes (`pumpUntilFound` / `pumpUntilAnyFound`) pour éliminer les flakiness liées au timing UI. Validation locale réussie sur l'ensemble du fichier `login_screen_test.dart`.
+
+---
+
 ## 🎯 Décisions Techniques Clés
 
 ### 1. Fake Repository Pattern
@@ -138,6 +144,14 @@
 | **Total** | **482** | **8** | **0** | **490** |
 
 **Taux de succès** : 98.4% (100% des tests déterministes)
+
+**Clarification — Tests désactivés (17/01/2026)**
+Les tests désactivés ne correspondent pas uniquement à l'intégration DB :
+- 3 suites sont désactivées via `@Skip(...)` (Supabase non exécuté par défaut).
+- 6 tests utilisent `skip:` avec justification explicite :
+  - 4 concernent l'intégration DB / STAGING / RLS (opt-in).
+  - 2 correspondent à des suites KPI dépréciées.
+Aucun test n'est désactivé sans raison explicite.
 
 ### CI/CD
 
@@ -192,3 +206,5 @@
 
 **Date de clôture** : 2026-01-15  
 **Statut** : ✅ **TERMINÉ**
+
+**Clôture définitive (17/01/2026)** : AXE D — Clôturé au 17 janvier 2026 : l'ensemble des mécanismes CI/CD, scripts de stabilisation, politiques de tests (exécutés, opt-in DB, suites dépréciées), ainsi que la documentation associée (CHANGELOG et SPRINT_PROD_READY) sont alignés avec l'état réel du code et des tests, sans ambiguïté ni élément non justifié.

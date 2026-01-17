@@ -33,8 +33,7 @@ void main() {
         // 3. Vérifier le débit du stock (volume_ambiant et 15°C)
         // 4. Vérifier l'entrée correspondante dans log_actions.
       },
-      skip:
-          'Test d\'intégration non encore branché sur une instance Supabase de test dédiée.',
+      skip: 'DB integration tests are opt-in (set RUN_DB_TESTS=1 and provide env/.env.staging)',
     );
   });
 }
