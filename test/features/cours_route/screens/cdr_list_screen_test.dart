@@ -463,5 +463,47 @@ void main() {
             'next(DECHARGE) doit retourner null, donc le bouton doit être désactivé',
       );
     });
+
+    testWidgets(
+      'CDR List (Gérant) n\'affiche pas le bouton Créer',
+      (tester) async {
+        // Arrange
+        final cdrTest = createTestCdr(
+          id: 'cdr-gerant-test',
+          statut: StatutCours.chargement,
+        );
+        final fakeService = FakeCoursDeRouteServiceForWidgets(
+          seedData: [cdrTest],
+        );
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              coursDeRouteServiceProvider.overrideWithValue(fakeService),
+              coursDeRouteListProvider.overrideWith((ref) async => [cdrTest]),
+              userRoleProvider.overrideWith((ref) => UserRole.gerant),
+              refDataProvider.overrideWith((ref) async => createFakeRefData()),
+            ],
+            child: const MaterialApp(home: CoursRouteListScreen()),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        // Assert - Vérifier que le bouton "+" n'est pas présent
+        expect(
+          find.byIcon(Icons.add),
+          findsNothing,
+          reason: 'Le bouton "+" ne doit pas être affiché pour le rôle Gérant',
+        );
+
+        // Vérifier que l'écran se charge correctement malgré tout
+        expect(
+          find.byType(CoursRouteListScreen),
+          findsOneWidget,
+          reason: 'L\'écran de liste doit être affiché même pour Gérant',
+        );
+      },
+    );
   });
 }

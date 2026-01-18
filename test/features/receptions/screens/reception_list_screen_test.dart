@@ -7,6 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ml_pp_mvp/features/receptions/screens/reception_list_screen.dart';
 import 'package:ml_pp_mvp/features/receptions/providers/receptions_table_provider.dart';
 import 'package:ml_pp_mvp/features/receptions/models/reception_row_vm.dart';
+import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart';
+import 'package:ml_pp_mvp/core/models/user_role.dart';
 
 /// Helper pour créer un dataset avec exactement `count` lignes
 /// Utilise une factory pour générer chaque ligne avec un index unique
@@ -275,5 +277,67 @@ void main() {
       expect(find.text('Essence'), findsWidgets);
       expect(find.text('Citerne C'), findsWidgets);
     });
+
+    testWidgets(
+      'Réceptions List (PCA) n\'affiche aucun bouton d\'action',
+      (tester) async {
+        // Arrange - Créer des données mockées avec >= 10 lignes
+        final mockReceptions = _mockRows(count: 10, factory: (i) => _baseRow(i));
+
+        // Forcer un layout déterministe (desktop) pour garantir le rendu table
+        await tester.binding.setSurfaceSize(const Size(1300, 800));
+        addTearDown(() async {
+          await tester.binding.setSurfaceSize(null);
+        });
+
+        // Act - Monter l'écran avec le provider override et rôle PCA
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              receptionsTableProvider.overrideWith(
+                (ref) => Future.value(mockReceptions),
+              ),
+              userRoleProvider.overrideWith((ref) => UserRole.pca),
+            ],
+            child: const MaterialApp(home: ReceptionListScreen()),
+          ),
+        );
+
+        // Attendre que les données soient chargées
+        await tester.pumpAndSettle();
+
+        // Assert - Vérifier que les boutons d'action ne sont pas présents
+        expect(
+          find.byIcon(Icons.add),
+          findsNothing,
+          reason: 'Le bouton "+" ne doit pas être affiché pour le rôle PCA',
+        );
+
+        expect(
+          find.byIcon(Icons.add_rounded),
+          findsNothing,
+          reason: 'Le bouton "+" (rounded) ne doit pas être affiché pour le rôle PCA',
+        );
+
+        expect(
+          find.text('Actions'),
+          findsNothing,
+          reason: 'La colonne "Actions" ne doit pas être affichée pour le rôle PCA',
+        );
+
+        expect(
+          find.byIcon(Icons.edit),
+          findsNothing,
+          reason: 'Aucune icône "edit" ne doit être affichée pour le rôle PCA',
+        );
+
+        // Vérifier que l'écran se charge correctement malgré tout
+        expect(
+          find.byType(ReceptionListScreen),
+          findsOneWidget,
+          reason: 'L\'écran de liste doit être affiché même pour PCA',
+        );
+      },
+    );
   });
 }

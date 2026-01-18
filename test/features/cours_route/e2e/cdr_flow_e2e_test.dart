@@ -34,6 +34,9 @@ import 'package:ml_pp_mvp/features/cours_route/screens/cours_route_list_screen.d
 import 'package:ml_pp_mvp/features/cours_route/screens/cours_route_form_screen.dart';
 import 'package:ml_pp_mvp/shared/providers/ref_data_provider.dart';
 import 'package:ml_pp_mvp/features/dashboard/widgets/dashboard_shell.dart';
+import 'package:ml_pp_mvp/features/kpi/providers/kpi_provider.dart';
+import 'package:ml_pp_mvp/features/kpi/models/kpi_models.dart';
+import 'package:ml_pp_mvp/features/dashboard/providers/citernes_sous_seuil_provider.dart';
 import '../../../integration/mocks.mocks.dart';
 import 'package:mockito/mockito.dart';
 
@@ -350,6 +353,14 @@ Future<void> pumpCdrTestApp(
         userRoleProvider.overrideWith((ref) => role),
         // Overrides CDR
         coursDeRouteServiceProvider.overrideWithValue(fakeCdrService),
+        // Override KPI provider pour éviter Supabase.instance (dashboard)
+        kpiProviderProvider.overrideWith(
+          (ref) async => KpiSnapshot.empty,
+        ),
+        // Override citernes sous seuil pour éviter Supabase.instance
+        citernesSousSeuilProvider.overrideWith(
+          (ref) async => [],
+        ),
         // Override RefData pour fournisseurs/produits/dépôts
         refDataProvider.overrideWith(
           (ref) async => RefDataCache(
@@ -400,13 +411,13 @@ void main() {
       fakeCdrService.clear();
     });
 
-    testWidgets('E2E UI : Un gérant crée un cours de route et le voit dans la liste', (
+    testWidgets('E2E UI : Un opérateur crée un cours de route et le voit dans la liste', (
       WidgetTester tester,
     ) async {
-      // Arrange : Setup mocks Auth, fake service CDR, pump app as gerant
+      // Arrange : Setup mocks Auth, fake service CDR, pump app as operateur
       await pumpCdrTestApp(
         tester,
-        role: UserRole.gerant,
+        role: UserRole.operateur,
         mockAuthService: mockAuthService,
         mockProfilService: mockProfilService,
         mockUser: mockUser,
@@ -456,12 +467,7 @@ void main() {
       // Assert 2 : Vérifier que CoursRouteFormScreen est affiché (route /cours/new)
       expect(find.byType(CoursRouteFormScreen), findsOneWidget);
 
-      // Act 3 : Remplir le formulaire
-      // Note: Le formulaire CDR peut avoir des champs complexes (autocomplete, dropdowns)
-      // Pour simplifier, on va juste vérifier que le formulaire est présent
-      // et que les champs requis peuvent être remplis
-
-      // Attendre que le formulaire soit complètement chargé
+      // Act 3 : Vérifier que le formulaire est présent (test minimal)
       await tester.pumpAndSettle(const Duration(seconds: 2));
 
       // Vérifier que le formulaire n'est pas en état de chargement
@@ -471,25 +477,12 @@ void main() {
         reason: 'Le formulaire ne devrait pas être en état de chargement',
       );
 
-      // Pour un test E2E complet, il faudrait :
-      // - Sélectionner un fournisseur (via autocomplete ou dropdown)
-      // - Sélectionner un produit
-      // - Sélectionner un dépôt destination
-      // - Optionnel : remplir plaque camion, transporteur, chauffeur, volume
-      //
-      // Pour l'instant, on va juste vérifier que le formulaire est présent
-      // et que le formulaire se charge correctement
-      // Le bouton "Enregistrer" peut ne pas être visible si le formulaire est en chargement
-      // ou si les champs requis ne sont pas remplis
+      // Assert 3 : Vérifier que le formulaire est présent
       expect(
         find.byType(CoursRouteFormScreen),
         findsOneWidget,
         reason: 'Le formulaire CoursRouteFormScreen doit être présent',
       );
-
-      // Note: Pour un test E2E complet, il faudrait remplir tous les champs
-      // et soumettre le formulaire. Pour l'instant, on se contente de vérifier
-      // que le formulaire est accessible et que la navigation fonctionne.
 
       // Act 4 : Retourner à la liste pour vérifier la navigation
       final dashboardShellFinder2 = find.byType(DashboardShell);
@@ -502,7 +495,7 @@ void main() {
       GoRouter.of(context2).go('/cours');
       await tester.pumpAndSettle();
 
-      // Assert 3 : Vérifier la navigation retour vers /cours (liste)
+      // Assert 4 : Vérifier la navigation retour vers /cours (liste)
       expect(find.byType(CoursRouteListScreen), findsOneWidget);
     });
   });

@@ -286,8 +286,8 @@ class CoursRouteDetailScreen extends ConsumerWidget {
                               ],
                             ),
                             const SizedBox(height: 16),
-                            // Actions principales (masquée pour PCA)
-                            if (!(userRole == UserRole.pca))
+                            // Actions principales (masquée pour PCA/Gérant)
+                            if (!(userRole == UserRole.pca || userRole == UserRole.gerant))
                               ModernActionCard(
                                 title: 'Actions',
                                 subtitle: c.statut == StatutCours.decharge
@@ -428,7 +428,7 @@ class CoursRouteDetailScreen extends ConsumerWidget {
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              if (!(userRole == UserRole.pca))
+                              if (!(userRole == UserRole.pca || userRole == UserRole.gerant))
                                 Expanded(
                                   child: ModernActionCard(
                                     title: 'Actions',
@@ -741,9 +741,9 @@ class CoursRouteDetailScreen extends ConsumerWidget {
       '🔍 _canEditCours: statut=${cours.statut.name}, userRole=$userRole, effectiveRole=$effectiveRole, isAdmin=${effectiveRole.isAdmin}',
     );
 
-    // PCA : lecture seule, jamais de modification
-    if (effectiveRole == UserRole.pca) {
-      debugPrint('🔍 _canEditCours: rôle PCA, canEdit=false');
+    // PCA/Gérant : lecture seule, jamais de modification
+    if (effectiveRole == UserRole.pca || effectiveRole == UserRole.gerant) {
+      debugPrint('🔍 _canEditCours: rôle PCA/Gérant, canEdit=false');
       return false;
     }
 
@@ -769,9 +769,9 @@ class CoursRouteDetailScreen extends ConsumerWidget {
       '🔍 _canDeleteCours: statut=${cours.statut.name}, userRole=$userRole, effectiveRole=$effectiveRole, isAdmin=${effectiveRole.isAdmin}',
     );
 
-    // PCA : lecture seule, jamais de suppression
-    if (effectiveRole == UserRole.pca) {
-      debugPrint('🔍 _canDeleteCours: rôle PCA, canDelete=false');
+    // PCA/Gérant : lecture seule, jamais de suppression
+    if (effectiveRole == UserRole.pca || effectiveRole == UserRole.gerant) {
+      debugPrint('🔍 _canDeleteCours: rôle PCA/Gérant, canDelete=false');
       return false;
     }
 

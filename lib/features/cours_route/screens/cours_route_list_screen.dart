@@ -95,8 +95,14 @@ class CoursRouteListScreen extends ConsumerWidget {
     // Activer la mise à jour du cache
     ref.watch(coursCacheUpdaterProvider);
 
+    // Détection du rôle PCA/Gérant pour mode read-only
+    final role = ref.watch(userRoleProvider);
+    final isPca = (role ?? UserRole.lecture) == UserRole.pca;
+    final isGerant = (role ?? UserRole.lecture) == UserRole.gerant;
+    final canWrite = !isPca && !isGerant;
+
     return CoursRouteKeyboardShortcuts(
-      onNew: () => context.go('/cours/new'),
+      onNew: canWrite ? () => context.go('/cours/new') : null,
       onRefresh: () {
         ref.invalidate(coursDeRouteListProvider);
         ref.invalidate(refDataProvider);
@@ -129,11 +135,12 @@ class CoursRouteListScreen extends ConsumerWidget {
               tooltip: 'Statistiques',
             ),
             const KeyboardShortcutsHelpButton(),
-            IconButton(
-              tooltip: 'Nouveau cours (Ctrl+N)',
-              onPressed: () => context.go('/cours/new'),
-              icon: const Icon(Icons.add),
-            ),
+            if (canWrite)
+              IconButton(
+                tooltip: 'Nouveau cours (Ctrl+N)',
+                onPressed: () => context.go('/cours/new'),
+                icon: const Icon(Icons.add),
+              ),
           ],
         ),
         body: coursAsync.when(
@@ -141,7 +148,9 @@ class CoursRouteListScreen extends ConsumerWidget {
           error: (e, _) => _ErrorState('Erreur chargement: $e'),
           data: (cours) {
             if (cours.isEmpty) {
-              return _EmptyState(onCreate: () => context.go('/cours/new'));
+              return canWrite
+                  ? _EmptyState(onCreate: () => context.go('/cours/new'))
+                  : const _EmptyStateReadOnly();
             }
 
             return refDataAsync.when(
@@ -156,10 +165,12 @@ class CoursRouteListScreen extends ConsumerWidget {
             );
           },
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () => context.go('/cours/new'),
-          child: const Icon(Icons.add),
-        ),
+        floatingActionButton: canWrite
+            ? FloatingActionButton(
+                onPressed: () => context.go('/cours/new'),
+                child: const Icon(Icons.add),
+              )
+            : null,
       ),
     );
   }
@@ -408,15 +419,20 @@ class _InfiniteScrollView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Détection du rôle PCA/Gérant pour mode read-only
+    final role = ref.watch(userRoleProvider);
+    final isPca = (role ?? UserRole.lecture) == UserRole.pca;
+    final isGerant = (role ?? UserRole.lecture) == UserRole.gerant;
+    final canWrite = !isPca && !isGerant;
+
     return InfiniteScrollCoursList(
       fournisseurs: fournisseurs,
       produits: produits,
       produitCodes: produitCodes,
       depots: depots,
       onCoursTap: (cours) => context.go('/cours/${cours.id}'),
-      onAdvanceStatus: (cours) => _advanceStatus(context, ref, cours),
-      onCreateReception: (cours) =>
-          context.push('/receptions/new?coursId=${cours.id}'),
+      onAdvanceStatus: canWrite ? (cours) => _advanceStatus(context, ref, cours) : null,
+      onCreateReception: canWrite ? (cours) => context.push('/receptions/new?coursId=${cours.id}') : null,
     );
   }
 
@@ -475,6 +491,12 @@ class _DataTableView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Détection du rôle PCA/Gérant pour mode read-only
+    final role = ref.watch(userRoleProvider);
+    final isPca = (role ?? UserRole.lecture) == UserRole.pca;
+    final isGerant = (role ?? UserRole.lecture) == UserRole.gerant;
+    final canWrite = !isPca && !isGerant;
+
     // Utiliser la liste paginée au lieu de la liste complète
     final paginatedList = ref.watch(paginatedCoursProvider);
 
@@ -591,8 +613,10 @@ class _DataTableView extends ConsumerWidget {
                                         padding: const EdgeInsets.all(8),
                                       ),
                                     ),
-                                    const SizedBox(width: 6),
-                                    _AdvanceButton(c: c),
+                                    if (canWrite) ...[
+                                      const SizedBox(width: 6),
+                                      _AdvanceButton(c: c),
+                                    ],
                                   ],
                                 ),
                               ),
@@ -948,6 +972,25 @@ class _EmptyState extends StatelessWidget {
   }
 }
 
+/// État vide en mode read-only (PCA)
+class _EmptyStateReadOnly extends StatelessWidget {
+  const _EmptyStateReadOnly();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('Aucun cours pour le moment'),
+          SizedBox(height: 8),
+          Text('Accès PCA : lecture seule'),
+        ],
+      ),
+    );
+  }
+}
+
 /// État d'erreur
 class _ErrorState extends ConsumerWidget {
   const _ErrorState(this.message);
@@ -1019,6 +1062,12 @@ Widget _statutBadge(StatutCours statut) {
 class _ActionsBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Détection du rôle PCA/Gérant pour mode read-only
+    final role = ref.watch(userRoleProvider);
+    final isPca = (role ?? UserRole.lecture) == UserRole.pca;
+    final isGerant = (role ?? UserRole.lecture) == UserRole.gerant;
+    final canWrite = !isPca && !isGerant;
+
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Padding(
@@ -1033,11 +1082,12 @@ class _ActionsBar extends ConsumerWidget {
         runSpacing: screenWidth >= 800 ? 12 : 8,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          FilledButton.icon(
-            onPressed: () => context.go('/cours/new'),
-            icon: const Icon(Icons.add),
-            label: const Text('Nouveau'),
-          ),
+          if (canWrite)
+            FilledButton.icon(
+              onPressed: () => context.go('/cours/new'),
+              icon: const Icon(Icons.add),
+              label: const Text('Nouveau'),
+            ),
           OutlinedButton.icon(
             onPressed: () => ref.invalidate(coursDeRouteListProvider),
             icon: const Icon(Icons.refresh),

@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ml_pp_mvp/features/sorties/models/sortie_row_vm.dart';
 import 'package:ml_pp_mvp/features/sorties/providers/sorties_table_provider.dart';
 import 'package:ml_pp_mvp/features/sorties/screens/sortie_detail_screen.dart';
+import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart';
+import 'package:ml_pp_mvp/core/models/user_role.dart';
 
 void main() {
   group('SortieDetailScreen', () {
@@ -289,5 +291,125 @@ void main() {
 
       // Assert: Le bouton est présent et cliquable (pas de crash)
     });
+
+    testWidgets(
+      'Sortie Detail (Directeur) ne montre pas le bouton Ajustement',
+      (tester) async {
+        // Arrange
+        final sortie = SortieRowVM(
+          id: 'test-id',
+          dateSortie: DateTime(2025, 1, 15),
+          propriete: 'MONALUXE',
+          produitLabel: 'ESS · Essence',
+          citerneNom: 'Citerne 1',
+          vol15: 1000.0,
+          volAmb: 1000.0,
+          beneficiaireNom: 'Client Test',
+          statut: 'validee',
+        );
+
+        final container = ProviderContainer(
+          overrides: [
+            sortiesTableProvider.overrideWith((ref) async => [sortie]),
+            userRoleProvider.overrideWith((ref) => UserRole.directeur),
+          ],
+        );
+
+        // Act
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: MaterialApp(home: SortieDetailScreen(sortieId: 'test-id')),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Assert
+        expect(find.text('Corriger (Ajustement)'), findsNothing);
+        expect(find.byIcon(Icons.tune), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'Admin voit le bouton Ajustement',
+      (tester) async {
+        // Arrange
+        final sortie = SortieRowVM(
+          id: 'test-id',
+          dateSortie: DateTime(2025, 1, 15),
+          propriete: 'MONALUXE',
+          produitLabel: 'ESS · Essence',
+          citerneNom: 'Citerne 1',
+          vol15: 1000.0,
+          volAmb: 1000.0,
+          beneficiaireNom: 'Client Test',
+          statut: 'validee',
+        );
+
+        final container = ProviderContainer(
+          overrides: [
+            sortiesTableProvider.overrideWith((ref) async => [sortie]),
+            userRoleProvider.overrideWith((ref) => UserRole.admin),
+          ],
+        );
+
+        // Act
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: MaterialApp(home: SortieDetailScreen(sortieId: 'test-id')),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Assert
+        expect(find.byIcon(Icons.tune), findsOneWidget);
+        expect(
+          find.descendant(
+            of: find.byType(AppBar),
+            matching: find.byIcon(Icons.tune),
+          ),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
+      'Sortie Detail (Gérant) ne montre pas le bouton Ajustement',
+      (tester) async {
+        // Arrange
+        final sortie = SortieRowVM(
+          id: 'test-id',
+          dateSortie: DateTime(2025, 1, 15),
+          propriete: 'MONALUXE',
+          produitLabel: 'ESS · Essence',
+          citerneNom: 'Citerne 1',
+          vol15: 1000.0,
+          volAmb: 1000.0,
+          beneficiaireNom: 'Client Test',
+          statut: 'validee',
+        );
+
+        final container = ProviderContainer(
+          overrides: [
+            sortiesTableProvider.overrideWith((ref) async => [sortie]),
+            userRoleProvider.overrideWith((ref) => UserRole.gerant),
+          ],
+        );
+
+        // Act
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: MaterialApp(home: SortieDetailScreen(sortieId: 'test-id')),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Assert
+        expect(find.text('Corriger (Ajustement)'), findsNothing);
+        expect(find.byIcon(Icons.tune), findsNothing);
+      },
+    );
   });
 }

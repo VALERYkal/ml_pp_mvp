@@ -103,6 +103,128 @@ Les tests de l'écran de connexion utilisent désormais des attentes déterminis
 Validation locale confirmée sur l'ensemble du fichier `login_screen_test.dart`.
 
 ---
+
+### 17/01/2026 — UI Mobile — CDR Detail: timeline "Progression du cours" responsive
+
+**Problème** : Row horizontal déborde sur petits écrans (RenderFlex overflow)
+
+**Solution** : LayoutBuilder + breakpoint <600px
+- Mobile : Wrap (multi-lignes, sans lignes de connexion)
+- Desktop/Tablet : Row horizontal + lignes de connexion (inchangé)
+
+**Fichier** : `lib/shared/ui/modern_components/modern_status_timeline.dart` (lignes ~58-131)
+
+**Critères** : plus d'overflow, pas de scroll horizontal, desktop inchangé
+
+---
+
+### 17/01/2026 — 3A Permissions par rôle (PCA + Directeur)
+
+**PCA — lecture seule UI**
+Neutralisation complète des actions d'écriture sur :
+- CDR (détail)
+- Réceptions (liste)
+- Sorties (liste)
+Validé par tests UI dédiés
+
+**Directeur — restriction Ajustements**
+Ajustements Réception et Sortie accessibles uniquement à l'Admin
+Implémentation existante confirmée par tests UI
+Aucun impact sur les flux de création / validation
+
+**Tests exécutés**
+```bash
+flutter test test/features/receptions/screens/reception_detail_screen_test.dart -r expanded
+flutter test test/features/sorties/screens/sortie_detail_screen_test.dart -r expanded
+```
+
+**Résultat**
+- PCA : lecture seule effective sur tous les modules manipulables
+- Directeur : accès complet hors ajustements
+- Admin : comportement inchangé
+
+---
+
+### 17/01/2026 — 3B Permissions par rôle : Gérant
+
+**Gérant — lecture seule CDR + ajustements interdits**
+- CDR (liste) : bouton "+" masqué pour Gérant (même logique que PCA)
+- CDR (détail) : actions Modifier/Supprimer masquées pour Gérant
+- Réceptions/Sorties : ajustements interdits (bouton Admin-only déjà implémenté)
+
+**Implémentation**
+- Conditions PCA étendues à Gérant dans `cours_route_list_screen.dart` et `cours_route_detail_screen.dart`
+- Tests UI ajoutés pour valider le comportement Gérant (CDR list, CDR detail, Réception detail, Sortie detail)
+
+**Tests exécutés**
+```bash
+flutter test test/features/cours_route/screens -r expanded
+flutter test test/features/receptions/screens/reception_detail_screen_test.dart -r expanded
+flutter test test/features/sorties/screens/sortie_detail_screen_test.dart -r expanded
+```
+
+**Résultat**
+- Gérant : lecture seule sur CDR (comme PCA), création/validation Réceptions/Sorties autorisée, ajustements interdits (Admin uniquement)
+- Aucune régression détectée, tous les tests passent
+
+---
+
+### Phase 3 — Permissions par rôle (VALIDÉE — 17/01/2026)
+
+**Objectif** : Implémenter et valider les permissions par rôle (PCA, Directeur, Gérant, Admin) sur les modules CDR, Réceptions et Sorties.
+
+**Résumé des permissions :**
+
+| Rôle | CDR | Réceptions / Sorties | Ajustements | KPI / Dashboards |
+|------|-----|---------------------|-------------|------------------|
+| **PCA** | Lecture seule | Lecture seule | ❌ | Lecture |
+| **Directeur** | Lecture | Création + validation | ❌ (réservé Admin) | Accès complet |
+| **Gérant** | Lecture seule | Création + validation | ❌ (réservé Admin) | Accès complet |
+| **Admin** | Tous droits | Tous droits | ✅ (Admin uniquement) | Accès total |
+
+**Détails par rôle :**
+
+- **PCA**
+  - CDR : lecture seule (liste + détail)
+  - Réceptions / Sorties : lecture seule
+  - KPI / Dashboards : lecture
+  - Aucun bouton de création, validation ou ajustement
+
+- **Directeur**
+  - CDR : lecture
+  - Réceptions / Sorties : création + validation
+  - Ajustements : ❌ (réservé Admin)
+
+- **Gérant**
+  - CDR : lecture seule
+  - Réceptions / Sorties : création + validation
+  - Ajustements : ❌ (réservé Admin)
+
+- **Admin**
+  - Tous droits (référence métier)
+  - Création, validation, ajustements, suppression
+
+**Validation**
+- Tests UI dédiés PCA / Directeur / Gérant passent
+- Aucune régression Admin
+- Bouton "Corriger (Ajustement)" visible uniquement pour Admin (validé par tests)
+- Phase considérée TERMINÉE
+
+**Fichiers modifiés :**
+- `lib/features/cours_route/screens/cours_route_list_screen.dart`
+- `lib/features/cours_route/screens/cours_route_detail_screen.dart`
+- `lib/features/receptions/screens/reception_list_screen.dart`
+- `lib/features/receptions/screens/reception_detail_screen.dart`
+- `lib/features/sorties/screens/sortie_list_screen.dart`
+- `lib/features/sorties/screens/sortie_detail_screen.dart`
+
+**Tests ajoutés :**
+- `test/features/cours_route/screens/cdr_list_screen_test.dart` (Gérant)
+- `test/features/cours_route/screens/cdr_detail_screen_test.dart` (PCA, Gérant)
+- `test/features/receptions/screens/reception_detail_screen_test.dart` (Directeur, Gérant)
+- `test/features/sorties/screens/sortie_detail_screen_test.dart` (Directeur, Gérant)
+
+---
 ## 🎯 Décisions Techniques Clés
 
 ### 1. Fake Repository Pattern
@@ -222,13 +344,74 @@ une phase d'exploitation STAGING prolongée est engagée afin de :
 - Tester le système en conditions réelles par Directeur et Gérant
 - Sécuriser l'acceptation finale du projet
 
+## Gouvernance des rôles – Navigation & Actions UI
+
+### A. PCA — ✅ Implémenté et validé
+
+#### PCA (Président du Conseil d'Administration) — ✅ VALIDÉ
+
+**Portée**
+- Modules : Cours de Route (CDR), Réceptions, Sorties
+- Accès : Lecture seule (Read-only)
+
+**Comportement UI**
+- Aucun bouton de création visible
+- Aucune action de modification / suppression
+- Accès autorisé aux écrans de liste et de détail uniquement
+
+**Implémentation**
+- Guards UI basés sur `userRoleProvider`
+- Actions conditionnelles masquées selon le rôle
+
+**Tests**
+- Tests UI confirmant l'absence d'actions pour PCA :
+  - CDR
+  - Réceptions
+  - Sorties
+
+**Statut**
+- Conforme aux exigences métier
+- Considéré PROD-READY
+
+---
+
+### B. Directeur — 🟡 Règle métier validée (NON implémentée)
+
+#### Directeur — 🟡 RÈGLE MÉTIER VALIDÉE (À IMPLÉMENTER)
+
+**Règle métier**
+- Le rôle Directeur peut :
+  - Créer, consulter et valider des Réceptions
+  - Créer, consulter et valider des Sorties
+  - Consulter les CDR, Stocks et KPI
+- Le rôle Directeur **ne peut pas** :
+  - Effectuer des ajustements sur Réceptions
+  - Effectuer des ajustements sur Sorties
+  - (Ajustements réservés exclusivement au rôle Admin)
+
+**État d'implémentation**
+- Règle définie et validée fonctionnellement
+- ❌ Aucun guard UI encore appliqué
+- ❌ Boutons "Corriger (Ajustement)" encore visibles
+
+**Écrans concernés**
+- Détail Réception → bouton "Corriger (Ajustement)"
+- Détail Sortie → bouton "Corriger (Ajustement)"
+
+**Action à prévoir**
+- Ajouter un guard UI bloquant l'accès aux ajustements pour le rôle Directeur
+- Ajouter les tests UI associés
+
+⚠️ **Cette règle ne doit pas être considérée comme implémentée à ce stade.**
+
 ### Phases de validation (avec checklist)
 
 | PHASE | DESCRIPTION | STATUT | VALIDATION |
 |-------|-------------|--------|------------|
 | **PHASE 0** | Diagnostic CDR STAGING | ✅ | "CDR — OK" (VALIDÉ) |
-| **PHASE 1** | STAGING propre (reset transactionnel) | ⬜ | "STAGING PROPRE — OK" |
-| **PHASE 2** | Dépôt réaliste (citernes & capacités) | ⬜ | "STAGING RÉALISTE — OK" |
+| **PHASE 1** | STAGING propre (reset transactionnel) | ✅ | "STAGING PROPRE — OK" (VALIDÉ) |
+| **PHASE 2.2** | Validation CDR → Réception (STAGING) | ✅ | "CDR → RÉCEPTION — OK" (VALIDÉ) |
+| **PHASE 2** | Dépôt réaliste (citernes & capacités) | ✅ | "STAGING RÉALISTE — OK" (VALIDÉ) |
 | **PHASE 3A** | PCA — navigation & lecture seule | ⬜ | "PCA — ACCEPTE" |
 | **PHASE 3B** | Directeur / Gérant — usage réel | ⬜ | "DIRECTEUR / GÉRANT — OK" |
 | **PHASE 4** | Exploitation STAGING contrôlée | ⬜ | "STAGING VALIDÉ" |
@@ -249,6 +432,84 @@ une phase d'exploitation STAGING prolongée est engagée afin de :
 **Impact** : Clarification de la règle métier CDR. Risque résiduel : Aucun.
 
 **Préparation** : Phase 0 verrouillée définitivement. Passage en exploitation STAGING prolongée autorisé.
+
+## Phase 1 — Reset transactionnel STAGING (✅ CLÔTURÉ)
+
+### Objectif
+Repartir d'une base STAGING propre pour exploitation sécuritaire et tests réels (PCA / Directeur / Gérant).
+
+### Réalisé
+- Reset transactionnel : cours_de_route, receptions, sorties_produit, stocks_journaliers, log_actions (0 ligne partout).
+- Neutralisation des sources stock persistantes post-reset :
+  - stocks_snapshot = 0
+  - stocks_adjustments = 0 (purge contrôlée malgré politique INSERT-only)
+- Vues/KPI : 0 ligne sur v_stock_actuel et vues dérivées.
+- App : stock = 0 après purge cache (hard reload web / clear storage android).
+
+### Statut
+✅ Phase 1 verrouillée. Toute donnée STAGING ajoutée ensuite est volontaire et traçable.
+
+## Phase 2.2 — Validation CDR → Réception (STAGING) (✅ CLÔTURÉ)
+
+### Objectif
+Valider le flux réel d'exploitation CDR → Réception en environnement STAGING, avec impact stock et journalisation, sans dépendance UI.
+
+### Réalisé
+- Création d'un CDR STAGING avec transition complète des statuts (CHARGEMENT → TRANSIT → FRONTIERE → ARRIVE)
+- Création d'une Réception liée au CDR avec affectation à une citerne existante
+- Calcul correct : Volume ambiant et Volume corrigé à 15°C
+- Génération automatique : Stock journalier, Snapshot stock, Logs métier
+
+### Vérifications DB (post-opération)
+- Tables métier : `receptions` → ✅ 1 ligne créée, `stocks_snapshot` → ✅ alimentée, `stocks_journaliers` → ✅ générés, `log_actions` → ✅ cohérents
+- Vues KPI : `v_stock_actuel` → ✅ cohérente, `v_stock_actuel_snapshot` → ✅ cohérente, `v_kpi_stock_global` → ✅ cohérente
+
+### Validation multi-plateforme
+- Android : ✅ Réception visible, données correctes, aucune erreur bloquante
+- Web (Chrome) : ⚠️ Erreur UI uniquement (PaginatedDataTable → rowsPerPage invalide), ❌ Aucun impact DB ou métier
+
+### Analyse de l'erreur Web
+- **Origine** : PaginatedDataTable
+- **Cause** : `rowsPerPage` non présent dans `availableRowsPerPage`
+- **Impact** : Affichage seulement, aucune donnée corrompue, flux métier intact
+- **Correctif** : Sécurisation de `rowsPerPage` (correction planifiée hors Phase 2.2)
+
+### Statut
+✅ Phase 2.2 officiellement CLÔTURÉE. Le flux CDR → Réception → Stock → KPI → Logs est opérationnel. Le bug Web est hors périmètre de validation métier. Aucun rollback requis.
+
+## Phase 2 — STAGING RÉALISTE (✅ CLÔTURÉE)
+
+### Date de validation
+17/01/2026
+
+### Objectif de la phase
+Valider l'application ML_PP MVP en conditions STAGING réalistes, avec données métier cohérentes, via l'exécution complète d'un cycle réel sans modification de code.
+
+### Scénario exécuté
+- Création d'un Cours de Route (CHARGEMENT → TRANSIT → FRONTIERE → ARRIVE)
+- Création d'une Réception liée au CDR
+- Génération automatique des stocks et logs
+- Vérification des stocks post-réception
+- Création d'une Sortie produit
+- Vérification des KPI et de la journalisation
+
+### Résultats factuels
+- Flux métier complet exécuté sans erreur bloquante
+- Stock MONALUXE correctement incrémenté puis décrémenté
+- KPI cohérents avec les opérations réalisées
+- Logs RECEPTION_CREEE et SORTIE_CREEE présents et corrects
+- Validation multi-plateforme :
+  - Android : affichage correct
+  - Web (Chrome) : bug UI identifié et corrigé immédiatement
+
+### Incident rencontré
+**Bug Flutter Web (PaginatedDataTable)** :
+- **Cause** : `rowsPerPage` non présent dans `availableRowsPerPage`
+- **Impact** : UI uniquement
+- **Action** : correctif appliqué immédiatement (aucune dette technique)
+
+### Statut
+✅ **PHASE 2 — STAGING RÉALISTE VALIDÉE**
 
 ### Règles de validation
 
