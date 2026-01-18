@@ -23,6 +23,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart' as Riverpod;
 import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart'
     show CurrentProfilNotifier;
 import 'package:ml_pp_mvp/features/dashboard/providers/citernes_sous_seuil_provider.dart';
+import 'package:ml_pp_mvp/data/repositories/stocks_kpi_repository.dart';
+import 'package:ml_pp_mvp/features/stocks/data/stocks_kpi_providers.dart';
 
 /// Fake notifier pour currentProfilProvider dans les tests
 class _FakeProfilNotifier extends CurrentProfilNotifier {
@@ -31,6 +33,111 @@ class _FakeProfilNotifier extends CurrentProfilNotifier {
 
   @override
   Future<Profil?> build() async => _profil;
+}
+
+/// Fake repository minimal pour éviter Supabase.instance dans les tests smoke
+class _FakeStocksKpiRepositoryForSmokeTests implements StocksKpiRepository {
+  @override
+  Future<List<DepotGlobalStockKpi>> fetchDepotProductTotals({
+    String? depotId,
+    String? produitId,
+    DateTime? dateJour,
+  }) async {
+    return [
+      const DepotGlobalStockKpi(
+        depotId: 'test-depot',
+        depotNom: 'Test Dépôt',
+        produitId: 'produit-1',
+        produitNom: 'Essence',
+        stockAmbiantTotal: 10000.0,
+        stock15cTotal: 9500.0,
+      ),
+    ];
+  }
+
+  @override
+  Future<List<DepotOwnerStockKpi>> fetchDepotOwnerTotals({
+    String? depotId,
+    String? produitId,
+    String? proprietaireType,
+    DateTime? dateJour,
+  }) async {
+    // Retourner 2 owners (MONALUXE et PARTENAIRE) pour que l'UI fonctionne
+    return [
+      const DepotOwnerStockKpi(
+        depotId: 'test-depot',
+        depotNom: 'Test Dépôt',
+        proprietaireType: 'MONALUXE',
+        produitId: 'produit-1',
+        produitNom: 'Essence',
+        stockAmbiantTotal: 6000.0,
+        stock15cTotal: 5700.0,
+      ),
+      const DepotOwnerStockKpi(
+        depotId: 'test-depot',
+        depotNom: 'Test Dépôt',
+        proprietaireType: 'PARTENAIRE',
+        produitId: 'produit-1',
+        produitNom: 'Essence',
+        stockAmbiantTotal: 4000.0,
+        stock15cTotal: 3800.0,
+      ),
+    ];
+  }
+
+  @override
+  Future<List<CiterneOwnerStockSnapshot>> fetchCiterneOwnerSnapshots({
+    String? depotId,
+    String? citerneId,
+    String? produitId,
+    String? proprietaireType,
+    DateTime? dateJour,
+  }) async {
+    return [];
+  }
+
+  @override
+  Future<List<CiterneGlobalStockSnapshot>> fetchCiterneGlobalSnapshots({
+    String? depotId,
+    String? citerneId,
+    String? produitId,
+    DateTime? dateJour,
+  }) async {
+    return [];
+  }
+
+  @override
+  Future<double> fetchDepotTotalCapacity({
+    required String depotId,
+    String? produitId,
+  }) async {
+    return 20000.0;
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> fetchCiterneStocksFromSnapshot({
+    String? depotId,
+    String? citerneId,
+    String? produitId,
+  }) async {
+    return [];
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> fetchDepotOwnerStocksFromSnapshot({
+    required String depotId,
+    String? produitId,
+  }) async {
+    return [];
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> fetchStockActuelRows({
+    required String depotId,
+    String? produitId,
+  }) async {
+    return [];
+  }
 }
 
 /// Helper pour créer un MaterialApp.router avec GoRouter minimal pour les tests
@@ -114,6 +221,10 @@ void main() {
           kpiProviderProvider.overrideWith((ref) async => kpiSnapshot),
           // Override citernes sous seuil provider
           citernesSousSeuilProvider.overrideWith((ref) async => []),
+          // Override stocksKpiRepositoryProvider pour éviter Supabase.instance
+          stocksKpiRepositoryProvider.overrideWith(
+            (ref) => _FakeStocksKpiRepositoryForSmokeTests(),
+          ),
         ],
       );
     }

@@ -14,6 +14,113 @@ import 'package:ml_pp_mvp/features/kpi/models/kpi_models.dart';
 import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart';
 import 'package:ml_pp_mvp/core/models/profil.dart';
 import 'package:ml_pp_mvp/features/dashboard/providers/citernes_sous_seuil_provider.dart';
+import 'package:ml_pp_mvp/data/repositories/stocks_kpi_repository.dart';
+import 'package:ml_pp_mvp/features/stocks/data/stocks_kpi_providers.dart';
+
+/// Fake repository minimal pour éviter Supabase.instance dans les tests
+class _FakeStocksKpiRepositoryForTests implements StocksKpiRepository {
+  @override
+  Future<List<DepotGlobalStockKpi>> fetchDepotProductTotals({
+    String? depotId,
+    String? produitId,
+    DateTime? dateJour,
+  }) async {
+    return [
+      const DepotGlobalStockKpi(
+        depotId: 'test-depot',
+        depotNom: 'Test Dépôt',
+        produitId: 'produit-1',
+        produitNom: 'Essence',
+        stockAmbiantTotal: 10000.0,
+        stock15cTotal: 9500.0,
+      ),
+    ];
+  }
+
+  @override
+  Future<List<DepotOwnerStockKpi>> fetchDepotOwnerTotals({
+    String? depotId,
+    String? produitId,
+    String? proprietaireType,
+    DateTime? dateJour,
+  }) async {
+    // Retourner 2 owners (MONALUXE et PARTENAIRE) pour que l'UI fonctionne
+    return [
+      const DepotOwnerStockKpi(
+        depotId: 'test-depot',
+        depotNom: 'Test Dépôt',
+        proprietaireType: 'MONALUXE',
+        produitId: 'produit-1',
+        produitNom: 'Essence',
+        stockAmbiantTotal: 6000.0,
+        stock15cTotal: 5700.0,
+      ),
+      const DepotOwnerStockKpi(
+        depotId: 'test-depot',
+        depotNom: 'Test Dépôt',
+        proprietaireType: 'PARTENAIRE',
+        produitId: 'produit-1',
+        produitNom: 'Essence',
+        stockAmbiantTotal: 4000.0,
+        stock15cTotal: 3800.0,
+      ),
+    ];
+  }
+
+  @override
+  Future<List<CiterneOwnerStockSnapshot>> fetchCiterneOwnerSnapshots({
+    String? depotId,
+    String? citerneId,
+    String? produitId,
+    String? proprietaireType,
+    DateTime? dateJour,
+  }) async {
+    return [];
+  }
+
+  @override
+  Future<List<CiterneGlobalStockSnapshot>> fetchCiterneGlobalSnapshots({
+    String? depotId,
+    String? citerneId,
+    String? produitId,
+    DateTime? dateJour,
+  }) async {
+    return [];
+  }
+
+  @override
+  Future<double> fetchDepotTotalCapacity({
+    required String depotId,
+    String? produitId,
+  }) async {
+    return 20000.0;
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> fetchCiterneStocksFromSnapshot({
+    String? depotId,
+    String? citerneId,
+    String? produitId,
+  }) async {
+    return [];
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> fetchDepotOwnerStocksFromSnapshot({
+    required String depotId,
+    String? produitId,
+  }) async {
+    return [];
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> fetchStockActuelRows({
+    required String depotId,
+    String? produitId,
+  }) async {
+    return [];
+  }
+}
 
 /// Helper pour créer un MaterialApp.router avec GoRouter minimal pour les tests
 Widget _appWithRouter(Widget child, {String initialLocation = "/"}) {
@@ -42,6 +149,9 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           kpiProviderProvider.overrideWith((ref) => completer.future),
+          stocksKpiRepositoryProvider.overrideWith(
+            (ref) => _FakeStocksKpiRepositoryForTests(),
+          ),
         ],
       );
 
@@ -81,6 +191,9 @@ void main() {
           kpiProviderProvider.overrideWith(
             (ref) =>
                 Future<KpiSnapshot>.error('Test error', StackTrace.current),
+          ),
+          stocksKpiRepositoryProvider.overrideWith(
+            (ref) => _FakeStocksKpiRepositoryForTests(),
           ),
         ],
       );
@@ -143,6 +256,9 @@ void main() {
           citernesSousSeuilProvider.overrideWith(
             (ref) async => [],
           ), // Pas d'alertes pour ce test
+          stocksKpiRepositoryProvider.overrideWith(
+            (ref) => _FakeStocksKpiRepositoryForTests(),
+          ),
         ],
       );
 
@@ -217,6 +333,9 @@ void main() {
           citernesSousSeuilProvider.overrideWith(
             (ref) async => [],
           ), // Pas d'alertes pour ce test
+          stocksKpiRepositoryProvider.overrideWith(
+            (ref) => _FakeStocksKpiRepositoryForTests(),
+          ),
         ],
       );
 
@@ -282,6 +401,9 @@ void main() {
           citernesSousSeuilProvider.overrideWith(
             (ref) async => [],
           ), // Pas d'alertes pour ce test
+          stocksKpiRepositoryProvider.overrideWith(
+            (ref) => _FakeStocksKpiRepositoryForTests(),
+          ),
         ],
       );
 

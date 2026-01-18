@@ -5,6 +5,8 @@ import 'package:ml_pp_mvp/features/sorties/providers/sorties_table_provider.dart
 import 'package:ml_pp_mvp/features/sorties/kpi/sorties_kpi_provider.dart';
 import 'package:ml_pp_mvp/shared/utils/date_formatter.dart';
 import 'package:ml_pp_mvp/shared/utils/volume_formatter.dart';
+import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart';
+import 'package:ml_pp_mvp/core/models/user_role.dart';
 
 class SortieListScreen extends ConsumerStatefulWidget {
   const SortieListScreen({super.key});
@@ -21,6 +23,8 @@ class _SortieListScreenState extends ConsumerState<SortieListScreen> {
   Widget build(BuildContext context) {
     final asyncRows = ref.watch(sortiesTableProvider);
     final isCompact = MediaQuery.sizeOf(context).width < 600;
+    final userRole = ref.watch(userRoleProvider);
+    final isPca = (userRole ?? UserRole.lecture) == UserRole.pca;
 
     return Scaffold(
       appBar: AppBar(
@@ -34,19 +38,22 @@ class _SortieListScreenState extends ConsumerState<SortieListScreen> {
               ref.invalidate(sortiesKpiTodayProvider);
             },
           ),
-          IconButton(
-            tooltip: 'Nouvelle sortie',
-            icon: const Icon(Icons.add_rounded),
-            onPressed: () {
-              context.go('/sorties/new');
-            },
-          ),
+          if (!isPca)
+            IconButton(
+              tooltip: 'Nouvelle sortie',
+              icon: const Icon(Icons.add_rounded),
+              onPressed: () {
+                context.go('/sorties/new');
+              },
+            ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => context.push('/sorties/new'),
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton: isPca
+          ? null
+          : FloatingActionButton(
+              onPressed: () => context.push('/sorties/new'),
+              child: const Icon(Icons.add),
+            ),
       body: asyncRows.when(
         loading: () {
           debugPrint('[SortiesList] loading...');
@@ -129,12 +136,14 @@ class _SortieListScreenState extends ConsumerState<SortieListScreen> {
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    ElevatedButton.icon(
-                      onPressed: () => context.go('/sorties/new'),
-                      icon: const Icon(Icons.add),
-                      label: const Text('Créer une sortie'),
-                    ),
+                    if (!isPca) ...[
+                      const SizedBox(height: 24),
+                      ElevatedButton.icon(
+                        onPressed: () => context.go('/sorties/new'),
+                        icon: const Icon(Icons.add),
+                        label: const Text('Créer une sortie'),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -153,10 +162,12 @@ class _SortieListScreenState extends ConsumerState<SortieListScreen> {
           }
 
           // Safe clamp: avoid PaginatedDataTable crash when rowsPerPage > rowCount
+          // AND ensure rowsPerPage is always in availableRowsPerPage (Flutter Web requirement)
+          const availableRowsPerPage = <int>[5, 10, 20];
           final rowCount = sorted.length;
-          final safeRowsPerPage = rowCount == 0
-              ? 1
-              : (_rowsPerPage > rowCount ? rowCount : _rowsPerPage);
+          final safeRowsPerPage = availableRowsPerPage.contains(_rowsPerPage)
+              ? _rowsPerPage
+              : availableRowsPerPage.first;
 
           // Mobile: ListView avec cards
           if (isCompact) {
@@ -183,6 +194,7 @@ class _SortieListScreenState extends ConsumerState<SortieListScreen> {
             onTap: (id) {
               context.go('/sorties/$id');
             },
+            isPca: isPca,
           );
 
           // Web/Desktop fix: RefreshIndicator requires a vertical Scrollable; keep horizontal scroll inside.
@@ -218,6 +230,7 @@ class _SortieListScreenState extends ConsumerState<SortieListScreen> {
                               header: const Text('Sorties'),
                               showCheckboxColumn: false,
                               rowsPerPage: safeRowsPerPage,
+                              availableRowsPerPage: availableRowsPerPage,
                               onRowsPerPageChanged: (v) {
                                 if (v != null) setState(() => _rowsPerPage = v);
                               },
@@ -247,7 +260,7 @@ class _SortieListScreenState extends ConsumerState<SortieListScreen> {
                                   numeric: true,
                                 ),
                                 const DataColumn(label: Text('Bénéficiaire')),
-                                const DataColumn(label: Text('Actions')),
+                                if (!isPca) const DataColumn(label: Text('Actions')),
                               ],
                               source: source,
                             );
@@ -270,10 +283,12 @@ class _SortieDataSource extends DataTableSource {
   final BuildContext context;
   final List<dynamic> rows; // SortieRowVM
   final void Function(String id) onTap;
+  final bool isPca;
   _SortieDataSource({
     required this.context,
     required this.rows,
     required this.onTap,
+    this.isPca = false,
   });
 
   @override
@@ -337,17 +352,18 @@ class _SortieDataSource extends DataTableSource {
                   ),
                 ),
         ),
-        DataCell(
-          Row(
-            children: [
-              IconButton(
-                tooltip: 'Voir',
-                icon: const Icon(Icons.open_in_new),
-                onPressed: () => onTap(r.id),
-              ),
-            ],
+        if (!isPca)
+          DataCell(
+            Row(
+              children: [
+                IconButton(
+                  tooltip: 'Voir',
+                  icon: const Icon(Icons.open_in_new),
+                  onPressed: () => onTap(r.id),
+                ),
+              ],
+            ),
           ),
-        ),
       ],
     );
   }

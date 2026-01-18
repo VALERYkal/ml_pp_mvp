@@ -8,6 +8,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/reception.dart';
 import 'package:ml_pp_mvp/shared/utils/date_formatter.dart';
 import 'package:ml_pp_mvp/shared/utils/volume_formatter.dart';
+import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart';
+import 'package:ml_pp_mvp/core/models/user_role.dart';
 
 // Providers extraits vers features/receptions/providers/receptions_list_provider.dart
 
@@ -26,24 +28,29 @@ class _ReceptionListScreenState extends ConsumerState<ReceptionListScreen> {
   @override
   Widget build(BuildContext context) {
     final asyncRows = ref.watch(receptionsTableProvider);
+    final userRole = ref.watch(userRoleProvider);
+    final isPca = (userRole ?? UserRole.lecture) == UserRole.pca;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Réceptions'),
         actions: [
-          IconButton(
-            tooltip: 'Nouvelle réception',
-            icon: const Icon(Icons.add_rounded),
-            onPressed: () {
-              context.go('/receptions/new');
-            },
-          ),
+          if (!isPca)
+            IconButton(
+              tooltip: 'Nouvelle réception',
+              icon: const Icon(Icons.add_rounded),
+              onPressed: () {
+                context.go('/receptions/new');
+              },
+            ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => context.push('/receptions/new'),
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton: isPca
+          ? null
+          : FloatingActionButton(
+              onPressed: () => context.push('/receptions/new'),
+              child: const Icon(Icons.add),
+            ),
       body: asyncRows.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, st) => Center(
@@ -104,12 +111,14 @@ class _ReceptionListScreenState extends ConsumerState<ReceptionListScreen> {
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    ElevatedButton.icon(
-                      onPressed: () => context.go('/receptions/new'),
-                      icon: const Icon(Icons.add),
-                      label: const Text('Créer une réception'),
-                    ),
+                    if (!isPca) ...[
+                      const SizedBox(height: 24),
+                      ElevatedButton.icon(
+                        onPressed: () => context.go('/receptions/new'),
+                        icon: const Icon(Icons.add),
+                        label: const Text('Créer une réception'),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -129,15 +138,18 @@ class _ReceptionListScreenState extends ConsumerState<ReceptionListScreen> {
           }
 
           // Safe clamp: avoid PaginatedDataTable crash when rowsPerPage > rowCount
+          // AND ensure rowsPerPage is always in availableRowsPerPage (Flutter Web requirement)
+          const availableRowsPerPage = <int>[5, 10, 20];
           final rowCount = sorted.length;
-          final safeRowsPerPage = rowCount == 0
-              ? 1
-              : (_rowsPerPage > rowCount ? rowCount : _rowsPerPage);
+          final safeRowsPerPage = availableRowsPerPage.contains(_rowsPerPage)
+              ? _rowsPerPage
+              : availableRowsPerPage.first;
 
           final source = _ReceptionDataSource(
             context: context,
             rows: sorted,
             onTap: (id) => context.go('/receptions/$id'),
+            isPca: isPca,
           );
 
           return LayoutBuilder(
@@ -250,6 +262,7 @@ class _ReceptionListScreenState extends ConsumerState<ReceptionListScreen> {
                               header: const Text('Réceptions'),
                               showCheckboxColumn: false,
                               rowsPerPage: safeRowsPerPage,
+                              availableRowsPerPage: availableRowsPerPage,
                               onRowsPerPageChanged: (v) {
                                 if (v != null) setState(() => _rowsPerPage = v);
                               },
@@ -278,9 +291,9 @@ class _ReceptionListScreenState extends ConsumerState<ReceptionListScreen> {
                                   label: Text('Vol ambiant'),
                                   numeric: true,
                                 ),
-                                const DataColumn(label: Text('CDR')),
-                                const DataColumn(label: Text('Source')),
-                                const DataColumn(label: Text('Actions')),
+                              const DataColumn(label: Text('CDR')),
+                              const DataColumn(label: Text('Source')),
+                              if (!isPca) const DataColumn(label: Text('Actions')),
                               ],
                               source: source,
                             );
@@ -303,10 +316,12 @@ class _ReceptionDataSource extends DataTableSource {
   final BuildContext context;
   final List<dynamic> rows; // ReceptionRowVM
   final void Function(String id) onTap;
+  final bool isPca;
   _ReceptionDataSource({
     required this.context,
     required this.rows,
     required this.onTap,
+    this.isPca = false,
   });
 
   @override
@@ -367,17 +382,18 @@ class _ReceptionDataSource extends DataTableSource {
                   ),
                 ),
         ),
-        DataCell(
-          Row(
-            children: [
-              IconButton(
-                tooltip: 'Voir',
-                icon: const Icon(Icons.open_in_new),
-                onPressed: () => onTap(r.id),
-              ),
-            ],
+        if (!isPca)
+          DataCell(
+            Row(
+              children: [
+                IconButton(
+                  tooltip: 'Voir',
+                  icon: const Icon(Icons.open_in_new),
+                  onPressed: () => onTap(r.id),
+                ),
+              ],
+            ),
           ),
-        ),
       ],
     );
   }

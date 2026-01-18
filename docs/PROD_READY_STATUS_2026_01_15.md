@@ -17,11 +17,64 @@
 **Checklist officielle** :
 
 - ✅ CDR — OK (Phase 0 — Diagnostic CDR STAGING validé)
-- ⬜ STAGING PROPRE — OK
-- ⬜ STAGING RÉALISTE — OK
-- ⬜ PCA — ACCEPTE
-- ⬜ DIRECTEUR / GÉRANT — OK
+- ✅ STAGING PROPRE — OK (Phase 1 — Reset transactionnel STAGING + neutralisation stock fantôme validé)
+- ✅ CDR → RÉCEPTION — OK (Phase 2.2 — Validation flux métier STAGING validé)
+- ✅ STAGING RÉALISTE — OK (validé le 17/01/2026)
+- ✅ PCA — VALIDÉ (lecture seule UI sur CDR, Réceptions, Sorties validé par tests écran)
+- ✅ DIRECTEUR — VALIDÉ (ajustements Réception / Sortie réservés Admin — tests UI)
+- ✅ GÉRANT — VALIDÉ (lecture seule CDR + ajustements interdits — tests UI validés)
+- ✅ ADMIN — VALIDÉ (tous droits — aucune régression détectée)
 - ⬜ STAGING VALIDÉ
+
+### Validation Phase 1 — Reset transactionnel STAGING
+
+**Date de validation** : _[À compléter]_
+
+**Validation factuelle** :
+- ✅ DB transactionnelle : 0 ligne
+  - `cours_de_route` : 0 ligne
+  - `receptions` : 0 ligne
+  - `sorties_produit` : 0 ligne
+  - `stocks_journaliers` : 0 ligne
+  - `log_actions` : 0 ligne
+- ✅ Sources stock (stocks_snapshot, stocks_adjustments) : 0 ligne
+- ✅ Vues stock/KPI : 0 ligne
+  - v_stock_actuel, v_stock_actuel_snapshot, v_stocks_snapshot_corrige, v_kpi_stock_global, v_citerne_stock_snapshot_agg
+- ✅ UI : 0 (web + android)
+
+**Statut** : ✅ **VALIDÉ** / **BLOQUANT LE PASSAGE À PHASE 2**
+
+**Impact** : Environnement STAGING remis à zéro. Toute donnée postérieure est volontaire et traçable.
+
+### Validation Phase 2.2 — CDR → Réception (STAGING)
+
+**Date de validation** : _[À compléter]_
+
+**Validation factuelle** :
+- ✅ Flux métier validé : CDR → Réception → Stock → KPI → Logs opérationnel
+- ✅ Tables métier : `receptions` (1 ligne), `stocks_snapshot` (alimentée), `stocks_journaliers` (générés), `log_actions` (cohérents)
+- ✅ Vues KPI : `v_stock_actuel`, `v_stock_actuel_snapshot`, `v_kpi_stock_global` (cohérentes)
+- ✅ Android : Réception visible, données correctes, aucune erreur bloquante
+- ⚠️ Web (Chrome) : Erreur UI uniquement (PaginatedDataTable), aucun impact DB/métier
+
+**Statut** : ✅ **VALIDÉ** — Flux métier opérationnel. Bug Web classé UI/non bloquant.
+
+**Impact** : Validation du flux CDR → Réception confirmée. Aucun rollback requis.
+
+### Validation Phase 2 — STAGING RÉALISTE
+
+**Date** : 17/01/2026
+
+**Validation factuelle** :
+- ✅ Cycle métier complet exécuté en STAGING
+- ✅ Données réalistes (citernes, produits, volumes)
+- ✅ Aucune correction métier requise
+- ✅ Bug UI Web corrigé immédiatement
+- ✅ Aucune dette technique ouverte
+
+**Conclusion** :
+La phase STAGING RÉALISTE est officiellement validée.
+Le projet peut passer à la PHASE 3A — PCA (lecture seule & navigation).
 
 ### Règle de clôture
 Le projet sera déclaré **"PROD-READY FINAL"** uniquement lorsque toutes les cases ci-dessus
@@ -132,6 +185,22 @@ Les actions restantes (création du tag de release, merge final, déploiement) r
 - ✅ Redirections selon rôle (admin, directeur, gerant, operateur, pca, lecture)
 - ✅ Refresh manuel et auto-refresh après navigation
 
+#### Statut des rôles – Navigation & Actions
+
+| Rôle | CDR | Réceptions | Sorties | Ajustements |
+|------|-----|------------|---------|-------------|
+| **PCA** | ✅ Lecture | ✅ Lecture | ✅ Lecture | ❌ Aucun |
+| **Directeur** | ✅ | ✅ | ✅ | ✅ Admin-only (UI + tests) |
+| **Gérant** | ✅ Lecture | ✅ | ✅ | ✅ Admin-only (UI + tests) |
+| **Admin** | ✅ | ✅ | ✅ | ✅ |
+
+**Notes** :
+- Permissions alignées métier (PCA lecture seule, Directeur/Gérant création + validation, Admin ajustements)
+- Ajustements stock strictement Admin-only (validé par tests UI)
+- Navigation cohérente desktop / mobile (responsive)
+- Tests UI en place pour tous les rôles (PCA, Directeur, Gérant, Admin)
+- Restrictions implémentées au niveau UI et couvertes par des tests widget. Les règles DB/RLS seront traitées séparément si nécessaire.
+
 ---
 
 ## 3️⃣ État Git & Release
@@ -196,6 +265,7 @@ Les actions restantes (création du tag de release, merge final, déploiement) r
 ### UI Mobile
 - **Desktop/Tablet** : ✅ Fonctionnel
 - **Mobile** : ✅ Responsive et fonctionnel
+- **CDR Detail — Progression du cours (mobile)** : ✅ Overflow corrigé via ModernStatusTimeline responsive (<600px Wrap, >=600px Row)
 
 ---
 

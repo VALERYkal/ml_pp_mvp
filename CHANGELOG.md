@@ -97,6 +97,83 @@ Validation locale confirmée :
 
 ## [Unreleased]
 
+### Permissions par rôle — Navigation & Actions (CDR / Réceptions / Sorties) (17/01/2026)
+
+#### ✅ PCA — Lecture seule (UI)
+Modules concernés : CDR, Réceptions, Sorties
+
+- Lecture seule sur Cours de Route (liste + détail)
+- Accès lecture Réceptions et Sorties
+- Aucun bouton de création, validation ou ajustement
+
+**Implémentation :**
+- CDR (détail) : Actions Modifier / Supprimer masquées  
+  Fichier : `lib/features/cours_route/screens/cours_route_detail_screen.dart`  
+  Test : `test/features/cours_route/screens/cdr_detail_screen_test.dart` (PCA)
+- Réceptions (liste) : Boutons "+", FAB, empty-state et colonne Actions masqués  
+  Fichier : `lib/features/receptions/screens/reception_list_screen.dart`  
+  Test : `test/features/receptions/screens/reception_list_screen_test.dart`
+- Sorties (liste) : Boutons "+", FAB, empty-state et colonne Actions masqués  
+  Fichier : `lib/features/sorties/screens/sortie_list_screen.dart`  
+  Test : `test/features/sorties/screens/sortie_list_screen_test.dart`
+
+#### ✅ Directeur — Accès complet hors ajustements
+- Accès complet navigation (CDR, Réceptions, Sorties, Stocks, KPI)
+- Création et validation Réceptions & Sorties
+- Ajustements de stock interdits (Admin uniquement)
+
+**Implémentation :**
+- Bouton "Corriger (Ajustement)" visible uniquement pour `UserRole.admin`
+- Réception (détail) : `lib/features/receptions/screens/reception_detail_screen.dart`  
+  Test : `test/features/receptions/screens/reception_detail_screen_test.dart` (Directeur)
+- Sortie (détail) : `lib/features/sorties/screens/sortie_detail_screen.dart`  
+  Test : `test/features/sorties/screens/sortie_detail_screen_test.dart` (Directeur)
+
+#### ✅ Gérant — Lecture seule CDR + Création Réceptions/Sorties
+- Lecture seule sur Cours de Route (comme PCA)
+- Création et validation Réceptions & Sorties
+- Ajustements de stock interdits (Admin uniquement)
+
+**Implémentation :**
+- CDR (liste) : Bouton "+" masqué pour Gérant  
+  Fichier : `lib/features/cours_route/screens/cours_route_list_screen.dart`  
+  Test : `test/features/cours_route/screens/cdr_list_screen_test.dart` (Gérant)
+- CDR (détail) : Actions Modifier / Supprimer masquées pour Gérant  
+  Fichier : `lib/features/cours_route/screens/cours_route_detail_screen.dart`  
+  Test : `test/features/cours_route/screens/cdr_detail_screen_test.dart` (Gérant)
+- Réception (détail) : Bouton "Corriger (Ajustement)" masqué (réservé Admin)  
+  Test : `test/features/receptions/screens/reception_detail_screen_test.dart` (Gérant)
+- Sortie (détail) : Bouton "Corriger (Ajustement)" masqué (réservé Admin)  
+  Test : `test/features/sorties/screens/sortie_detail_screen_test.dart` (Gérant)
+
+#### ✅ Admin — Accès total
+- Accès total : création, validation, ajustements, suppression
+- Aucun changement de comportement (non-régression)
+
+**Validation :**
+- Tests UI dédiés PCA / Directeur / Gérant passent
+- Aucune régression Admin détectée
+- Bouton "Corriger (Ajustement)" visible uniquement pour Admin (validé par tests)
+
+**Commandes de tests exécutées :**
+```bash
+flutter test test/features/cours_route/screens -r expanded
+flutter test test/features/receptions/screens/reception_detail_screen_test.dart -r expanded
+flutter test test/features/sorties/screens/sortie_detail_screen_test.dart -r expanded
+```
+
+### 📱 [UI/UX] — Fix Mobile CDR Detail "Progression du cours" (17/01/2026)
+
+- **Fix (Mobile)**: CDR Detail "Progression du cours" — suppression du RenderFlex overflow en rendant ModernStatusTimeline responsive (Wrap multi-lignes <600px, Row inchangé >=600px).  
+  Fichier: `lib/shared/ui/modern_components/modern_status_timeline.dart`
+
+**Commandes de tests exécutées :**
+```bash
+flutter test test/features/cours_route/screens -r expanded
+flutter test test/features/receptions/screens/reception_detail_screen_test.dart -r expanded
+flutter test test/features/sorties/screens/sortie_detail_screen_test.dart -r expanded
+```
+
 ### 🟡 STAGING — Exploitation prolongée (Validation métier & acceptation)
 
 - Activation du mode "STAGING prolongé (sécuritaire)"
@@ -107,8 +184,9 @@ Validation locale confirmée :
 **Phases de validation** :
 
 - ✅ PHASE 0 — Diagnostic CDR STAGING (VALIDÉ — Aucun correctif requis)
-- ⬜ PHASE 1 — Reset transactionnel total STAGING
-- ⬜ PHASE 2 — Simulation réaliste du dépôt (citernes & capacités)
+- ✅ PHASE 1 — STAGING propre (VALIDÉ — Reset transactionnel complet)
+- ✅ PHASE 2.2 — Validation CDR → Réception (STAGING) (VALIDÉ — Flux métier opérationnel)
+- ✅ PHASE 2 — Simulation réaliste du dépôt (citernes & capacités) (VALIDÉ — 17/01/2026)
 - ⬜ PHASE 3 — Validation navigation & permissions par rôle
   - ⬜ PCA — lecture seule globale
   - ⬜ Directeur / Gérant — usage réel
@@ -130,6 +208,64 @@ Validation locale confirmée :
 - **Décision** : Aucun correctif applicatif requis — comportement attendu conforme à la règle métier
 
 **Statut final** : ✅ **VALIDÉ** — Phase clôturée définitivement.
+
+---
+
+### ✅ Phase 1 — Reset transactionnel STAGING (Clôturée)
+
+- Purge complète des données transactionnelles STAGING :
+  - cours_de_route, receptions, sorties_produit, stocks_journaliers, log_actions
+- Correction "stock fantôme" post-reset : purge des sources de stock persistantes
+  - stocks_snapshot = 0
+  - stocks_adjustments = 0 (table INSERT-only, purge via TRUNCATE avec triggers désactivés temporairement)
+- Vérification : toutes les vues stock/KPI retournent 0 ligne
+  - v_stock_actuel, v_stock_actuel_snapshot, v_stocks_snapshot_corrige, v_kpi_stock_global, v_citerne_stock_snapshot_agg
+- Validation UI : plus aucun stock affiché après reset cache (web hard reload / android clear storage)
+
+---
+
+### ✅ Phase 2.2 — Validation CDR → Réception (STAGING)
+
+**Objectif** : Valider le flux réel d'exploitation CDR → Réception en environnement STAGING, avec impact stock et journalisation.
+
+**Actions réalisées** :
+- Création d'un CDR STAGING avec transition complète des statuts (CHARGEMENT → TRANSIT → FRONTIERE → ARRIVE)
+- Création d'une Réception liée au CDR avec affectation à une citerne existante
+- Calcul correct : Volume ambiant et Volume corrigé à 15°C
+- Génération automatique : Stock journalier, Snapshot stock, Logs métier
+
+**Vérifications DB (post-opération)** :
+- Tables métier : `receptions` → ✅ 1 ligne créée, `stocks_snapshot` → ✅ alimentée, `stocks_journaliers` → ✅ générés, `log_actions` → ✅ cohérents
+- Vues KPI : `v_stock_actuel` → ✅ cohérente, `v_stock_actuel_snapshot` → ✅ cohérente, `v_kpi_stock_global` → ✅ cohérente
+
+**Validation multi-plateforme** :
+- Android : ✅ Réception visible, données correctes, aucune erreur bloquante
+- Web (Chrome) : ⚠️ Erreur UI uniquement (PaginatedDataTable → rowsPerPage invalide), ❌ Aucun impact DB ou métier
+
+**Décision finale** : ✅ **Phase 2.2 officiellement CLÔTURÉE** — Le flux CDR → Réception → Stock → KPI → Logs est opérationnel. Le bug Web est hors périmètre de validation métier.
+
+---
+
+### ✅ Validation STAGING réaliste — 2026-01-17
+
+**Phase 2 — STAGING RÉALISTE officiellement clôturée**
+
+- Exécution complète du cycle métier réel (CDR → Réception → Stock → Sortie → KPI → Logs) en environnement STAGING
+- Validation des stocks, KPI et journalisation
+- Correction immédiate d'un bug Flutter Web (PaginatedDataTable / rowsPerPage)
+- Aucune dette technique ouverte
+- Validation multi-plateforme : Android ✅, Web (Chrome) ✅ après correctif
+
+---
+
+### ✅ Phase 2.2 — Validation UI Réceptions (Web)
+
+**Correction d'un crash Flutter Web lié à PaginatedDataTable**
+
+- **Cause** : `rowsPerPage` hors `availableRowsPerPage` après reset STAGING
+- **Impact** : UI Web uniquement (Android non concerné)
+- **Correctif** : Sécurisation de `rowsPerPage` pour garantir qu'il est toujours dans `availableRowsPerPage`
+- **Statut** : ✅ **VALIDÉ**
 
 ---
 

@@ -18,8 +18,8 @@ class InfiniteScrollCoursList extends ConsumerStatefulWidget {
     required this.produitCodes,
     required this.depots,
     required this.onCoursTap,
-    required this.onAdvanceStatus,
-    required this.onCreateReception,
+    this.onAdvanceStatus,
+    this.onCreateReception,
   });
 
   final Map<String, String> fournisseurs;
@@ -27,8 +27,8 @@ class InfiniteScrollCoursList extends ConsumerStatefulWidget {
   final Map<String, String> produitCodes;
   final Map<String, String> depots;
   final void Function(CoursDeRoute) onCoursTap;
-  final void Function(CoursDeRoute) onAdvanceStatus;
-  final void Function(CoursDeRoute) onCreateReception;
+  final void Function(CoursDeRoute)? onAdvanceStatus;
+  final void Function(CoursDeRoute)? onCreateReception;
 
   @override
   ConsumerState<InfiniteScrollCoursList> createState() =>
@@ -103,8 +103,8 @@ class _InfiniteScrollCoursListState
           produitCodes: widget.produitCodes,
           depots: widget.depots,
           onTap: () => widget.onCoursTap(c),
-          onAdvanceStatus: () => widget.onAdvanceStatus(c),
-          onCreateReception: () => widget.onCreateReception(c),
+          onAdvanceStatus: widget.onAdvanceStatus == null ? null : () => widget.onAdvanceStatus!(c),
+          onCreateReception: widget.onCreateReception == null ? null : () => widget.onCreateReception!(c),
         );
       },
     );
@@ -120,8 +120,8 @@ class _CoursCard extends StatelessWidget {
     required this.produitCodes,
     required this.depots,
     required this.onTap,
-    required this.onAdvanceStatus,
-    required this.onCreateReception,
+    this.onAdvanceStatus,
+    this.onCreateReception,
   });
 
   final CoursDeRoute cours;
@@ -130,8 +130,8 @@ class _CoursCard extends StatelessWidget {
   final Map<String, String> produitCodes;
   final Map<String, String> depots;
   final VoidCallback onTap;
-  final VoidCallback onAdvanceStatus;
-  final VoidCallback onCreateReception;
+  final VoidCallback? onAdvanceStatus;
+  final VoidCallback? onCreateReception;
 
   @override
   Widget build(BuildContext context) {
@@ -199,16 +199,21 @@ class _CoursCard extends StatelessWidget {
 class _ActionButtons extends ConsumerWidget {
   const _ActionButtons({
     required this.cours,
-    required this.onAdvanceStatus,
-    required this.onCreateReception,
+    this.onAdvanceStatus,
+    this.onCreateReception,
   });
 
   final CoursDeRoute cours;
-  final VoidCallback onAdvanceStatus;
-  final VoidCallback onCreateReception;
+  final VoidCallback? onAdvanceStatus;
+  final VoidCallback? onCreateReception;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Si aucun callback n'est disponible (PCA), ne rien afficher
+    if (onAdvanceStatus == null && onCreateReception == null) {
+      return const SizedBox.shrink();
+    }
+
     final nextStatut = StatutCoursDb.next(cours.statut);
 
     if (nextStatut == null) {
@@ -216,6 +221,7 @@ class _ActionButtons extends ConsumerWidget {
     }
 
     if (nextStatut == StatutCours.decharge) {
+      if (onCreateReception == null) return const SizedBox.shrink();
       return FilledButton.tonalIcon(
         onPressed: onCreateReception,
         icon: const Icon(Icons.add_box, size: 16),
@@ -227,6 +233,7 @@ class _ActionButtons extends ConsumerWidget {
       );
     }
 
+    if (onAdvanceStatus == null) return const SizedBox.shrink();
     return FilledButton.tonalIcon(
       onPressed: onAdvanceStatus,
       icon: const Icon(Icons.trending_flat, size: 16),
