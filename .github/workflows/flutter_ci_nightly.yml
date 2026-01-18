@@ -37,10 +37,22 @@ jobs:
 
       # 5) Execute D1 one-shot validation (FULL mode: all tests including integration/e2e)
       # Source of truth: scripts/d1_one_shot.sh --full
+      # Enable DB integration tests with STAGING credentials via dart-defines
       - name: D1 One-Shot (full)
+        env:
+          SUPABASE_URL_STAGING: ${{ secrets.SUPABASE_URL_STAGING }}
+          SUPABASE_ANON_KEY_STAGING: ${{ secrets.SUPABASE_ANON_KEY_STAGING }}
+          TEST_USER_EMAIL_STAGING: ${{ secrets.TEST_USER_EMAIL_STAGING }}
+          TEST_USER_PASSWORD_STAGING: ${{ secrets.TEST_USER_PASSWORD_STAGING }}
         run: |
           chmod +x scripts/d1_one_shot.sh
-          ./scripts/d1_one_shot.sh web --full
+          ./scripts/d1_one_shot.sh web --full \
+            --dart-define=RUN_DB_TESTS=true \
+            --dart-define=SUPABASE_ENV=STAGING \
+            --dart-define=SUPABASE_URL="$SUPABASE_URL_STAGING" \
+            --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY_STAGING" \
+            --dart-define=TEST_USER_EMAIL="$TEST_USER_EMAIL_STAGING" \
+            --dart-define=TEST_USER_PASSWORD="$TEST_USER_PASSWORD_STAGING"
 
       # 6) Upload CI logs (always, even on failure)
       - name: Upload CI logs
