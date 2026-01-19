@@ -11,10 +11,20 @@ SKIP_ANALYZE=0
 SKIP_BUILD_RUNNER=0
 SKIP_BUILD=0
 TESTS_ONLY=0
+EXTRA_DEFINES=()
 
 # Check for flags in any position
 for arg in "$@"; do
-  if [[ "$arg" == "--full" ]]; then
+  if [[ "$arg" == --dart-define=* ]]; then
+    # Validation simple : doit contenir '=' après le prefix
+    val="${arg#--dart-define=}"
+    if [[ "$val" == *=* ]]; then
+      EXTRA_DEFINES+=("$arg")
+    else
+      echo "❌ invalid --dart-define format (expected KEY=VALUE)" >&2
+      exit 1
+    fi
+  elif [[ "$arg" == "--full" ]]; then
     FULL_MODE=1
     INCLUDE_FLAKY=1  # Full mode includes flaky tests by default
   elif [[ "$arg" == "--include-flaky" ]]; then
@@ -36,6 +46,11 @@ for arg in "$@"; do
     SKIP_BUILD=1
   fi
 done
+
+# Log extra defines count (without exposing values)
+if [[ ${#EXTRA_DEFINES[@]} -gt 0 ]]; then
+  echo "ℹ️  Extra dart-defines: ${#EXTRA_DEFINES[@]}"
+fi
 
 # ---- Logs ----
 CI_LOG_DIR=".ci_logs"
@@ -171,7 +186,7 @@ if [[ -z "$NORMAL_TESTS" ]]; then
 else
   set +e
   # shellcheck disable=SC2086
-  flutter test -r expanded $NORMAL_TESTS 2>&1 | tee -a "$TEST_LOG"
+  flutter test -r expanded "${EXTRA_DEFINES[@]}" $NORMAL_TESTS 2>&1 | tee -a "$TEST_LOG"
   NORMAL_RC=$?
   set -e
   
@@ -193,7 +208,7 @@ if [[ "$INCLUDE_FLAKY" -eq 1 ]]; then
     echo "Running flaky tests (tracked separately, see $FLAKY_LOG)"
     set +e
     # shellcheck disable=SC2086
-    flutter test -r expanded $FLAKY_TESTS 2>&1 | tee -a "$FLAKY_LOG"
+    flutter test -r expanded "${EXTRA_DEFINES[@]}" $FLAKY_TESTS 2>&1 | tee -a "$FLAKY_LOG"
     FLAKY_RC=$?
     set -e
     
