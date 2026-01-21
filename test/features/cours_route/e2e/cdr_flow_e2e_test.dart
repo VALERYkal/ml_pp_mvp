@@ -37,6 +37,8 @@ import 'package:ml_pp_mvp/features/dashboard/widgets/dashboard_shell.dart';
 import 'package:ml_pp_mvp/features/kpi/providers/kpi_provider.dart';
 import 'package:ml_pp_mvp/features/kpi/models/kpi_models.dart';
 import 'package:ml_pp_mvp/features/dashboard/providers/citernes_sous_seuil_provider.dart';
+import 'package:ml_pp_mvp/data/repositories/stocks_kpi_repository.dart';
+import 'package:ml_pp_mvp/features/stocks/data/stocks_kpi_providers.dart';
 import '../../../integration/mocks.mocks.dart';
 import 'package:mockito/mockito.dart';
 
@@ -361,6 +363,10 @@ Future<void> pumpCdrTestApp(
         citernesSousSeuilProvider.overrideWith(
           (ref) async => [],
         ),
+        // Override stocks KPI repository pour éviter Supabase.instance
+        stocksKpiRepositoryProvider.overrideWith(
+          (ref) => _FakeStocksKpiRepositoryForTests(),
+        ),
         // Override RefData pour fournisseurs/produits/dépôts
         refDataProvider.overrideWith(
           (ref) async => RefDataCache(
@@ -386,6 +392,98 @@ Future<void> pumpCdrTestApp(
 // ════════════════════════════════════════════════════════════════════════════
 // TESTS E2E UI-ONLY
 // ════════════════════════════════════════════════════════════════════════════
+
+/// Fake repository minimal pour éviter Supabase.instance dans ce test
+class _FakeStocksKpiRepositoryForTests implements StocksKpiRepository {
+  @override
+  Future<List<DepotGlobalStockKpi>> fetchDepotProductTotals({
+    String? depotId,
+    String? produitId,
+    DateTime? dateJour,
+  }) async {
+    return const [
+      DepotGlobalStockKpi(
+        depotId: 'test-depot',
+        depotNom: 'Test Dépôt',
+        produitId: 'prod-1',
+        produitNom: 'Essence',
+        stockAmbiantTotal: 0.0,
+        stock15cTotal: 0.0,
+      ),
+    ];
+  }
+
+  @override
+  Future<List<DepotOwnerStockKpi>> fetchDepotOwnerTotals({
+    String? depotId,
+    String? produitId,
+    String? proprietaireType,
+    DateTime? dateJour,
+  }) async {
+    return const [
+      DepotOwnerStockKpi(
+        depotId: 'test-depot',
+        depotNom: 'Test Dépôt',
+        proprietaireType: 'MONALUXE',
+        produitId: 'prod-1',
+        produitNom: 'Essence',
+        stockAmbiantTotal: 0.0,
+        stock15cTotal: 0.0,
+      ),
+      DepotOwnerStockKpi(
+        depotId: 'test-depot',
+        depotNom: 'Test Dépôt',
+        proprietaireType: 'PARTENAIRE',
+        produitId: 'prod-1',
+        produitNom: 'Essence',
+        stockAmbiantTotal: 0.0,
+        stock15cTotal: 0.0,
+      ),
+    ];
+  }
+
+  @override
+  Future<List<CiterneOwnerStockSnapshot>> fetchCiterneOwnerSnapshots({
+    String? depotId,
+    String? citerneId,
+    String? produitId,
+    String? proprietaireType,
+    DateTime? dateJour,
+  }) async => [];
+
+  @override
+  Future<List<CiterneGlobalStockSnapshot>> fetchCiterneGlobalSnapshots({
+    String? depotId,
+    String? citerneId,
+    String? produitId,
+    DateTime? dateJour,
+  }) async => [];
+
+  @override
+  Future<double> fetchDepotTotalCapacity({
+    required String depotId,
+    String? produitId,
+  }) async => 0.0;
+
+  @override
+  Future<List<Map<String, dynamic>>> fetchCiterneStocksFromSnapshot({
+    String? depotId,
+    String? citerneId,
+    String? produitId,
+  }) async => [];
+
+  @override
+  Future<List<Map<String, dynamic>>> fetchDepotOwnerStocksFromSnapshot({
+    required String depotId,
+    String? produitId,
+  }) async => [];
+
+  @override
+  Future<List<Map<String, dynamic>>> fetchStockActuelRows({
+    required String depotId,
+    String? produitId,
+  }) async => [];
+}
 
 void main() {
   group('Cours de Route – E2E UI', () {
@@ -431,7 +529,9 @@ void main() {
       // Option 1 : Via le menu "Cours de route"
       final coursMenu = find.text('Cours de route');
       if (coursMenu.evaluate().isNotEmpty) {
-        await tester.tap(coursMenu);
+        await tester.ensureVisible(coursMenu);
+        await tester.pumpAndSettle();
+        await tester.tap(coursMenu, warnIfMissed: false);
         await tester.pumpAndSettle();
       } else {
         // Option 2 : Navigation directe via GoRouter

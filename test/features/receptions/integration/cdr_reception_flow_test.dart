@@ -1,4 +1,3 @@
-@Skip('Supabase integration tests are disabled in flutter test environment')
 library;
 
 // 📌 Module : Réceptions - Tests d'Intégration CDR → Réception → CDR.DECHARGE
@@ -14,6 +13,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ml_pp_mvp/features/receptions/data/reception_service.dart';
 import 'package:ml_pp_mvp/shared/referentiels/referentiels.dart' as refs;
+
+// Constante pour activer les tests d'intégration Supabase via --dart-define=RUN_DB_TESTS=true
+const bool kRunDbTests = bool.fromEnvironment('RUN_DB_TESTS', defaultValue: false);
 
 // ════════════════════════════════════════════════════════════════════════════
 // HELPERS POUR TESTS D'INTÉGRATION
@@ -203,7 +205,7 @@ class _FakeRefRepoForIntegration extends refs.ReferentielsRepo {
 // TESTS D'INTÉGRATION
 // ════════════════════════════════════════════════════════════════════════════
 
-void main() {
+void defineTests() {
   group('CDR → Réception → CDR.DECHARGE Integration Flow', () {
     // ⚠️ NOTE : Ces tests nécessitent un SupabaseClient configuré
     // Pour les tests unitaires, utilisez des fakes/mocks
@@ -418,4 +420,19 @@ void main() {
       // skip: true, // Décommenter pour désactiver le test
     );
   });
+}
+
+void main() {
+  group(
+    'CDR Reception Flow Integration Tests (Supabase)',
+    defineTests,
+    skip: !kRunDbTests,
+  );
+
+  // Test sentinelle pour éviter "No tests found" et rendre le skip explicite
+  test(
+    '[SKIPPED] Enable DB tests with --dart-define=RUN_DB_TESTS=true',
+    () {},
+    skip: kRunDbTests,
+  );
 }

@@ -158,6 +158,8 @@ class FakeRefRepo extends refs.ReferentielsRepo {
                id: 'citerne-1',
                nom: 'Citerne Test',
                produitId: 'prod-1',
+               depotId: '11111111-1111-1111-1111-111111111111',
+               depotNom: '',
                capaciteTotale: 50000.0,
                capaciteSecurite: 5000.0,
                statut: 'active',

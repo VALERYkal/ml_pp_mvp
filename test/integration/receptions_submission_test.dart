@@ -56,6 +56,8 @@ class FakeRefRepo extends refs.ReferentielsRepo {
         produitId: 'p1',
         capaciteTotale: 10000,
         capaciteSecurite: 9000,
+        depotId: '11111111-1111-1111-1111-111111111111',
+        depotNom: '',
         statut: 'active',
       ),
     ];
