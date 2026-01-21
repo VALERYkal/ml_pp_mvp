@@ -1,11 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:ml_pp_mvp/shared/providers/supabase_client_provider.dart';
 import 'cours_de_route_repository.dart';
 import 'receptions_repository.dart';
 
-final supabaseClientProvider = riverpod.Provider<SupabaseClient>((ref) {
-  return Supabase.instance.client;
-});
+// Réexport pour compatibilité avec les imports existants
+export 'package:ml_pp_mvp/shared/providers/supabase_client_provider.dart'
+    show supabaseClientProvider;
 
 final coursDeRouteRepoProvider = riverpod.Provider<CoursDeRouteRepository>((
   ref,

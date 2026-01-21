@@ -862,19 +862,26 @@ class TankCard extends StatelessWidget {
                       child: Row(
                         children: [
                           Flexible(
-                            child: Text(
-                              // B4.3-C : Numérotation visible des citernes
-                              numero != null 
-                                  ? 'CITERNE $numero'
-                                  : name.toUpperCase(),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: t.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.5,
-                                color: const Color(0xFF1E293B),
-                                height: 1.2,
-                              ),
+                            child: Builder(
+                              builder: (context) {
+                                // Afficher le vrai nom de la citerne (source de vérité)
+                                // Fallback sur 'CITERNE $numero' si nom vide
+                                final rawNom = name.trim();
+                                final displayName = rawNom.isNotEmpty
+                                    ? rawNom.toUpperCase()
+                                    : (numero != null ? 'CITERNE $numero' : 'CITERNE');
+                                return Text(
+                                  displayName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: t.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 0.5,
+                                    color: const Color(0xFF1E293B),
+                                    height: 1.2,
+                                  ),
+                                );
+                              },
                             ),
                           ),
                           // B4.4-B : Badge "Corrigé" pour citerne
