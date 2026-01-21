@@ -6,7 +6,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 // Adapte ces imports à tes chemins réels :
 import 'package:ml_pp_mvp/features/auth/screens/login_screen.dart';
-import 'package:ml_pp_mvp/core/services/auth_service.dart';
 import 'package:ml_pp_mvp/shared/providers/auth_service_provider.dart';
 
 // Mock simple via Mockito (déjà généré dans test/features/auth/mocks.mocks.dart)

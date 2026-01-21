@@ -11,8 +11,6 @@ import 'package:go_router/go_router.dart';
 import 'package:ml_pp_mvp/features/dashboard/widgets/role_dashboard.dart';
 import 'package:ml_pp_mvp/features/kpi/providers/kpi_provider.dart';
 import 'package:ml_pp_mvp/features/kpi/models/kpi_models.dart';
-import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart';
-import 'package:ml_pp_mvp/core/models/profil.dart';
 import 'package:ml_pp_mvp/features/dashboard/providers/citernes_sous_seuil_provider.dart';
 import 'package:ml_pp_mvp/data/repositories/stocks_kpi_repository.dart';
 import 'package:ml_pp_mvp/features/stocks/data/stocks_kpi_providers.dart';

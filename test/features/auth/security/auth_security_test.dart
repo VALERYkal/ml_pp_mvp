@@ -76,11 +76,6 @@ void main() {
 
       // Arrange: Define access levels
       const adminAccess = ['read', 'write', 'delete', 'admin'];
-      const directeurAccess = ['read', 'write', 'delete'];
-      const gerantAccess = ['read', 'write'];
-      const operateurAccess = ['read', 'write'];
-      const pcaAccess = ['read'];
-      const lectureAccess = ['read'];
 
       // Act: Test access permissions
       bool hasAdminAccess(UserRole role) => adminAccess.contains('admin');
