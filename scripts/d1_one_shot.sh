@@ -11,7 +11,7 @@ SKIP_ANALYZE=0
 SKIP_BUILD_RUNNER=0
 SKIP_BUILD=0
 TESTS_ONLY=0
-EXTRA_DEFINES=()
+declare -a EXTRA_DEFINES=()
 
 # Check for flags in any position
 for arg in "$@"; do
@@ -54,12 +54,18 @@ fi
 
 # ---- Logs ----
 CI_LOG_DIR=".ci_logs"
+# Ensure log directory exists before defining log paths
+mkdir -p "$CI_LOG_DIR"
+# Robust log paths: use default if unset or empty (defensive against empty env vars)
 ANALYZE_LOG="${ANALYZE_LOG:-$CI_LOG_DIR/d1_analyze.log}"
 BUILD_LOG="${BUILD_LOG:-$CI_LOG_DIR/d1_build.log}"
 TEST_LOG="${TEST_LOG:-$CI_LOG_DIR/d1_test.log}"
 FLAKY_LOG="${FLAKY_LOG:-$CI_LOG_DIR/d1_flaky.log}"
-
-mkdir -p "$CI_LOG_DIR"
+# Defensive check: ensure log paths are never empty (even if env var was set to empty string)
+[[ -z "$ANALYZE_LOG" ]] && ANALYZE_LOG="$CI_LOG_DIR/d1_analyze.log"
+[[ -z "$BUILD_LOG" ]] && BUILD_LOG="$CI_LOG_DIR/d1_build.log"
+[[ -z "$TEST_LOG" ]] && TEST_LOG="$CI_LOG_DIR/d1_test.log"
+[[ -z "$FLAKY_LOG" ]] && FLAKY_LOG="$CI_LOG_DIR/d1_flaky.log"
 trap 'true' EXIT
 
 # ---- Flaky test detection helper ----
@@ -186,7 +192,7 @@ if [[ -z "$NORMAL_TESTS" ]]; then
 else
   set +e
   # shellcheck disable=SC2086
-  flutter test -r expanded "${EXTRA_DEFINES[@]}" $NORMAL_TESTS 2>&1 | tee -a "$TEST_LOG"
+  flutter test -r expanded ${EXTRA_DEFINES[@]+"${EXTRA_DEFINES[@]}"} $NORMAL_TESTS 2>&1 | tee -a "$TEST_LOG"
   NORMAL_RC=$?
   set -e
   
@@ -208,7 +214,7 @@ if [[ "$INCLUDE_FLAKY" -eq 1 ]]; then
     echo "Running flaky tests (tracked separately, see $FLAKY_LOG)"
     set +e
     # shellcheck disable=SC2086
-    flutter test -r expanded "${EXTRA_DEFINES[@]}" $FLAKY_TESTS 2>&1 | tee -a "$FLAKY_LOG"
+    flutter test -r expanded ${EXTRA_DEFINES[@]+"${EXTRA_DEFINES[@]}"} $FLAKY_TESTS 2>&1 | tee -a "$FLAKY_LOG"
     FLAKY_RC=$?
     set -e
     
