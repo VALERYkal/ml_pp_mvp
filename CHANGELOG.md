@@ -97,6 +97,44 @@ Validation locale confirmée :
 
 ## [Unreleased]
 
+### Tests E2E CDR — Stabilisation UI (21/01/2026)
+
+#### Correction d'un risque de flakiness UI
+- **Problème** : Warning Flutter Test dans `cdr_flow_e2e_test.dart` : `"tap() derived an Offset that would not hit test"` (widget partiellement off-screen)
+- **Solution** : Stabilisation de la navigation E2E via séquence déterministe :
+  - `ensureVisible()` pour rendre le widget visible avant tap
+  - `warnIfMissed: false` pour éviter les warnings non bloquants
+  - `pumpAndSettle()` pour garantir la stabilisation après scroll/tap
+- **Fichier modifié** : `test/features/cours_route/e2e/cdr_flow_e2e_test.dart`
+
+#### Résultat
+- ✅ Tests E2E CDR déterministes en CI et en local
+- ✅ Plus de warning "tap off-screen" dans les logs
+- ✅ Aucun impact sur le comportement fonctionnel du test
+- ✅ Aucune modification du code runtime (lib/)
+
+### Tests d'intégration Supabase — Activation conditionnelle (17/01/2026)
+
+#### Normalisation du mécanisme de skip
+- Suppression des annotations `@Skip` statiques au niveau fichier sur les tests d'intégration Supabase
+- Introduction d'un mécanisme de skip conditionnel via `--dart-define=RUN_DB_TESTS=true`
+- Fichiers concernés :
+  - `test/integration/auth/auth_integration_test.dart`
+  - `test/features/receptions/integration/cdr_reception_flow_test.dart`
+  - `test/features/receptions/integration/reception_stocks_integration_test.dart`
+
+#### Comportement
+- Tests toujours déclarés (plus de "No tests found")
+- Skippés par défaut (comportement inchangé pour CI light)
+- Exécutables volontairement via `--dart-define=RUN_DB_TESTS=true` (CI nightly/release)
+- Ajout d'un test sentinelle pour rendre le skip explicite
+
+#### Impact
+- Aucun changement fonctionnel côté application
+- Amélioration de la visibilité CI : tests DB déclarés même lorsqu'ils sont skippés
+- Base saine pour l'activation des tests DB en CI nightly
+- Dette technique rendue visible et contrôlée
+
 ### Permissions par rôle — Navigation & Actions (CDR / Réceptions / Sorties) (17/01/2026)
 
 #### ✅ PCA — Lecture seule (UI)
@@ -107,6 +145,9 @@ Modules concernés : CDR, Réceptions, Sorties
 - Aucun bouton de création, validation ou ajustement
 
 **Implémentation :**
+- CDR (liste) : Bouton "+" masqué  
+  Fichier : `lib/features/cours_route/screens/cours_route_list_screen.dart`  
+  Test : `test/features/cours_route/screens/cdr_list_screen_test.dart`
 - CDR (détail) : Actions Modifier / Supprimer masquées  
   Fichier : `lib/features/cours_route/screens/cours_route_detail_screen.dart`  
   Test : `test/features/cours_route/screens/cdr_detail_screen_test.dart` (PCA)
@@ -145,6 +186,17 @@ Modules concernés : CDR, Réceptions, Sorties
   Test : `test/features/receptions/screens/reception_detail_screen_test.dart` (Gérant)
 - Sortie (détail) : Bouton "Corriger (Ajustement)" masqué (réservé Admin)  
   Test : `test/features/sorties/screens/sortie_detail_screen_test.dart` (Gérant)
+
+#### Fix UI Mobile — ModernStatusTimeline responsive (17/01/2026)
+- Détection robuste de largeur effective (MediaQuery si constraints non bornées)
+- Mode mobile (<800px) : Wrap multi-lignes sans lignes de connexion
+- Mode desktop (>=800px) : Row horizontal avec lignes de connexion
+- Plus d'overflow en tests (constraints unbounded)
+
+**Fichier :**
+- `lib/shared/ui/modern_components/modern_status_timeline.dart`
+
+**Note** : Les rôles **operateur** et **lecture** sont hors scope MVP (jan 2026) et non inclus dans la validation Phase 3.
 
 #### ✅ Admin — Accès total
 - Accès total : création, validation, ajustements, suppression
