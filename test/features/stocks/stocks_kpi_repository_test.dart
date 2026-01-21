@@ -43,7 +43,27 @@ class _FakeFilterBuilder<T> implements PostgrestFilterBuilder<T> {
   }
 
   @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) {
+    // Gérer maybeSingle() pour le fallback snapshot
+    // Note: Le as dynamic est volontaire pour gérer les variations de types Supabase
+    if (invocation.isMethod && invocation.memberName == #maybeSingle) {
+      final dynamic v = _result;
+
+      // Cas classique Supabase : le builder a une List<Map> et maybeSingle doit renvoyer
+      // - null si vide
+      // - le premier élément si non vide
+      if (v is List) {
+        if (v.isEmpty) {
+          return _FakeFilterBuilder<Map<String, dynamic>?>(null) as dynamic;
+        }
+        return _FakeFilterBuilder<Map<String, dynamic>?>(v.first as Map<String, dynamic>?) as dynamic;
+      }
+
+      // Sinon, renvoyer tel quel
+      return _FakeFilterBuilder<Map<String, dynamic>?>(v as Map<String, dynamic>?) as dynamic;
+    }
+    return super.noSuchMethod(invocation);
+  }
 }
 
 /// Wrapper pour from() qui implémente SupabaseQueryBuilder
