@@ -172,15 +172,6 @@ void main() {
       test('should create complete KpiSnapshot', () {
         // Arrange
 
-        final alerts = [
-          const KpiCiterneAlerte(
-            citerneId: 'citerne-1',
-            libelle: 'Citerne A',
-            stock15c: 500.0,
-            capacity: 1000.0,
-          ),
-        ];
-
         // Act
         final snapshot = KpiSnapshot(
           receptionsToday: const KpiNumberVolume(

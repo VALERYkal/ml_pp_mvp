@@ -29,6 +29,7 @@ class _FakeFilterBuilder<T> implements PostgrestFilterBuilder<T> {
   }) => this;
 
   // Match supabase_flutter/postgrest signature variations in tests.
+  @override
   _FakeFilterBuilder<T> in_(String column, List values) {
     return this;
   }
@@ -79,7 +80,6 @@ class _FakeSupabaseTableBuilder implements SupabaseQueryBuilder {
       // Le type générique est dans invocation.typeArguments
       // On vérifie si c'est List<Map<String, dynamic>> et on retourne le builder typé
       if (invocation.typeArguments.isNotEmpty) {
-        final typeArg = invocation.typeArguments.first;
         // Vérifier que le type est bien List<Map<String, dynamic>>
         // On utilise un cast dynamique pour contourner les limitations du typage
         return _FakeFilterBuilder<List<Map<String, dynamic>>>(

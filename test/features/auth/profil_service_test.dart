@@ -4,7 +4,6 @@
 // 🧭 Description : Tests unitaires pour ProfilService (≥95% coverage)
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ml_pp_mvp/features/profil/data/profil_service.dart';
@@ -16,14 +15,10 @@ import 'mocks.mocks.dart';
 @GenerateMocks([SupabaseClient, User])
 void main() {
   group('ProfilService Unit Tests', () {
-    late ProfilService profilService;
     late MockSupabaseClient mockClient;
-    late MockUser mockUser;
 
     setUp(() {
       mockClient = MockSupabaseClient();
-      mockUser = MockUser();
-      profilService = ProfilService.withClient(mockClient);
     });
 
     group('Profil mapping tests', () {

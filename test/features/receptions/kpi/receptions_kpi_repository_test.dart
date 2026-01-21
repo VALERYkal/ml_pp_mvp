@@ -5,8 +5,6 @@
 // Les tests d'intégration avec Supabase sont couverts par les tests du provider.
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ml_pp_mvp/features/receptions/kpi/receptions_kpi_repository.dart';
-import 'package:ml_pp_mvp/features/kpi/models/kpi_models.dart';
 
 /// Test helper : vérifie la logique d'agrégation
 void _testAggregationLogic(

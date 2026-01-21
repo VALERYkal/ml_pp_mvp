@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ml_pp_mvp/data/repositories/depots_repository.dart';
 
 void main() {
   group('DepotsRepository Tests', () {

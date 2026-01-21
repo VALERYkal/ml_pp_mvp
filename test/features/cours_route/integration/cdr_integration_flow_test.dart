@@ -15,7 +15,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 import 'package:ml_pp_mvp/features/cours_route/data/cours_de_route_service.dart';
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_route_providers.dart';
-import 'package:ml_pp_mvp/features/cours_route/providers/cdr_kpi_provider.dart';
 
 // ════════════════════════════════════════════════════════════════════════════
 // FAKE SERVICE IN-MEMORY

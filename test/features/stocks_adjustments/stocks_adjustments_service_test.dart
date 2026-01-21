@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:ml_pp_mvp/features/stocks_adjustments/data/stocks_adjustments_service.dart';
 import 'package:ml_pp_mvp/core/errors/stocks_adjustments_exception.dart';
 import 'package:ml_pp_mvp/data/repositories/repositories.dart';
 import 'package:ml_pp_mvp/features/stocks_adjustments/providers/stocks_adjustments_providers.dart';
