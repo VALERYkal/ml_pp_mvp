@@ -216,7 +216,7 @@ void main() {
         when(mockClient.auth).thenReturn(mockAuth);
         when(
           mockAuth.signInWithPassword(email: email, password: password),
-        ).thenThrow(Exception('Network error'));
+        ).thenThrow(Exception('Unexpected error'));
 
         // Act & Assert
         expect(
@@ -225,7 +225,7 @@ void main() {
             isA<Exception>().having(
               (e) => e.toString(),
               'toString',
-              contains('Network error'),
+              contains('Unexpected error'),
             ),
           ),
         );
@@ -268,7 +268,7 @@ void main() {
       test('should rethrow generic exceptions', () async {
         // Arrange
         when(mockClient.auth).thenReturn(mockAuth);
-        when(mockAuth.signOut()).thenThrow(Exception('Network error'));
+        when(mockAuth.signOut()).thenThrow(Exception('Unexpected error'));
 
         // Act & Assert
         expect(
@@ -277,7 +277,7 @@ void main() {
             isA<Exception>().having(
               (e) => e.toString(),
               'toString',
-              contains('Network error'),
+              contains('Unexpected error'),
             ),
           ),
         );
