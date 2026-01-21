@@ -145,6 +145,37 @@ flutter test test/features/sorties/screens/sortie_detail_screen_test.dart -r exp
 
 ---
 
+### 17/01/2026 — Normalisation des tests d'intégration Supabase (gating conditionnel)
+
+**Problème initial :**
+- Tests d'intégration Supabase désactivés statiquement via `@Skip` au niveau fichier
+- Risque de faux vert CI : tests invisibles, dette technique silencieuse
+- Impossible d'activer les tests DB en CI nightly sans modification de code
+
+**Action réalisée :**
+- Suppression des annotations `@Skip` statiques sur 3 fichiers de tests DB critiques
+- Introduction d'un mécanisme de gating conditionnel via `--dart-define=RUN_DB_TESTS=true`
+- Refactorisation minimale : `main()` → `defineTests()` + wrapper `group(..., skip: !kRunDbTests)`
+- Ajout d'un test sentinelle pour éviter "No tests found" et rendre le skip explicite
+
+**Fichiers modifiés :**
+- `test/integration/auth/auth_integration_test.dart`
+- `test/features/receptions/integration/cdr_reception_flow_test.dart`
+- `test/features/receptions/integration/reception_stocks_integration_test.dart`
+
+**Résultat :**
+- ✅ CI light stable : tests déclarés mais skippés par défaut (comportement inchangé)
+- ✅ CI nightly/release capables d'exécuter les tests DB via `--dart-define=RUN_DB_TESTS=true`
+- ✅ Tests toujours visibles dans le runner (plus de "No tests found")
+- ✅ Aucun changement fonctionnel : contenu métier des tests inchangé
+
+**Impact :**
+- Dette technique réduite : tests DB visibles et contrôlables
+- Base saine pour CI nightly : activation sans modification de code
+- Préparation release : validation des triggers et flux métier critiques possible
+
+---
+
 ### 17/01/2026 — 3B Permissions par rôle : Gérant
 
 **Gérant — lecture seule CDR + ajustements interdits**
@@ -223,6 +254,10 @@ flutter test test/features/sorties/screens/sortie_detail_screen_test.dart -r exp
 - `test/features/cours_route/screens/cdr_detail_screen_test.dart` (PCA, Gérant)
 - `test/features/receptions/screens/reception_detail_screen_test.dart` (Directeur, Gérant)
 - `test/features/sorties/screens/sortie_detail_screen_test.dart` (Directeur, Gérant)
+
+**Hors scope MVP (Jan 2026)**
+- Les rôles **operateur** et **lecture** ne sont pas inclus dans la validation de la Phase 3 (permissions UI).
+- Ils seront traités dans une phase ultérieure (si/when réintégration).
 
 ---
 ## 🎯 Décisions Techniques Clés
@@ -333,6 +368,39 @@ Aucun test n'est désactivé sans raison explicite.
 
 ---
 
+### 21/01/2026 — Stabilisation Tests E2E CDR (Post-validation)
+
+**Objectif** : Éliminer un warning de flakiness UI dans les tests E2E du module Cours de Route sans modifier le périmètre fonctionnel du MVP.
+
+**Problème identifié** :
+- Warning Flutter Test dans `cdr_flow_e2e_test.dart` : `"tap() derived an Offset that would not hit test"`
+- Widget "Cours de route" partiellement off-screen ou masqué par la structure ResponsiveScaffold/Nav
+- Test passant mais potentiellement flaky selon la résolution / layout
+
+**Action réalisée** :
+- Stabilisation de la navigation E2E via séquence déterministe :
+  - `ensureVisible()` avant tap pour garantir la visibilité du widget
+  - `warnIfMissed: false` pour éviter les warnings non bloquants
+  - `pumpAndSettle()` pour assurer la stabilisation après scroll/tap
+- Aucune modification du code métier (lib/)
+- Aucun impact sur les autres tests
+
+**Fichier modifié** :
+- `test/features/cours_route/e2e/cdr_flow_e2e_test.dart`
+
+**Résultat** :
+- ✅ Tests E2E CDR déterministes en CI et en local
+- ✅ Plus de warning "tap off-screen" dans les logs
+- ✅ Aucune régression fonctionnelle
+- ✅ MVP reste PROD-READY (aucun impact sur les axes A/B/C/D validés)
+
+**Impact** :
+- Amélioration de la stabilité CI : tests E2E plus robustes face aux variations de layout
+- Réduction du bruit dans les logs de test
+- Validation post-baseline confirmant la qualité des tests critiques
+
+---
+
 ## 🅱️ Exploitation STAGING prolongée — Plan de validation finale
 
 ### Contexte
@@ -375,9 +443,9 @@ une phase d'exploitation STAGING prolongée est engagée afin de :
 
 ---
 
-### B. Directeur — 🟡 Règle métier validée (NON implémentée)
+### B. Directeur — ✅ Implémenté et validé
 
-#### Directeur — 🟡 RÈGLE MÉTIER VALIDÉE (À IMPLÉMENTER)
+#### Directeur — ✅ VALIDÉ (Ajustements Admin-only)
 
 **Règle métier**
 - Le rôle Directeur peut :
@@ -389,20 +457,20 @@ une phase d'exploitation STAGING prolongée est engagée afin de :
   - Effectuer des ajustements sur Sorties
   - (Ajustements réservés exclusivement au rôle Admin)
 
-**État d'implémentation**
-- Règle définie et validée fonctionnellement
-- ❌ Aucun guard UI encore appliqué
-- ❌ Boutons "Corriger (Ajustement)" encore visibles
+**Implémentation (UI)**
+- Bouton "Corriger (Ajustement)" visible uniquement pour **Admin**
+- Pour Directeur : aucun accès UI aux ajustements (réception + sortie)
 
-**Écrans concernés**
-- Détail Réception → bouton "Corriger (Ajustement)"
-- Détail Sortie → bouton "Corriger (Ajustement)"
+**Tests**
+- Tests widget dédiés Directeur + non-régression Admin :
+  - Réception detail : Directeur ne voit pas l'icône/bouton Ajustement
+  - Sortie detail : Directeur ne voit pas l'icône/bouton Ajustement
+  - Admin voit l'icône/bouton Ajustement
 
-**Action à prévoir**
-- Ajouter un guard UI bloquant l'accès aux ajustements pour le rôle Directeur
-- Ajouter les tests UI associés
-
-⚠️ **Cette règle ne doit pas être considérée comme implémentée à ce stade.**
+**Statut**
+- ✅ Conforme métier
+- ✅ Couvert par tests
+- ✅ Considéré PROD-READY
 
 ### Phases de validation (avec checklist)
 
@@ -412,8 +480,8 @@ une phase d'exploitation STAGING prolongée est engagée afin de :
 | **PHASE 1** | STAGING propre (reset transactionnel) | ✅ | "STAGING PROPRE — OK" (VALIDÉ) |
 | **PHASE 2.2** | Validation CDR → Réception (STAGING) | ✅ | "CDR → RÉCEPTION — OK" (VALIDÉ) |
 | **PHASE 2** | Dépôt réaliste (citernes & capacités) | ✅ | "STAGING RÉALISTE — OK" (VALIDÉ) |
-| **PHASE 3A** | PCA — navigation & lecture seule | ⬜ | "PCA — ACCEPTE" |
-| **PHASE 3B** | Directeur / Gérant — usage réel | ⬜ | "DIRECTEUR / GÉRANT — OK" |
+| **PHASE 3A** | PCA — navigation & lecture seule | ✅ | "PCA — ACCEPTE" (VALIDÉ le 17/01/2026) |
+| **PHASE 3B** | Directeur / Gérant — usage réel | ✅ | "DIRECTEUR / GÉRANT — OK" (VALIDÉ le 17/01/2026) |
 | **PHASE 4** | Exploitation STAGING contrôlée | ⬜ | "STAGING VALIDÉ" |
 
 ### Clôture Phase 0 — Diagnostic CDR STAGING

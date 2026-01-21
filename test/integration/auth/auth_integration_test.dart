@@ -1,4 +1,3 @@
-@Skip('Supabase integration tests are disabled in flutter test environment')
 library;
 
 // 📌 Module : Auth Tests - Integration Tests
@@ -116,7 +115,10 @@ String _capitalizeRole(String roleName) {
   return '${roleName[0].toUpperCase()}${roleName.substring(1)}';
 }
 
-void main() {
+// Constante pour activer les tests d'intégration Supabase via --dart-define=RUN_DB_TESTS=true
+const bool kRunDbTests = bool.fromEnvironment('RUN_DB_TESTS', defaultValue: false);
+
+void defineTests() {
   setUpAll(() async {
     // Initialiser le binding Flutter pour les tests
     TestWidgetsFlutterBinding.ensureInitialized();
@@ -718,4 +720,19 @@ void main() {
       });
     });
   });
+}
+
+void main() {
+  group(
+    'Auth Integration Tests (Supabase)',
+    defineTests,
+    skip: !kRunDbTests,
+  );
+
+  // Test sentinelle pour éviter "No tests found" et rendre le skip explicite
+  test(
+    '[SKIPPED] Enable DB tests with --dart-define=RUN_DB_TESTS=true',
+    () {},
+    skip: kRunDbTests,
+  );
 }

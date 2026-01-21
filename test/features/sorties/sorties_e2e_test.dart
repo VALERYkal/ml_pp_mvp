@@ -328,6 +328,8 @@ Future<void> pumpAppAsRole(
               id: 'citerne-1',
               nom: 'TANK1',
               produitId: 'produit-go',
+              depotId: '11111111-1111-1111-1111-111111111111',
+              depotNom: '',
               capaciteTotale: 100000,
               capaciteSecurite: 0,
               statut: 'active',

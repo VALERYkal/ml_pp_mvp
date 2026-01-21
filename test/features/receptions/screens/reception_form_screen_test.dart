@@ -56,6 +56,8 @@ void main() {
             id: 'cit-1',
             nom: 'Citerne A',
             produitId: 'prod-1',
+            depotId: '11111111-1111-1111-1111-111111111111',
+            depotNom: '',
             statut: 'active',
             capaciteTotale: 50000.0,
             capaciteSecurite: 5000.0,

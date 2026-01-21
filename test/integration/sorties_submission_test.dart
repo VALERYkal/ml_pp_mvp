@@ -34,6 +34,8 @@ class FakeRefRepo extends refs.ReferentielsRepo {
         produitId: produitId,
         capaciteTotale: 100000, // valeur dummy mais cohérente
         capaciteSecurite: 0, // ok pour le test
+        depotId: '11111111-1111-1111-1111-111111111111',
+        depotNom: '',
         statut: 'active', // pour ne pas bloquer la logique métier
       ),
     ];
@@ -219,6 +221,8 @@ void main() {
         produitId: 'produit-go', // 🔥 même id que produitTest
         capaciteTotale: 100000,
         capaciteSecurite: 0,
+        depotId: '11111111-1111-1111-1111-111111111111',
+        depotNom: '',
         statut: 'active',
       );
       final clientTest = [

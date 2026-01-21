@@ -14,6 +14,100 @@ import 'package:ml_pp_mvp/core/models/profil.dart';
 import 'package:ml_pp_mvp/core/models/user_role.dart';
 import 'package:ml_pp_mvp/shared/providers/session_provider.dart';
 import 'package:ml_pp_mvp/features/dashboard/providers/citernes_sous_seuil_provider.dart';
+import 'package:ml_pp_mvp/data/repositories/stocks_kpi_repository.dart';
+import 'package:ml_pp_mvp/features/stocks/data/stocks_kpi_providers.dart';
+
+/// Fake repository minimal pour éviter Supabase.instance dans ce test
+class _FakeStocksKpiRepositoryForTests implements StocksKpiRepository {
+  @override
+  Future<List<DepotGlobalStockKpi>> fetchDepotProductTotals({
+    String? depotId,
+    String? produitId,
+    DateTime? dateJour,
+  }) async {
+    return [
+      const DepotGlobalStockKpi(
+        depotId: 'depot-1',
+        depotNom: 'Test Dépôt',
+        produitId: 'produit-1',
+        produitNom: 'Essence',
+        stockAmbiantTotal: 10000.0,
+        stock15cTotal: 9500.0,
+      ),
+    ];
+  }
+
+  @override
+  Future<List<DepotOwnerStockKpi>> fetchDepotOwnerTotals({
+    String? depotId,
+    String? produitId,
+    String? proprietaireType,
+    DateTime? dateJour,
+  }) async {
+    return [
+      const DepotOwnerStockKpi(
+        depotId: 'depot-1',
+        depotNom: 'Test Dépôt',
+        proprietaireType: 'MONALUXE',
+        produitId: 'produit-1',
+        produitNom: 'Essence',
+        stockAmbiantTotal: 6000.0,
+        stock15cTotal: 5700.0,
+      ),
+      const DepotOwnerStockKpi(
+        depotId: 'depot-1',
+        depotNom: 'Test Dépôt',
+        proprietaireType: 'PARTENAIRE',
+        produitId: 'produit-1',
+        produitNom: 'Essence',
+        stockAmbiantTotal: 4000.0,
+        stock15cTotal: 3800.0,
+      ),
+    ];
+  }
+
+  @override
+  Future<List<CiterneOwnerStockSnapshot>> fetchCiterneOwnerSnapshots({
+    String? depotId,
+    String? citerneId,
+    String? produitId,
+    String? proprietaireType,
+    DateTime? dateJour,
+  }) async => [];
+
+  @override
+  Future<List<CiterneGlobalStockSnapshot>> fetchCiterneGlobalSnapshots({
+    String? depotId,
+    String? citerneId,
+    String? produitId,
+    DateTime? dateJour,
+  }) async => [];
+
+  @override
+  Future<double> fetchDepotTotalCapacity({
+    required String depotId,
+    String? produitId,
+  }) async => 20000.0;
+
+  @override
+  Future<List<Map<String, dynamic>>> fetchCiterneStocksFromSnapshot({
+    String? depotId,
+    String? citerneId,
+    String? produitId,
+  }) async => [];
+
+  @override
+  Future<List<Map<String, dynamic>>> fetchDepotOwnerStocksFromSnapshot({
+    required String depotId,
+    String? produitId,
+  }) async => [];
+
+  @override
+  Future<List<Map<String, dynamic>>> fetchStockActuelRows({
+    required String depotId,
+    String? produitId,
+  }) async => [];
+}
 
 /// Fake notifier pour currentProfilProvider dans les tests
 class _FakeProfilNotifier extends CurrentProfilNotifier {
@@ -85,6 +179,10 @@ void main() {
           kpiProviderProvider.overrideWith((ref) async => fakeSnapshot),
           // Override citernes sous seuil provider
           citernesSousSeuilProvider.overrideWith((ref) async => []),
+          // Override stocks KPI repository pour éviter Supabase.instance
+          stocksKpiRepositoryProvider.overrideWith(
+            (ref) => _FakeStocksKpiRepositoryForTests(),
+          ),
         ],
       );
 
@@ -196,6 +294,10 @@ void main() {
           kpiProviderProvider.overrideWith((ref) async => fakeSnapshot),
           // Override citernes sous seuil provider
           citernesSousSeuilProvider.overrideWith((ref) async => []),
+          // Override stocks KPI repository pour éviter Supabase.instance
+          stocksKpiRepositoryProvider.overrideWith(
+            (ref) => _FakeStocksKpiRepositoryForTests(),
+          ),
         ],
       );
 

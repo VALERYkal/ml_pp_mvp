@@ -160,6 +160,39 @@ Les actions restantes (création du tag de release, merge final, déploiement) r
 - ✅ **8 tests skipped** (intégration DB-STRICT, intentionnel)
 - ✅ **Tous les scénarios critiques passent en STAGING**
 
+#### Tests d'intégration Supabase (statut actuel)
+
+**Architecture validée (17/01/2026)**
+
+Les tests d'intégration Supabase sont présents mais désactivés par défaut pour garantir la stabilité de la CI light. Ils sont activables volontairement via `--dart-define=RUN_DB_TESTS=true`.
+
+**Fichiers concernés :**
+- `test/integration/auth/auth_integration_test.dart`
+- `test/features/receptions/integration/cdr_reception_flow_test.dart`
+- `test/features/receptions/integration/reception_stocks_integration_test.dart`
+
+**Mécanisme :**
+- Suppression des annotations `@Skip` statiques au niveau fichier
+- Skip conditionnel via constante `kRunDbTests = bool.fromEnvironment('RUN_DB_TESTS', defaultValue: false)`
+- Tests toujours déclarés (évite "No tests found")
+- Test sentinelle ajouté pour rendre le skip explicite
+
+**Justification :**
+- Dépendance à un environnement Supabase réel (STAGING ou dédié)
+- Nécessité de stabilité CI light (PR feedback rapide)
+- Activation volontaire requise pour CI nightly/release
+
+**Statut :**
+- ✅ **Architecture VALIDÉE** : mécanisme de gating conditionnel en place
+- ⚠️ **Exécution DB requise avant release finale** : validation des triggers et flux métier critiques
+- ✅ **Dette technique rendue visible** : ce n'est plus une dette silencieuse
+- ✅ **Échecs DB visibles et intentionnels** : quand activés, les échecs sont tracés explicitement
+
+**Impact production :**
+- Aucun impact sur le comportement de l'application
+- Base saine pour l'activation des tests DB en CI nightly
+- Préparation à la validation finale avant release
+
 ---
 
 ### 🔹 UI & UX (Fonctionnel)
@@ -190,8 +223,8 @@ Les actions restantes (création du tag de release, merge final, déploiement) r
 | Rôle | CDR | Réceptions | Sorties | Ajustements |
 |------|-----|------------|---------|-------------|
 | **PCA** | ✅ Lecture | ✅ Lecture | ✅ Lecture | ❌ Aucun |
-| **Directeur** | ✅ | ✅ | ✅ | ✅ Admin-only (UI + tests) |
-| **Gérant** | ✅ Lecture | ✅ | ✅ | ✅ Admin-only (UI + tests) |
+| **Directeur** | ✅ | ✅ | ✅ | ❌ (Admin-only) |
+| **Gérant** | ✅ Lecture | ✅ | ✅ | ❌ (Admin-only) |
 | **Admin** | ✅ | ✅ | ✅ | ✅ |
 
 **Notes** :
@@ -200,6 +233,10 @@ Les actions restantes (création du tag de release, merge final, déploiement) r
 - Navigation cohérente desktop / mobile (responsive)
 - Tests UI en place pour tous les rôles (PCA, Directeur, Gérant, Admin)
 - Restrictions implémentées au niveau UI et couvertes par des tests widget. Les règles DB/RLS seront traitées séparément si nécessaire.
+
+**Hors scope MVP**
+- Roles **operateur** et **lecture** : non inclus dans la validation Phase 3 (UI permissions).
+- Validation/implémentation détaillée reportée hors MVP.
 
 ---
 
@@ -285,4 +322,34 @@ Les actions restantes (création du tag de release, merge final, déploiement) r
 
 ---
 
-Statut mis à jour le : 15/01/2026 — AXE D clôturé
+## Post-validation E2E hardening (21/01/2026)
+
+### Stabilisation Tests E2E CDR
+
+**Contexte** : Correction d'un warning de flakiness UI dans les tests E2E du module Cours de Route, après validation de la baseline prod-ready.
+
+**Action réalisée** :
+- Stabilisation de la navigation E2E via séquence déterministe (`ensureVisible`, `warnIfMissed: false`, `pumpAndSettle`)
+- Correction appliquée uniquement dans `test/features/cours_route/e2e/cdr_flow_e2e_test.dart`
+
+**Résultats** :
+- ✅ Tests E2E CDR déterministes en CI et en local
+- ✅ Plus de warning "tap off-screen" dans les logs
+- ✅ Aucun impact sur le comportement fonctionnel
+- ✅ Aucune modification du code runtime (lib/)
+
+**Confirmation statut PROD-READY** :
+- ✅ Aucun rollback nécessaire
+- ✅ Aucun module critique réouvert
+- ✅ Statut PROD-READY maintenu et confirmé
+- ✅ Les axes A/B/C/D validés restent inchangés
+
+**Impact production** :
+- Amélioration de la stabilité CI (tests E2E plus robustes)
+- Réduction du bruit dans les logs de test
+- Validation post-baseline confirmant la qualité des tests critiques
+
+---
+
+Statut mis à jour le : 15/01/2026 — AXE D clôturé  
+Post-validation : 21/01/2026 — Tests E2E CDR stabilisés

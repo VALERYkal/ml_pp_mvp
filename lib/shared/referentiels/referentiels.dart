@@ -21,6 +21,8 @@ class CiterneRef {
   final double capaciteTotale;
   final double capaciteSecurite;
   final String statut; // 'active' | 'inactive' | 'maintenance'
+  final String depotId;
+  final String depotNom;
   CiterneRef({
     required this.id,
     required this.nom,
@@ -28,6 +30,8 @@ class CiterneRef {
     required this.capaciteTotale,
     required this.capaciteSecurite,
     required this.statut,
+    required this.depotId,
+    required this.depotNom,
   });
 }
 
@@ -63,10 +67,10 @@ class ReferentielsRepo {
     final rows = await client
         .from('citernes')
         .select(
-          'id, nom, produit_id, capacite_totale, capacite_securite, statut',
+          'id, nom, produit_id, capacite_totale, capacite_securite, statut, depot_id, depots(nom)',
         )
         .eq('statut', 'active');
-    _citernes = (rows as List)
+    final list = (rows as List)
         .map(
           (m) => CiterneRef(
             id: m['id'] as String,
@@ -75,9 +79,15 @@ class ReferentielsRepo {
             capaciteTotale: (m['capacite_totale'] as num).toDouble(),
             capaciteSecurite: (m['capacite_securite'] as num).toDouble(),
             statut: (m['statut'] ?? 'inactive') as String,
+            depotId: (m['depot_id'] as String?) ?? '',
+            depotNom:
+                ((m['depots'] as Map<String, dynamic>?)?['nom'] as String?) ??
+                    '',
           ),
         )
         .toList();
+    // Trier les citernes par dépôt puis par ordre naturel des noms
+    _citernes = sortCiternesHuman(list);
     return _citernes!;
   }
 
@@ -129,3 +139,57 @@ final citernesActivesProvider = Riverpod.FutureProvider<List<CiterneRef>>((
 ) async {
   return ref.read(referentielsRepoProvider).loadCiternesActives();
 });
+
+// ════════════════════════════════════════════════════════════════════════════
+// Helpers de tri naturel pour citernes (exportés pour tests)
+// ════════════════════════════════════════════════════════════════════════════
+
+/// Extrait le nombre en fin de chaîne (ex: "TANK10" → 10, "TANK" → null)
+int? _extractTrailingInt(String s) {
+  final match = RegExp(r'(\d+)\s*$').firstMatch(s.toUpperCase().trim());
+  if (match == null) return null;
+  return int.tryParse(match.group(1) ?? '');
+}
+
+/// Clé de tri naturelle pour nom de citerne
+/// - Contient "STAGING" ou "TEST" → 1000000 (pousse à la fin)
+/// - Chiffre trailing → retourne ce chiffre (TANK10 → 10)
+/// - Sinon → 900000 (tri alphabétique après numérotées)
+int _naturalTankKey(String nom) {
+  final upper = nom.toUpperCase().trim();
+  if (upper.contains('STAGING') || upper.contains('TEST')) {
+    return 1000000;
+  }
+  final trailingInt = _extractTrailingInt(nom);
+  if (trailingInt != null) {
+    return trailingInt;
+  }
+  return 900000;
+}
+
+/// Tri humain pour les citernes :
+/// 1. Par nom de dépôt (alphabétique, insensible à la casse)
+/// 2. Par clé naturelle du nom (TANK1 < TANK2 < TANK10)
+/// 3. Par nom alphabétique (tie-break)
+int _compareCiternes(CiterneRef a, CiterneRef b) {
+  // 1. Comparer par nom de dépôt
+  final depotCompare =
+      a.depotNom.toUpperCase().compareTo(b.depotNom.toUpperCase());
+  if (depotCompare != 0) return depotCompare;
+
+  // 2. Comparer par clé naturelle
+  final keyA = _naturalTankKey(a.nom);
+  final keyB = _naturalTankKey(b.nom);
+  final keyCompare = keyA.compareTo(keyB);
+  if (keyCompare != 0) return keyCompare;
+
+  // 3. Tie-break : tri alphabétique sur nom
+  return a.nom.toUpperCase().compareTo(b.nom.toUpperCase());
+}
+
+/// Fonction publique pour trier les citernes (exportée pour tests)
+List<CiterneRef> sortCiternesHuman(List<CiterneRef> input) {
+  final list = List<CiterneRef>.from(input);
+  list.sort(_compareCiternes);
+  return list;
+}
