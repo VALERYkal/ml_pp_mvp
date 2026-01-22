@@ -46,6 +46,23 @@
 
 **Impact** : Environnement STAGING remis à zéro. Toute donnée postérieure est volontaire et traçable.
 
+### STAGING Reset Governance — Sécurisation (2026-01-12)
+
+**Décision validée** : STAGING = miroir PROD (aucune donnée fake par défaut)
+
+**Correctif appliqué** :
+- ✅ Reset STAGING désormais protégé par double-confirm (`CONFIRM_STAGING_RESET` obligatoire)
+- ✅ Seed fake supprimé du flux standard (seed vide par défaut)
+- ✅ STAGING aligné avec PROD (audit-compatible, aucune donnée de test)
+- ✅ DB-tests toujours supportés via procédure explicite (`SEED_FILE=staging/sql/seed_staging_minimal_v2.sql`)
+
+**Impact** :
+- Aucun changement applicatif (code Flutter inchangé)
+- Aucun test régressé
+- Sécurité renforcée (anti-erreur humaine)
+
+**Statut** : ✅ **VERROUILLÉ**
+
 ### Validation Phase 2.2 — CDR → Réception (STAGING)
 
 **Date de validation** : _[À compléter]_

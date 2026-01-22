@@ -97,6 +97,34 @@ Validation locale confirmée :
 
 ## [Unreleased]
 
+### 🔒 **[DB][STAGING] — Reset STAGING Sécurisé & Alignement PROD — 2026-01-12**
+
+#### **Problème Identifié**
+Réapparition de données fake (TANK STAGING 1) après reset STAGING manuel, causée par le seed minimal appliqué par défaut.
+
+#### **Décision Validée**
+STAGING devient miroir PROD : aucune donnée fake par défaut, alignement avec l'environnement de production pour audit et validation métier.
+
+#### **Correctif Appliqué**
+- **Seed vide par défaut** : `staging/sql/seed_empty.sql` (aucune INSERT)
+- **Double-confirm guard** : `CONFIRM_STAGING_RESET=I_UNDERSTAND_THIS_WILL_DROP_PUBLIC` obligatoire
+- **Seed minimal conservé** : Disponible uniquement pour DB-tests via `SEED_FILE=staging/sql/seed_staging_minimal_v2.sql` explicite
+- **Script modifié** : `scripts/reset_staging.sh` (default seed + vérification double-confirm)
+
+#### **Impact**
+- ✅ Aucun changement du code applicatif Flutter
+- ✅ Aucun test régressé (502 tests passent)
+- ✅ DB-tests toujours possibles via procédure explicite
+- ✅ Sécurité renforcée (anti-erreur humaine via double-confirm)
+- ✅ STAGING aligné avec PROD (audit-compatible)
+
+#### **Fichiers Modifiés**
+- `scripts/reset_staging.sh` : Default seed + double-confirm guard
+- `staging/sql/seed_empty.sql` : Nouveau fichier (seed vide intentionnel)
+- `docs/AXE_B1_STAGING.md` : Documentation mise à jour
+
+---
+
 ### Tests E2E CDR — Stabilisation UI (21/01/2026)
 
 #### Correction d'un risque de flakiness UI

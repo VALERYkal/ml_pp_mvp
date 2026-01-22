@@ -2,13 +2,21 @@
 set -euo pipefail
 
 # Usage:
-#   ALLOW_STAGING_RESET=true ./scripts/reset_staging.sh
-#   SEED_FILE=staging/sql/seed_empty.sql ALLOW_STAGING_RESET=true ./scripts/reset_staging.sh
+#   Reset standard (seed vide — STAGING miroir PROD):
+#     CONFIRM_STAGING_RESET=I_UNDERSTAND_THIS_WILL_DROP_PUBLIC \
+#     ALLOW_STAGING_RESET=true \
+#     ./scripts/reset_staging.sh
+#
+#   Reset avec seed minimal (pour DB-tests):
+#     CONFIRM_STAGING_RESET=I_UNDERSTAND_THIS_WILL_DROP_PUBLIC \
+#     ALLOW_STAGING_RESET=true \
+#     SEED_FILE=staging/sql/seed_staging_minimal_v2.sql \
+#     ./scripts/reset_staging.sh
 #
 # Preconditions:
 # - env/.env.staging exists (ignored by git)
 # - contains STAGING_DB_URL and STAGING_PROJECT_REF
-# - SEED_FILE defaults to staging/sql/seed_staging_minimal.sql if not specified
+# - SEED_FILE defaults to staging/sql/seed_empty.sql if not specified (STAGING = miroir PROD)
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -25,6 +33,24 @@ set +a
 if [[ "${ALLOW_STAGING_RESET:-false}" != "true" ]]; then
   echo "❌ ALLOW_STAGING_RESET must be 'true' to run reset."
   echo "Edit env/.env.staging and set ALLOW_STAGING_RESET=true temporarily."
+  exit 1
+fi
+
+# Double-confirm guard: require explicit confirmation string
+if [[ "${CONFIRM_STAGING_RESET:-}" != "I_UNDERSTAND_THIS_WILL_DROP_PUBLIC" ]]; then
+  echo "❌ Missing CONFIRM_STAGING_RESET=I_UNDERSTAND_THIS_WILL_DROP_PUBLIC"
+  echo "This reset will DROP all tables, views, and functions in the public schema."
+  echo ""
+  echo "Example (reset standard — seed vide):"
+  echo "  CONFIRM_STAGING_RESET=I_UNDERSTAND_THIS_WILL_DROP_PUBLIC \\"
+  echo "  ALLOW_STAGING_RESET=true \\"
+  echo "  ./scripts/reset_staging.sh"
+  echo ""
+  echo "Example (reset avec seed minimal pour DB-tests):"
+  echo "  CONFIRM_STAGING_RESET=I_UNDERSTAND_THIS_WILL_DROP_PUBLIC \\"
+  echo "  ALLOW_STAGING_RESET=true \\"
+  echo "  SEED_FILE=staging/sql/seed_staging_minimal_v2.sql \\"
+  echo "  ./scripts/reset_staging.sh"
   exit 1
 fi
 
@@ -77,7 +103,7 @@ BEGIN
 END $$;
 SQL
 
-SEED_FILE="${SEED_FILE:-staging/sql/seed_staging_minimal.sql}"
+SEED_FILE="${SEED_FILE:-staging/sql/seed_empty.sql}"
 echo "➡️  Applying seed: $SEED_FILE"
 psql "$STAGING_DB_URL" -v ON_ERROR_STOP=1 -f "$ROOT_DIR/$SEED_FILE"
 

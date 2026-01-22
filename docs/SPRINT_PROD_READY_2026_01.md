@@ -200,6 +200,33 @@ flutter test test/features/sorties/screens/sortie_detail_screen_test.dart -r exp
 
 ---
 
+### [DONE] STAGING reset hardening & PROD-mirror alignment (2026-01-12)
+
+**Problème identifié** : Réapparition de données fake (TANK STAGING 1) après reset STAGING manuel, causée par le seed minimal appliqué par défaut lors des resets.
+
+**Root cause analysée** : Reset manuel exécuté + seed minimal (`seed_staging_minimal.sql`) rejoué par défaut → réinsertion de données de test (TANK STAGING 1, DEPOT STAGING, etc.).
+
+**Décision validée** : STAGING devient miroir PROD (aucune donnée fake par défaut) pour garantir un environnement aligné avec la production, compatible audit et validation métier.
+
+**Implémentation** :
+- Seed vide par défaut (`staging/sql/seed_empty.sql`) : aucune INSERT, STAGING reste vide après reset
+- Double-confirm guard ajouté : `CONFIRM_STAGING_RESET=I_UNDERSTAND_THIS_WILL_DROP_PUBLIC` obligatoire
+- Seed minimal conservé : Disponible uniquement pour DB-tests via `SEED_FILE=staging/sql/seed_staging_minimal_v2.sql` explicite
+- Script modifié : `scripts/reset_staging.sh` (default seed changé + vérification double-confirm)
+
+**Résultat** :
+- ✅ Aucun impact applicatif (code Flutter inchangé)
+- ✅ Aucun test cassé (502 tests passent, 0 régression)
+- ✅ DB-tests toujours possibles via procédure explicite
+- ✅ Sécurité renforcée (anti-erreur humaine)
+
+**Fichiers modifiés** :
+- `scripts/reset_staging.sh`
+- `staging/sql/seed_empty.sql` (nouveau)
+- `docs/AXE_B1_STAGING.md`
+
+---
+
 ### Phase 3 — Permissions par rôle (VALIDÉE — 17/01/2026)
 
 **Objectif** : Implémenter et valider les permissions par rôle (PCA, Directeur, Gérant, Admin) sur les modules CDR, Réceptions et Sorties.

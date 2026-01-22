@@ -93,6 +93,7 @@ Le script refuse de s'exécuter si :
 1. Charger `env/.env.staging`
 2. Vérifier les garde-fous :
    - `ALLOW_STAGING_RESET=true` obligatoire
+   - `CONFIRM_STAGING_RESET=I_UNDERSTAND_THIS_WILL_DROP_PUBLIC` obligatoire (double-confirm)
    - `STAGING_PROJECT_REF` correspond au ref attendu
 3. **DROP complet du schéma public** :
    - Toutes les vues
@@ -102,20 +103,28 @@ Le script refuse de s'exécuter si :
 
 ### Utilisation standard
 
+**Reset standard (seed vide — STAGING = miroir PROD)** :
 ```bash
-ALLOW_STAGING_RESET=true ./scripts/reset_staging.sh
+CONFIRM_STAGING_RESET=I_UNDERSTAND_THIS_WILL_DROP_PUBLIC \
+ALLOW_STAGING_RESET=true \
+./scripts/reset_staging.sh
 ```
+
+**Objectif** : STAGING reste un environnement propre, sans données fake (TANK STAGING 1, etc.), pour audit et tests de production.
 
 ### Seed paramétrable
 
 **Par défaut** :
 ```bash
-staging/sql/seed_staging_minimal_v2.sql
+staging/sql/seed_empty.sql  # Seed vide — STAGING miroir PROD
 ```
 
-**Mais possible de passer un seed vide** :
+**Pour DB-tests (seed minimal explicite)** :
 ```bash
-SEED_FILE=staging/sql/seed_empty.sql ALLOW_STAGING_RESET=true ./scripts/reset_staging.sh
+CONFIRM_STAGING_RESET=I_UNDERSTAND_THIS_WILL_DROP_PUBLIC \
+ALLOW_STAGING_RESET=true \
+SEED_FILE=staging/sql/seed_staging_minimal_v2.sql \
+./scripts/reset_staging.sh
 ```
 
 ---
@@ -256,25 +265,30 @@ Il fournit :
    ls -la env/.env.staging
    ```
 
-2. **Activer le verrou de sécurité** :
+2. **Lancer le reset (seed vide par défaut — STAGING miroir PROD)** :
    ```bash
-   # Dans env/.env.staging
-   ALLOW_STAGING_RESET=true
-   ```
-
-3. **Lancer le reset** :
-   ```bash
+   CONFIRM_STAGING_RESET=I_UNDERSTAND_THIS_WILL_DROP_PUBLIC \
+   ALLOW_STAGING_RESET=true \
    ./scripts/reset_staging.sh
    ```
 
-4. **Vérifier le résultat** :
+   **Pour DB-tests (seed minimal explicite)** :
+   ```bash
+   CONFIRM_STAGING_RESET=I_UNDERSTAND_THIS_WILL_DROP_PUBLIC \
+   ALLOW_STAGING_RESET=true \
+   SEED_FILE=staging/sql/seed_staging_minimal_v2.sql \
+   ./scripts/reset_staging.sh
+   ```
+
+3. **Vérifier le résultat** :
    ```sql
    -- Se connecter à la DB staging
    -- Vérifier les tables, vues, fonctions
-   -- Vérifier le seed (1 dépôt, 1 produit, 1 citerne)
+   -- Reset standard: aucune donnée (seed vide)
+   -- Reset DB-tests: 1 dépôt, 1 produit, 1 citerne (TANK STAGING 1)
    ```
 
-5. **Désactiver le verrou** :
+4. **Désactiver le verrou** (optionnel) :
    ```bash
    # Dans env/.env.staging
    ALLOW_STAGING_RESET=false
