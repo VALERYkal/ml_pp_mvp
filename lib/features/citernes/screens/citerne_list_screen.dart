@@ -864,11 +864,9 @@ class TankCard extends StatelessWidget {
                           Flexible(
                             child: Builder(
                               builder: (context) {
-                                // Afficher le vrai nom de la citerne (source de vérité)
-                                // Fallback sur 'CITERNE $numero' si nom vide
-                                final rawNom = name.trim();
-                                final displayName = rawNom.isNotEmpty
-                                    ? rawNom.toUpperCase()
+                                // Nom affiché : priorité au nom réel, sinon fallback
+                                final displayName = (name.trim().isNotEmpty)
+                                    ? name.trim()
                                     : (numero != null ? 'CITERNE $numero' : 'CITERNE');
                                 return Text(
                                   displayName,

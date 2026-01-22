@@ -227,6 +227,95 @@ flutter test test/features/sorties/screens/sortie_detail_screen_test.dart -r exp
 
 ---
 
+### 🧹 Dette Technique Critique — STAGING Pollué & Seeds Implicites (Jan 2026)
+
+#### **Problème Observé**
+- **Réapparition de données supprimées** : Citerne `TANK STAGING 1` (ID: `33333333-3333-3333-3333-333333333333`) réapparaissait après suppression manuelle
+- **Réceptions recréées automatiquement** : Réceptions créées sans `user_id` (actions système / seed) réapparaissaient après nettoyage
+- **Impossibilité de nettoyage manuel** : Tables immutables (`receptions`, etc.) bloquaient les opérations `DELETE`/`UPDATE` standard
+
+#### **Diagnostic**
+- **Seeds SQL exécutés implicitement** : Seed minimal `staging/sql/seed_staging_minimal_v2.sql` appliqué par défaut lors des resets → réinsertion automatique de données de test
+- **Données de test mélangées aux validations métier** : Citernes fake (`TANK STAGING 1`), réceptions système (`user_id = null`), stocks fantômes
+- **UI masquant l'origine réelle des données** : Affichage de données non prod-like sans distinction claire
+
+#### **Actions Correctives**
+**Reset dur par TRUNCATE** :
+- Purge complète et volontaire par `TRUNCATE` des tables transactionnelles (contournement de l'immutabilité DB) :
+  - `cours_de_route` → 0 ligne
+  - `receptions` → 0 ligne (table immutable → contournée proprement via TRUNCATE)
+  - `sorties_produit` → 0 ligne
+  - `stocks_journaliers` → 0 ligne
+  - `stocks_snapshot` → 0 ligne
+  - `log_actions` → 0 ligne
+- Justification : `DELETE`/`UPDATE` interdits par design (immutabilité DB), présence de données fantômes recréées automatiquement
+
+**Suppression ciblée des données non prod-like** :
+- Suppression définitive de la citerne `TANK STAGING 1` (ID: `33333333-3333-3333-3333-333333333333`)
+- Élimination des réceptions créées sans `user_id` (actions système / seed)
+- Conservation de 6 citernes réelles : TANK1 → TANK6 (alignées avec la future PROD)
+
+**Verrouillage du seed par défaut** :
+- Seed vide par défaut (`staging/sql/seed_empty.sql`) : aucune INSERT, STAGING reste vide après reset
+- Obligation d'opt-in explicite pour tout seed minimal : `SEED_FILE=staging/sql/seed_staging_minimal_v2.sql` requis explicitement
+- Double-confirm guard ajouté : `CONFIRM_STAGING_RESET=I_UNDERSTAND_THIS_WILL_DROP_PUBLIC` obligatoire
+
+#### **Décision Long Terme**
+**Toute anomalie STAGING doit être traitée par** :
+- Analyse DB (logs + FK) : Identification de l'origine des données polluantes
+- Reset contrôlé : Purge complète via `TRUNCATE` (contournement immutabilité DB)
+- Replay applicatif réel : Toute validation passe par replay réel via l'application (ADMIN → CDR → Réception)
+
+**STAGING n'est plus un bac à tests cumulatif** :
+- Toute validation se fait par replay réel des rôles
+- Aucune donnée fake par défaut
+- Alignement avec la future PROD (environnement prod-like)
+- Toute donnée future proviendra exclusivement d'actions applicatives (traçabilité garantie)
+
+#### **Statut**
+✅ **Dette technique clôturée**  
+🔒 **STAGING verrouillé**  
+⏭️ **Étape suivante** : Replay ADMIN → Réception réelle
+
+**Résultat final** :
+- STAGING = 0 transaction (toutes les tables transactionnelles à 0 ligne)
+- 6 citernes réelles (TANK1 → TANK6, alignées avec la future PROD)
+- Aucune donnée fake
+- Environnement prêt pour replay métier réel
+
+---
+
+### 🔒 Dette Technique Clôturée — Module Citernes (AXE A) — 2026-01-22
+
+#### **Problème Observé**
+Lors des replays réels STAGING, le module Citernes affichait des cartes libellées "CITERNE" sans permettre à l'utilisateur d'identifier la citerne réelle, malgré des données correctes en base.
+
+#### **Diagnostic**
+- Données transactionnelles correctes (receptions, stocks, logs)
+- Vue canonique `v_stock_actuel` conforme AXE A mais **sans `citerne_nom`**
+- Attente implicite côté repository non satisfaite par la vue
+
+#### **Solution Retenue**
+- Correction **au niveau Repository** :
+  - Récupération explicite des noms depuis `citernes`
+  - Injection des noms dans les snapshots agrégés
+- Aucun changement DB (pas de migration)
+- Correction localisée, test-safe
+
+#### **Validation Terrain**
+- Replay ADMIN réel :
+  - MONALUXE → TANK2 ✅
+  - PARTENAIRE → TANK5 ✅
+- Aucun effet de bord observé
+
+#### **Statut**
+🟢 **Clôturé — conforme PROD-ready**
+
+**Fichiers modifiés** :
+- `lib/features/citernes/data/citerne_repository.dart` : Enrichissement requête `citernes` pour récupérer `nom`
+
+---
+
 ### Phase 3 — Permissions par rôle (VALIDÉE — 17/01/2026)
 
 **Objectif** : Implémenter et valider les permissions par rôle (PCA, Directeur, Gérant, Admin) sur les modules CDR, Réceptions et Sorties.

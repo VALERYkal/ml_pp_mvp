@@ -97,6 +97,117 @@ Validation locale confirmée :
 
 ## [Unreleased]
 
+### ✅ **[Fix][Citernes] — Correction Affichage Nom Réel des Citernes — 2026-01-22**
+
+#### **Problème Résolu**
+Correction de l'affichage du nom réel des citernes dans le module **Citernes**.
+Résolution du bug où les cartes affichaient le libellé générique **"CITERNE"** malgré des citernes correctement nommées en base (ex: TANK2, TANK5).
+
+#### **Root Cause**
+- Le repository `CiterneRepository.fetchCiterneStockSnapshots()` consommait la vue SQL `v_stock_actuel`,
+  laquelle **n'expose pas `citerne_nom`** (conformément au contrat AXE A).
+- Le mapping Dart tentait de lire `row['citerne_nom']`, toujours `null`, déclenchant le fallback UI "Citerne".
+
+#### **Fix Appliqué (Non Régressif)**
+- Enrichissement du repository par une requête secondaire sur la table `citernes`
+  afin de résoudre les noms réels à partir des `citerne_id`.
+- Aucun changement de schéma DB.
+- Aucun changement UI.
+- Aucune régression sur les tests existants.
+
+#### **Validation**
+- Replay réel ADMIN confirmé :
+  - Réception **MONALUXE → TANK2** : nom affiché correctement
+  - Réception **PARTENAIRE → TANK5** : nom affiché correctement
+- Affichage correct des noms dans tous les cas.
+
+#### **Fichiers Modifiés**
+- `lib/features/citernes/data/citerne_repository.dart` : Enrichissement requête `citernes` pour récupérer `nom`
+
+---
+
+### 🧹 **[chore][STAGING] — Reset Transactionnel Dur, Neutralisation Seeds Implicites, Alignement Prod-Like — 2026-01-12**
+
+#### **Contexte**
+Remédiation d'une dette technique critique liée à la pollution persistante de STAGING (citernes + réceptions fantômes), seeds implicites, immutabilité DB bloquant les nettoyages manuels, et correctifs appliqués pour garantir un replay métier fiable.
+
+#### **Purge Complète et Volontaire par TRUNCATE des Tables Transactionnelles STAGING**
+Reset dur effectué via `TRUNCATE` (contournement de l'immutabilité DB) :
+- ✅ `cours_de_route` : 0 ligne
+- ✅ `receptions` : 0 ligne (table immutable → contournée proprement via TRUNCATE)
+- ✅ `sorties_produit` : 0 ligne
+- ✅ `stocks_journaliers` : 0 ligne
+- ✅ `stocks_snapshot` : 0 ligne
+- ✅ `log_actions` : 0 ligne
+
+**Justification technique** :
+- `DELETE`/`UPDATE` interdits par design (immutabilité DB)
+- Présence de données fantômes recréées automatiquement
+- Nécessité d'un reset dur pour garantir un environnement propre
+
+#### **Suppression Définitive de la Citerne Non Prod-Like**
+- ✅ `TANK STAGING 1` (ID fixe `33333333-3333-3333-3333-333333333333`) supprimée définitivement
+
+**Analyse de root cause** :
+- Réinsertion via seed minimal `staging/sql/seed_staging_minimal_v2.sql`
+- Réceptions créées sans `user_id` (actions système / seed)
+- Données de test mélangées aux validations métier
+
+#### **Résultat Final**
+- ✅ **STAGING = 0 transaction** : Toutes les tables transactionnelles à 0 ligne
+- ✅ **6 citernes réelles** : TANK1 → TANK6 (alignées avec la future PROD)
+- ✅ **Aucune donnée fake** : Environnement prod-like garanti
+- ✅ **Environnement prêt pour replay métier réel** : Toute validation passe par replay réel via l'application (ADMIN → CDR → Réception)
+
+#### **Impact**
+- Aucun changement du code applicatif Flutter
+- Aucun test régressé
+- Environnement STAGING fiable pour audit, replay métier et validation rôle par rôle
+- Seeds implicites neutralisés (seed vide par défaut, opt-in explicite requis pour seed minimal)
+
+---
+
+### 🧹 **[Infra][STAGING] — Reset Complet des Transactions & Alignement Prod-Like — 2026-01-12**
+
+#### **Contexte**
+Remédiation d'une dette technique critique liée à la pollution de données STAGING et à l'alignement "prod-like" de l'environnement.
+
+#### **Purge Complète des Tables Transactionnelles**
+Reset contrôlé et vérifié table par table :
+- ✅ `cours_de_route` : 0 ligne
+- ✅ `receptions` : 0 ligne
+- ✅ `sorties_produit` : 0 ligne
+- ✅ `stocks_journaliers` : 0 ligne
+- ✅ `stocks_snapshot` : 0 ligne
+- ✅ `log_actions` : 0 ligne
+
+#### **Vérification Post-Purge**
+- ✅ Toutes les tables transactionnelles à 0 ligne (vérification SQL factuelle)
+- ✅ Vues (`v_*`) préservées et intactes (aucune suppression de structure)
+- ✅ KPI stock globaux retournent 0 ligne après reset
+
+#### **Nettoyage Ciblé des Données Non Prod-Like**
+- ✅ Suppression de la citerne `TANK STAGING 1` (ID: `33333333-3333-3333-3333-333333333333`)
+- ✅ Élimination des données de test et seeds anciens
+
+#### **Validation des Référentiels**
+- ✅ Tables référentielles intactes : `depots`, `produits`, `citernes`, `clients`, `fournisseurs`, `partenaires`
+- ✅ Aucune modification des structures de données référentielles
+- ✅ Cohérence référentielle préservée
+
+#### **Résultat**
+- ✅ **STAGING prêt pour replay contrôlé par rôle** : Environnement propre, sans héritage de tests
+- ✅ **Aucun stock fantôme** : Toutes les sources de stock (transactionnelles et snapshots) purgées
+- ✅ **Alignement prod-like** : STAGING devient miroir de la future PROD (aucune donnée fake)
+- ✅ **Toute donnée future proviendra exclusivement d'actions applicatives** : Traçabilité garantie
+
+#### **Impact**
+- Aucun changement du code applicatif Flutter
+- Aucun test régressé
+- Environnement STAGING fiable pour audit, replay métier et validation rôle par rôle
+
+---
+
 ### 🔒 **[DB][STAGING] — Reset STAGING Sécurisé & Alignement PROD — 2026-01-12**
 
 #### **Problème Identifié**
