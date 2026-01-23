@@ -1,6 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# ---- Safety: ensure variables and log directory ----
+# Initialize EXTRA_DEFINES safely (avoid unbound variable error with set -u)
+if [[ -z "${EXTRA_DEFINES:-}" ]]; then
+  declare -a EXTRA_DEFINES=()
+fi
+mkdir -p .ci_logs
+
+# ---- Helper: run step with logging ----
+run_step() {
+  local name="$1"; shift
+  echo "==> $name" | tee ".ci_logs/${name}.log"
+  ("$@" 2>&1 | tee -a ".ci_logs/${name}.log")
+}
+
 # ---- Argument parsing ----
 # Usage: ./scripts/d1_one_shot.sh [web|macos|ios|android] [--full] [--include-flaky] [--skip-pub-get] [--skip-analyze] [--skip-build-runner] [--skip-build] [--tests-only]
 TARGET="${1:-web}"
@@ -117,7 +131,7 @@ echo
 
 if [[ "$SKIP_PUB_GET" -eq 0 ]]; then
   echo "---- CI: flutter pub get ----"
-  flutter pub get 2>&1 | tee -a "$BUILD_LOG"
+  run_step pub_get flutter pub get
   echo
 else
   echo "ℹ️  Skipping flutter pub get (--skip-pub-get)"
@@ -127,8 +141,8 @@ if [[ "$SKIP_ANALYZE" -eq 0 ]]; then
   echo "---- flutter analyze (non-blocking) ----"
   # Non bloquant comme tu l'avais fait pour MVP (retour 0 même si warnings)
   set +e
-  flutter analyze 2>&1 | tee -a "$ANALYZE_LOG"
-  ANALYZE_RC=${PIPESTATUS[0]}
+  run_step analyze flutter analyze
+  ANALYZE_RC=$?
   set -e
   echo "analyze exit code: $ANALYZE_RC" | tee -a "$ANALYZE_LOG"
   echo
@@ -138,7 +152,7 @@ fi
 
 if [[ "$SKIP_BUILD_RUNNER" -eq 0 ]]; then
   echo "---- build runner (mocks) ----"
-  flutter pub run build_runner build --delete-conflicting-outputs 2>&1 | tee -a "$BUILD_LOG"
+  run_step build_runner flutter pub run build_runner build --delete-conflicting-outputs
   echo
 else
   echo "ℹ️  Skipping build_runner (--skip-build-runner)"
@@ -192,7 +206,7 @@ if [[ -z "$NORMAL_TESTS" ]]; then
 else
   set +e
   # shellcheck disable=SC2086
-  flutter test -r expanded ${EXTRA_DEFINES[@]+"${EXTRA_DEFINES[@]}"} $NORMAL_TESTS 2>&1 | tee -a "$TEST_LOG"
+  run_step test_normal flutter test -r expanded ${EXTRA_DEFINES[@]+"${EXTRA_DEFINES[@]}"} $NORMAL_TESTS
   NORMAL_RC=$?
   set -e
   
@@ -214,7 +228,7 @@ if [[ "$INCLUDE_FLAKY" -eq 1 ]]; then
     echo "Running flaky tests (tracked separately, see $FLAKY_LOG)"
     set +e
     # shellcheck disable=SC2086
-    flutter test -r expanded ${EXTRA_DEFINES[@]+"${EXTRA_DEFINES[@]}"} $FLAKY_TESTS 2>&1 | tee -a "$FLAKY_LOG"
+    run_step test_flaky flutter test -r expanded ${EXTRA_DEFINES[@]+"${EXTRA_DEFINES[@]}"} $FLAKY_TESTS
     FLAKY_RC=$?
     set -e
     

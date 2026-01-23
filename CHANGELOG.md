@@ -109,6 +109,7 @@ Validation locale confirmée :
 - Tests `stocks_kpi_repository_test.dart` désormais déterministes
 - Base saine pour corriger les échecs Nightly liés aux snapshots de stock
 - Ajout du support `limit()` dans le fake Supabase afin de reproduire fidèlement les queries utilisées en CI Linux (Nightly).
+- Durcissement de `scripts/d1_one_shot.sh` : `.ci_logs` toujours créé + logs par étape + protection contre `EXTRA_DEFINES` non défini (set -u).
 
 ---
 

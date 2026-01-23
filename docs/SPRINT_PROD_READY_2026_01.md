@@ -221,6 +221,9 @@ des fakes Supabase utilisés dans les tests.
 **Commit 2/3**
 - Fake Supabase : support `limit()` ajouté (comportement Postgrest reproduit, stabilité Nightly Linux).
 
+**Commit 3/3**
+- Script CI `d1_one_shot.sh` durci : création systématique de `.ci_logs`, logs par étape, et protection contre `EXTRA_DEFINES` non défini (set -u).
+
 ---
 
 ### [DONE] STAGING reset hardening & PROD-mirror alignment (2026-01-12)

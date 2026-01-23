@@ -278,6 +278,7 @@ Les tests d'intégration Supabase sont présents mais désactivés par défaut p
 - Résultat :
   - Tests stocks KPI passent localement de manière déterministe
   - Réduction du risque de faux positifs PR / faux négatifs Nightly
+  - Script CI `d1_one_shot.sh` durci : `.ci_logs` toujours présent, logs par étape, et `EXTRA_DEFINES` sécurisé sous `set -u`.
 
 **Prochaine étape**
 - Étendre le fake pour supporter `limit()` / `range()` (Étape 2/3)
