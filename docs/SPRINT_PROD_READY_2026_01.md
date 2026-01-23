@@ -200,6 +200,32 @@ flutter test test/features/sorties/screens/sortie_detail_screen_test.dart -r exp
 
 ---
 
+## 🧪 CI Nightly — Stabilisation (Commit 1/3)
+
+**Objectif**
+Corriger les échecs de la CI Nightly causés par des implémentations locales divergentes
+des fakes Supabase utilisés dans les tests.
+
+**Action**
+- Extraction du fake Supabase Query Builder le plus complet
+- Centralisation dans `test/support/fakes/fake_supabase_query.dart`
+- Nettoyage du test `stocks_kpi_repository_test.dart`
+
+**Résultat**
+- Tests stocks KPI verts localement
+- Base technique stabilisée pour corriger définitivement la CI Nightly
+
+**Risque**
+- Aucun (refactor tests uniquement, aucun impact production)
+
+**Commit 2/3**
+- Fake Supabase : support `limit()` ajouté (comportement Postgrest reproduit, stabilité Nightly Linux).
+
+**Commit 3/3**
+- Script CI `d1_one_shot.sh` durci : création systématique de `.ci_logs`, logs par étape, et protection contre `EXTRA_DEFINES` non défini (set -u).
+
+---
+
 ### [DONE] STAGING reset hardening & PROD-mirror alignment (2026-01-12)
 
 **Problème identifié** : Réapparition de données fake (TANK STAGING 1) après reset STAGING manuel, causée par le seed minimal appliqué par défaut lors des resets.
@@ -313,6 +339,55 @@ Lors des replays réels STAGING, le module Citernes affichait des cartes libell�
 
 **Fichiers modifiés** :
 - `lib/features/citernes/data/citerne_repository.dart` : Enrichissement requête `citernes` pour récupérer `nom`
+
+---
+
+### Sorties — Contrat Logs (STAGING) ✅
+
+**Constat DB (source de vérité : `log_actions`)**
+- Module canonique des sorties : `sorties_produit`
+- Actions présentes : `SORTIE_VALIDE` (x2)
+- Action absente : `SORTIE_CREEE` (x0) → non émise actuellement par les triggers
+
+**Validation fonctionnelle (rôle : gérant)**
+- Sortie MONALUXE : 1000 L (TANK2) → stock_ambiant = 9000 ; stock_15c = 8958.4
+- Sortie PARTENAIRE : 500 L (TANK5) → stock_ambiant = 4500 ; stock_15c = 4502.6
+- UI cohérente : Citernes, Stocks, Dashboard, Logs/Audit
+
+**Décision (Option A)**
+- Pas de changement DB : on documente le comportement réel.
+- Toute requête / test de logs doit filtrer `module='sorties_produit'` et ne pas attendre `SORTIE_CREEE`.
+
+---
+
+## Sorties — Validation finale (rôle : gérant) ✅
+
+### Scénario validé
+- MONALUXE : sortie 1000 L depuis TANK2
+- PARTENAIRE : sortie 500 L depuis TANK5
+
+### Preuves DB
+- `sorties_produit` :
+  - 2 lignes `statut=validee`
+  - Champs clés conformes :
+    - MONALUXE → `client_id` non null, `partenaire_id` null
+    - PARTENAIRE → `partenaire_id` non null, `client_id` null
+    - Volumes : `volume_ambiant` et `volume_corrige_15c` cohérents
+- `stocks_snapshot` :
+  - TANK2 = 9000 amb / 8958.4 @15°C
+  - TANK5 = 4500 amb / 4502.6 @15°C
+  - `last_movement_at` aligné avec les sorties
+
+### Audit / Logs
+- `log_actions.module = 'sorties_produit'`
+- Action émise : `SORTIE_VALIDE` (Option A – pas de `SORTIE_CREEE`)
+
+### UI
+- Noms réels des citernes affichés (TANK2 / TANK5)
+- Totaux cohérents par propriétaire et global
+
+### Statut
+🟢 Sorties (gérant) **PROD-ready**
 
 ---
 

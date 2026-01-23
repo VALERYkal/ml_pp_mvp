@@ -267,6 +267,25 @@ Les tests d'intégration Supabase sont présents mais désactivés par défaut p
 
 ---
 
+### CI Nightly — Correctif en cours (Étape 1/3)
+
+**Statut** : 🟡 En cours — progression validée
+
+- Cause racine identifiée : implémentations locales divergentes des fakes Supabase
+- Action réalisée :
+  - Centralisation du fake Supabase Query Builder
+  - Suppression des classes fake dupliquées dans les tests stocks
+- Résultat :
+  - Tests stocks KPI passent localement de manière déterministe
+  - Réduction du risque de faux positifs PR / faux négatifs Nightly
+  - Script CI `d1_one_shot.sh` durci : `.ci_logs` toujours présent, logs par étape, et `EXTRA_DEFINES` sécurisé sous `set -u`.
+
+**Prochaine étape**
+- Étendre le fake pour supporter `limit()` / `range()` (Étape 2/3)
+- Étape 2/3 : support `limit()` ajouté dans le fake Supabase (pré-requis pour corriger le cas Nightly Linux).
+
+---
+
 ### 🔹 UI & UX (Fonctionnel)
 
 #### Modules Opérationnels
@@ -338,6 +357,51 @@ Les tests d'intégration Supabase sont présents mais désactivés par défaut p
 
 **Fichiers modifiés** :
 - `lib/features/citernes/data/citerne_repository.dart` : Enrichissement requête `citernes` pour récupérer `nom`
+
+---
+
+### Logs / Audit — Sorties (contrat actuel) ✅
+
+#### **Contrat Validé**
+- `log_actions.module` pour les sorties : `sorties_produit`
+- Action triggerée : `SORTIE_VALIDE` uniquement (pas de log de création `SORTIE_CREEE` à ce stade)
+
+#### **Impact**
+- Les dashboards et l'écran Logs/Audit reflètent correctement les validations de sorties.
+- Les requêtes de diagnostic doivent cibler `sorties_produit`.
+
+#### **Preuve STAGING**
+- 2 logs `SORTIE_VALIDE` observés (MONALUXE + PARTENAIRE) + stocks_snapshot cohérent.
+
+**Requête SQL canonique pour diagnostic** :
+```sql
+select created_at, action, module, details
+from public.log_actions
+where module='sorties_produit'
+  and action like 'SORTIE_%'
+order by created_at desc
+limit 50;
+```
+
+---
+
+### Sorties (rôle : gérant) — PROD-ready ✅
+
+#### **Contrats Validés**
+- Table métier : `sorties_produit`
+  - Colonnes clés : `volume_ambiant`, `volume_corrige_15c`, `statut=validee`
+  - Séparation stricte MONALUXE / PARTENAIRE
+- Audit : `log_actions`
+  - `module = 'sorties_produit'`
+  - Action : `SORTIE_VALIDE`
+
+#### **Cohérence Système**
+- Décrément correct des citernes (stocks_snapshot)
+- UI (Citernes / Stocks / Dashboard) fidèle à la DB
+- Aucun fallback générique, aucun mélange de propriétaires
+
+#### **Décision**
+🟢 **GO PROD pour le flux Sorties (gérant)**
 
 ---
 

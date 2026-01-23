@@ -1,128 +1,7 @@
-import 'dart:async';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ml_pp_mvp/data/repositories/stocks_kpi_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
-/// Fake filter builder générique qui implémente PostgrestFilterBuilder<T>
-///
-/// Permet de résoudre le problème de typage générique strict de Supabase.
-/// eq(), lte(), order() retournent this (même builder chainable).
-/// Permet `await query` car implémente then().
-class _FakeFilterBuilder<T> implements PostgrestFilterBuilder<T> {
-  _FakeFilterBuilder(this._result);
-
-  final T _result;
-
-  @override
-  PostgrestFilterBuilder<T> eq(String column, Object? value) => this;
-
-  @override
-  PostgrestFilterBuilder<T> lte(String column, dynamic value) => this;
-
-  @override
-  PostgrestFilterBuilder<T> order(
-    String column, {
-    bool ascending = true,
-    bool? nullsFirst,
-    String? foreignTable,
-  }) => this;
-
-  // Match supabase_flutter/postgrest signature variations in tests.
-  @override
-  _FakeFilterBuilder<T> in_(String column, List values) {
-    return this;
-  }
-
-  /// Permet `await query;` car PostgrestFilterBuilder est thenable
-  @override
-  Future<S> then<S>(
-    FutureOr<S> Function(T value) onValue, {
-    Function? onError,
-  }) {
-    return Future<T>.value(_result).then(onValue, onError: onError);
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) {
-    // Gérer maybeSingle() pour le fallback snapshot
-    // Note: Le as dynamic est volontaire pour gérer les variations de types Supabase
-    if (invocation.isMethod && invocation.memberName == #maybeSingle) {
-      final dynamic v = _result;
-
-      // Cas classique Supabase : le builder a une List<Map> et maybeSingle doit renvoyer
-      // - null si vide
-      // - le premier élément si non vide
-      if (v is List) {
-        if (v.isEmpty) {
-          return _FakeFilterBuilder<Map<String, dynamic>?>(null) as dynamic;
-        }
-        return _FakeFilterBuilder<Map<String, dynamic>?>(v.first as Map<String, dynamic>?) as dynamic;
-      }
-
-      // Sinon, renvoyer tel quel
-      return _FakeFilterBuilder<Map<String, dynamic>?>(v as Map<String, dynamic>?) as dynamic;
-    }
-    return super.noSuchMethod(invocation);
-  }
-}
-
-/// Wrapper pour from() qui implémente SupabaseQueryBuilder
-class _FakeSupabaseTableBuilder implements SupabaseQueryBuilder {
-  _FakeSupabaseTableBuilder(this.rowsToReturn);
-
-  final List<Map<String, dynamic>> rowsToReturn;
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) {
-    // Intercepter select<T>() et retourner le filterBuilder typé
-    if (invocation.isMethod && invocation.memberName == #select) {
-      // Le type générique est dans invocation.typeArguments
-      // On vérifie si c'est List<Map<String, dynamic>> et on retourne le builder typé
-      if (invocation.typeArguments.isNotEmpty) {
-        // Vérifier que le type est bien List<Map<String, dynamic>>
-        // On utilise un cast dynamique pour contourner les limitations du typage
-        return _FakeFilterBuilder<List<Map<String, dynamic>>>(
-              rowsToReturn as dynamic,
-            )
-            as dynamic;
-      }
-      // Si pas de type générique, utiliser le type par défaut
-      return _FakeFilterBuilder<List<Map<String, dynamic>>>(
-        rowsToReturn as dynamic,
-      );
-    }
-    // Pour toutes les autres méthodes/getters, retourner this
-    if (invocation.isGetter || invocation.isMethod) {
-      return this;
-    }
-    throw UnimplementedError(
-      'Méthode non implémentée: ${invocation.memberName}',
-    );
-  }
-}
-
-/// Fake Supabase client qui retourne des données contrôlées
-class _FakeSupabaseClient extends SupabaseClient {
-  final Map<String, List<Map<String, dynamic>>> _viewData = {};
-  String? capturedViewName;
-  final List<String> fromCalls = [];
-
-  _FakeSupabaseClient() : super('https://example.com', 'anon-key');
-
-  void setViewData(String viewName, List<Map<String, dynamic>> data) {
-    _viewData[viewName] = data;
-  }
-
-  @override
-  SupabaseQueryBuilder from(String viewName) {
-    fromCalls.add(viewName);
-    capturedViewName = viewName;
-    final rows = _viewData[viewName] ?? [];
-    // Retourner un objet qui implémente SupabaseQueryBuilder
-    return _FakeSupabaseTableBuilder(rows);
-  }
-}
+import '../../support/fakes/fake_supabase_query.dart';
 
 /// Tests pour StocksKpiRepository (repository canonique).
 ///
@@ -136,7 +15,7 @@ void main() {
 
     setUp(() {
       // Fake client: interdit tout accès réseau en tests
-      final fakeClient = _FakeSupabaseClient();
+      final fakeClient = FakeSupabaseClient();
       client = fakeClient;
       repository = StocksKpiRepository(client);
     });
@@ -175,7 +54,7 @@ void main() {
 
       test('reads from v_stock_actuel and aggregates by proprietaire_type', () async {
         // Arrange: créer un fake client avec des données v_stock_actuel (format granulaire)
-        final fakeClient = _FakeSupabaseClient();
+        final fakeClient = FakeSupabaseClient();
         final rowsToReturn = [
           {
             'depot_id': 'depot-1',
@@ -265,7 +144,7 @@ void main() {
       test('non-regression: aggregates correctly with multiple citernes per owner', () async {
         // Test non-régression: 2 lignes v_stock_actuel même propriétaire mais citernes différentes
         // Vérifie que fetchDepotOwnerTotals agrège correctement par propriétaire
-        final fakeClient = _FakeSupabaseClient();
+        final fakeClient = FakeSupabaseClient();
         final rowsToReturn = [
           {
             'depot_id': 'depot-1',
@@ -392,7 +271,7 @@ void main() {
       test('aggregates by citerne_id from v_stock_actuel (all owners combined)', () async {
         // Arrange: créer un fake client avec des données v_stock_actuel (format granulaire)
         // Test non-régression: 2 lignes v_stock_actuel même citerne_id (MONALUXE + PARTENAIRE)
-        final fakeClient = _FakeSupabaseClient();
+        final fakeClient = FakeSupabaseClient();
         final rowsToReturn = [
           {
             'depot_id': 'depot-1',
