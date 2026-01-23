@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import '_harness/staging_supabase_client.dart';
+import '_staging_fixtures.dart';
 
 /// Test d'intégration Réception -> Stocks journaliers (STAGING DB réel).
 ///
@@ -14,19 +15,39 @@ import '_harness/staging_supabase_client.dart';
 /// - `env/.env.staging` doit exister avec les vraies clés STAGING
 /// - Le seed `staging/sql/seed_staging_minimal_v2.sql` doit avoir été appliqué
 ///   (contient les IDs fixes : dépôt, produit, citerne)
+/// - Une citerne avec l'ID `kStagingCiterneId` doit exister en STAGING
+///   (ou être créée dynamiquement dans le test)
 void main() {
   group('[DB-TEST] Réception -> Stocks journaliers (STAGING)', () {
     test('Insert réception avec volume_corrige_15c met à jour stocks_journaliers', () async {
       final staging = await StagingSupabase.create(envPath: 'env/.env.staging');
       final client = staging.serviceClient ?? staging.anonClient;
 
-      // IDs fixes du seed staging (seed_staging_minimal_v2.sql)
+      // IDs fixes du seed staging (centralisés dans _staging_fixtures.dart)
       final ids = (
-        depotId: '11111111-1111-1111-1111-111111111111',
-        produitId: '22222222-2222-2222-2222-222222222222',
-        citerneId: '33333333-3333-3333-3333-333333333333',
+        depotId: kStagingDepotId,
+        produitId: kStagingProduitId,
+        citerneId: kStagingCiterneId,
         tag: DateTime.now().millisecondsSinceEpoch.toString(),
       );
+
+      // S'assurer que la citerne existe (création idempotente si nécessaire)
+      try {
+        await client.from('citernes').upsert({
+          'id': kStagingCiterneId,
+          'depot_id': kStagingDepotId,
+          'produit_id': kStagingProduitId,
+          'nom': 'TANK TEST',
+          'capacite_totale': 50000,
+          'capacite_securite': 2000,
+          'localisation': 'ZONE TEST',
+          'statut': 'active',
+        });
+      } catch (e) {
+        // Ignore si la citerne existe déjà ou si l'upsert échoue pour une autre raison
+        // ignore: avoid_print
+        print('[DB-TEST] Note: Citerne may already exist or upsert failed: $e');
+      }
 
       const volumeAmb = 1000.0;
       const volume15c = 995.0;
