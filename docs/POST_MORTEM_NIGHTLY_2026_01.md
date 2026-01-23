@@ -194,6 +194,15 @@ git checkout prod-ready-2026-01-23-nightly-green
 
 ---
 
+### Validation métier complémentaire
+
+- Validation STAGING exécutée post-Nightly (23/01/2026)
+- Cycle réel **Admin → Gérant → Directeur → PCA** validé sans anomalie
+- Aucun impact sur les causes racines initiales (CI Nightly)
+- Système stable en production **au niveau métier**
+
+---
+
 ## 7. Conclusion
 
 ### Statut final

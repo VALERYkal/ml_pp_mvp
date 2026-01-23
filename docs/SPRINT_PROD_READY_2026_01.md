@@ -778,3 +778,32 @@ Valider l'application ML_PP MVP en conditions STAGING réalistes, avec données 
 - ⚠️ **Aucune phase ne peut être validée sans clôture de la précédente**
 - ⚠️ **Le GO PROD ne peut être déclaré qu'après validation complète de toutes les phases**
 - ✅ **Chaque validation doit être datée et signée par le décideur concerné**
+
+---
+
+## Clôture finale — Post Nightly + Release Gate (2026-01-23)
+
+### Événement de clôture
+- **Stabilisation Nightly** : CI Nightly FULL SUITE verte confirmée (fin de sprint technique)
+- **Release Gate** : décision formelle d'introduire un mécanisme de validation opposable
+
+### Passage de phase
+- **Avant** : stabilisation technique (tests + CI)
+- **Après** : gouvernance & validation (release conditionnée au Gate)
+
+### Références directes
+- `docs/POST_MORTEM_NIGHTLY_2026_01.md`
+- `docs/RELEASE_GATE_2026_01.md`
+
+### Statut final du sprint
+🟢 **Sprint PROD-READY — Clôturé avec Nightly verte + Gate actif**
+
+---
+
+### 2026-01-23 — Validation métier STAGING
+
+- Cycle réel complet validé (Admin → Gérant → Directeur → PCA)
+- Navigation, permissions, KPI, stocks, CDR, Réceptions, Sorties, Logs : **sans écart**
+- Données STAGING propres, cohérentes, PROD-like
+- **Aucun écart métier / aucune anomalie UI bloquante**
+- MVP déclaré **PROD-READY FINAL**

@@ -155,6 +155,8 @@ Aucune exception. Le Release Gate est un verrou, pas une négociation.
 | **Sécurité** | Aucune clé API exposée | ✅ | Vérification manuelle requise |
 | **Infra** | Scripts CI durcis | ✅ | `d1_one_shot.sh` utilise `run_step()` |
 | **Infra** | Logs CI disponibles | ✅ | Dossier `.ci_logs/` créé systématiquement |
+| **Staging** | STAGING validé | ✅ | Validation métier finale 23/01/2026 |
+| **Métier** | Validation métier | ✅ PASSED | Cycle Admin → Gérant → Directeur → PCA validé |
 
 ### Instructions de remplissage
 
@@ -381,6 +383,8 @@ Un **nouveau Release Gate est requis** si :
 - Mettre à jour les dashboards de suivi
 
 ---
+
+**Release Gate franchi intégralement — 23/01/2026**
 
 ## 10. Références
 
