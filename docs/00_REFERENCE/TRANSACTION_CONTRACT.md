@@ -72,7 +72,7 @@ Le **stock** est calculé **uniquement** par la base de données via :
 
 - `stock_upsert_journalier()` (fonction atomique)
 - `stocks_journaliers` (table de fait, alimentée par triggers + adjustments)
-- `v_citerne_stock_actuel` (vue consolidée)
+- `v_stock_actuel` (vue consolidée — source de vérité unique, voir `docs/db/CONTRAT_STOCK_ACTUEL.md`)
 
 **L'application ne calcule jamais le stock elle-même.**
 
