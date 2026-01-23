@@ -96,16 +96,22 @@ class CiterneRepository {
     // 3) Récupérer les capacités depuis la table citernes
     final citerneIds = byCiterne.keys.toList();
     final capacitesMap = <String, ({double capaciteTotale, double capaciteSecurite})>{};
+    // Récupérer aussi les noms réels depuis citernes (v_stock_actuel ne les expose pas)
+    final nomsMap = <String, String>{};
 
     if (citerneIds.isNotEmpty) {
       final citernesRes = await _client
           .from('citernes')
-          .select('id, capacite_totale, capacite_securite')
+          .select('id, nom, capacite_totale, capacite_securite')
           .in_('id', citerneIds);
 
       for (final c in (citernesRes as List)) {
         final id = c['id'] as String?;
+        final nom = c['nom'] as String?;
         if (id == null) continue;
+        if (nom != null) {
+          nomsMap[id] = nom;
+        }
         final capTot = (c['capacite_totale'] as num?)?.toDouble() ?? 0.0;
         final capSec = (c['capacite_securite'] as num?)?.toDouble() ?? 0.0;
         capacitesMap[id] = (
@@ -125,7 +131,7 @@ class CiterneRepository {
       snapshots.add(
         CiterneStockSnapshot(
           citerneId: data.citerneId,
-          citerneNom: data.citerneNom,
+          citerneNom: nomsMap[citerneId] ?? data.citerneNom,
           depotId: data.depotId,
           produitId: data.produitId,
           stockAmbiantTotal: data.stockAmbiant,

@@ -46,6 +46,78 @@
 
 **Impact** : Environnement STAGING remis à zéro. Toute donnée postérieure est volontaire et traçable.
 
+### STAGING Reset Governance — Sécurisation (2026-01-12)
+
+**Décision validée** : STAGING = miroir PROD (aucune donnée fake par défaut)
+
+**Correctif appliqué** :
+- ✅ Reset STAGING désormais protégé par double-confirm (`CONFIRM_STAGING_RESET` obligatoire)
+- ✅ Seed fake supprimé du flux standard (seed vide par défaut)
+- ✅ STAGING aligné avec PROD (audit-compatible, aucune donnée de test)
+- ✅ DB-tests toujours supportés via procédure explicite (`SEED_FILE=staging/sql/seed_staging_minimal_v2.sql`)
+
+**Impact** :
+- Aucun changement applicatif (code Flutter inchangé)
+- Aucun test régressé
+- Sécurité renforcée (anti-erreur humaine)
+
+**Statut** : ✅ **VERROUILLÉ**
+
+### STAGING / Data Integrity — Statut Final (2026-01-12)
+
+**Statut** : ✅ **CLEAN / LOCKED / PROD-LIKE**
+
+#### **Points Validés**
+
+**Aucune donnée transactionnelle résiduelle** :
+- Tables transactionnelles purgées par `TRUNCATE` (contournement immutabilité DB) : `cours_de_route`, `receptions`, `sorties_produit`, `stocks_journaliers`, `stocks_snapshot`, `log_actions` → 0 ligne
+- Sources stock persistantes : `stocks_snapshot`, `stocks_adjustments` → 0 ligne
+- Vérification SQL factuelle : Toutes les tables transactionnelles confirmées à 0 ligne
+- Justification technique : `DELETE`/`UPDATE` interdits par design (immutabilité DB), reset dur nécessaire pour garantir environnement propre
+
+**Aucune réception ou stock fantôme** :
+- Réceptions créées sans `user_id` (actions système / seed) éliminées
+- Stocks fantômes recréés automatiquement supprimés
+- Aucune donnée fantôme résiduelle après reset
+
+**Citernes alignées avec la future PROD** :
+- Suppression définitive de la citerne non prod-like `TANK STAGING 1` (ID: `33333333-3333-3333-3333-333333333333`)
+- 6 citernes réelles conservées : TANK1 → TANK6 (alignées avec la future PROD)
+- Tables référentielles intactes : `depots`, `produits`, `citernes`, `clients`, `fournisseurs`, `partenaires`
+- Cohérence référentielle préservée
+
+**Les vues (v_*) retournent 0 ligne après reset** :
+- Vues stock/KPI (`v_stock_actuel`, `v_stock_actuel_snapshot`, `v_stocks_snapshot_corrige`, `v_kpi_stock_global`, `v_citerne_stock_snapshot_agg`) → 0 ligne
+- Structures de vues préservées (aucune suppression de structure)
+- KPI stock globaux retournent 0 ligne après reset
+
+**Aucun seed implicite actif** :
+- Seed vide par défaut (`staging/sql/seed_empty.sql`) : aucune INSERT, STAGING reste vide après reset
+- Seed minimal conservé uniquement pour DB-tests via `SEED_FILE=staging/sql/seed_staging_minimal_v2.sql` explicite
+- Double-confirm guard en place : `CONFIRM_STAGING_RESET=I_UNDERSTAND_THIS_WILL_DROP_PUBLIC` obligatoire
+
+#### **Décision Structurante**
+**STAGING n'est plus un environnement cumulatif** :
+- Toute validation doit passer par replay réel via l'application (ADMIN → CDR → Réception)
+- Aucune donnée fake par défaut
+- Alignement avec la future PROD (environnement prod-like)
+- Toute donnée future proviendra exclusivement d'actions applicatives (traçabilité garantie)
+
+#### **Risque Évité**
+- ✅ **Faux positifs UI** : Environnement propre garantit des validations fiables
+- ✅ **Régressions silencieuses** : Reset dur élimine les données polluantes
+- ✅ **Blocage par tables immutables** : Contournement via `TRUNCATE` permet le nettoyage complet
+
+#### **Conclusion**
+STAGING est désormais un environnement fiable pour :
+- ✅ **Audit** : Base propre, sans pollution de données historiques
+- ✅ **Replay métier** : Replay contrôlé des scénarios par rôle (ADMIN → GÉRANT → DIRECTEUR → PCA)
+- ✅ **Validation rôle par rôle** : Environnement aligné avec la future PROD, sans données fake
+
+**Statut** : ✅ **DETTE TECHNIQUE CLÔTURÉE** / 🔒 **STAGING VERROUILLÉ**
+
+---
+
 ### Validation Phase 2.2 — CDR → Réception (STAGING)
 
 **Date de validation** : _[À compléter]_
@@ -237,6 +309,35 @@ Les tests d'intégration Supabase sont présents mais désactivés par défaut p
 **Hors scope MVP**
 - Roles **operateur** et **lecture** : non inclus dans la validation Phase 3 (UI permissions).
 - Validation/implémentation détaillée reportée hors MVP.
+
+---
+
+### ✅ Module Citernes — Validation Finale PROD-ready (2026-01-22)
+
+#### **Statut**
+🟢 **VALIDÉ EN CONDITIONS RÉELLES**
+
+#### **Correctif Clé**
+- Alignement entre la source canonique de stock (`v_stock_actuel`) et les référentiels métiers (`citernes.nom`).
+- Enrichissement du repository pour récupérer explicitement les noms depuis la table `citernes`.
+
+#### **Garanties**
+- ✅ Aucune dépendance ajoutée côté DB
+- ✅ Pas de modification des vues SQL critiques
+- ✅ Repository robuste face à l'absence de champs non contractuels
+- ✅ Compatible multi-propriétaire (MONALUXE / PARTENAIRE)
+
+#### **Preuve de Validation**
+- Replay ADMIN STAGING complet :
+  - CDR → ARRIVÉ → Réception → Affichage Citernes
+- Noms réels visibles : TANK2, TANK5
+- Aucun effet de bord observé
+
+#### **Décision**
+🟢 **GO PROD sur le module Citernes**
+
+**Fichiers modifiés** :
+- `lib/features/citernes/data/citerne_repository.dart` : Enrichissement requête `citernes` pour récupérer `nom`
 
 ---
 
