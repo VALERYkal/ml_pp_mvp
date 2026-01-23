@@ -97,6 +97,40 @@ Validation locale confirmée :
 
 ## [Unreleased]
 
+### 🧪 Tests — CI Nightly Stabilization (Phase 1/3)
+
+- Centralisation du fake Supabase Query Builder utilisé dans les tests de stocks KPI
+- Extraction des implémentations locales vers un fake partagé :
+  `test/support/fakes/fake_supabase_query.dart`
+- Aucun changement de logique métier ou de comportement fonctionnel
+- Objectif : éliminer les divergences PR vs Nightly dues à des fakes incohérents
+
+**Impact** :
+- Tests `stocks_kpi_repository_test.dart` désormais déterministes
+- Base saine pour corriger les échecs Nightly liés aux snapshots de stock
+
+---
+
+### Fixed / Validated
+- Sorties (rôle : gérant) — validation end-to-end en conditions réelles STAGING
+  - Sortie MONALUXE 1000 L depuis TANK2
+  - Sortie PARTENAIRE 500 L depuis TANK5
+- Données cohérentes sur toute la chaîne :
+  - `sorties_produit` (statut=validee, séparation MONALUXE/PARTENAIRE)
+  - `stocks_snapshot` mis à jour (TANK2=9000, TANK5=4500)
+  - `log_actions` : module `sorties_produit`, action `SORTIE_VALIDE`
+  - UI Citernes / Stocks / Dashboard alignée (noms réels, totaux exacts)
+
+---
+
+### Fixed
+- Sorties / Logs : alignement du contrat d'audit avec la réalité DB
+  - `log_actions.module` pour les sorties = `sorties_produit` (pas `sorties`)
+  - Les triggers loggent actuellement uniquement `SORTIE_VALIDE` (pas de `SORTIE_CREEE`)
+  - Validation manuelle STAGING : 2 sorties (MONALUXE 1000L / PARTENAIRE 500L) → stocks_snapshot et UI (Citernes/Stocks/Dashboard) cohérents
+
+---
+
 ### ✅ **[Fix][Citernes] — Correction Affichage Nom Réel des Citernes — 2026-01-22**
 
 #### **Problème Résolu**
