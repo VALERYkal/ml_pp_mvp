@@ -224,6 +224,9 @@ des fakes Supabase utilisés dans les tests.
 **Commit 3/3**
 - Script CI `d1_one_shot.sh` durci : création systématique de `.ci_logs`, logs par étape, et protection contre `EXTRA_DEFINES` non défini (set -u).
 
+**Clôture**
+- ✅ Nightly Full Suite verte sur `main` après merge PR #23 (commit 71f0456).
+
 ---
 
 ### [DONE] STAGING reset hardening & PROD-mirror alignment (2026-01-12)
