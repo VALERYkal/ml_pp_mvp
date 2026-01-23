@@ -108,6 +108,7 @@ Validation locale confirmée :
 **Impact** :
 - Tests `stocks_kpi_repository_test.dart` désormais déterministes
 - Base saine pour corriger les échecs Nightly liés aux snapshots de stock
+- Ajout du support `limit()` dans le fake Supabase afin de reproduire fidèlement les queries utilisées en CI Linux (Nightly).
 
 ---
 

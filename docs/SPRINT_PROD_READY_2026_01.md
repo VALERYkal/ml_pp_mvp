@@ -218,6 +218,9 @@ des fakes Supabase utilisés dans les tests.
 **Risque**
 - Aucun (refactor tests uniquement, aucun impact production)
 
+**Commit 2/3**
+- Fake Supabase : support `limit()` ajouté (comportement Postgrest reproduit, stabilité Nightly Linux).
+
 ---
 
 ### [DONE] STAGING reset hardening & PROD-mirror alignment (2026-01-12)

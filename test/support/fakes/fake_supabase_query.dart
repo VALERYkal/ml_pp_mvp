@@ -32,6 +32,18 @@ class FakeFilterBuilder<T> implements PostgrestFilterBuilder<T> {
     return this;
   }
 
+  /// 🔴 FIX CRITIQUE NIGHTLY
+  /// Support de limit(n) pour simuler Postgrest correctement
+  @override
+  FakeFilterBuilder<T> limit(int count, {String? foreignTable}) {
+    if (_result is List) {
+      final list = _result as List;
+      final limited = list.take(count).toList();
+      return FakeFilterBuilder<T>(limited as T);
+    }
+    return this;
+  }
+
   @override
   Future<S> then<S>(
     FutureOr<S> Function(T value) onValue, {
@@ -42,7 +54,6 @@ class FakeFilterBuilder<T> implements PostgrestFilterBuilder<T> {
 
   @override
   dynamic noSuchMethod(Invocation invocation) {
-    // Gérer maybeSingle() pour le fallback snapshot
     if (invocation.isMethod && invocation.memberName == #maybeSingle) {
       final dynamic v = _result;
 

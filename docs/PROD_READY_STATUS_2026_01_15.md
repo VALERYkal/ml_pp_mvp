@@ -281,6 +281,7 @@ Les tests d'intégration Supabase sont présents mais désactivés par défaut p
 
 **Prochaine étape**
 - Étendre le fake pour supporter `limit()` / `range()` (Étape 2/3)
+- Étape 2/3 : support `limit()` ajouté dans le fake Supabase (pré-requis pour corriger le cas Nightly Linux).
 
 ---
 
