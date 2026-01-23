@@ -114,6 +114,17 @@ Validation locale confirmée :
 - Résultat : **POSITIF**
 - **ML_PP MVP déclaré PROD-READY FINAL** (technique + métier)
 
+### 🧪 **CI: d1_one_shot revalidated (2026-01-23)**
+
+- **Exécution locale** : `./scripts/d1_one_shot.sh` (mode LIGHT)
+- **Résultat** : ✅ Succès (exit code 0)
+- **Tests** : 456 tests passent, 2 skippés (flaky)
+- **Analyse** : ✅ OK (warnings/info non bloquants)
+- **Build runner** : ✅ OK
+- **Tests DB-STRICT** : Non exécutés en mode LIGHT (validation via CI Nightly FULL)
+- **Log** : `.ci_logs/d1_one_shot_local_2026-01-23.log`
+- **Impact** : Confirmation de stabilité locale, aucune régression détectée
+
 ### 🧪 Tests — CI Nightly Stabilization (Phase 1/3)
 
 - Centralisation du fake Supabase Query Builder utilisé dans les tests de stocks KPI

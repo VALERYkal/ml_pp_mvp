@@ -153,6 +153,9 @@ Aucune exception. Le Release Gate est un verrou, pas une négociation.
 | **Docs** | CHANGELOG à jour | ✅ | Entrées récentes documentées |
 | **Sécurité** | Aucun secret en clair | ✅ | Variables d'environnement sécurisées |
 | **Sécurité** | Aucune clé API exposée | ✅ | Vérification manuelle requise |
+| **Sécurité** | RLS activé sur `profils` | ✅ | Policy UPDATE admin only |
+| **Sécurité** | Trigger DB empêchant modification `role` | ✅ | Protection serveur enforcée |
+| **Sécurité** | Tests unitaires ProfilService validés | ✅ | Non régressifs |
 | **Infra** | Scripts CI durcis | ✅ | `d1_one_shot.sh` utilise `run_step()` |
 | **Infra** | Logs CI disponibles | ✅ | Dossier `.ci_logs/` créé systématiquement |
 | **Staging** | STAGING validé | ✅ | Validation métier finale 23/01/2026 |
@@ -385,6 +388,17 @@ Un **nouveau Release Gate est requis** si :
 ---
 
 **Release Gate franchi intégralement — 23/01/2026**
+
+### 🔐 Sécurité – P0
+
+- [x] RLS activé sur la table `profils`
+- [x] Trigger DB empêchant toute modification du champ `role`
+- [x] Tests unitaires ProfilService validés (non régressifs)
+- [x] Aucun secret exposé (audit Git effectué)
+
+➡️ Le risque P0 "élévation de privilèges" est neutralisé au niveau base de données.
+
+**Référence** : `docs/SECURITY_REPORT_V2.md` — Section "P0 — Verrouillage du rôle utilisateur"
 
 ## 10. Références
 

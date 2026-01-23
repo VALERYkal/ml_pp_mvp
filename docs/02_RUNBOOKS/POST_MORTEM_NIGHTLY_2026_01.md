@@ -226,6 +226,58 @@ git checkout prod-ready-2026-01-23-nightly-green
 
 ---
 
+---
+
+## 8. Revalidation locale (d1_one_shot) — 2026-01-23
+
+### Exécution
+
+**Commande** : `./scripts/d1_one_shot.sh` (mode LIGHT)  
+**Log** : `.ci_logs/d1_one_shot_local_2026-01-23.log`  
+**Code de sortie** : `0` (succès)
+
+### Résultats
+
+#### ✅ flutter analyze
+- **Statut** : OK
+- **Warnings/Info** : Présents mais non bloquants (conventions de code, dépréciations mineures)
+- **Aucune erreur bloquante**
+
+#### ✅ build_runner
+- **Statut** : OK
+- **Génération** : Fichiers générés sans conflit
+
+#### ✅ Tests unit/widget
+- **Statut** : OK
+- **Résultat** : `456 tests passent, 2 skippés (flaky)`
+- **Fichiers** : 56 fichiers de test exécutés
+- **Aucun test en échec**
+
+#### ⚠️ Tests integration/e2e (DB-STRICT)
+- **Statut** : Non exécutés (mode LIGHT)
+- **Raison** : Le script `d1_one_shot.sh` en mode LIGHT exclut les tests d'intégration/e2e
+- **Tests concernés** :
+  - `test/integration/reception_stock_log_test.dart` (non exécuté en LIGHT)
+  - `test/integration/sortie_stock_log_test.dart` (non exécuté en LIGHT)
+- **Note** : Ces tests nécessitent un environnement STAGING configuré et sont exécutés uniquement en mode FULL (CI Nightly)
+
+### Conclusion
+
+✅ **Incident définitivement clos (repro local OK en mode LIGHT)**
+
+- Tous les tests unit/widget passent localement
+- Aucune régression détectée depuis la stabilisation Nightly
+- Les tests DB-STRICT restent validés via CI Nightly (mode FULL)
+- Le pattern "PR green / Nightly red" est résolu (CI Nightly Full Suite verte confirmée)
+
+### Prochaines actions
+
+- **Aucune action P0** : Le run local confirme la stabilité
+- **Surveillance continue** : Maintenir la CI Nightly Full Suite verte sur `main`
+- **Tests DB-STRICT** : Validation périodique via CI Nightly (mode FULL) ou exécution manuelle avec `--dart-define=RUN_DB_TESTS=true`
+
+---
+
 **Document créé le** : 2026-01-23  
 **Dernière mise à jour** : 2026-01-23  
 **Auteur** : Équipe DevOps / QA Lead

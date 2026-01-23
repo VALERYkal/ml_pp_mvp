@@ -1,16 +1,11 @@
-# Format exact pour env/.env.staging
-# Copiez ces lignes dans votre fichier env/.env.staging (local, jamais commité)
-# Une variable par ligne, pas de guillemets, pas d'espaces autour du =
+# Exemple de format uniquement — NE JAMAIS COMMITTER DE SECRETS
+# Ce fichier sert à montrer les NOMS des variables, pas leurs valeurs.
 
 SUPABASE_ENV=STAGING
-SUPABASE_URL=https://xxxxx.supabase.co
-SUPABASE_ANON_KEY=xxxxx
-SUPABASE_SERVICE_ROLE_KEY=xxxxx
-STAGING_DB_URL=postgresql://postgres:xxxxx@db.xxxxx.supabase.co:5432/postgres
-ALLOW_STAGING_RESET=false
-STAGING_PROJECT_REF=xxxxx
+SUPABASE_URL=https://<PROJECT_REF>.supabase.co
+SUPABASE_ANON_KEY=<ANON_KEY>
 
-TEST_USER_EMAIL=valtest+staging@monaluxe.test
-TEST_USER_PASSWORD=ChangeMe123!
-TEST_USER_ROLE=admin
-
+# Interdit côté repo : service role + DB URL doivent vivre uniquement dans env/.env.staging (gitignored)
+SUPABASE_SERVICE_ROLE_KEY=<SERVICE_ROLE_KEY_DO_NOT_COMMIT>
+STAGING_PROJECT_REF=<PROJECT_REF>
+STAGING_DB_URL=<POSTGRES_CONNECTION_STRING_DO_NOT_COMMIT>
