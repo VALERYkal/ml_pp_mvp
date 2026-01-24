@@ -21,7 +21,6 @@ class PerformanceIndicator extends ConsumerWidget {
     final totalItems = paginationInfo['totalItems'] as int;
     final currentPage = paginationInfo['currentPage'] as int;
     final totalPages = paginationInfo['totalPages'] as int;
-    final pageSize = paginationInfo['pageSize'] as int;
 
     final cacheHits = performanceStats['cacheHits'] as int;
     final totalRequests = performanceStats['totalRequests'] as int;
@@ -36,7 +35,7 @@ class PerformanceIndicator extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(

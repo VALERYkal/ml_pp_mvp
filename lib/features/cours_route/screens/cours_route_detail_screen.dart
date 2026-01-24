@@ -613,7 +613,7 @@ class CoursRouteDetailScreen extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          Icon(Icons.error_outline, color: Colors.red),
+          const Icon(Icons.error_outline, color: Colors.red),
           const SizedBox(width: 12),
           Expanded(
             child: Text(message, style: TextStyle(color: Colors.red.shade700)),
@@ -660,7 +660,7 @@ class CoursRouteDetailScreen extends ConsumerWidget {
           items.add(
             const PopupMenuItem(
               value: 'edit',
-              child: const Row(
+              child: Row(
                 children: [
                   Icon(Icons.edit),
                   SizedBox(width: 8),
@@ -675,7 +675,7 @@ class CoursRouteDetailScreen extends ConsumerWidget {
           items.add(
             const PopupMenuItem(
               value: 'delete',
-              child: const Row(
+              child: Row(
                 children: [
                   Icon(Icons.delete, color: Colors.red),
                   SizedBox(width: 8),

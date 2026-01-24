@@ -97,6 +97,55 @@ Validation locale confirmée :
 
 ## [Unreleased]
 
+### 🚀 **[GO PROD] — Finalisation Documentation & Validation — 2026-01-24**
+
+#### **Clarification périmètre MVP**
+- Documentation explicite du périmètre Stock-only (6 citernes : TANK1 → TANK6)
+- Liste des modules hors scope volontaire (clients, fournisseurs, transporteurs, douane, fiscalité, PDF, commandes)
+- Justification stratégique : choix assumé pour validation d'adoption terrain et confirmation de commande Monaluxe
+
+#### **Transparence tests — État réel**
+- ✅ Tests Flutter UI critiques validés (Réception, Sortie, Stock)
+- ✅ Tests métier non régressifs (aucun test critique produit cassé)
+- ✅ RLS testée en staging (permissions validées par rôle)
+- ⚠️ Tests DB opt-in : Activation uniquement si `RUN_DB_TESTS=1` + `env/.env.staging` présent
+  - Choix assumé pour éviter flakiness CI
+  - Validation complète via CI Nightly Full Suite
+  - **Impact utilisateur final : Aucun** (instabilités limitées aux tests DB opt-in)
+
+#### **Corrections blocages compilation**
+- Correction null-safety dans `rls_stocks_adjustment_admin_test.dart` (variable non-null après `expect`)
+- Stabilisation test soumission Sortie via GoRouter minimal dans harnais (`_pumpWithRouter` helper)
+- Validation chaîne complète : UI → Provider → Service → Payload → KPI refresh
+- **Aucune logique métier modifiée** : Corrections limitées aux tests / harnais / garde-fous
+
+#### **Documentation bruit CI/logs**
+- Identification sources de logs verbeux (debugPrint UI, initialisation Supabase, résolution dépendances)
+- Stratégie retenue : pas de refactor, réduction progressive via flags, séparation signal/bruit
+- Confirmation : bruit n'affecte ni sécurité, ni stabilité, ni production
+
+#### **Validation sécurité & exploitation**
+- ✅ RLS active sur tables sensibles
+- ✅ Rôles séparés (admin, directeur, gérant, opérateur, pca, lecture)
+- ✅ Verrouillage rôle utilisateur (DB-level enforcement)
+- ✅ Seed minimal validé (6 citernes alignées avec PROD)
+- ✅ Usage terrain validé (tablette / desktop / web)
+- ✅ Plan de rollback documenté (staging → prod, migration réversible)
+
+#### **Décision GO PROD**
+🟢 **GO PROD autorisé pour un pilote sur 1 dépôt, avec montée en charge progressive.**
+
+Le MVP ML_PP est fonctionnel, sécurisé, maintenable et exploitable pour son périmètre actuel (Stock-only, 6 citernes). Les limitations restantes sont connues, documentées et hors scope volontaire.
+
+**Fichiers modifiés** :
+- `docs/02_RUNBOOKS/PROD_READY_STATUS_2026_01_15.md` : Section "Mise à jour — GO PROD Final (24/01/2026)"
+- `docs/04_PLANS/SPRINT_PROD_READY_2026_01.md` : Entrée chronologique [2026-01-24]
+- `docs/POST_MORTEM_NIGHTLY_2026_01.md` : Section Conclusions mise à jour
+- `test/integration/rls_stocks_adjustment_admin_test.dart` : Correction null-safety
+- `test/integration/sorties_submission_test.dart` : Stabilisation navigation GoRouter
+
+---
+
 ### 📚 **[Docs/Governance] — Stabilisation Nightly + Release Gate — 2026-01-23**
 
 - ✅ **CI Nightly FULL SUITE verte** (stabilité confirmée)

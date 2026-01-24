@@ -59,9 +59,6 @@ class DashboardShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final role = ref.watch(userRoleProvider);
-    final profil = ref
-        .watch(profilProvider)
-        .maybeWhen(data: (p) => p, orElse: () => null);
 
     // Warmup des référentiels
     ref.watch(refDataProvider);
@@ -227,7 +224,6 @@ class DashboardShell extends ConsumerWidget {
 
         if (kDebugMode) {
           return HotReloadInvalidator(
-            child: shell,
             providersToInvalidate: [
               currentProfilProvider,
               userRoleProvider,
@@ -237,6 +233,7 @@ class DashboardShell extends ConsumerWidget {
               sortiesKpiProvider,
               camionsASuivreProvider,
             ],
+            child: shell,
           );
         }
         return shell;

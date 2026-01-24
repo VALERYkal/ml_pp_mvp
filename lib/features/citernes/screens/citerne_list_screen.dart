@@ -566,7 +566,7 @@ class CiterneListScreen extends ConsumerWidget {
     double stock15c,
     ThemeData theme,
   ) {
-    final color = const Color(0xFF10B981);
+    const color = Color(0xFF10B981);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -697,26 +697,6 @@ class CiterneListScreen extends ConsumerWidget {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildCiterneCard(
-    BuildContext context,
-    CiterneRow citerne,
-    ThemeData theme,
-  ) {
-    final stock15c = citerne.stock15c ?? citerne.stockAmbiant ?? 0;
-    final stockAmbiant = citerne.stockAmbiant ?? 0;
-    final capacite = citerne.capaciteTotale ?? 0;
-    final utilPct = capacite > 0 ? (100 * stockAmbiant / capacite) : 0.0;
-
-    return TankCard(
-      name: citerne.nom,
-      stock15c: stock15c,
-      stockAmb: stockAmbiant,
-      capacity: capacite,
-      utilPct: utilPct.toDouble(),
-      lastUpdated: citerne.dateStock,
     );
   }
 

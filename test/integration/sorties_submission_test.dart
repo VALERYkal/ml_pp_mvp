@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ml_pp_mvp/features/sorties/data/sortie_service.dart' as sorties;
 import 'package:ml_pp_mvp/features/sorties/providers/sortie_providers.dart'
     as sp;
@@ -23,7 +24,6 @@ class FakeRefRepo extends refs.ReferentielsRepo {
     return [refs.ProduitRef(id: 'prod-1', code: 'ESS', nom: 'ESSENCE')];
   }
 
-  @override
   Future<List<refs.CiterneRef>> loadCiternesByProduit(String produitId) async {
     // ⚠️ Adapter avec les bons paramètres requis de CiterneRef.
     // L'erreur précédente indiquait au moins `produitId` requis.
@@ -142,42 +142,6 @@ class _SpySortieService extends sorties.SortieService {
   }
 }
 
-/// Helper pour remplir un TextFormField en trouvant son label
-/// Note: Les labels dans InputDecoration ne sont pas des widgets Text séparés.
-/// On utilise la position dans le formulaire pour identifier les champs.
-/// Tolérant : essaie d'abord TextFormField, puis TextField en fallback.
-Future<void> _enterTextInFieldByLabel(
-  WidgetTester tester, {
-  required String label,
-  required String value,
-  required int fieldIndex,
-}) async {
-  // 1) Essayer avec TextFormField (cas nominal)
-  final allTextFormFields = find.byType(TextFormField);
-  if (allTextFormFields.evaluate().isNotEmpty) {
-    expect(
-      allTextFormFields,
-      findsAtLeastNWidgets(fieldIndex + 1),
-      reason:
-          'Le TextFormField à l\'index $fieldIndex pour "$label" doit être présent',
-    );
-    final fieldFinder = allTextFormFields.at(fieldIndex);
-    await tester.enterText(fieldFinder, value);
-    return;
-  }
-
-  // 2) Fallback : certains refactors peuvent utiliser TextField
-  final allTextFields = find.byType(TextField);
-  expect(
-    allTextFields,
-    findsAtLeastNWidgets(fieldIndex + 1),
-    reason:
-        'Le TextField à l\'index $fieldIndex pour "$label" doit être présent',
-  );
-  final fieldFinder = allTextFields.at(fieldIndex);
-  await tester.enterText(fieldFinder, value);
-}
-
 /// Helper pour remplir un TextField en trouvant son label
 /// Note: Les labels dans InputDecoration ne sont pas des widgets Text séparés.
 /// On utilise la position dans le formulaire pour identifier les champs.
@@ -197,6 +161,38 @@ Future<void> _enterTextInTextFieldByLabel(
 
   final fieldFinder = allTextFields.at(fieldIndex);
   await tester.enterText(fieldFinder, value);
+}
+
+/// Helper pour pump un widget avec GoRouter minimal (nécessaire pour context.go)
+Future<void> _pumpWithRouter(
+  WidgetTester tester, {
+  required List<Override> overrides,
+  required Widget child,
+}) async {
+  final router = GoRouter(
+    initialLocation: '/sorties/nouvelle',
+    routes: [
+      GoRoute(
+        path: '/sorties',
+        builder: (context, state) => const Scaffold(
+          body: Center(child: Text('SortiesListPlaceholder')),
+        ),
+      ),
+      GoRoute(
+        path: '/sorties/nouvelle',
+        builder: (context, state) => Scaffold(body: child),
+      ),
+    ],
+  );
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: overrides,
+      child: MaterialApp.router(
+        routerConfig: router,
+      ),
+    ),
+  );
 }
 
 void main() {
@@ -229,31 +225,27 @@ void main() {
         {'id': 'client-1', 'nom': 'Client Test'},
       ];
 
-      // Utiliser MaterialApp simple au lieu de MaterialApp.router
-      // pour éviter les problèmes de scope Riverpod imbriqués
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            // Injecter le spy pour intercepter l'appel au service
-            sp.sortieServiceProvider.overrideWithValue(spy),
+      // Utiliser GoRouter minimal pour supporter context.go('/sorties')
+      await _pumpWithRouter(
+        tester,
+        overrides: [
+          // Injecter le spy pour intercepter l'appel au service
+          sp.sortieServiceProvider.overrideWithValue(spy),
 
-            // Référentiels
-            refs.produitsRefProvider.overrideWith((ref) async => [produitTest]),
-            refs.citernesActivesProvider.overrideWith(
-              (ref) async => [citerneTest],
-            ),
-
-            // Override des clients et partenaires
-            sp.clientsListProvider.overrideWith((ref) async => clientTest),
-            sp.partenairesListProvider.overrideWith(
-              (ref) async => <Map<String, String>>[],
-            ),
-          ],
-          child: MaterialApp(
-            home: SortieFormScreen(
-              debugSortieService: spy, // 🔥 Injection directe du spy
-            ),
+          // Référentiels
+          refs.produitsRefProvider.overrideWith((ref) async => [produitTest]),
+          refs.citernesActivesProvider.overrideWith(
+            (ref) async => [citerneTest],
           ),
+
+          // Override des clients et partenaires
+          sp.clientsListProvider.overrideWith((ref) async => clientTest),
+          sp.partenairesListProvider.overrideWith(
+            (ref) async => <Map<String, String>>[],
+          ),
+        ],
+        child: SortieFormScreen(
+          debugSortieService: spy, // 🔥 Injection directe du spy
         ),
       );
 
@@ -620,6 +612,13 @@ void main() {
       // 3️⃣ Appeler directement la méthode de test
       await dyn.submitSortieForTesting();
       await tester.pumpAndSettle();
+
+      // Vérifier que la navigation a bien eu lieu (context.go('/sorties'))
+      expect(
+        find.text('SortiesListPlaceholder'),
+        findsOneWidget,
+        reason: 'La navigation vers /sorties doit avoir eu lieu après la soumission',
+      );
 
       debugPrint(
         '🔍 DEBUG: callsCount après submitSortieForTesting: ${spy.callsCount}',

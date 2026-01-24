@@ -416,7 +416,7 @@ class CoursDeRouteService {
 
     // DB write is intentionally minimal; adjust table/column names to the existing ones.
     // IMPORTANT: keep exact column names already used in this service for CDR.
-    final res = await _supabase
+    await _supabase
         .from('cours_de_route')
         .update({'etat': to.name})
         .eq('id', cdrId)

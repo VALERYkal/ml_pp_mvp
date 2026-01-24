@@ -16,7 +16,6 @@ class LogsListScreen extends ConsumerWidget {
     final module = ref.watch(logsModuleProvider);
     final niveau = ref.watch(logsLevelProvider);
     final userId = ref.watch(logsUserIdProvider);
-    final search = ref.watch(logsSearchTextProvider);
 
     final page = ref.watch(logsPageProvider);
     final pageSize = ref.watch(logsPageSizeProvider);
@@ -437,13 +436,9 @@ class LogsListScreen extends ConsumerWidget {
     );
   }
 
-  String _fmtIso(DateTime d) =>
-      d.toIso8601String().replaceFirst('T', ' ').split('.').first;
   String _fmtRange(DateTimeRange? r) => r == null
       ? 'Période'
       : '${r.start.year}-${r.start.month.toString().padLeft(2, '0')}-${r.start.day.toString().padLeft(2, '0')} → ${r.end.year}-${r.end.month.toString().padLeft(2, '0')}-${r.end.day.toString().padLeft(2, '0')}';
-  String _shorten(String s, int max) =>
-      s.length <= max ? s : '${s.substring(0, max)}…';
 
   // Formatters pour le popup
   String _fmtYmd(DateTime? d) => d == null
@@ -557,21 +552,6 @@ class LogsListScreen extends ConsumerWidget {
     ),
   );
 
-  String _prettyJson(Map<String, dynamic>? m) {
-    if (m == null || m.isEmpty) {
-      return '{}';
-    }
-    try {
-      // Simple pretty for nested maps/lists
-      return m
-          .toString()
-          .replaceAll(', ', ',\n')
-          .replaceAll('{', '{\n')
-          .replaceAll('}', '\n}');
-    } catch (_) {
-      return m.toString();
-    }
-  }
 
   // Helper pour détecter les écrans étroits
   bool _isNarrow(BuildContext context) =>

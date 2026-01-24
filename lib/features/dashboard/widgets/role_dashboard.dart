@@ -695,8 +695,8 @@ class _RoleDashboardState extends ConsumerState<RoleDashboard> {
     // Envelopper avec le hook d'invalidation Hot Reload en mode debug
     if (kDebugMode) {
       return HotReloadInvalidator(
-        child: dashboardContent,
         providersToInvalidate: [profilProvider, kpiProviderProvider],
+        child: dashboardContent,
       );
     }
     return dashboardContent;

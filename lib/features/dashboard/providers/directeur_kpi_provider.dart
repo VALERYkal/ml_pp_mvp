@@ -99,7 +99,7 @@ final directeurKpiProvider = FutureProvider<DirecteurKpiData>((ref) async {
         .select('id, capacite_totale, capacite_securite')
         .eq('depot_id', depotId);
 
-    for (final c in (citernes as List)) {
+    for (final c in citernes) {
       final id = (c['id'] as String?) ?? '';
       if (id.isEmpty) continue;
       final stock = stockByCiterne[id] ?? 0.0;
@@ -111,13 +111,13 @@ final directeurKpiProvider = FutureProvider<DirecteurKpiData>((ref) async {
       if (stock < seuil) nbSousSeuil++;
     }
 
-    totalCit = (citernes as List).length;
+    totalCit = citernes.length;
     ratio = totalCapacite > 0 ? (totalStock / totalCapacite) : 0.0;
   }
 
   return DirecteurKpiData(
-    receptionsJour: (recs as List).length,
-    sortiesJour: (sorties as List).length,
+    receptionsJour: recs.length,
+    sortiesJour: sorties.length,
     citernesSousSeuil: nbSousSeuil,
     totalCiternes: totalCit,
     ratioUtilisation: ratio,

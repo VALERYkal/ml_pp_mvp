@@ -16,7 +16,6 @@ import 'package:ml_pp_mvp/shared/ui/errors.dart';
 import 'package:ml_pp_mvp/shared/ui/format.dart';
 import 'package:ml_pp_mvp/shared/ui/toast.dart';
 import 'package:ml_pp_mvp/features/cours_route/utils/keyboard_shortcuts.dart';
-import 'package:ml_pp_mvp/features/cours_route/utils/contextual_actions.dart';
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_sort_provider.dart';
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_pagination_provider.dart';
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_cache_provider.dart';
@@ -509,13 +508,9 @@ class _DataTableView extends ConsumerWidget {
       return '$left / $right';
     }
 
-    final width = MediaQuery.of(context).size.width;
-
     return LayoutBuilder(
       builder: (context, constraints) {
         final availableWidth = constraints.maxWidth;
-        final isWideScreen = availableWidth >= 1200;
-        final isMediumScreen = availableWidth >= 800;
 
         return Column(
           children: [
@@ -561,11 +556,11 @@ class _DataTableView extends ConsumerWidget {
                               if (states.contains(WidgetState.hovered)) {
                                 return Theme.of(
                                   context,
-                                ).colorScheme.surfaceVariant.withValues(alpha: 0.18);
+                                ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.18);
                               }
                               final isOdd = index.isOdd;
                               return isOdd
-                                  ? Theme.of(context).colorScheme.surfaceVariant
+                                  ? Theme.of(context).colorScheme.surfaceContainerHighest
                                         .withValues(alpha: 0.06)
                                   : null;
                             }),
@@ -758,117 +753,6 @@ class _DataTableView extends ConsumerWidget {
         ),
       ),
     );
-  }
-}
-
-/// Vue mobile avec Cards
-class _CardsView extends ConsumerWidget {
-  const _CardsView({
-    required this.list,
-    required this.fournisseurs,
-    required this.produits,
-    required this.produitCodes,
-  });
-
-  final List<CoursDeRoute> list;
-  final Map<String, String> fournisseurs;
-  final Map<String, String> produits;
-  final Map<String, String> produitCodes;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // Helper pour afficher les plaques
-    String plaquesLabel(String? plaqueCamion, String? plaqueRemorque) {
-      final c = (plaqueCamion ?? '').trim();
-      final r = (plaqueRemorque ?? '').trim();
-      final left = c.isEmpty ? '—' : c;
-      final right = r.isEmpty ? '—' : r;
-      return '$left / $right';
-    }
-
-    return ListView.separated(
-      itemCount: list.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 8),
-      padding: const EdgeInsets.all(12),
-      itemBuilder: (context, i) {
-        final c = list[i];
-        final quickActions = ContextualActionsGenerator.getQuickActionsForCours(
-          c,
-          context,
-          onView: () => context.go('/cours/${c.id}'),
-          onAdvanceStatus: () => _advanceStatus(context, ref, c),
-          onCreateReception: () =>
-              context.push('/receptions/new?coursId=${c.id}'),
-        );
-
-        return Card(
-          child: ListTile(
-            title: Text(
-              '${nameOf(fournisseurs, c.fournisseurId)} • ${produitLabel(c, produits, produitCodes)}',
-            ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${plaquesLabel(c.plaqueCamion, c.plaqueRemorque)} • ${c.chauffeur ?? '—'}',
-                ),
-                Text('${c.transporteur ?? '—'} • ${fmtDate(c.dateChargement)}'),
-                Text('${fmtVolume(c.volume)} • ${c.depotDestinationId}'),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    _statutBadge(c.statut),
-                    const Spacer(),
-                    ContextualActionsWidget(
-                      actions: quickActions,
-                      isCompact: true,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            isThreeLine: true,
-            onTap: () => context.go('/cours/${c.id}'),
-          ),
-        );
-      },
-    );
-  }
-
-  /// Fonction helper pour avancer le statut d'un cours
-  Future<void> _advanceStatus(
-    BuildContext context,
-    WidgetRef ref,
-    CoursDeRoute cours,
-  ) async {
-    final nextEnum = StatutCoursDb.next(cours.statut);
-    if (nextEnum == null) return;
-
-    // Passage à DECHARGE : ouvrir la création de Réception
-    if (nextEnum == StatutCours.decharge) {
-      context.push('/receptions/new?coursId=${cours.id}');
-      return;
-    }
-
-    try {
-      await ref
-          .read(coursDeRouteServiceProvider)
-          .updateStatut(id: cours.id, to: nextEnum);
-      if (context.mounted) {
-        showAppToast(
-          context,
-          'Statut mis à jour → ${nextEnum.label}',
-          type: ToastType.success,
-        );
-        // Rafraîchir les listes
-        ref.invalidate(coursDeRouteListProvider);
-        ref.invalidate(coursDeRouteActifsProvider);
-      }
-    } catch (e) {
-      if (context.mounted) {
-        showAppToast(context, humanizePostgrest(e), type: ToastType.error);
-      }
-    }
   }
 }
 
@@ -1202,26 +1086,17 @@ class _SortDialog extends ConsumerWidget {
           final (col, label) = column;
           final isSelected = sortConfig.column == col;
 
-          return RadioListTile<CoursSortColumn>(
-            title: Text(label),
+          return _SortRadioTile(
+            label: label,
             value: col,
-            groupValue: sortConfig.column,
-            onChanged: (value) {
-              if (value != null) {
-                ref.read(coursSortProvider.notifier).state = CoursSortConfig(
-                  column: value,
-                  direction: sortConfig.direction,
-                );
-              }
+            isSelected: isSelected,
+            direction: isSelected ? sortConfig.direction : null,
+            onTap: () {
+              ref.read(coursSortProvider.notifier).state = CoursSortConfig(
+                column: col,
+                direction: sortConfig.direction,
+              );
             },
-            secondary: isSelected
-                ? Icon(
-                    sortConfig.direction == SortDirection.ascending
-                        ? Icons.arrow_upward
-                        : Icons.arrow_downward,
-                    color: Theme.of(context).colorScheme.primary,
-                  )
-                : null,
           );
         }).toList(),
       ),
@@ -1246,6 +1121,44 @@ class _SortDialog extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Widget helper pour remplacer RadioListTile déprécié (Material 3 compatible)
+class _SortRadioTile extends StatelessWidget {
+  const _SortRadioTile({
+    required this.label,
+    required this.value,
+    required this.isSelected,
+    this.direction,
+    required this.onTap,
+  });
+
+  final String label;
+  final CoursSortColumn value;
+  final bool isSelected;
+  final SortDirection? direction;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Text(label),
+      leading: Radio<CoursSortColumn>(
+        value: value,
+        groupValue: isSelected ? value : null,
+        onChanged: (_) => onTap(),
+      ),
+      trailing: isSelected && direction != null
+          ? Icon(
+              direction == SortDirection.ascending
+                  ? Icons.arrow_upward
+                  : Icons.arrow_downward,
+              color: Theme.of(context).colorScheme.primary,
+            )
+          : null,
+      onTap: onTap,
     );
   }
 }

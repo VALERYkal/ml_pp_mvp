@@ -217,6 +217,33 @@ git checkout prod-ready-2026-01-23-nightly-green
 
 ---
 
+---
+
+## Conclusions — Mise à jour GO PROD (24/01/2026)
+
+### État final du projet
+
+**ML_PP MVP est prêt pour le déploiement en production** dans le cadre d'un pilote sur 1 dépôt.
+
+#### Points validés
+- ✅ **Stabilité CI** : PR light + Nightly full opérationnelles
+- ✅ **Tests critiques** : 482/490 passants (98.4%), aucun test critique produit cassé
+- ✅ **Sécurité** : RLS active, rôles séparés, verrouillage rôle utilisateur (DB-level)
+- ✅ **Périmètre MVP** : Stock-only (6 citernes) clairement défini et assumé
+- ✅ **Exploitation terrain** : Tablette / desktop / web opérationnels
+
+#### Limitations assumées
+- **Périmètre volontairement limité** : Modules clients, fournisseurs, transporteurs, douane, fiscalité, PDF, commandes hors scope MVP
+- **Tests DB opt-in** : Activation explicite requise (`RUN_DB_TESTS=1` + `env/.env.staging`)
+- **Logs verbeux** : Bruit développement non bloquant, filtré en production
+
+#### Décision
+🟢 **GO PROD autorisé pour un pilote sur 1 dépôt, avec montée en charge progressive.**
+
+L'incident CI Nightly est résolu et ne constitue plus un blocage pour le déploiement. Le projet est stable, sécurisé et exploitable pour son périmètre actuel.
+
+---
+
 **Document créé le** : 2026-01-23  
-**Dernière mise à jour** : 2026-01-23  
+**Dernière mise à jour** : 2026-01-24  
 **Auteur** : Équipe DevOps / QA Lead

@@ -165,6 +165,6 @@ void main() {
     );
 
     expect(input.citerneId, isNotNull);
-    expect(input.citerneId!.isNotEmpty, isTrue);
+    expect(input.citerneId.isNotEmpty, isTrue);
   });
 }

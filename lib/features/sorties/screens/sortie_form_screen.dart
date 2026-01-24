@@ -233,8 +233,7 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
           ? 'MONALUXE'
           : 'PARTENAIRE',
       'statut': 'validee',
-      if (_selectedDate != null)
-        'date_sortie': _selectedDate!.toUtc().toIso8601String(),
+      'date_sortie': _selectedDate.toUtc().toIso8601String(),
       if (ctrlChauffeur.text.trim().isNotEmpty)
         'chauffeur_nom': ctrlChauffeur.text.trim(),
       if (ctrlPlaqueCamion.text.trim().isNotEmpty)

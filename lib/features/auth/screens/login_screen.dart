@@ -363,7 +363,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               width: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: const AlwaysStoppedAnimation<Color>(
+                                valueColor: AlwaysStoppedAnimation<Color>(
                                   Colors.white,
                                 ),
                               ),

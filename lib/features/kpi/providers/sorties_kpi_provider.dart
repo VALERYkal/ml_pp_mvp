@@ -45,7 +45,7 @@ final sortiesKpiProvider =
 final sortiesRealtimeInvalidatorProvider = riverpod.Provider.autoDispose<void>((
   ref,
 ) {
-  final p = ref.watch(sortiesTodayParamProvider);
+  ref.watch(sortiesTodayParamProvider);
 
   // Note: PostgresChanges n'est pas disponible dans cette version de Supabase
   // On utilise une invalidation manuelle pour l'instant

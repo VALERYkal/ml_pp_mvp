@@ -110,7 +110,7 @@ final sortiesTableProvider = FutureProvider.autoDispose<List<SortieRowVM>>((
   }
   debugPrint('[sortiesTableProvider] rows=${out.length}');
   return out;
-  } catch (e, st) {
+  } catch (e) {
     debugPrint('[sortiesTableProvider] error=$e');
     rethrow;
   }

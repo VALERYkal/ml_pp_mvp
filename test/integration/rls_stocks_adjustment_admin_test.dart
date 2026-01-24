@@ -28,13 +28,15 @@ void main() {
         isNotNull,
         reason: 'Service role key required for admin test',
       );
+      // Refine type: create non-null variable after expect() check
+      final supa = client!;
 
       // 1) Find an existing mouvement to attach the adjustment to (avoid hardcoded UUID flakiness)
       String? mouvementType;
       String? mouvementId;
 
       // Try receptions first
-      final recRows = await client!
+      final recRows = await supa
           .from('receptions')
           .select('id, created_at')
           .order('created_at', ascending: false)
@@ -47,14 +49,14 @@ void main() {
         // Fallback: try sorties_produit (preferred in this project)
         dynamic sortieRows;
         try {
-          sortieRows = await client!
+          sortieRows = await supa
               .from('sorties_produit')
               .select('id, created_at')
               .order('created_at', ascending: false)
               .limit(1);
         } catch (_) {
           // Fallback name if project uses another table name
-          sortieRows = await client!
+          sortieRows = await supa
               .from('sorties')
               .select('id, created_at')
               .order('created_at', ascending: false)
@@ -75,7 +77,7 @@ void main() {
 
       // 2) Find a stable created_by user_id (prefer admin profil)
       String? createdBy;
-      final adminRows = await client!
+      final adminRows = await supa
           .from('profils')
           .select('user_id, role')
           .eq('role', 'admin')
@@ -84,7 +86,7 @@ void main() {
       if (adminRows is List && adminRows.isNotEmpty) {
         createdBy = (adminRows.first as Map)['user_id'] as String?;
       } else {
-        final anyProfilRows = await client!
+        final anyProfilRows = await supa
             .from('profils')
             .select('user_id')
             .limit(1);
@@ -107,7 +109,7 @@ void main() {
       };
 
       // Should succeed (RLS allows admin / service role)
-      final res = await client!
+      final res = await supa
           .from('stocks_adjustments')
           .insert(payload)
           .select('id')

@@ -158,7 +158,7 @@ class KpiTiles extends ConsumerWidget {
       child: Wrap(
         spacing: 16,
         runSpacing: 16,
-        children: [
+        children: const [
           KpiCard(
             title: 'Réceptions (jour)',
             value: 12,

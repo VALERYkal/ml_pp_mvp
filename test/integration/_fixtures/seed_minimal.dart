@@ -1,7 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'fixture_ids.dart';
-import '../_staging_fixtures.dart';
 
 /// Seed minimal : dépôt + produit + citerne (IDs fixes du seed staging)
 ///
