@@ -893,3 +893,42 @@ Documenter l'état final du projet pour décision GO PROD, avec transparence tot
 
 **Date** : 24 janvier 2026  
 **Statut** : ✅ **SPRINT PROD-READY — CLÔTURÉ**
+<<<<<<< HEAD
+
+---
+
+### [2026-01-24] Enforcement Contrat Stock & Qualité Code
+
+#### **Objectif**
+Renforcer le contrat "stock actuel" et réduire les warnings analyzer sans changement fonctionnel.
+
+#### **Actions réalisées**
+
+##### **Enforcement contrat stock actuel**
+- Dépréciation de `CiterneService.getStockActuel()` avec annotation `@Deprecated` et commentaire de contrat
+- Création test de contrat `test/contracts/stock_source_contract_test.dart` vérifiant que `v_stock_actuel` est la source unique
+- Garde-fou contre réintroduction de chemins legacy (calcul depuis tables brutes, autres vues)
+
+##### **Corrections warnings analyzer**
+- Correction `unnecessary_cast` : `sorties_submission_test.dart` (ligne 550)
+- Correction `unused_element_parameter` : suppression param `key` inutilisé dans :
+  - `redirect_by_role_test.dart` (lignes 17, 98)
+  - `route_permissions_test.dart` (lignes 11, 55)
+
+#### **Résultat**
+- ✅ Test de contrat stock source en place et validé
+- ✅ Méthode legacy dépréciée avec garde-fou documentaire
+- ✅ Réduction issues analyzer : 317 → 312 (5 warnings corrigés)
+- ✅ Aucun changement fonctionnel
+
+#### **Fichiers modifiés**
+- `lib/features/citernes/data/citerne_service.dart` : Dépréciation + contrat
+- `test/contracts/stock_source_contract_test.dart` : Nouveau test de contrat
+- `test/integration/sorties_submission_test.dart` : Correction cast
+- `test/integration/auth/redirect_by_role_test.dart` : Suppression param inutilisé
+- `test/security/route_permissions_test.dart` : Suppression param inutilisé
+
+**Date** : 24 janvier 2026  
+**Statut** : ✅ **Enforcement contractuel validé**
+=======
+>>>>>>> origin/main

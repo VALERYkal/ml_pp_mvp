@@ -146,6 +146,35 @@ Le MVP ML_PP est fonctionnel, sécurisé, maintenable et exploitable pour son p�
 
 ---
 
+<<<<<<< HEAD
+### 🔒 **[Enforcement] — Contrat Stock Actuel & Qualité Code — 2026-01-24**
+
+#### **Enforcement contrat stock actuel**
+- Dépréciation officielle de `CiterneService.getStockActuel()` avec annotation `@Deprecated` et commentaire de contrat
+- Création test de contrat `test/contracts/stock_source_contract_test.dart` vérifiant que `v_stock_actuel` est la source unique
+- Garde-fou documentaire contre réintroduction de chemins legacy (calcul depuis tables brutes, autres vues)
+- **Aucun changement fonctionnel** : Dépréciation et tests uniquement
+
+#### **Corrections warnings analyzer**
+- Correction `unnecessary_cast` dans `test/integration/sorties_submission_test.dart` (ligne 550)
+- Correction `unused_element_parameter` (param `key`) dans :
+  - `test/integration/auth/redirect_by_role_test.dart` (lignes 17, 98)
+  - `test/security/route_permissions_test.dart` (lignes 11, 55)
+- **Réduction issues** : 317 → 312 (5 warnings corrigés)
+
+#### **Fichiers modifiés**
+- `lib/features/citernes/data/citerne_service.dart` : Dépréciation `getStockActuel()` avec contrat
+- `test/contracts/stock_source_contract_test.dart` : Nouveau test de contrat stock source
+- `test/integration/sorties_submission_test.dart` : Correction cast inutile
+- `test/integration/auth/redirect_by_role_test.dart` : Suppression param `key` inutilisé
+- `test/security/route_permissions_test.dart` : Suppression param `key` inutilisé
+
+**Impact** : Amélioration qualité code, enforcement contractuel, aucun changement fonctionnel
+
+---
+
+=======
+>>>>>>> origin/main
 ### 📚 **[Docs/Governance] — Stabilisation Nightly + Release Gate — 2026-01-23**
 
 - ✅ **CI Nightly FULL SUITE verte** (stabilité confirmée)
