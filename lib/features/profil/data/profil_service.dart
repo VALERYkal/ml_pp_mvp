@@ -118,12 +118,19 @@ class ProfilService {
     try {
       debugPrint('🔄 ProfilService: Mise à jour du profil - ID: ${profil.id}');
 
-      // Préparation des données pour Supabase
-      final data = profil.toJson();
-      data.remove('id'); // L'id ne doit pas être modifié
-      data.remove(
-        'created_at',
-      ); // Le timestamp de création ne doit pas être modifié
+      // ✅ P0 security (client-side hardening):
+      // Whitelist stricte : on n'envoie jamais les champs sensibles (role, depot_id, user_id, created_at...)
+      final raw = profil.toJson();
+      final data = <String, dynamic>{
+        if (raw.containsKey('nom_complet')) 'nom_complet': raw['nom_complet'],
+        if (raw.containsKey('email')) 'email': raw['email'],
+      }..removeWhere((_, v) => v == null);
+
+      // Rien à mettre à jour → no-op
+      if (data.isEmpty) {
+        debugPrint('ℹ️ ProfilService: Aucun champ safe à mettre à jour (no-op)');
+        return;
+      }
 
       // Mise à jour dans Supabase
       await _client

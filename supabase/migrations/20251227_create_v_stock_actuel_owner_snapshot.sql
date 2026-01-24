@@ -8,6 +8,9 @@
 -- Retourne le dernier état connu de chaque combinaison (citerne, produit, propriétaire)
 -- et agrège par (dépôt, produit, propriétaire)
 
+DROP VIEW IF EXISTS public.v_stock_actuel_owner_snapshot;
+-- (no CASCADE: verified no dependencies)
+
 CREATE OR REPLACE VIEW public.v_stock_actuel_owner_snapshot AS
 WITH base AS (
   SELECT 
