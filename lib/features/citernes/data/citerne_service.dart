@@ -44,9 +44,10 @@ class CiterneService {
   /// [date] : Date optionnelle (ignorée - v_stock_actuel est un snapshot temps réel)
   ///
   /// Retourne : Map avec 'ambiant' et 'c15' (volumes en litres)
-  @Deprecated(
-    'Legacy method using v_stock_actuel. Kept for ReceptionService compatibility. Use CiterneRepository.fetchCiterneStockSnapshots() for Citernes.',
-  )
+  // CONTRACT: Stock actuel must come from SQL view v_stock_actuel ONLY.
+  // This legacy method is kept temporarily for backward compatibility.
+  // Do not use it for new code. Prefer CiterneRepository / StocksRepository.
+  @Deprecated('Use v_stock_actuel via CiterneRepository/StocksRepository. Do not query legacy stock paths.')
   Future<Map<String, double>> getStockActuel(
     String citerneId,
     String produitId, {
