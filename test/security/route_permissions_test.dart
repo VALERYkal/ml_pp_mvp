@@ -8,7 +8,7 @@ enum UserRole { admin, operateur }
 final roleProvider = StateProvider<UserRole>((_) => UserRole.operateur);
 
 class _App extends ConsumerStatefulWidget {
-  const _App({super.key});
+  const _App();
 
   @override
   ConsumerState<_App> createState() => _AppState();
@@ -52,7 +52,7 @@ class _AppState extends ConsumerState<_App> {
 class _Screen extends StatelessWidget {
   final String label;
   final String keyName;
-  const _Screen(this.label, this.keyName, {super.key});
+  const _Screen(this.label, this.keyName);
   @override
   Widget build(BuildContext context) => Scaffold(
     body: Center(key: Key(keyName), child: Text(label)),

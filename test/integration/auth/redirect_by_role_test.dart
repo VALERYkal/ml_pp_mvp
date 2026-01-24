@@ -14,7 +14,7 @@ final roleProvider = StateProvider<UserRole?>((_) => null);
 // App de test avec un GoRouter basé sur les providers ci-dessus.
 // On lit les providers au build (les overrides sont déjà appliqués dans ProviderScope).
 class _TestApp extends ConsumerWidget {
-  const _TestApp({super.key});
+  const _TestApp();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -95,7 +95,7 @@ class _TestApp extends ConsumerWidget {
 class _Screen extends StatelessWidget {
   final String label;
   final String keyName;
-  const _Screen({required this.label, required this.keyName, super.key});
+  const _Screen({required this.label, required this.keyName});
 
   @override
   Widget build(BuildContext context) {
