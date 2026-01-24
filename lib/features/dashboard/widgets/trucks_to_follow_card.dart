@@ -52,7 +52,7 @@ class _TrucksToFollowCardState extends State<TrucksToFollowCard>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final accentColor = Colors.blue;
+    const accentColor = Colors.blue;
 
     return AnimatedBuilder(
       animation: _animationController,

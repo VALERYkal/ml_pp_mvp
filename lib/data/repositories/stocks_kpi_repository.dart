@@ -338,7 +338,7 @@ class StocksKpiRepository {
       }
 
       final rowProduitId = (row['produit_id'] as String?) ?? '';
-      final key = '$depotId::${rowProduitId}::$rowProprietaireType';
+      final key = '$depotId::$rowProduitId::$rowProprietaireType';
 
       final stockAmbiant = _toDouble(row['stock_ambiant'] ?? row['stock_ambiant_total'] ?? 0.0);
       final stock15c = _toDouble(row['stock_15c'] ?? row['stock_15c_total'] ?? 0.0);

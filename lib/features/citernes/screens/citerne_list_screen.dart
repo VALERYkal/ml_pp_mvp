@@ -566,7 +566,7 @@ class CiterneListScreen extends ConsumerWidget {
     double stock15c,
     ThemeData theme,
   ) {
-    final color = const Color(0xFF10B981);
+    const color = Color(0xFF10B981);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
