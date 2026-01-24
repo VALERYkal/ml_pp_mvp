@@ -224,7 +224,6 @@ class DashboardShell extends ConsumerWidget {
 
         if (kDebugMode) {
           return HotReloadInvalidator(
-            child: shell,
             providersToInvalidate: [
               currentProfilProvider,
               userRoleProvider,
@@ -234,6 +233,7 @@ class DashboardShell extends ConsumerWidget {
               sortiesKpiProvider,
               camionsASuivreProvider,
             ],
+            child: shell,
           );
         }
         return shell;

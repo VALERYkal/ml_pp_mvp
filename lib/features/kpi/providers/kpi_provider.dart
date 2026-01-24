@@ -214,7 +214,7 @@ Future<List<ReceptionRow>> _fetchReceptionsRawOfDay(
   // Calcul des sommes pour log debug
   double sumAmb = 0.0;
   double sum15c = 0.0;
-  for (final row in (result as List)) {
+  for (final row in result) {
     final vAmb = _toD(row['volume_ambiant']);
     final v15c = _toD(row['volume_corrige_15c'] ?? row['volume_15c']);
     sumAmb += vAmb;
@@ -295,7 +295,7 @@ Future<List<SortieRow>> _fetchSortiesRawOfDay(
   // Calcul des sommes pour log debug
   double sumAmb = 0.0;
   double sum15c = 0.0;
-  for (final row in (result as List)) {
+  for (final row in result) {
     final vAmb = _toD(row['volume_ambiant']);
     final v15c = _toD(row['volume_corrige_15c'] ?? row['volume_15c']);
     sumAmb += vAmb;

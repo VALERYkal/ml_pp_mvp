@@ -155,7 +155,7 @@ final userRoleProvider = Riverpod.Provider<UserRole?>((ref) {
 final profilAuthSyncProvider = Riverpod.Provider<void>((ref) {
   ref.listen(appAuthStateProvider, (prev, next) {
     final prevUserId = prev?.asData?.value.session?.user?.id;
-    final nextUserId = next.asData?.value.session?.user?.id;
+    final nextUserId = next.asData.value.session?.user?.id;
     if (prevUserId != nextUserId) {
       debugPrint(
         '🔄 ProfilAuthSync: user changed -> invalidate currentProfilProvider',
