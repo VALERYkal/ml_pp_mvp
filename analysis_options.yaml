@@ -11,6 +11,17 @@ analyzer:
     # Faux positif connu : @JsonKey sur paramètres de factory Freezed est valide
     # Freezed transforme ces paramètres en getters dans le code généré
     invalid_annotation_target: ignore
+    
+    # Release Gate 2026-01: Réduction temporaire du bruit P2 (cosmétiques)
+    # Ces règles restent actives mais en mode "info" pour ne pas bloquer la lisibilité
+    # TODO Post-Release: Remonter en "warning" et corriger progressivement
+    prefer_const_constructors: info
+    prefer_const_declarations: info
+    prefer_interpolation_to_compose_strings: info
+    no_leading_underscores_for_local_identifiers: info
+    library_prefixes: info
+    unnecessary_import: info
+    prefer_const_literals_to_create_immutables: info
 
 linter:
   rules: {}

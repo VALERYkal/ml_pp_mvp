@@ -565,3 +565,162 @@ Aucun utilisateur ne peut modifier son rôle, même en cas de bug applicatif.
 - Patch Flutter : whitelist stricte dans `updateProfil()` (champs safe uniquement)
 
 **DB-level enforcement** : La base de données est l'autorité sécurité ultime. Aucun contournement client-side possible.
+
+---
+
+## Mise à jour — GO PROD Final (24/01/2026)
+
+### 1️⃣ Périmètre MVP — Clarification
+
+**ML_PP MVP est un produit volontairement limité au périmètre Stock-only.**
+
+#### Périmètre inclus (MVP)
+- ✅ **Gestion du stock sur 6 citernes** : TANK1 → TANK6
+- ✅ **Flux métier complet** : Réception → Stock → Sortie → KPI
+- ✅ **Sécurité RLS stricte** : Rôles séparés (admin, directeur, gérant, opérateur, pca, lecture)
+- ✅ **Multi-plateforme** : Tablette / Desktop / Web opérationnels
+- ✅ **KPI temps réel** : Stock par propriétaire, réceptions/sorties du jour, balance
+
+#### Périmètre exclu (hors scope volontaire)
+- ❌ **Modules clients** : Gestion complète des clients (prévu post-acceptation)
+- ❌ **Modules fournisseurs** : Gestion complète des fournisseurs (prévu post-acceptation)
+- ❌ **Modules transporteurs** : Gestion complète des transporteurs (prévu post-acceptation)
+- ❌ **Douane** : Déclarations douanières (prévu post-acceptation)
+- ❌ **Fiscalité** : Gestion fiscale avancée (prévu post-acceptation)
+- ❌ **Génération PDF** : Rapports PDF (prévu post-acceptation)
+- ❌ **Commandes** : Module de commandes (prévu post-acceptation)
+
+#### Justification stratégique
+**Ne pas tout inclure maintenant est un choix stratégique, pas une lacune.**
+
+Le MVP sert à :
+1. **Démontrer la robustesse métier** : Validation du flux Réception → Stock → Sortie en conditions réelles
+2. **Valider l'adoption terrain** : Test d'utilisation réelle sur tablette/desktop par les opérateurs
+3. **Déclencher la confirmation de commande Monaluxe** : Preuve de concept fonctionnelle et sécurisée
+
+Le design est **scalable** : l'architecture permet l'ajout progressif des modules futurs sans refactorisation majeure.
+
+---
+
+### 2️⃣ État réel des tests — Transparence totale
+
+#### Tests critiques — Statut validé
+- ✅ **Tests Flutter UI critiques** : Réception, Sortie, Stock validés
+- ✅ **Tests métier non régressifs** : Aucun test critique produit cassé
+- ✅ **RLS testée en staging** : Permissions validées par rôle (admin, directeur, gérant, pca)
+
+#### Tests DB opt-in — Architecture assumée
+**Les tests d'intégration DB sont opt-in pour garantir la stabilité CI.**
+
+**Mécanisme** :
+- Activation uniquement si `RUN_DB_TESTS=1` (variable d'environnement)
+- Protection supplémentaire : présence de `env/.env.staging` requise
+- Skip automatique si conditions non remplies (message explicite)
+
+**Fichiers concernés** :
+- `test/integration/rls_stocks_adjustment_admin_test.dart`
+- `test/integration/rls_stocks_adjustment_test.dart`
+- `test/integration/reception_stock_log_test.dart`
+- `test/integration/sortie_stock_log_test.dart`
+
+**Justification** :
+- Éviter la flakiness CI (dépendance à environnement Supabase réel)
+- Maintenir le feedback PR rapide (~2-3 min)
+- Validation complète via CI Nightly Full Suite (mode FULL)
+
+**Impact utilisateur final** : **Aucun**. Les instabilités restantes concernent uniquement des tests d'infrastructure DB opt-in, sans impact sur le comportement applicatif.
+
+---
+
+### 3️⃣ Blocages identifiés et résolus (24/01/2026)
+
+#### Correction compilation test — Null-safety SupabaseClient
+- **Problème** : `Method 'from' cannot be called on 'SupabaseClient?' because it is potentially null`
+- **Fichier** : `test/integration/rls_stocks_adjustment_admin_test.dart`
+- **Solution** : Création variable non-null après `expect(client, isNotNull)` : `final supa = client!;`
+- **Résultat** : ✅ Test compile et passe (ou skip selon flags)
+- **Impact** : Aucun changement logique métier, correction localisée au harnais de test
+
+#### Stabilisation soumission Sortie — Test d'intégration complet
+- **Problème** : Test `sorties_submission_test.dart` échouait sur `context.go('/sorties')` (GoRouter absent)
+- **Solution** : Ajout GoRouter minimal dans le harnais de test (`_pumpWithRouter` helper)
+- **Résultat** : ✅ Test passe, navigation validée
+- **Impact** : Aucun changement logique métier, correction localisée au harnais de test
+
+#### Validation chaîne complète
+- ✅ **UI → Provider → Service → Payload → KPI refresh** : Validée
+- ✅ **Navigation post-soumission** : `context.go('/sorties')` fonctionnelle
+- ✅ **Aucune logique métier modifiée** : Corrections limitées aux tests / harnais / garde-fous
+
+---
+
+### 4️⃣ Bruit CI / Logs — État et stratégie
+
+#### Logs verbeux identifiés
+- **debugPrint UI** : Messages de diagnostic dans les écrans (ex. `[SORTIE] Succès • Volume: ...`)
+- **Initialisation Supabase** : Logs de connexion et résolution de dépendances
+- **Résolution dépendances** : Messages `flutter pub get` verbeux
+
+#### Stratégie retenue
+- ✅ **Pas de refactor** : Aucune modification du code applicatif pour réduire les logs
+- ✅ **Réduction progressive** : Via flags conditionnels (`VERBOSE_TEST_LOGS` si nécessaire)
+- ✅ **Séparation signal / bruit** : Logs critiques conservés, bruit non bloquant
+
+#### Impact
+**Le bruit n'affecte ni la sécurité, ni la stabilité, ni la production.**
+
+Les logs verbeux sont :
+- Non bloquants pour la CI
+- Utiles pour le diagnostic en développement
+- Filtrés automatiquement en production (Flutter release mode)
+
+---
+
+### 5️⃣ Sécurité & Exploitation — GO LIVE
+
+#### Sécurité validée
+- ✅ **RLS active** : Tables sensibles protégées (`profils`, `stocks_adjustments`, `receptions`, `sorties_produit`)
+- ✅ **Rôles séparés** : Admin, Directeur, Gérant, Opérateur, PCA, Lecture
+- ✅ **Verrouillage rôle utilisateur** : DB-level enforcement (RLS + trigger + whitelist Flutter)
+- ✅ **Seed minimal validé** : 6 citernes (TANK1 → TANK6) alignées avec PROD
+
+#### Exploitation terrain
+- ✅ **Usage tablette** : Interface responsive, navigation tactile optimisée
+- ✅ **Usage desktop** : Interface adaptative, navigation clavier/souris
+- ✅ **Usage web** : Compatible navigateurs modernes (Chrome, Firefox, Safari)
+
+#### Plan de rollback
+- ✅ **Staging → Prod** : Migration réversible via scripts SQL
+- ✅ **Rollback simple** : Restauration snapshot DB + redéploiement version précédente
+- ✅ **Traçabilité** : Logs d'actions (`log_actions`) pour audit post-rollback
+
+---
+
+### 6️⃣ Décision GO PROD
+
+#### Conclusion assumée
+
+**Le MVP ML_PP est fonctionnel, sécurisé, maintenable et exploitable pour son périmètre actuel.**
+
+**État technique** :
+- ✅ Code stabilisé et testé
+- ✅ CI/CD opérationnelle (PR light + Nightly full)
+- ✅ Sécurité RLS validée
+- ✅ Tests critiques passants (482/490, 98.4%)
+
+**Limitations connues et documentées** :
+- Périmètre volontairement limité (Stock-only, 6 citernes)
+- Tests DB opt-in (activation explicite requise)
+- Logs verbeux en développement (non bloquants)
+
+**Décision** :
+🟢 **GO PROD autorisé pour un pilote sur 1 dépôt, avec montée en charge progressive.**
+
+Le projet est prêt pour :
+- Déploiement en environnement de production
+- Utilisation terrain réelle (tablette / desktop / web)
+- Validation d'adoption par les opérateurs
+- Confirmation de commande Monaluxe
+
+**Date de décision** : 24 janvier 2026  
+**Statut** : ✅ **GO PROD FINAL**

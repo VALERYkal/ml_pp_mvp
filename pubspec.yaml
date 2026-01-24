@@ -49,6 +49,9 @@ dev_dependencies:
   json_serializable: ^6.8.0
   mockito: ^5.4.6
   riverpod_generator: ^2.3.12
+  # postgrest: required for test imports (PostgrestException)
+  # Version compatible with supabase_flutter ^1.10.7
+  postgrest: ^1.5.2
 
 dependency_overrides:
   # Force sign_in_with_apple and its interfaces to recent versions

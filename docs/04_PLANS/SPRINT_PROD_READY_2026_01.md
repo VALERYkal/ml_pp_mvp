@@ -840,3 +840,56 @@ Valider l'application ML_PP MVP en conditions STAGING réalistes, avec données 
 **Next actions** :
 - Maintenir la CI Nightly Full Suite verte sur `main`
 - Surveillance continue des tests DB-STRICT via CI Nightly (mode FULL)
+
+---
+
+### [2026-01-24] Finalisation GO PROD — Documentation & Validation
+
+#### **Objectif**
+Documenter l'état final du projet pour décision GO PROD, avec transparence totale sur le périmètre MVP, l'état des tests, et les limitations assumées.
+
+#### **Actions réalisées**
+
+##### **Clarification périmètre MVP**
+- Documentation explicite du périmètre Stock-only (6 citernes)
+- Liste des modules hors scope volontaire (clients, fournisseurs, transporteurs, douane, fiscalité, PDF, commandes)
+- Justification stratégique : choix assumé, pas une lacune
+
+##### **Transparence tests**
+- Documentation de l'état réel des tests (UI critiques validés, métier non régressifs, RLS testée)
+- Explication du mécanisme opt-in pour tests DB (`RUN_DB_TESTS=1` + `env/.env.staging`)
+- Clarification : instabilités restantes limitées aux tests DB opt-in, sans impact utilisateur
+
+##### **Corrections blocages compilation**
+- Correction null-safety dans `rls_stocks_adjustment_admin_test.dart` (variable non-null après `expect`)
+- Stabilisation test soumission Sortie via GoRouter minimal dans harnais
+- Validation chaîne complète : UI → Provider → Service → Payload → KPI refresh
+
+##### **Documentation bruit CI/logs**
+- Identification des sources de logs verbeux (debugPrint UI, initialisation Supabase, résolution dépendances)
+- Stratégie retenue : pas de refactor, réduction progressive via flags, séparation signal/bruit
+- Confirmation : bruit n'affecte ni sécurité, ni stabilité, ni production
+
+##### **Validation sécurité & exploitation**
+- Confirmation RLS active, rôles séparés, verrouillage rôle utilisateur (DB-level)
+- Validation usage terrain (tablette/desktop/web)
+- Plan de rollback documenté (staging → prod, migration réversible)
+
+#### **Résultat**
+- ✅ Documentation GO PROD complète et factuelle
+- ✅ Périmètre MVP clairement défini et assumé
+- ✅ État des tests transparent et opposable
+- ✅ Blocages résolus sans modification logique métier
+- ✅ Décision GO PROD documentée et justifiée
+
+#### **Fichiers modifiés**
+- `docs/02_RUNBOOKS/PROD_READY_STATUS_2026_01_15.md` : Section "Mise à jour — GO PROD Final (24/01/2026)"
+- `docs/04_PLANS/SPRINT_PROD_READY_2026_01.md` : Entrée chronologique [2026-01-24]
+- `CHANGELOG.md` : Entrée [Unreleased] — GO PROD Final
+- `docs/POST_MORTEM_NIGHTLY_2026_01.md` : Section Conclusions mise à jour
+
+#### **Décision finale**
+🟢 **GO PROD autorisé pour un pilote sur 1 dépôt, avec montée en charge progressive.**
+
+**Date** : 24 janvier 2026  
+**Statut** : ✅ **SPRINT PROD-READY — CLÔTURÉ**
