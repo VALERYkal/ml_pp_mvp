@@ -16,7 +16,6 @@ class LogsListScreen extends ConsumerWidget {
     final module = ref.watch(logsModuleProvider);
     final niveau = ref.watch(logsLevelProvider);
     final userId = ref.watch(logsUserIdProvider);
-    final search = ref.watch(logsSearchTextProvider);
 
     final page = ref.watch(logsPageProvider);
     final pageSize = ref.watch(logsPageSizeProvider);

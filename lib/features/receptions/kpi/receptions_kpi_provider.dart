@@ -4,7 +4,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ml_pp_mvp/data/repositories/repositories.dart';
 import 'package:ml_pp_mvp/features/kpi/models/kpi_models.dart';
-import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart';
 import 'package:ml_pp_mvp/features/receptions/kpi/receptions_kpi_repository.dart';
 import 'package:ml_pp_mvp/features/kpi/providers/kpi_provider.dart'
     show receptionsRawTodayProvider, computeKpiReceptions;

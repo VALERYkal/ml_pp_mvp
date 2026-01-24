@@ -28,7 +28,7 @@ final stocksTotalsProvider =
 final stocksRealtimeInvalidatorProvider = riverpod.Provider.autoDispose<void>((
   ref,
 ) {
-  final p = ref.watch(stocksDefaultParamProvider);
+  ref.watch(stocksDefaultParamProvider);
 
   // Note: PostgresChanges n'est pas disponible dans cette version de Supabase
   // On utilise une invalidation manuelle pour l'instant

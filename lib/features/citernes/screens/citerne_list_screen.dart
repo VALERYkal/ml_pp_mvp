@@ -700,26 +700,6 @@ class CiterneListScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildCiterneCard(
-    BuildContext context,
-    CiterneRow citerne,
-    ThemeData theme,
-  ) {
-    final stock15c = citerne.stock15c ?? citerne.stockAmbiant ?? 0;
-    final stockAmbiant = citerne.stockAmbiant ?? 0;
-    final capacite = citerne.capaciteTotale ?? 0;
-    final utilPct = capacite > 0 ? (100 * stockAmbiant / capacite) : 0.0;
-
-    return TankCard(
-      name: citerne.nom,
-      stock15c: stock15c,
-      stockAmb: stockAmbiant,
-      capacity: capacite,
-      utilPct: utilPct.toDouble(),
-      lastUpdated: citerne.dateStock,
-    );
-  }
-
   /// Construit une carte de citerne à partir d'un snapshot.
   /// Utilise CiterneStockSnapshot (données depuis v_stock_actuel via agrégation Dart)
   Widget _buildCiterneCardFromSnapshot(

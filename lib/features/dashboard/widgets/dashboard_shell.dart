@@ -59,9 +59,6 @@ class DashboardShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final role = ref.watch(userRoleProvider);
-    final profil = ref
-        .watch(profilProvider)
-        .maybeWhen(data: (p) => p, orElse: () => null);
 
     // Warmup des référentiels
     ref.watch(refDataProvider);

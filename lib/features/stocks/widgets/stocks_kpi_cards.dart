@@ -90,39 +90,6 @@ class OwnerStockBreakdownCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildErrorCard(BuildContext context, Object error) {
-    final t = Theme.of(context);
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        color: t.colorScheme.surface,
-        boxShadow: [
-          BoxShadow(
-            blurRadius: 24,
-            color: Colors.black.withOpacity(0.06),
-            offset: const Offset(0, 12),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.error_outline, color: t.colorScheme.error, size: 32),
-            const SizedBox(height: 8),
-            Text(
-              'Erreur de chargement',
-              style: t.textTheme.bodyMedium?.copyWith(
-                color: t.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildDataCard(BuildContext context, List<DepotOwnerStockKpi> owners) {
     final t = Theme.of(context);
 

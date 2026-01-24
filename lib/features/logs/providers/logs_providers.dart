@@ -48,7 +48,6 @@ class LogEntryView {
     if (d.isEmpty) return '—';
 
     final actionUpper = action.toUpperCase();
-    final moduleLower = module.toLowerCase();
 
     // Helpers robustes
     String _s(String key) {
