@@ -244,6 +244,7 @@ L'incident CI Nightly est résolu et ne constitue plus un blocage pour le déplo
 
 ---
 
+<<<<<<< HEAD
 ---
 
 ## Mise à jour — Enforcement Contrat Stock (24/01/2026)
@@ -274,6 +275,8 @@ L'incident CI Nightly est résolu et ne constitue plus un blocage pour le déplo
 
 ---
 
+=======
+>>>>>>> origin/main
 **Document créé le** : 2026-01-23  
 **Dernière mise à jour** : 2026-01-24  
 **Auteur** : Équipe DevOps / QA Lead

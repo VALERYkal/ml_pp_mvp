@@ -146,6 +146,7 @@ Le MVP ML_PP est fonctionnel, sécurisé, maintenable et exploitable pour son p�
 
 ---
 
+<<<<<<< HEAD
 ### 🔒 **[Enforcement] — Contrat Stock Actuel & Qualité Code — 2026-01-24**
 
 #### **Enforcement contrat stock actuel**
@@ -172,6 +173,8 @@ Le MVP ML_PP est fonctionnel, sécurisé, maintenable et exploitable pour son p�
 
 ---
 
+=======
+>>>>>>> origin/main
 ### 📚 **[Docs/Governance] — Stabilisation Nightly + Release Gate — 2026-01-23**
 
 - ✅ **CI Nightly FULL SUITE verte** (stabilité confirmée)

@@ -724,6 +724,7 @@ Le projet est prêt pour :
 
 **Date de décision** : 24 janvier 2026  
 **Statut** : ✅ **GO PROD FINAL**
+<<<<<<< HEAD
 
 ---
 
@@ -799,3 +800,5 @@ Le projet est prêt pour :
 - **Extension uniquement via mises à jour contrôlées** : Pas d'implémentation anticipée
 - **Design scalable** : Architecture permet ajout progressif sans refactorisation majeure
 - **Aucun engagement** : Ces modules ne sont pas dans le scope MVP actuel
+=======
+>>>>>>> origin/main

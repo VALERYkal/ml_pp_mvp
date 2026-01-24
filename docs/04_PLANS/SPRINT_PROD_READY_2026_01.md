@@ -893,6 +893,7 @@ Documenter l'état final du projet pour décision GO PROD, avec transparence tot
 
 **Date** : 24 janvier 2026  
 **Statut** : ✅ **SPRINT PROD-READY — CLÔTURÉ**
+<<<<<<< HEAD
 
 ---
 
@@ -929,3 +930,5 @@ Renforcer le contrat "stock actuel" et réduire les warnings analyzer sans chang
 
 **Date** : 24 janvier 2026  
 **Statut** : ✅ **Enforcement contractuel validé**
+=======
+>>>>>>> origin/main
