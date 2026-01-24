@@ -54,6 +54,8 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
   String? produitIdFromCours; // pour payload
   CoursDeRoute? _selectedCours;
   String? get _selectedCoursId => _selectedCours?.id;
+  // _produitId: reserved for future cours selection logic
+  // ignore: unused_field
   String? _produitId;
 
   // Nouveau: état unifié produit/citerne
@@ -134,6 +136,8 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
     });
   }
 
+  // _onCoursSelected: reserved for future cours selection callback
+  // ignore: unused_element
   void _onCoursSelected(CoursDeRoute c) {
     setState(() {
       _selectedCours = c;
@@ -273,8 +277,8 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
             produitId: _selectedProduitId!, // ✅ source de vérité
             indexAvant: avant,
             indexApres: apres,
-            temperatureCAmb: temp!, // Non-null garanti par validation UI
-            densiteA15: dens!, // Non-null garanti par validation UI
+            temperatureCAmb: temp, // Non-null garanti par validation UI (lignes 251-256)
+            densiteA15: dens, // Non-null garanti par validation UI (lignes 251-256)
             volumeCorrige15C: vol15,
             proprietaireType: _owner == OwnerType.monaluxe
                 ? 'MONALUXE'
@@ -797,61 +801,6 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
           ],
         ),
       ),
-    );
-  }
-}
-
-// --- Mini widget header : affiche le contexte CDR + la date du jour ---
-class _HeaderCoursChip extends StatelessWidget {
-  final CoursDeRoute? cours;
-  final String? fallbackId;
-  const _HeaderCoursChip({super.key, this.cours, this.fallbackId});
-
-  @override
-  Widget build(BuildContext context) {
-    // Date affichée en YYYY-MM-DD sans dépendre d'intl
-    final dateStr = DateTime.now().toIso8601String().substring(0, 10);
-
-    final chip = (cours != null)
-        ? Chip(
-            avatar: const Icon(Icons.local_shipping, size: 16),
-            label: Text('CDR #${_shorten(cours!.id, 8)}'),
-          )
-        : (fallbackId != null && fallbackId!.isNotEmpty)
-        ? Chip(
-            avatar: const Icon(Icons.local_shipping, size: 16),
-            label: Text('CDR #${_shorten(fallbackId!, 8)}'),
-          )
-        : const SizedBox.shrink();
-
-    final detail = (cours != null)
-        ? Text(
-            '${_fmtDate(cours!.dateChargement)} • ${cours!.pays ?? "—"}'
-            '  —  Fournisseur: ${cours!.fournisseurId.isNotEmpty ? _shorten(cours!.fournisseurId, 6) : "—"}'
-            '  · Prod: ${(cours!.produitCode ?? "")} ${(cours!.produitNom ?? "")}'
-            '  · Vol: ${_fmtVol(cours!.volume)}'
-            '  · Camion: ${cours!.plaqueCamion ?? "—"}'
-            '${(cours!.plaqueRemorque ?? "").isNotEmpty ? " / ${cours!.plaqueRemorque}" : ""}'
-            '  · Transp: ${cours!.transporteur ?? "—"}',
-          )
-        : const SizedBox.shrink();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            chip,
-            Chip(
-              avatar: const Icon(Icons.event, size: 16),
-              label: Text(dateStr),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        detail,
-      ],
     );
   }
 }

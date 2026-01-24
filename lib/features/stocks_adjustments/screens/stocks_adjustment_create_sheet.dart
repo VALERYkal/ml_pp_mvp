@@ -214,9 +214,6 @@ class _StocksAdjustmentCreateSheetState
       String? depotId;
       try {
         final client = Supabase.instance.client;
-        final tableName = widget.mouvementType == 'RECEPTION'
-            ? 'receptions'
-            : 'sorties_produit';
         
         // Récupérer le depotId depuis le mouvement via la citerne
         // Pour les réceptions, utiliser directement la citerne_id
@@ -264,6 +261,9 @@ class _StocksAdjustmentCreateSheetState
       
       // Invalider tous les providers dépendants de v_stock_actuel
       refreshAfterStockAdjustment(ref, depotId: depotId);
+
+      // Vérifier que le context est toujours monté avant d'utiliser Navigator/Toast
+      if (!mounted) return;
 
       // Fermer le BottomSheet
       Navigator.pop(context);

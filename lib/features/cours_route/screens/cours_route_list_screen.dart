@@ -16,7 +16,6 @@ import 'package:ml_pp_mvp/shared/ui/errors.dart';
 import 'package:ml_pp_mvp/shared/ui/format.dart';
 import 'package:ml_pp_mvp/shared/ui/toast.dart';
 import 'package:ml_pp_mvp/features/cours_route/utils/keyboard_shortcuts.dart';
-import 'package:ml_pp_mvp/features/cours_route/utils/contextual_actions.dart';
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_sort_provider.dart';
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_pagination_provider.dart';
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_cache_provider.dart';
@@ -509,13 +508,9 @@ class _DataTableView extends ConsumerWidget {
       return '$left / $right';
     }
 
-    final width = MediaQuery.of(context).size.width;
-
     return LayoutBuilder(
       builder: (context, constraints) {
         final availableWidth = constraints.maxWidth;
-        final isWideScreen = availableWidth >= 1200;
-        final isMediumScreen = availableWidth >= 800;
 
         return Column(
           children: [
@@ -561,11 +556,11 @@ class _DataTableView extends ConsumerWidget {
                               if (states.contains(WidgetState.hovered)) {
                                 return Theme.of(
                                   context,
-                                ).colorScheme.surfaceVariant.withValues(alpha: 0.18);
+                                ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.18);
                               }
                               final isOdd = index.isOdd;
                               return isOdd
-                                  ? Theme.of(context).colorScheme.surfaceVariant
+                                  ? Theme.of(context).colorScheme.surfaceContainerHighest
                                         .withValues(alpha: 0.06)
                                   : null;
                             }),
@@ -1091,26 +1086,17 @@ class _SortDialog extends ConsumerWidget {
           final (col, label) = column;
           final isSelected = sortConfig.column == col;
 
-          return RadioListTile<CoursSortColumn>(
-            title: Text(label),
+          return _SortRadioTile(
+            label: label,
             value: col,
-            groupValue: sortConfig.column,
-            onChanged: (value) {
-              if (value != null) {
-                ref.read(coursSortProvider.notifier).state = CoursSortConfig(
-                  column: value,
-                  direction: sortConfig.direction,
-                );
-              }
+            isSelected: isSelected,
+            direction: isSelected ? sortConfig.direction : null,
+            onTap: () {
+              ref.read(coursSortProvider.notifier).state = CoursSortConfig(
+                column: col,
+                direction: sortConfig.direction,
+              );
             },
-            secondary: isSelected
-                ? Icon(
-                    sortConfig.direction == SortDirection.ascending
-                        ? Icons.arrow_upward
-                        : Icons.arrow_downward,
-                    color: Theme.of(context).colorScheme.primary,
-                  )
-                : null,
           );
         }).toList(),
       ),
@@ -1135,6 +1121,44 @@ class _SortDialog extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Widget helper pour remplacer RadioListTile déprécié (Material 3 compatible)
+class _SortRadioTile extends StatelessWidget {
+  const _SortRadioTile({
+    required this.label,
+    required this.value,
+    required this.isSelected,
+    this.direction,
+    required this.onTap,
+  });
+
+  final String label;
+  final CoursSortColumn value;
+  final bool isSelected;
+  final SortDirection? direction;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Text(label),
+      leading: Radio<CoursSortColumn>(
+        value: value,
+        groupValue: isSelected ? value : null,
+        onChanged: (_) => onTap(),
+      ),
+      trailing: isSelected && direction != null
+          ? Icon(
+              direction == SortDirection.ascending
+                  ? Icons.arrow_upward
+                  : Icons.arrow_downward,
+              color: Theme.of(context).colorScheme.primary,
+            )
+          : null,
+      onTap: onTap,
     );
   }
 }

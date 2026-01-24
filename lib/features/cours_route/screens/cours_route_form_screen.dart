@@ -81,7 +81,7 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
 
     return PopScope(
       canPop: !_dirty,
-      onPopInvoked: (didPop) async {
+      onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
         final shouldPop = await confirmAction(
           context,
@@ -327,7 +327,7 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
   /// Construit le dropdown fournisseur
   Widget _buildFournisseurDropdown(RefDataCache refData) {
     return DropdownButtonFormField<String>(
-      value: selectedFournisseurId,
+      initialValue: selectedFournisseurId,
       decoration: const InputDecoration(
         labelText: 'Fournisseur *',
         border: OutlineInputBorder(),
@@ -357,65 +357,50 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
           final isWide = constraints.maxWidth >= 600;
 
           if (isWide) {
-            // Desktop/Tablet : côte à côte
-            return Row(
-              children: [
-                Expanded(
-                  child: RadioListTile<String>(
-                    title: const Text('Essence'),
-                    value: CoursRouteConstants.produitEssId,
-                    groupValue: selectedProduitId,
-                    onChanged: (value) {
-                      setState(() {
-                        selectedProduitId = value;
-                        _dirty = true;
-                      });
-                    },
-                  ),
+            // Desktop/Tablet : côte à côte avec SegmentedButton (Material 3)
+            return SegmentedButton<String>(
+              segments: const [
+                ButtonSegment<String>(
+                  value: CoursRouteConstants.produitEssId,
+                  label: Text('Essence'),
                 ),
-                Expanded(
-                  child: RadioListTile<String>(
-                    title: const Text('Gasoil / AGO'),
-                    value: CoursRouteConstants.produitAgoId,
-                    groupValue: selectedProduitId,
-                    onChanged: (value) {
-                      setState(() {
-                        selectedProduitId = value;
-                        _dirty = true;
-                      });
-                    },
-                  ),
+                ButtonSegment<String>(
+                  value: CoursRouteConstants.produitAgoId,
+                  label: Text('Gasoil / AGO'),
                 ),
               ],
+              selected: {selectedProduitId ?? ''},
+              onSelectionChanged: (Set<String> newSelection) {
+                if (newSelection.isNotEmpty) {
+                  setState(() {
+                    selectedProduitId = newSelection.first;
+                    _dirty = true;
+                  });
+                }
+              },
             );
           } else {
-            // Mobile : empilés verticalement
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                RadioListTile<String>(
-                  title: const Text('Essence'),
+            // Mobile : empilés verticalement avec SegmentedButton (Material 3)
+            return SegmentedButton<String>(
+              segments: const [
+                ButtonSegment<String>(
                   value: CoursRouteConstants.produitEssId,
-                  groupValue: selectedProduitId,
-                  onChanged: (value) {
-                    setState(() {
-                      selectedProduitId = value;
-                      _dirty = true;
-                    });
-                  },
+                  label: Text('Essence'),
                 ),
-                RadioListTile<String>(
-                  title: const Text('Gasoil / AGO'),
+                ButtonSegment<String>(
                   value: CoursRouteConstants.produitAgoId,
-                  groupValue: selectedProduitId,
-                  onChanged: (value) {
-                    setState(() {
-                      selectedProduitId = value;
-                      _dirty = true;
-                    });
-                  },
+                  label: Text('Gasoil / AGO'),
                 ),
               ],
+              selected: {selectedProduitId ?? ''},
+              onSelectionChanged: (Set<String> newSelection) {
+                if (newSelection.isNotEmpty) {
+                  setState(() {
+                    selectedProduitId = newSelection.first;
+                    _dirty = true;
+                  });
+                }
+              },
             );
           }
         },

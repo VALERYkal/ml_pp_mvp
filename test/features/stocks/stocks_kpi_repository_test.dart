@@ -3,6 +3,13 @@ import 'package:ml_pp_mvp/data/repositories/stocks_kpi_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../support/fakes/fake_supabase_query.dart';
 
+/// Helper pour convertir proprement toute valeur numérique en double.
+double _toDouble(dynamic value) {
+  if (value == null) return 0.0;
+  if (value is num) return value.toDouble();
+  throw ArgumentError('Value $value (${value.runtimeType}) is not numeric');
+}
+
 /// Tests pour StocksKpiRepository (repository canonique).
 ///
 /// Note: Ce repository n'a pas de mécanisme de loader injectable.
@@ -242,28 +249,17 @@ void main() {
       });
     });
 
-    group('fetchCiterneGlobalSnapshots', () {
+    group('fetchCiterneStocksFromSnapshot', () {
       test('method exists and signature is correct', () {
-        expect(repository.fetchCiterneGlobalSnapshots, isNotNull);
+        expect(repository.fetchCiterneStocksFromSnapshot, isNotNull);
         // Vérifier que la méthode accepte les bons paramètres
-        expect(() => repository.fetchCiterneGlobalSnapshots(), returnsNormally);
+        expect(() => repository.fetchCiterneStocksFromSnapshot(), returnsNormally);
         expect(
-          () => repository.fetchCiterneGlobalSnapshots(
+          () => repository.fetchCiterneStocksFromSnapshot(
             depotId: 'depot-1',
             citerneId: 'citerne-1',
             produitId: 'prod-1',
-            dateJour: DateTime.now(),
           ),
-          returnsNormally,
-        );
-      });
-
-      test('method uses dateJour parameter (not dateDernierMouvement)', () {
-        // Ce test vérifie à la compilation que la méthode utilise dateJour
-        // (pas dateDernierMouvement comme l'ancien repository)
-        final date = DateTime(2025, 12, 9);
-        expect(
-          () => repository.fetchCiterneGlobalSnapshots(dateJour: date),
           returnsNormally,
         );
       });
@@ -335,8 +331,7 @@ void main() {
         final repo = StocksKpiRepository(fakeClient);
 
         // Act
-        final result = await repo.fetchCiterneGlobalSnapshots(
-          dateJour: DateTime(2025, 12, 10), // Ignored: v_stock_actuel = toujours état actuel
+        final result = await repo.fetchCiterneStocksFromSnapshot(
           depotId: 'depot-1',
         );
 
@@ -346,27 +341,27 @@ void main() {
         // Vérifier que la vue correcte a été utilisée
         expect(fakeClient.fromCalls, contains('v_stock_actuel'));
 
-        // Note: v_stock_actuel ignore dateJour (toujours état actuel)
+        // Note: v_stock_actuel = toujours état actuel
         // Le test vérifie que la vue correcte est utilisée et que les données sont agrégées
 
         // Vérifier que citerne-1 agrège correctement MONALUXE + PARTENAIRE
         // Total: 600 + 400 = 1000 (ambiant), 590 + 360 = 950 (15c)
         final tankA = result.firstWhere(
-          (snapshot) => snapshot.citerneId == 'citerne-1',
+          (snapshot) => snapshot['citerne_id'] == 'citerne-1',
           orElse: () =>
               throw StateError('Citerne-1 non trouvée dans les résultats'),
         );
-        expect(tankA.stockAmbiantTotal, 1000.0);
-        expect(tankA.stock15cTotal, 950.0);
+        expect(_toDouble(tankA['stock_ambiant_total']), 1000.0);
+        expect(_toDouble(tankA['stock_15c_total']), 950.0);
 
         // Vérifier que citerne-2 a ses valeurs (MONALUXE uniquement)
         final tankB = result.firstWhere(
-          (snapshot) => snapshot.citerneId == 'citerne-2',
+          (snapshot) => snapshot['citerne_id'] == 'citerne-2',
           orElse: () =>
               throw StateError('Citerne-2 non trouvée dans les résultats'),
         );
-        expect(tankB.stockAmbiantTotal, 2000.0);
-        expect(tankB.stock15cTotal, 1900.0);
+        expect(_toDouble(tankB['stock_ambiant_total']), 2000.0);
+        expect(_toDouble(tankB['stock_15c_total']), 1900.0);
       });
     });
 

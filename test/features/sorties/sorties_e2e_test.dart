@@ -35,8 +35,8 @@ import '../../../test/integration/mocks.mocks.dart';
 import 'package:mockito/mockito.dart';
 
 /// Structure de capture utilisée par le FakeSortieService
-class _CapturedSortieCall {
-  _CapturedSortieCall({
+class CapturedSortieCall {
+  CapturedSortieCall({
     required this.proprietaireType,
     required this.produitId,
     required this.citerneId,
@@ -74,13 +74,13 @@ class _CapturedSortieCall {
 }
 
 /// Service de sortie fake : capture les appels sans toucher Supabase
-class _FakeSortieService extends sorties.SortieService {
-  _FakeSortieService()
+class FakeSortieService extends sorties.SortieService {
+  FakeSortieService()
     : super(SupabaseClient('http://localhost:54321', 'test-anon-key'));
 
-  final List<_CapturedSortieCall> calls = [];
+  final List<CapturedSortieCall> calls = [];
   int callsCount = 0;
-  _CapturedSortieCall? get lastCall => calls.isNotEmpty ? calls.last : null;
+  CapturedSortieCall? get lastCall => calls.isNotEmpty ? calls.last : null;
 
   @override
   Future<void> createValidated({
@@ -103,7 +103,7 @@ class _FakeSortieService extends sorties.SortieService {
   }) async {
     callsCount++;
     calls.add(
-      _CapturedSortieCall(
+      CapturedSortieCall(
         proprietaireType: proprietaireType,
         produitId: produitId,
         citerneId: citerneId,
@@ -126,7 +126,7 @@ class _FakeSortieService extends sorties.SortieService {
 }
 
 /// Fake source de données pour sortiesTableProvider (évite Supabase.instance crash)
-class _FakeSortieTableSource {
+class FakeSortieTableSource {
   final List<SortieRowVM> _rows = [];
 
   List<SortieRowVM> get rows => List.unmodifiable(_rows);
@@ -248,8 +248,8 @@ Future<void> pumpAppAsRole(
   required MockAuthService mockAuthService,
   required MockProfilService mockProfilService,
   required MockUser mockUser,
-  required _FakeSortieService fakeSortieService,
-  _FakeSortieTableSource? fakeSortieTableSource,
+  required FakeSortieService fakeSortieService,
+  FakeSortieTableSource? fakeSortieTableSource,
 }) async {
   // 1. Construire le Profil pour ce rôle
   final profil = buildProfilForRole(
@@ -509,15 +509,15 @@ void main() {
     late MockAuthService mockAuthService;
     late MockProfilService mockProfilService;
     late MockUser mockUser;
-    late _FakeSortieService fakeSortieService;
-    late _FakeSortieTableSource fakeSortieTableSource;
+    late FakeSortieService fakeSortieService;
+    late FakeSortieTableSource fakeSortieTableSource;
 
     setUp(() {
       mockAuthService = MockAuthService();
       mockProfilService = MockProfilService();
       mockUser = MockUser();
-      fakeSortieService = _FakeSortieService();
-      fakeSortieTableSource = _FakeSortieTableSource();
+      fakeSortieService = FakeSortieService();
+      fakeSortieTableSource = FakeSortieTableSource();
 
       // Configurer les mocks
       when(mockAuthService.isAuthenticated).thenReturn(true);

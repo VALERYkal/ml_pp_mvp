@@ -183,8 +183,6 @@ class ChipData {
 }
 
 /// Utilitaires de parsing pour les détails JSONB
-T? _as<T>(Object? v) => v is T ? v : null;
-
 double? _asNum(Object? v) {
   if (v == null) return null;
   if (v is num) return v.toDouble();

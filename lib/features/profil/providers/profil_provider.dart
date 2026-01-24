@@ -154,8 +154,14 @@ final userRoleProvider = Riverpod.Provider<UserRole?>((ref) {
 /// et force la reconstruction quand l'utilisateur change
 final profilAuthSyncProvider = Riverpod.Provider<void>((ref) {
   ref.listen(appAuthStateProvider, (prev, next) {
-    final prevUserId = prev?.asData?.value.session?.user?.id;
-    final nextUserId = next.asData.value.session?.user?.id;
+    // valueOrNull évite les erreurs quand on est en loading/error
+    // et supprime le risque lié à asData (nullable).
+    final prevAuth = prev?.valueOrNull;
+    final nextAuth = next.valueOrNull;
+    final prevUser = prevAuth?.session?.user;
+    final nextUser = nextAuth?.session?.user;
+    final prevUserId = prevUser?.id;
+    final nextUserId = nextUser?.id;
     if (prevUserId != nextUserId) {
       debugPrint(
         '🔄 ProfilAuthSync: user changed -> invalidate currentProfilProvider',

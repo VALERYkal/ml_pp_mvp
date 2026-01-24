@@ -46,9 +46,6 @@ class _ModernKpiCardState extends State<ModernKpiCard>
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
   late Animation<double> _fadeAnimation;
-  late Animation<double> _slideAnimation;
-  late Animation<double> _elevationAnimation;
-  late Animation<Color?> _colorAnimation;
   bool _isHovered = false;
 
   @override
@@ -65,14 +62,6 @@ class _ModernKpiCardState extends State<ModernKpiCard>
 
     _fadeAnimation = Tween<double>(begin: 1.0, end: 0.96).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
-
-    _slideAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
-    );
-
-    _elevationAnimation = Tween<double>(begin: 0.0, end: 8.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
   }
 

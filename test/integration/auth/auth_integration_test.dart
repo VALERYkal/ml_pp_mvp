@@ -37,9 +37,10 @@ class _FakeCurrentProfilNotifier extends CurrentProfilNotifier {
 
   @override
   Future<Profil?> build() async {
-    if (_forcedState != null) {
-      state = _forcedState!;
-      return _forcedState!.valueOrNull;
+    final forced = _forcedState;
+    if (forced != null) {
+      state = forced;
+      return forced.valueOrNull;
     }
     return _profil;
   }
