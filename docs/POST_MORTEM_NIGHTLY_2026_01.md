@@ -244,6 +244,36 @@ L'incident CI Nightly est résolu et ne constitue plus un blocage pour le déplo
 
 ---
 
+---
+
+## Mise à jour — Enforcement Contrat Stock (24/01/2026)
+
+### Contrat stock actuel formalisé
+
+**`v_stock_actuel` est la source unique pour le stock actuel.**
+
+#### Mesures d'enforcement
+- Dépréciation `CiterneService.getStockActuel()` avec annotation `@Deprecated` et commentaire de contrat
+- Test de contrat `test/contracts/stock_source_contract_test.dart` vérifiant l'utilisation de `v_stock_actuel`
+- Garde-fou documentaire contre réintroduction de chemins legacy
+
+#### Impact
+- Aucun changement fonctionnel
+- Contrat explicite et testable
+- Réduction risque de régression
+
+### Qualité code — État réel
+
+**`flutter analyze` : ~312 issues (warnings + info).**
+
+#### Décision assumée
+- Aucun warning bloquant (niveau `error`)
+- Aucun impact PROD (warnings concernent tests et conventions)
+- Stabilité MVP préservée (pas de refactorisation large)
+- Réduction progressive : 5 warnings corrigés (317 → 312)
+
+---
+
 **Document créé le** : 2026-01-23  
 **Dernière mise à jour** : 2026-01-24  
 **Auteur** : Équipe DevOps / QA Lead

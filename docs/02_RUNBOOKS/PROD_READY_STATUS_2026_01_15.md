@@ -724,3 +724,78 @@ Le projet est prêt pour :
 
 **Date de décision** : 24 janvier 2026  
 **Statut** : ✅ **GO PROD FINAL**
+
+---
+
+## Mise à jour — Enforcement Contrat Stock (24/01/2026)
+
+### Source de vérité stock — Contrat formalisé
+
+**`v_stock_actuel` est la SEULE source SQL autorisée pour le stock actuel.**
+
+#### Mesures d'enforcement
+- ✅ **Dépréciation méthode legacy** : `CiterneService.getStockActuel()` marquée `@Deprecated` avec commentaire de contrat
+- ✅ **Test de contrat** : `test/contracts/stock_source_contract_test.dart` vérifie que `v_stock_actuel` est utilisée
+- ✅ **Garde-fou documentaire** : Commentaire explicite interdisant les chemins alternatifs
+
+#### Règles contractuelles
+- **Aucun calcul applicatif** à partir de tables brutes (`stocks_journaliers`, `citernes`) pour le stock actuel
+- **Accès aux tables** limité aux métadonnées uniquement (capacités, noms, statuts)
+- **Vues alternatives** (`v_stock_actuel_owner_snapshot`) non utilisées pour le stock actuel
+- **Objectif du test** : Empêcher toute régression future via validation automatique
+
+#### Impact
+- Aucun changement fonctionnel
+- Amélioration maintenabilité (contrat explicite)
+- Réduction risque de régression (test de contrat)
+
+### Qualité code — État réel
+
+**`flutter analyze` retourne ~312 issues (warnings + info).**
+
+#### Nature des issues
+- **`prefer_const`** : Tests et widgets (non bloquant)
+- **`deprecated_member_use`** : Tests legacy (non bloquant)
+- **`unused_element_parameter`** : Widgets tests (non bloquant)
+- **`library_prefixes`** : Conventions de nommage (non bloquant)
+
+#### Décision assumée
+- **Aucun warning bloquant** : Tous les warnings sont de niveau `info` ou `warning` (non `error`)
+- **Aucun impact PROD** : Les warnings concernent principalement les tests et conventions de style
+- **Stabilité MVP préservée** : Pas de refactorisation large pour réduire les warnings
+- **Réduction progressive** : 5 warnings corrigés (317 → 312) via corrections ciblées
+
+### Tests & CI — Stratégie validée
+
+#### CI opérationnelle
+- ✅ **CI PR verte** : Workflow PR light opérationnel (~2-3 min)
+- ✅ **CI Nightly verte** : Workflow nightly full opérationnel (~10-15 min)
+- ✅ **Branche main protégée** : Merge via PR uniquement (branches protégées)
+
+#### Stratégie tests
+- **Fake Supabase maison** : `FakeSupabaseClient` + `FakeFilterBuilder` (implémentation maison)
+- **Aucun accès réseau** : Tests déterministes, isolation complète
+- **Tests DB opt-in** : Activation explicite via `RUN_DB_TESTS=1` + `env/.env.staging`
+- **Validation complète** : CI Nightly Full Suite exécute tous les tests
+
+### Gestion des branches
+
+- **Branches release/* supprimées** après merge (historique conservé via PR)
+- **main = unique branche de référence** : Toute évolution passe par PR
+- **Historique traçable** : PR + commits squash pour audit
+
+### Scalabilité future (sans engagement)
+
+**Architecture prête pour extension, modules non implémentés.**
+
+#### Modules prévus (non implémentés)
+- Commandes
+- Clients / Fournisseurs
+- Facturation
+- Transporteurs
+- Douane / Fiscalité
+
+#### Principe
+- **Extension uniquement via mises à jour contrôlées** : Pas d'implémentation anticipée
+- **Design scalable** : Architecture permet ajout progressif sans refactorisation majeure
+- **Aucun engagement** : Ces modules ne sont pas dans le scope MVP actuel
