@@ -546,8 +546,7 @@ void main() {
       final state = tester.state<ConsumerState<SortieFormScreen>>(stateFinder);
 
       // Vérifier que le spy est bien injecté ET que c'est bien celui utilisé
-      final injectedService =
-          (state.widget as SortieFormScreen).debugSortieService;
+      final injectedService = state.widget.debugSortieService;
       expect(
         injectedService,
         same(spy),
