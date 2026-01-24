@@ -1,0 +1,11 @@
+# Exemple de format uniquement — NE JAMAIS COMMITTER DE SECRETS
+# Ce fichier sert à montrer les NOMS des variables, pas leurs valeurs.
+
+SUPABASE_ENV=STAGING
+SUPABASE_URL=https://<PROJECT_REF>.supabase.co
+SUPABASE_ANON_KEY=<ANON_KEY>
+
+# Interdit côté repo : service role + DB URL doivent vivre uniquement dans env/.env.staging (gitignored)
+SUPABASE_SERVICE_ROLE_KEY=<SERVICE_ROLE_KEY_DO_NOT_COMMIT>
+STAGING_PROJECT_REF=<PROJECT_REF>
+STAGING_DB_URL=<POSTGRES_CONNECTION_STRING_DO_NOT_COMMIT>

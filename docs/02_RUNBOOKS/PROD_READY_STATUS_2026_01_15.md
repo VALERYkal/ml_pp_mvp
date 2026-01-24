@@ -24,7 +24,19 @@
 - ✅ DIRECTEUR — VALIDÉ (ajustements Réception / Sortie réservés Admin — tests UI)
 - ✅ GÉRANT — VALIDÉ (lecture seule CDR + ajustements interdits — tests UI validés)
 - ✅ ADMIN — VALIDÉ (tous droits — aucune régression détectée)
-- ⬜ STAGING VALIDÉ
+- ✅ STAGING VALIDÉ
+- ✅ VALIDATION MÉTIER FINALE
+
+### Validation métier finale STAGING — 23/01/2026 — VALIDÉE
+
+- Cycle complet **Admin → Gérant → Directeur → PCA** rejoué et validé
+- Navigation, permissions, KPI, stocks, CDR, Réceptions, Sorties, Logs : **sans écart**
+- Données STAGING **propres, cohérentes, PROD-like**
+- **Aucune anomalie métier** ; **aucun bug UI bloquant**
+- **Aucune dette technique ouverte** ; **KPI cohérents**
+
+**Validation réalisée le 23 janvier 2026 — résultat positif**  
+**Statut** : 🟢 **PROD-READY FINAL (technique + métier)**
 
 ### Validation Phase 1 — Reset transactionnel STAGING
 
@@ -519,3 +531,37 @@ limit 50;
 
 Statut mis à jour le : 15/01/2026 — AXE D clôturé  
 Post-validation : 21/01/2026 — Tests E2E CDR stabilisés
+
+---
+
+## Mise à jour — Jan 2026 (Post Nightly + Release Gate)
+
+### Confirmation de stabilité CI
+- **CI PR** : ✅ stable (PR light opérationnelle, exécutions déterministes)
+- **CI Nightly** : ✅ stable (FULL SUITE verte)
+- **d1_one_shot local (2026-01-23)** : ✅ OK (mode LIGHT, 456 tests passent, 2 skippés)
+  - Log : `.ci_logs/d1_one_shot_local_2026-01-23.log`
+  - Tests DB-STRICT : Non exécutés en mode LIGHT (validation via CI Nightly FULL)
+
+### Gouvernance de release
+- **Release Gate** : mécanisme officiel actif (`docs/RELEASE_GATE_2026_01.md`)
+- **Post-mortem Nightly** : référence officielle (`docs/POST_MORTEM_NIGHTLY_2026_01.md`)
+
+### Clarification opposable
+- **PROD-READY technique** : ✅ confirmé
+- **Release** : conditionnée au **Release Gate** (processus de gouvernance, pas une limitation technique)
+
+### 🔐 Sécurité : OK
+
+**Date** : 2026-01-23  
+**Référence** : Release Gate 2026-01, `docs/SECURITY_REPORT_V2.md`
+
+Le rôle utilisateur est verrouillé côté base de données (RLS + trigger).  
+Aucun utilisateur ne peut modifier son rôle, même en cas de bug applicatif.
+
+**Mesures enforcées** :
+- RLS activé sur `profils` (UPDATE admin only)
+- Trigger DB de protection (si applicable)
+- Patch Flutter : whitelist stricte dans `updateProfil()` (champs safe uniquement)
+
+**DB-level enforcement** : La base de données est l'autorité sécurité ultime. Aucun contournement client-side possible.

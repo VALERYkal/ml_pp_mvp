@@ -97,6 +97,34 @@ Validation locale confirmée :
 
 ## [Unreleased]
 
+### 📚 **[Docs/Governance] — Stabilisation Nightly + Release Gate — 2026-01-23**
+
+- ✅ **CI Nightly FULL SUITE verte** (stabilité confirmée)
+- ✅ **Post-mortem Nightly créé** : `docs/POST_MORTEM_NIGHTLY_2026_01.md`
+- ✅ **Release Gate formel introduit** : `docs/RELEASE_GATE_2026_01.md`
+- ✅ **PRs mergées** : #23 (stabilisation Nightly), #25, #26 (docs Release Gate + post-mortem)
+- ✅ **Tag officiel** : `prod-ready-2026-01-23-nightly-green`
+- **Documentation & gouvernance — aucun changement fonctionnel**
+
+### ✅ **VALIDATION MÉTIER STAGING (23/01/2026)**
+
+- Validation complète du flux réel STAGING (Admin → Gérant → Directeur → PCA)
+- Navigation, permissions, KPI, stocks, CDR, Réceptions, Sorties, Logs : **sans écart**
+- Données STAGING propres, cohérentes, et conformes PROD-like
+- Résultat : **POSITIF**
+- **ML_PP MVP déclaré PROD-READY FINAL** (technique + métier)
+
+### 🧪 **CI: d1_one_shot revalidated (2026-01-23)**
+
+- **Exécution locale** : `./scripts/d1_one_shot.sh` (mode LIGHT)
+- **Résultat** : ✅ Succès (exit code 0)
+- **Tests** : 456 tests passent, 2 skippés (flaky)
+- **Analyse** : ✅ OK (warnings/info non bloquants)
+- **Build runner** : ✅ OK
+- **Tests DB-STRICT** : Non exécutés en mode LIGHT (validation via CI Nightly FULL)
+- **Log** : `.ci_logs/d1_one_shot_local_2026-01-23.log`
+- **Impact** : Confirmation de stabilité locale, aucune régression détectée
+
 ### 🧪 Tests — CI Nightly Stabilization (Phase 1/3)
 
 - Centralisation du fake Supabase Query Builder utilisé dans les tests de stocks KPI
