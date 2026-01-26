@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -155,7 +157,11 @@ Future<void> ensureProfilRole({
 }
 
 void main() {
-  test('[DB-TEST] B2.2 Sortie -> Stock -> Log (STAGING, DB-STRICT)', () async {
+  final runDbTests = Platform.environment['RUN_DB_TESTS'] == '1';
+
+  test(
+    '[DB-TEST] B2.2 Sortie -> Stock -> Log (STAGING, DB-STRICT)',
+    () async {
     final staging = await StagingSupabase.create(envPath: 'env/.env.staging');
     final env = await StagingEnv.load(path: 'env/.env.staging');
     
@@ -371,6 +377,10 @@ void main() {
 
     // ignore: avoid_print
     print('[DB-TEST] B2.2 OK — debit & reject verified (tag=${ids.tag})');
-  });
+    },
+    skip: runDbTests
+        ? false
+        : 'DB tests disabled (set RUN_DB_TESTS=1 and provide env/.env.staging or dart-defines)',
+  );
 }
 
