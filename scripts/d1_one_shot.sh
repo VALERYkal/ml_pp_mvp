@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# ---- Safety: ensure log directory ----
+# Ensure CI logs directory always exists (even if tests fail early)
+# This prevents "No files were found with the provided path" errors in GitHub Actions
 mkdir -p .ci_logs
 
 # Note: Removed safe_grep_error - we now use flutter test exit code as single source of truth
