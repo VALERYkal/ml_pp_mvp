@@ -113,6 +113,10 @@ void main() {
           },
         ];
         fakeClient.setViewData('v_stock_actuel', rowsToReturn);
+        // Mock depots pour éviter le fallback
+        fakeClient.setViewData('depots', [
+          {'id': 'depot-1', 'nom': 'Depot A'},
+        ]);
 
         final repo = StocksKpiRepository(fakeClient);
 
@@ -203,6 +207,10 @@ void main() {
           },
         ];
         fakeClient.setViewData('v_stock_actuel', rowsToReturn);
+        // Mock depots pour éviter le fallback
+        fakeClient.setViewData('depots', [
+          {'id': 'depot-1', 'nom': 'Depot A'},
+        ]);
 
         final repo = StocksKpiRepository(fakeClient);
 
@@ -326,6 +334,10 @@ void main() {
         ]);
         fakeClient.setViewData('produits', [
           {'id': 'prod-1', 'nom': 'Gasoil'},
+        ]);
+        // Mock depots pour éviter le fallback
+        fakeClient.setViewData('depots', [
+          {'id': 'depot-1', 'nom': 'Depot A'},
         ]);
 
         final repo = StocksKpiRepository(fakeClient);
