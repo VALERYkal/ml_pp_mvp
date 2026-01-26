@@ -212,6 +212,12 @@ TOTAL_COUNT=$((NORMAL_COUNT + FLAKY_COUNT))
 echo "Discovered: $TOTAL_COUNT test files total ($NORMAL_COUNT normal + $FLAKY_COUNT flaky)"
 echo
 
+# Build DART_DEFINES array from environment variables (separate from test files)
+DART_DEFINES=()
+[[ -n "${SUPABASE_ENV:-}" ]] && DART_DEFINES+=(--dart-define=SUPABASE_ENV="$SUPABASE_ENV")
+[[ -n "${SUPABASE_URL:-}" ]] && DART_DEFINES+=(--dart-define=SUPABASE_URL="$SUPABASE_URL")
+[[ -n "${SUPABASE_ANON_KEY:-}" ]] && DART_DEFINES+=(--dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY")
+
 # Step 3: Execute normal tests (always)
 echo "---- Phase A: normal tests ($NORMAL_COUNT files) ----"
 if [[ -z "$NORMAL_TESTS" ]]; then
@@ -219,7 +225,7 @@ if [[ -z "$NORMAL_TESTS" ]]; then
 else
   set +e
   # shellcheck disable=SC2086
-  run_step test_normal flutter test -r expanded $NORMAL_TESTS
+  run_step test_normal flutter test -r expanded "${DART_DEFINES[@]}" $NORMAL_TESTS
   NORMAL_RC=$?
   set -e
   
@@ -248,7 +254,7 @@ if [[ "$INCLUDE_FLAKY" -eq 1 ]]; then
     echo "Running flaky tests (tracked separately, see $FLAKY_LOG)"
     set +e
     # shellcheck disable=SC2086
-    run_step test_flaky flutter test -r expanded $FLAKY_TESTS
+    run_step test_flaky flutter test -r expanded "${DART_DEFINES[@]}" $FLAKY_TESTS
     FLAKY_RC=$?
     set -e
     
