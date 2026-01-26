@@ -1,4 +1,7 @@
 // test/integration/rls_stocks_adjustment_test.dart
+import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:postgrest/postgrest.dart';
 
@@ -6,7 +9,16 @@ import '_harness/staging_supabase_client.dart';
 import '_env/staging_env.dart';
 
 void main() {
-  test('[DB-TEST] B2.3.1 RLS — lecture cannot INSERT stocks_adjustments (STAGING)', () async {
+  // Check both activation modes: env var and dart-define
+  final runDbTestsEnv = Platform.environment['RUN_DB_TESTS'] == '1' ||
+      Platform.environment['RUN_DB_TESTS'] == 'true';
+  final runDbTestsDartDefine =
+      const bool.fromEnvironment('RUN_DB_TESTS', defaultValue: false);
+  final runDbTests = runDbTestsEnv || runDbTestsDartDefine;
+
+  test(
+    '[DB-TEST] B2.3.1 RLS — lecture cannot INSERT stocks_adjustments (STAGING)',
+    () async {
     final staging = await StagingSupabase.create(envPath: 'env/.env.staging');
 
     // IMPORTANT: We must use anonClient (RLS applies). serviceClient would bypass RLS.
@@ -15,10 +27,20 @@ void main() {
     // 1) Login as NON_ADMIN (lecture)
     final env = await StagingEnv.load(path: 'env/.env.staging');
 
-    final res = await client.auth.signInWithPassword(
-      email: env.nonAdminEmail!,
-      password: env.nonAdminPassword!,
-    );
+    var res;
+    try {
+      res = await client.auth
+          .signInWithPassword(
+            email: env.nonAdminEmail!,
+            password: env.nonAdminPassword!,
+          )
+          .timeout(const Duration(seconds: 10));
+    } on TimeoutException {
+      fail(
+        '[DB-TEST] Timeout querying STAGING. Check network/DNS or Supabase status.',
+      );
+      return;
+    }
     expect(res.user, isNotNull);
     final userId = res.user!.id;
 
@@ -26,11 +48,20 @@ void main() {
     // Get a real RECEPTION id (use serviceClient to bypass RLS for the lookup)
     final lookupClient = staging.serviceClient ?? staging.anonClient;
 
-    final rows = await lookupClient
-        .from('receptions')
-        .select('id')
-        .order('created_at', ascending: false)
-        .limit(1);
+    List<dynamic> rows;
+    try {
+      rows = await lookupClient
+          .from('receptions')
+          .select('id')
+          .order('created_at', ascending: false)
+          .limit(1)
+          .timeout(const Duration(seconds: 10));
+    } on TimeoutException {
+      fail(
+        '[DB-TEST] Timeout querying STAGING. Check network/DNS or Supabase status.',
+      );
+      return;
+    }
 
     if (rows is! List || rows.isEmpty) {
       fail('No receptions found in STAGING to build a valid stocks_adjustments payload.');
@@ -48,8 +79,16 @@ void main() {
     };
 
     try {
-      await client.from('stocks_adjustments').insert(payload);
+      await client
+          .from('stocks_adjustments')
+          .insert(payload)
+          .timeout(const Duration(seconds: 10));
       fail('Expected RLS/permission error, but insert succeeded.');
+    } on TimeoutException {
+      fail(
+        '[DB-TEST] Timeout querying STAGING. Check network/DNS or Supabase status.',
+      );
+      return;
     } on PostgrestException catch (e) {
       final msg = e.message.toLowerCase();
       // Accept typical RLS/permission messages (varies by policy)
@@ -64,7 +103,12 @@ void main() {
         ),
       );
     }
-  });
+    },
+    skip: runDbTests
+        ? false
+        : 'DB tests are opt-in. Set RUN_DB_TESTS=1 or --dart-define=RUN_DB_TESTS=true',
+    timeout: const Timeout(Duration(minutes: 2)),
+  );
 }
 
 
