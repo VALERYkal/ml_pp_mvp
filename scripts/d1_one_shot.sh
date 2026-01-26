@@ -33,7 +33,11 @@ for arg in "$@"; do
     # Validation simple : doit contenir '=' après le prefix
     val="${arg#--dart-define=}"
     if [[ "$val" == *=* ]]; then
-      EXTRA_DEFINES+=("$arg")
+      KEY="${val%%=*}"
+      VALUE="${val#*=}"
+      
+      # Export as env var for tests (flutter test doesn't support --dart-define reliably)
+      export "$KEY=$VALUE"
     else
       echo "❌ invalid --dart-define format (expected KEY=VALUE)" >&2
       exit 1
@@ -206,7 +210,7 @@ if [[ -z "$NORMAL_TESTS" ]]; then
 else
   set +e
   # shellcheck disable=SC2086
-  run_step test_normal flutter test -r expanded ${EXTRA_DEFINES[@]+"${EXTRA_DEFINES[@]}"} $NORMAL_TESTS
+  run_step test_normal flutter test -r expanded $NORMAL_TESTS
   NORMAL_RC=$?
   set -e
   
@@ -228,7 +232,7 @@ if [[ "$INCLUDE_FLAKY" -eq 1 ]]; then
     echo "Running flaky tests (tracked separately, see $FLAKY_LOG)"
     set +e
     # shellcheck disable=SC2086
-    run_step test_flaky flutter test -r expanded ${EXTRA_DEFINES[@]+"${EXTRA_DEFINES[@]}"} $FLAKY_TESTS
+    run_step test_flaky flutter test -r expanded $FLAKY_TESTS
     FLAKY_RC=$?
     set -e
     

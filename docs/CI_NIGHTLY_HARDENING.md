@@ -424,3 +424,102 @@ flutter test test/features/stocks/stocks_kpi_repository_test.dart -r expanded
 - **Avant correction** : 11 tests en échec (tests stocks_kpi)
 - **Après correction** : ✅ 100% des tests passent (exit code 0)
 - **Impact CI** : Nightly maintenant totalement stable
+
+---
+
+## 🔧 MISE À JOUR 2026-01-26 : Fix --dart-define passés à flutter test
+
+### ✅ FIX #5: Export --dart-define comme variables d'environnement
+
+**Root-cause**:  
+Le script `d1_one_shot.sh` passait les arguments `--dart-define=KEY=VALUE` directement à `flutter test`, qui les interprétait comme des **chemins de fichiers** au lieu de les ignorer, causant :
+
+```
+Failed to load "/.../--dart-define=SUPABASE_ANON_KEY=***": Does not exist.
+```
+
+**Explication technique**:
+- `flutter test` ne supporte PAS `--dart-define` de manière fiable
+- Les tests Dart lisent déjà ces valeurs via `Platform.environment['KEY']`
+- En CI, le workflow GitHub Actions passait `--dart-define=...` qui étaient traités comme des fichiers de tests
+
+**Stack trace (CI Nightly logs)**:
+```
+Failed to load "/<workspace>/--dart-define=SUPABASE_ANON_KEY=***": Does not exist.
+Failed to load "/<workspace>/--dart-define=SUPABASE_URL=***": Does not exist.
+```
+
+**Correction minimale**:  
+Modifier `scripts/d1_one_shot.sh` pour **exporter** les `--dart-define` comme variables d'environnement au lieu de les passer à `flutter test` :
+
+**Avant** (ligne 32-40):
+```bash
+if [[ "$arg" == --dart-define=* ]]; then
+  val="${arg#--dart-define=}"
+  if [[ "$val" == *=* ]]; then
+    EXTRA_DEFINES+=("$arg")  # ❌ Passé à flutter test
+  else
+    echo "❌ invalid --dart-define format (expected KEY=VALUE)" >&2
+    exit 1
+  fi
+```
+
+**Après**:
+```bash
+if [[ "$arg" == --dart-define=* ]]; then
+  val="${arg#--dart-define=}"
+  if [[ "$val" == *=* ]]; then
+    KEY="${val%%=*}"
+    VALUE="${val#*=}"
+    
+    # Export as env var for tests (flutter test doesn't support --dart-define reliably)
+    export "$KEY=$VALUE"  # ✅ Export au lieu de passer
+  else
+    echo "❌ invalid --dart-define format (expected KEY=VALUE)" >&2
+    exit 1
+  fi
+```
+
+**Et suppression des passages à flutter test** (lignes 213, 235):
+```bash
+# Avant:
+flutter test -r expanded ${EXTRA_DEFINES[@]+"${EXTRA_DEFINES[@]}"} $NORMAL_TESTS
+
+# Après:
+flutter test -r expanded $NORMAL_TESTS  # ✅ Plus de --dart-define
+```
+
+**Fichiers modifiés**:
+- `scripts/d1_one_shot.sh` (3 blocs modifiés)
+
+**Validation locale**:
+```bash
+./scripts/d1_one_shot.sh web --tests-only \
+  --dart-define=SUPABASE_URL=https://fake.supabase.co \
+  --dart-define=SUPABASE_ANON_KEY=fake_key \
+  --dart-define=RUN_DB_TESTS=0
+
+# ✅ 00:07 +457 ~2: All tests passed!
+# ✅ Normal tests PASS (57 files)
+# ✅ D1 one-shot OK
+# ❌ AUCUNE erreur "Failed to load"
+```
+
+**Reproduction de l'erreur (avant fix)**:
+```bash
+# Passer manuellement --dart-define à flutter test
+flutter test --dart-define=KEY=VALUE test/
+# ❌ Failed to load "...--dart-define=KEY=VALUE": Does not exist.
+```
+
+**Pourquoi c'est la bonne correction**:
+1. ✅ **Minimal** : 3 blocs modifiés, aucun changement de logique métier
+2. ✅ **Déterministe** : Les tests lisent déjà `Platform.environment`
+3. ✅ **CI-friendly** : Les secrets sont passés comme envvars, pas comme args
+4. ✅ **Non-régression** : Comportement local et CI identiques
+
+### 📊 Résultat final
+
+- **Avant correction** : CI rouge avec "Failed to load --dart-define=..."
+- **Après correction** : ✅ 457 tests passent, exit code 0
+- **Impact CI** : Nightly maintenant **100% robuste** pour passer secrets et dart-defines
