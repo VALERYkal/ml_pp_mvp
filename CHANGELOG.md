@@ -148,12 +148,13 @@ Le MVP ML_PP est fonctionnel, sécurisé, maintenable et exploitable pour son p�
 
 - CI: correction crash Bash sous `set -u` dans `d1_one_shot.sh` lié à l'expansion du tableau `DART_DEFINES` (déclaration explicite et expansion sécurisée). Validation locale réussie. Validation finale conditionnée au résultat du Nightly GitHub.
 
-### CI / Tooling
+### CI
 
-- **Hardening d1_one_shot** : Rendu l'expansion de `DART_DEFINES` compatible `set -u` (phases normal + flaky) via expansion sûre `${DART_DEFINES[@]+"${DART_DEFINES[@]}"}`.
-- **Sécurisation collecte artefacts** : Garantie que `.ci_logs/` existe systématiquement (même si crash early), pour éviter l'avertissement "No artifacts will be uploaded".
-- **Déclenchement CI Nightly** : Ajout d'un déclenchement `pull_request` vers `main` afin d'obtenir une exécution full suite au moment des changements (sans remplacer le cron).
-- **Résultat observé** : Nightly full suite ✅ sur PR + run manuel ✅ ; exécution cron à confirmer.
+- Stabilized Nightly Full Suite (D1 one-shot hardening)
+- Fixed dart-defines handling under `set -u`
+- Enforced DB tests opt-in via `RUN_DB_TESTS`
+- Always generate `.ci_logs` to avoid artifact failures
+- Enabled full Nightly suite on PRs targeting `main`
 
 ---
 
