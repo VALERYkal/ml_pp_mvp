@@ -146,19 +146,15 @@ Le MVP ML_PP est fonctionnel, sécurisé, maintenable et exploitable pour son p�
 
 ### Fixed
 
-- CI: correction crash Bash sous `set -u` dans `d1_one_shot.sh` lié à l'expansion du tableau `DART_DEFINES` (déclaration explicite et expansion sécurisée). Validation locale réussie. Validation finale conditionnée au résultat du Nightly GitHub.
+- CI: correction d'un crash Bash sous `set -u` dans `d1_one_shot.sh` lié à l'expansion du tableau `DART_DEFINES` (déclaration explicite et expansion sécurisée). Validation locale et Nightly GitHub réussies.
 
 ### CI
 
-- Stabilized Nightly Full Suite (D1 one-shot hardening)
-- Fixed dart-defines handling under `set -u`
-- Enforced DB tests opt-in via `RUN_DB_TESTS`
-- Always generate `.ci_logs` to avoid artifact failures
-- Enabled full Nightly suite on PRs targeting `main`
+- **Hardening d1_one_shot** : rendu l'expansion de `DART_DEFINES` compatible avec `set -u` (phases normal + flaky) via `${DART_DEFINES[@]+"${DART_DEFINES[@]}"}`.
+- **Artefacts CI** : garantie que le dossier `.ci_logs/` est toujours créé, même en cas d'échec précoce, afin d'éviter les erreurs d'upload d'artefacts.
+- **Nightly Full Suite** : activation de l'exécution de la full suite CI sur les pull requests ciblant `main`, en complément du déclenchement cron.
 
 ---
-
-<<<<<<< HEAD
 ### 🔒 **[Enforcement] — Contrat Stock Actuel & Qualité Code — 2026-01-24**
 
 #### **Enforcement contrat stock actuel**
@@ -185,8 +181,6 @@ Le MVP ML_PP est fonctionnel, sécurisé, maintenable et exploitable pour son p�
 
 ---
 
-=======
->>>>>>> origin/main
 ### 📚 **[Docs/Governance] — Stabilisation Nightly + Release Gate — 2026-01-23**
 
 - ✅ **CI Nightly FULL SUITE verte** (stabilité confirmée)

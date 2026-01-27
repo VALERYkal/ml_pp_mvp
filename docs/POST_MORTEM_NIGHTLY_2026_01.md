@@ -251,6 +251,11 @@ Le Nightly n'est plus un détecteur de hasard mais un **gate de confiance équiv
 - **Tout échec Nightly futur = régression bloquante, pas "flakiness"**
 
 La phase "CI Stabilization" est officiellement **CLOSE**.
+=======
+- ⏳ **Confirmation cron** : Attendre/observer le prochain run schedule à 02:00 UTC (ou déclencher manuellement "workflow_dispatch" et comparer). Si le cron reste silencieux : vérifier settings Actions (workflow disabled?), branche par défaut, permissions repo, ou absence d'activité schedule sur fork/private restrictions.
+- ⚠️ **Warning dart_test.yaml** : `Warning: A tag was used that wasn't specified in dart_test.yaml. flaky...` (tag "flaky" utilisé sans déclaration). Non bloquant mais à corriger pour réduire le bruit.
+- ⚠️ **Logs DEBUG** : Logs DEBUG dans tests (ex: `sorties_submission_test`) : bruit mais tests passent → proposer comment réduire sans refacto (ex: filtrage logs CI / conventions de logging / réduire print en tests).
+>>>>>>> origin/main
 
 ---
 

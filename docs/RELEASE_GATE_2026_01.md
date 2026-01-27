@@ -177,6 +177,7 @@ grep -n "run_step" scripts/d1_one_shot.sh
 **Validation finale CI** :
 - [x] PR full suite green ✅
 - [x] Manual run green ✅
+<<<<<<< HEAD
 - [x] Scheduled run green ✅
 
 ### CI Status — JAN 2026
@@ -190,6 +191,9 @@ grep -n "run_step" scripts/d1_one_shot.sh
 **Règles de gouvernance CI** :
 - ❌ **Aucun push direct sur `main`** : Toute modification doit passer par PR
 - ❌ **Tout changement infra CI doit passer par PR** : Modifications de workflows, scripts CI, configurations doivent être validées via PR + Nightly green
+=======
+- [ ] Scheduled run green ⏳ (non confirmé)
+>>>>>>> origin/main
 
 #### Tag Git existant et documenté
 
