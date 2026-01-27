@@ -146,18 +146,15 @@ Le MVP ML_PP est fonctionnel, sécurisé, maintenable et exploitable pour son p�
 
 ### Fixed
 
-- CI: correction crash Bash sous `set -u` dans `d1_one_shot.sh` lié à l'expansion du tableau `DART_DEFINES` (déclaration explicite et expansion sécurisée). Validation locale réussie. Validation finale conditionnée au résultat du Nightly GitHub.
+- CI: correction d'un crash Bash sous `set -u` dans `d1_one_shot.sh` lié à l'expansion du tableau `DART_DEFINES` (déclaration explicite et expansion sécurisée). Validation locale et Nightly GitHub réussies.
 
-### CI / Tooling
+### CI
 
-- **Hardening d1_one_shot** : Rendu l'expansion de `DART_DEFINES` compatible `set -u` (phases normal + flaky) via expansion sûre `${DART_DEFINES[@]+"${DART_DEFINES[@]}"}`.
-- **Sécurisation collecte artefacts** : Garantie que `.ci_logs/` existe systématiquement (même si crash early), pour éviter l'avertissement "No artifacts will be uploaded".
-- **Déclenchement CI Nightly** : Ajout d'un déclenchement `pull_request` vers `main` afin d'obtenir une exécution full suite au moment des changements (sans remplacer le cron).
-- **Résultat observé** : Nightly full suite ✅ sur PR + run manuel ✅ ; exécution cron à confirmer.
+- **Hardening d1_one_shot** : rendu l'expansion de `DART_DEFINES` compatible avec `set -u` (phases normal + flaky) via `${DART_DEFINES[@]+"${DART_DEFINES[@]}"}`.
+- **Artefacts CI** : garantie que le dossier `.ci_logs/` est toujours créé, même en cas d'échec précoce, afin d'éviter les erreurs d'upload d'artefacts.
+- **Nightly Full Suite** : activation de l'exécution de la full suite CI sur les pull requests ciblant `main`, en complément du déclenchement cron.
 
 ---
-
-<<<<<<< HEAD
 ### 🔒 **[Enforcement] — Contrat Stock Actuel & Qualité Code — 2026-01-24**
 
 #### **Enforcement contrat stock actuel**
@@ -184,8 +181,6 @@ Le MVP ML_PP est fonctionnel, sécurisé, maintenable et exploitable pour son p�
 
 ---
 
-=======
->>>>>>> origin/main
 ### 📚 **[Docs/Governance] — Stabilisation Nightly + Release Gate — 2026-01-23**
 
 - ✅ **CI Nightly FULL SUITE verte** (stabilité confirmée)

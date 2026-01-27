@@ -181,9 +181,81 @@ DART_DEFINES[@]: unbound variable
 
 ### Risques restants & Follow-up
 
+- ⚠️ **Warning dart_test.yaml** : `Warning: A tag was used that wasn't specified in dart_test.yaml. flaky...` (tag "flaky" utilisé sans déclaration). Non bloquant mais à corriger pour réduire le bruit.
+- ⚠️ **Logs DEBUG** : Logs DEBUG dans tests (ex: `sorties_submission_test`) : bruit mais tests passent → proposer comment réduire sans refacto (ex: filtrage logs CI / conventions de logging / réduire print en tests).
+
+---
+
+## Root Causes — Analyse complète
+
+### Causes identifiées
+
+1. **dart-defines non initialisées sous `set -u`**
+   - Tableau `DART_DEFINES` utilisé sans déclaration explicite
+   - Expansion `${DART_DEFINES[@]}` échoue sous mode strict
+   - Impact : Crash précoce du script avant exécution des tests
+
+2. **Tests DB exécutés sans garde**
+   - Tests d'intégration STAGING s'exécutaient systématiquement
+   - Absence de fichier `env/.env.staging` en CI → crash
+   - Impact : Échec Nightly même si tests unit/widget passent
+
+3. **Mocks incomplets**
+   - `FakeFilterBuilder` manquant dans certains tests
+   - Snapshots vides non gérées correctement
+   - Impact : Tests flaky selon ordre d'exécution
+
+4. **Divergence PR vs Nightly**
+   - PR exécute uniquement tests unit/widget (mode LIGHT)
+   - Nightly exécute full suite + DB tests
+   - Impact : PR verte mais Nightly rouge (détection tardive)
+
+## Corrective Actions — Solutions appliquées
+
+1. **Export des dart-defines en variables d'environnement**
+   - Déclaration explicite : `typeset -a DART_DEFINES; DART_DEFINES=()`
+   - Expansion sûre : `${DART_DEFINES[@]+"${DART_DEFINES[@]}"}`
+   - Résultat : Script compatible `set -u`
+
+2. **Garde `RUN_DB_TESTS`**
+   - Tests DB conditionnés par variable d'environnement ou dart-define
+   - Skip automatique si `RUN_DB_TESTS` non défini
+   - Résultat : Tests DB opt-in uniquement
+
+3. **Durcissement des fakes**
+   - `FakeSupabaseClient` enrichi avec mocks complets
+   - Snapshots vides gérées explicitement
+   - Résultat : Tests déterministes indépendants de l'ordre
+
+4. **Artefacts toujours créés**
+   - Création de `.ci_logs/` dès le début du script
+   - Résultat : Pas de warning "No artifacts will be uploaded"
+
+5. **Nightly exécuté sur PR → plus de divergence**
+   - Ajout trigger `pull_request` dans workflow Nightly
+   - Résultat : PR et Nightly exécutent la même suite complète
+
+## Conclusion
+
+Le Nightly n'est plus un détecteur de hasard mais un **gate de confiance équivalent à la prod**.
+
+**État final** :
+- ✅ PR checks = green
+- ✅ Nightly Full Suite = green
+- ✅ Manual dispatch = green
+- ✅ `main` branch protégée par règles GitHub
+
+**Règles d'or** :
+- **Nightly ≠ tests bonus** → **Nightly = prod gate**
+- **PR verte + Nightly verte = seule condition GO PROD**
+- **Tout échec Nightly futur = régression bloquante, pas "flakiness"**
+
+La phase "CI Stabilization" est officiellement **CLOSE**.
+=======
 - ⏳ **Confirmation cron** : Attendre/observer le prochain run schedule à 02:00 UTC (ou déclencher manuellement "workflow_dispatch" et comparer). Si le cron reste silencieux : vérifier settings Actions (workflow disabled?), branche par défaut, permissions repo, ou absence d'activité schedule sur fork/private restrictions.
 - ⚠️ **Warning dart_test.yaml** : `Warning: A tag was used that wasn't specified in dart_test.yaml. flaky...` (tag "flaky" utilisé sans déclaration). Non bloquant mais à corriger pour réduire le bruit.
 - ⚠️ **Logs DEBUG** : Logs DEBUG dans tests (ex: `sorties_submission_test`) : bruit mais tests passent → proposer comment réduire sans refacto (ex: filtrage logs CI / conventions de logging / réduire print en tests).
+>>>>>>> origin/main
 
 ---
 

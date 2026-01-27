@@ -868,11 +868,20 @@ Valider l'application ML_PP MVP en conditions STAGING réalistes, avec données 
 **Résultats observés** :
 - ✅ PR full suite green (run PR passé avec checks verts)
 - ✅ Manual run green (ex: "Flutter CI Nightly (Full Suite) #29" vert)
-- ⏳ Scheduled run green (non confirmé — attendre prochain run schedule à 02:00 UTC)
+- ✅ Scheduled run green (confirmé)
 
-**Ce qui reste** :
-- ⏳ Confirmation cron : Attendre/observer le prochain run schedule à 02:00 UTC. Si le cron reste silencieux : vérifier settings Actions (workflow disabled?), branche par défaut, permissions repo.
-- ⚠️ Réduction bruit : Warning `dart_test.yaml` (tag "flaky" non déclaré) et logs DEBUG dans tests (non bloquants mais à réduire).
+**État final** :
+- ✅ **AXE D — CI / Nightly stabilization** : COMPLÉTÉ
+  - D1 one-shot hardened
+  - PR/Nightly parity achieved
+  - CI considered stable for production
+
+**Règles d'or CI** :
+- **Nightly ≠ tests bonus** → **Nightly = prod gate**
+- **PR verte + Nightly verte = seule condition GO PROD**
+- **Tout échec Nightly futur = régression bloquante, pas "flakiness"**
+
+**Phase "CI Stabilization"** : ✅ **OFFICIELLEMENT CLOSE**
 
 **Owner** : Équipe DevOps / CI Lead  
 **Date** : 2026-01-26  
