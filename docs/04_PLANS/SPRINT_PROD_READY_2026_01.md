@@ -843,11 +843,40 @@ Valider l'application ML_PP MVP en conditions STAGING réalistes, avec données 
 - Sécurisation de l'expansion en Phase A (tests normaux) : `${DART_DEFINES[@]+"${DART_DEFINES[@]}"}`
 - Sécurisation de l'expansion en Phase B (tests flaky) : `${DART_DEFINES[@]+"${DART_DEFINES[@]}"}`
 
-**Résultat local** : Exécution FULL locale réussie
+**Résultat local** : ✅ Exécution FULL locale réussie
 
-**Résultat Nightly GitHub** : En attente de confirmation
+**Résultat Nightly GitHub** : ⏳ En attente de confirmation
+
+**Checklist CI** :
+- [x] Local : ✅ D1 one-shot OK (FULL + DB)
+- [ ] Nightly GitHub : ⏳ En attente de validation
 
 **Formulation** : Une série de correctifs techniques a été appliquée au script CI afin d'éliminer une erreur shell identifiée. La validation finale dépend du résultat du prochain run Nightly GitHub.
+
+**Note de gouvernance** : Le MVP est proche PROD, mais pas encore déclaré PROD-READY. La validation complète nécessite un Nightly GitHub vert.
+
+### [2026-01-26] Nightly stabilization — Clôture technique
+
+**Objectif** : Stabiliser le workflow CI Nightly (Full Suite) pour validation continue des correctifs.
+
+**Ce qui est fait** :
+
+1. **Hardening d1_one_shot** : Rendu l'expansion de `DART_DEFINES` compatible `set -u` (normal + flaky) via expansion sûre `${DART_DEFINES[@]+"${DART_DEFINES[@]}"}`.
+2. **Sécurisation collecte artefacts** : Garantie que `.ci_logs/` existe systématiquement (même si crash early), pour éviter l'avertissement "No artifacts will be uploaded".
+3. **Déclenchement CI Nightly** : Ajout d'un déclenchement `pull_request` vers `main` afin d'obtenir une exécution full suite au moment des changements (sans remplacer le cron).
+
+**Résultats observés** :
+- ✅ PR full suite green (run PR passé avec checks verts)
+- ✅ Manual run green (ex: "Flutter CI Nightly (Full Suite) #29" vert)
+- ⏳ Scheduled run green (non confirmé — attendre prochain run schedule à 02:00 UTC)
+
+**Ce qui reste** :
+- ⏳ Confirmation cron : Attendre/observer le prochain run schedule à 02:00 UTC. Si le cron reste silencieux : vérifier settings Actions (workflow disabled?), branche par défaut, permissions repo.
+- ⚠️ Réduction bruit : Warning `dart_test.yaml` (tag "flaky" non déclaré) et logs DEBUG dans tests (non bloquants mais à réduire).
+
+**Owner** : Équipe DevOps / CI Lead  
+**Date** : 2026-01-26  
+**Lien PR** : PR #34
 
 **Checklist AXE D / Release Gate** :
 - [x] d1_one_shot local (mode LIGHT) : ✅ OK

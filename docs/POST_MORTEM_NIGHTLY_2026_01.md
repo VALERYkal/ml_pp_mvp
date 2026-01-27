@@ -98,12 +98,16 @@ DART_DEFINES[@]: unbound variable
 - Phase A (tests normaux)
 - Phase B (tests flaky)
 
-### Cause technique identifiée
+### Cause racine identifiée
 
 - Exécution du script sous shell strict (`set -u`)
 - Expansion non protégée d'un tableau vide ou non initialisé (`"${DART_DEFINES[@]}"`)
+- Le tableau `DART_DEFINES` était utilisé sans déclaration explicite, causant une erreur "unbound variable" sous `set -u`
+- Correction de l'incrémentation `((DART_DEFINE_COUNT++))` pour éviter exit code 1
 
-### Correctifs appliqués localement
+### Correctif appliqué
+
+**Portée** : Script CI uniquement (`scripts/d1_one_shot.sh`), aucun refactor applicatif
 
 1. **Déclaration explicite du tableau** :
    ```bash
@@ -120,10 +124,66 @@ DART_DEFINES[@]: unbound variable
    ${DART_DEFINES[@]+"${DART_DEFINES[@]}"}
    ```
 
-### État
+4. **Restauration de `run_step()`** pour stabilité du pipeline
 
-- Correctifs appliqués localement
-- Validation GitHub Actions Nightly : en attente
+### Validation locale
+
+- ✅ Exécution `./scripts/d1_one_shot.sh web --full` réussie (exit code 0)
+- ✅ Tests FULL + DB tests exécutés sans crash Bash
+- ✅ Preuve technique : D1 one-shot OK (FULL + DB)
+
+### Statut final
+
+- Correctifs appliqués localement et documentés
+- Validation GitHub Actions Nightly : **en attente de confirmation**
+- **Incident non clôturé définitivement** : La résolution dépend du résultat du prochain run Nightly GitHub
+
+---
+
+## Post-mortem CI Nightly — Stabilisation technique (2026-01-26)
+
+### Impact
+
+- **Blocage** : Nightly échouait très tôt avec `DART_DEFINES[@]: unbound variable` sous `set -u`
+- **Symptômes secondaires** : Warning GitHub "No files were found with the provided path: .ci_logs/" (artefacts manquants)
+- **Conséquence** : Impossible de valider les correctifs CI sans exécution manuelle
+
+### Root cause
+
+- **Bash `set -u`** : Mode strict activé dans `d1_one_shot.sh`
+- **Array expansion non protégée** : `"${DART_DEFINES[@]}"` utilisé sans déclaration explicite ni expansion sûre
+- **Collecte artefacts** : `.ci_logs/` créé trop tard (après crash early)
+- **Déclenchement limité** : Workflow Nightly uniquement sur schedule + manual, pas sur PR
+
+### Détection
+
+- Observation directe dans les logs CI Nightly
+- Erreur reproductible localement avec `set -u` activé
+- Warning artefacts visible dans les runs GitHub Actions
+
+### Fix (3 actions)
+
+1. **Hardening d1_one_shot** : Rendu l'expansion de `DART_DEFINES` compatible `set -u` (normal + flaky) via expansion sûre `${DART_DEFINES[@]+"${DART_DEFINES[@]}"}`.
+2. **Sécurisation collecte artefacts** : Garantie que `.ci_logs/` existe systématiquement (même si crash early), pour éviter l'avertissement "No artifacts will be uploaded".
+3. **Déclenchement CI Nightly** : Ajout d'un déclenchement `pull_request` vers `main` afin d'obtenir une exécution full suite au moment des changements (sans remplacer le cron).
+
+### Résultats observés
+
+- ✅ **PR full suite** : Run PR (full suite) passé ✅ (checks verts)
+- ✅ **Manual run** : Run manuel sur `main` passé ✅ (ex: "Flutter CI Nightly (Full Suite) #29" vert)
+- ⏳ **Scheduled run** : Le déclenchement schedule cron n'est pas confirmé comme "réparé" tant qu'on n'a pas observé au moins 1 exécution planifiée green après 02:00 UTC
+
+### Leçons / Prévention
+
+- **Shell strict** : Toujours protéger l'expansion de tableaux sous `set -u` avec `${ARRAY[@]+"${ARRAY[@]}"}`
+- **Artefacts CI** : Créer les dossiers de logs dès le début du script, avant toute exécution
+- **Déclenchement PR** : Ajouter `pull_request` trigger pour validation immédiate des correctifs CI
+
+### Risques restants & Follow-up
+
+- ⏳ **Confirmation cron** : Attendre/observer le prochain run schedule à 02:00 UTC (ou déclencher manuellement "workflow_dispatch" et comparer). Si le cron reste silencieux : vérifier settings Actions (workflow disabled?), branche par défaut, permissions repo, ou absence d'activité schedule sur fork/private restrictions.
+- ⚠️ **Warning dart_test.yaml** : `Warning: A tag was used that wasn't specified in dart_test.yaml. flaky...` (tag "flaky" utilisé sans déclaration). Non bloquant mais à corriger pour réduire le bruit.
+- ⚠️ **Logs DEBUG** : Logs DEBUG dans tests (ex: `sorties_submission_test`) : bruit mais tests passent → proposer comment réduire sans refacto (ex: filtrage logs CI / conventions de logging / réduire print en tests).
 
 ---
 
