@@ -4,7 +4,7 @@ set -euo pipefail
 # Full reset STAGING:
 # 1) Drop public objects
 # 2) Import PROD schema (safe)
-# 3) Apply minimal seed v2
+# 3) Apply seed empty (PROD-READY: aucune donnée fake)
 #
 # Usage:
 #   ALLOW_STAGING_RESET=true ./scripts/reset_staging_full.sh
@@ -13,7 +13,7 @@ set -euo pipefail
 # - env/.env.staging exists (ignored by git)
 # - contains STAGING_DB_URL and STAGING_PROJECT_REF
 # - staging/sql/000_prod_schema_public.safe.sql exists
-# - staging/sql/seed_staging_minimal_v2.sql exists
+# - staging/sql/seed_empty.sql exists
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -44,7 +44,8 @@ if [[ "${STAGING_PROJECT_REF}" != "$EXPECTED_REF" ]]; then
 fi
 
 SCHEMA_FILE="$ROOT_DIR/staging/sql/000_prod_schema_public.safe.sql"
-SEED_FILE="$ROOT_DIR/staging/sql/seed_staging_minimal_v2.sql"
+# PROD-READY: utiliser un seed propre (aucune donnée fake)
+SEED_FILE="$ROOT_DIR/staging/sql/seed_empty.sql"
 
 if [[ ! -f "$SCHEMA_FILE" ]]; then
   echo "❌ Missing schema file: $SCHEMA_FILE"
@@ -87,7 +88,7 @@ SQL
 echo "2/3) Import schema: $SCHEMA_FILE"
 psql "$STAGING_DB_URL" -v ON_ERROR_STOP=1 -f "$SCHEMA_FILE"
 
-echo "3/3) Seed minimal: $SEED_FILE"
+echo "3/3) Seed: $SEED_FILE"
 psql "$STAGING_DB_URL" -v ON_ERROR_STOP=1 -f "$SEED_FILE"
 
 echo "✅ Full staging reset + schema + seed done."

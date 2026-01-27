@@ -94,9 +94,17 @@
 
 **Citernes alignées avec la future PROD** :
 - Suppression définitive de la citerne non prod-like `TANK STAGING 1` (ID: `33333333-3333-3333-3333-333333333333`)
+- Suppression définitive de la citerne `TANK TEST` (ID: `44444444-4444-4444-4444-444444444444`) créée par tests
 - 6 citernes réelles conservées : TANK1 → TANK6 (alignées avec la future PROD)
 - Tables référentielles intactes : `depots`, `produits`, `citernes`, `clients`, `fournisseurs`, `partenaires`
 - Cohérence référentielle préservée
+
+**STAGING = miroir PROD (hardening final — 27 Jan 2026)** :
+- **Tables transactionnelles vidées avant validations** : Toutes les tables transactionnelles (`cours_de_route`, `receptions`, `sorties_produit`, `stocks_journaliers`, `stocks_snapshot`, `log_actions`, `stocks_adjustments`) sont purgées par `TRUNCATE` avant toute validation métier
+- **Citernes strictement TANK1..TANK6** : Aucune citerne fantôme (TANK STAGING 1, TANK TEST) n'est autorisée. Seules les 6 citernes réelles alignées avec PROD sont présentes
+- **Seed par défaut = seed_empty.sql** : Le reset standard utilise un seed vide (aucune INSERT). STAGING reste vide après reset, prêt pour replay applicatif réel
+- **Guard anti-seed minimal** : `reset_staging.sh` refuse automatiquement tout seed contenant `"minimal"` ou `"DISABLED"`. Protection contre réintroduction accidentelle de données polluées
+- **Résultat garanti** : STAGING reste prod-like, citernes = TANK1..TANK6, aucune donnée fake ne revient après reset
 
 **Les vues (v_*) retournent 0 ligne après reset** :
 - Vues stock/KPI (`v_stock_actuel`, `v_stock_actuel_snapshot`, `v_stocks_snapshot_corrige`, `v_kpi_stock_global`, `v_citerne_stock_snapshot_agg`) → 0 ligne

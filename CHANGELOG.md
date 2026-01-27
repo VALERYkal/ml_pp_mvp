@@ -181,6 +181,47 @@ Le MVP ML_PP est fonctionnel, sécurisé, maintenable et exploitable pour son p�
 
 ---
 
+### 🔒 **[Infra][STAGING] — Hardening Anti-Pollution & Fix Citernes Fantômes — 2026-01-27**
+
+#### **Incident : Réapparition de citernes fantômes**
+- **TANK STAGING 1** (ID: `33333333-3333-3333-3333-333333333333`) réapparue en STAGING
+- **TANK TEST** (ID: `44444444-4444-4444-4444-444444444444`) créée par tests d'intégration
+- **Cause identifiée** : Seeds pollués (`seed_staging_minimal.sql`, `seed_staging_minimal_v2.sql`) + `reset_staging_full.sh` forçant un seed minimal
+
+#### **Correction DB (STAGING)**
+- **TRUNCATE tables transactionnelles** :
+  - `cours_de_route`, `log_actions`, `prises_de_hauteur`, `receptions`, `sorties_produit`, `stocks_journaliers`, `stocks_snapshot` → 0 ligne
+  - `stocks_adjustments` → 0 ligne (incluse dans la purge)
+- **DELETE citernes fantômes** :
+  - Suppression définitive de `33333333-3333-3333-3333-333333333333` (TANK STAGING 1)
+  - Suppression définitive de `44444444-4444-4444-4444-444444444444` (TANK TEST)
+- **Résultat** : STAGING citernes = **TANK1..TANK6 uniquement** (aligné PROD)
+
+#### **Hardening scripts**
+- **`scripts/reset_staging_full.sh`** :
+  - `SEED_FILE` changé : `seed_staging_minimal_v2.sql` → `seed_empty.sql` (seed propre)
+  - Commentaires/logs ajustés pour refléter l'utilisation du seed vide
+- **`scripts/reset_staging.sh`** :
+  - Guard PROD-READY ajouté après définition de `SEED_FILE`
+  - Refuse automatiquement tout seed contenant `"minimal"` ou `"DISABLED"`
+  - Message d'erreur clair guidant vers la bonne pratique
+- **Seeds pollués neutralisés** :
+  - `seed_staging_minimal_v2.sql` → `seed_staging_minimal_v2.DISABLED` (versionné)
+  - `seed_staging_minimal.sql` → `seed_staging_minimal.LOCAL_DISABLED` (non versionné, local)
+
+#### **Résultat**
+- ✅ **Environnement STAGING non pollué** : Citernes = TANK1..TANK6, aucune donnée fake
+- ✅ **Environnement reproductible** : Reset complet garantit un état propre et aligné PROD
+- ✅ **Protection contre régression** : Guards empêchent toute réintroduction de seeds pollués
+- ✅ **Aucune donnée fake ne revient après reset** : Seed vide par défaut + guards actifs
+
+**Fichiers modifiés** :
+- `scripts/reset_staging_full.sh` : Seed changé pour `seed_empty.sql`
+- `scripts/reset_staging.sh` : Guard PROD-READY ajouté
+- `staging/sql/seed_staging_minimal_v2.sql` : Renommé en `.DISABLED`
+
+---
+
 ### 📚 **[Docs/Governance] — Stabilisation Nightly + Release Gate — 2026-01-23**
 
 - ✅ **CI Nightly FULL SUITE verte** (stabilité confirmée)
