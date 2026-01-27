@@ -104,6 +104,14 @@ END $$;
 SQL
 
 SEED_FILE="${SEED_FILE:-staging/sql/seed_empty.sql}"
+
+# PROD-READY guard: refuse seeds that can pollute STAGING (must stay prod-like)
+if [[ "$SEED_FILE" == *"minimal"* ]] || [[ "$SEED_FILE" == *"DISABLED"* ]]; then
+  echo "❌ Refusing SEED_FILE='$SEED_FILE' (would pollute STAGING)."
+  echo "   Use default (seed_empty.sql) or explicitly run DB-tests workflow if needed."
+  exit 1
+fi
+
 echo "➡️  Applying seed: $SEED_FILE"
 psql "$STAGING_DB_URL" -v ON_ERROR_STOP=1 -f "$ROOT_DIR/$SEED_FILE"
 

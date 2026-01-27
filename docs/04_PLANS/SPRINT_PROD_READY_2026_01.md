@@ -289,6 +289,48 @@ des fakes Supabase utilisés dans les tests.
 - Obligation d'opt-in explicite pour tout seed minimal : `SEED_FILE=staging/sql/seed_staging_minimal_v2.sql` requis explicitement
 - Double-confirm guard ajouté : `CONFIRM_STAGING_RESET=I_UNDERSTAND_THIS_WILL_DROP_PUBLIC` obligatoire
 
+#### **Fix Final + Hardening (27 Jan 2026)**
+
+**Incident : Réapparition de citernes fantômes**
+- **TANK STAGING 1** (ID: `33333333-3333-3333-3333-333333333333`) réapparue
+- **TANK TEST** (ID: `44444444-4444-4444-4444-444444444444`) créée par tests d'intégration
+- **Cause identifiée** : Seeds pollués (`seed_staging_minimal.sql`, `seed_staging_minimal_v2.sql`) + `reset_staging_full.sh` forçant un seed minimal
+
+**Nettoyage DB (STAGING)** :
+1. **TRUNCATE tables transactionnelles** :
+   - `cours_de_route`, `log_actions`, `prises_de_hauteur`, `receptions`, `sorties_produit`, `stocks_journaliers`, `stocks_snapshot` → 0 ligne
+   - `stocks_adjustments` → 0 ligne
+2. **DELETE citernes fantômes** :
+   - Suppression définitive de `33333333-3333-3333-3333-333333333333` (TANK STAGING 1)
+   - Suppression définitive de `44444444-4444-4444-4444-444444444444` (TANK TEST)
+3. **Signal de pollution identifié** : Contrainte FK `stocks_snapshot -> citerne` pointant vers citernes fantômes → indicateur de pollution
+
+**Résultat DB** : STAGING citernes = **TANK1..TANK6 uniquement** (aligné PROD)
+
+**Hardening scripts (repo)** :
+1. **`scripts/reset_staging_full.sh`** :
+   - `SEED_FILE` changé : `seed_staging_minimal_v2.sql` → `seed_empty.sql` (seed propre)
+   - Commentaires/logs ajustés pour refléter l'utilisation du seed vide
+2. **`scripts/reset_staging.sh`** :
+   - Guard PROD-READY ajouté après définition de `SEED_FILE`
+   - Refuse automatiquement tout seed contenant `"minimal"` ou `"DISABLED"`
+   - Message d'erreur clair guidant vers la bonne pratique
+3. **Seeds pollués neutralisés** :
+   - `seed_staging_minimal_v2.sql` → `seed_staging_minimal_v2.DISABLED` (versionné)
+   - `seed_staging_minimal.sql` → `seed_staging_minimal.LOCAL_DISABLED` (non versionné, local)
+
+**Résultat final** :
+- ✅ **STAGING reste prod-like** : Citernes = TANK1..TANK6, aucune donnée fake
+- ✅ **Aucune réintroduction possible** : Guard bloque seeds pollués, seed vide par défaut
+- ✅ **Environnement reproductible** : Reset complet garantit un état propre et aligné PROD
+
+**Checklist anti-régression** :
+- [ ] Vérifier que `reset_staging.sh` refuse les seeds contenant "minimal"
+- [ ] Vérifier que `reset_staging_full.sh` utilise `seed_empty.sql`
+- [ ] Confirmer que STAGING ne contient que TANK1..TANK6 après reset
+- [ ] Vérifier l'absence de contraintes FK pointant vers citernes fantômes
+- [ ] Documenter tout nouveau seed dans la section appropriée
+
 #### **Décision Long Terme**
 **Toute anomalie STAGING doit être traitée par** :
 - Analyse DB (logs + FK) : Identification de l'origine des données polluantes
