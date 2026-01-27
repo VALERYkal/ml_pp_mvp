@@ -47,7 +47,7 @@ for arg in "$@"; do
       export "$KEY=$VALUE"
       
       # Increment counter for logging (never expose VALUE)
-      ((DART_DEFINE_COUNT++))
+      ((++DART_DEFINE_COUNT))
     else
       echo "❌ invalid --dart-define format (expected KEY=VALUE)" >&2
       exit 1

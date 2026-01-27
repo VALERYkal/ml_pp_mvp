@@ -85,6 +85,48 @@
 
 ---
 
+## Incident CI Nightly — gestion des DART_DEFINES (en cours d'analyse)
+
+### Symptôme observé
+
+Échec du script `d1_one_shot.sh` avec l'erreur :
+```
+DART_DEFINES[@]: unbound variable
+```
+
+Échec constaté lors de l'exécution des phases :
+- Phase A (tests normaux)
+- Phase B (tests flaky)
+
+### Cause technique identifiée
+
+- Exécution du script sous shell strict (`set -u`)
+- Expansion non protégée d'un tableau vide ou non initialisé (`"${DART_DEFINES[@]}"`)
+
+### Correctifs appliqués localement
+
+1. **Déclaration explicite du tableau** :
+   ```bash
+   typeset -a DART_DEFINES; DART_DEFINES=()
+   ```
+
+2. **Sécurisation de l'expansion en Phase A (tests normaux)** :
+   ```bash
+   ${DART_DEFINES[@]+"${DART_DEFINES[@]}"}
+   ```
+
+3. **Sécurisation de l'expansion en Phase B (tests flaky)** :
+   ```bash
+   ${DART_DEFINES[@]+"${DART_DEFINES[@]}"}
+   ```
+
+### État
+
+- Correctifs appliqués localement
+- Validation GitHub Actions Nightly : en attente
+
+---
+
 ## 4. Correctifs appliqués
 
 ### Centralisation du fake Supabase Query Builder

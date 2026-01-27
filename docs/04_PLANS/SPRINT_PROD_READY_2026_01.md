@@ -832,6 +832,23 @@ Valider l'application ML_PP MVP en conditions STAGING réalistes, avec données 
 - **Log** : `.ci_logs/d1_one_shot_local_2026-01-23.log`
 - **Impact** : Confirmation de stabilité locale, aucune régression détectée depuis stabilisation Nightly
 
+### [2026-01-26] CI / Qualité — Sécurisation de d1_one_shot.sh contre set -u
+
+**Action** : Sécurisation de l'expansion du tableau `DART_DEFINES` dans le script CI
+
+**Portée** : Script CI uniquement (`scripts/d1_one_shot.sh`)
+
+**Modifications** :
+- Déclaration explicite du tableau : `typeset -a DART_DEFINES; DART_DEFINES=()`
+- Sécurisation de l'expansion en Phase A (tests normaux) : `${DART_DEFINES[@]+"${DART_DEFINES[@]}"}`
+- Sécurisation de l'expansion en Phase B (tests flaky) : `${DART_DEFINES[@]+"${DART_DEFINES[@]}"}`
+
+**Résultat local** : Exécution FULL locale réussie
+
+**Résultat Nightly GitHub** : En attente de confirmation
+
+**Formulation** : Une série de correctifs techniques a été appliquée au script CI afin d'éliminer une erreur shell identifiée. La validation finale dépend du résultat du prochain run Nightly GitHub.
+
 **Checklist AXE D / Release Gate** :
 - [x] d1_one_shot local (mode LIGHT) : ✅ OK
 - [x] Tests unit/widget : ✅ 456 passent, 2 skippés

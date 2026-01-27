@@ -120,6 +120,35 @@ git log --oneline --graph main -10
 grep -n "run_step" scripts/d1_one_shot.sh
 ```
 
+##### Stabilisation du script CI d1_one_shot.sh (DART_DEFINES)
+
+**Action** : Sécurisation de l'expansion du tableau `DART_DEFINES` sous shell strict (`set -u`)
+
+**Modifications appliquées** :
+
+1. **Déclaration explicite du tableau** :
+   ```bash
+   typeset -a DART_DEFINES; DART_DEFINES=()
+   ```
+
+2. **Phase A — tests normaux** :
+   ```bash
+   ${DART_DEFINES[@]+"${DART_DEFINES[@]}"}
+   ```
+
+3. **Phase B — tests flaky** :
+   ```bash
+   ${DART_DEFINES[@]+"${DART_DEFINES[@]}"}
+   ```
+
+**Précisions** :
+- Aucun test modifié
+- Aucun comportement fonctionnel changé
+- Modification limitée au script CI
+- Objectif : éviter un crash shell sous environnement strict
+
+**Note** : Cette action ne constitue pas une résolution définitive. La validation finale dépend du résultat du prochain run Nightly GitHub.
+
 #### Tag Git existant et documenté
 
 - ✅ Tag `prod-ready-YYYY-MM-DD-*` présent sur le commit validé
