@@ -144,6 +144,10 @@ Le MVP ML_PP est fonctionnel, sécurisé, maintenable et exploitable pour son p�
 - `test/integration/rls_stocks_adjustment_admin_test.dart` : Correction null-safety
 - `test/integration/sorties_submission_test.dart` : Stabilisation navigation GoRouter
 
+### Fixed
+
+- CI: sécurisation de l'expansion de DART_DEFINES dans d1_one_shot.sh sous shell strict (set -u)
+
 ---
 
 <<<<<<< HEAD

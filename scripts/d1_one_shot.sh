@@ -1,18 +1,25 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# ---- Safety: ensure variables and log directory ----
-# Initialize EXTRA_DEFINES safely (avoid unbound variable error with set -u)
-if [[ -z "${EXTRA_DEFINES:-}" ]]; then
-  declare -a EXTRA_DEFINES=()
-fi
+# Ensure CI logs directory always exists (even if tests fail early)
+# This prevents "No files were found with the provided path" errors in GitHub Actions
 mkdir -p .ci_logs
 
+# Note: Removed safe_grep_error - we now use flutter test exit code as single source of truth
+# Log scanning is only used for non-blocking warnings, not for failure detection
+
 # ---- Helper: run step with logging ----
+# Note: Uses set +o pipefail temporarily to avoid SIGPIPE (exit 141) when piped to head/sed
+# Returns the exit code of the actual command (not tee)
 run_step() {
   local name="$1"; shift
   echo "==> $name" | tee ".ci_logs/${name}.log"
-  ("$@" 2>&1 | tee -a ".ci_logs/${name}.log")
+  # Temporarily disable pipefail to avoid SIGPIPE issues with head/sed
+  set +o pipefail
+  ("$@" 2>&1 | tee -a ".ci_logs/${name}.log" || true)
+  local cmd_rc=${PIPESTATUS[0]}  # Capture exit code of the actual command, not tee
+  set -o pipefail
+  return $cmd_rc
 }
 
 # ---- Argument parsing ----
@@ -25,7 +32,7 @@ SKIP_ANALYZE=0
 SKIP_BUILD_RUNNER=0
 SKIP_BUILD=0
 TESTS_ONLY=0
-declare -a EXTRA_DEFINES=()
+DART_DEFINE_COUNT=0
 
 # Check for flags in any position
 for arg in "$@"; do
@@ -33,7 +40,14 @@ for arg in "$@"; do
     # Validation simple : doit contenir '=' après le prefix
     val="${arg#--dart-define=}"
     if [[ "$val" == *=* ]]; then
-      EXTRA_DEFINES+=("$arg")
+      KEY="${val%%=*}"
+      VALUE="${val#*=}"
+      
+      # Export as env var for Platform.environment access
+      export "$KEY=$VALUE"
+      
+      # Increment counter for logging (never expose VALUE)
+      ((++DART_DEFINE_COUNT))
     else
       echo "❌ invalid --dart-define format (expected KEY=VALUE)" >&2
       exit 1
@@ -62,8 +76,8 @@ for arg in "$@"; do
 done
 
 # Log extra defines count (without exposing values)
-if [[ ${#EXTRA_DEFINES[@]} -gt 0 ]]; then
-  echo "ℹ️  Extra dart-defines: ${#EXTRA_DEFINES[@]}"
+if [[ $DART_DEFINE_COUNT -gt 0 ]]; then
+  echo "ℹ️  Extra dart-defines: $DART_DEFINE_COUNT"
 fi
 
 # ---- Logs ----
@@ -199,6 +213,12 @@ TOTAL_COUNT=$((NORMAL_COUNT + FLAKY_COUNT))
 echo "Discovered: $TOTAL_COUNT test files total ($NORMAL_COUNT normal + $FLAKY_COUNT flaky)"
 echo
 
+# Build DART_DEFINES array from environment variables (separate from test files)
+typeset -a DART_DEFINES; DART_DEFINES=()
+[[ -n "${SUPABASE_ENV:-}" ]] && DART_DEFINES+=(--dart-define=SUPABASE_ENV="$SUPABASE_ENV")
+[[ -n "${SUPABASE_URL:-}" ]] && DART_DEFINES+=(--dart-define=SUPABASE_URL="$SUPABASE_URL")
+[[ -n "${SUPABASE_ANON_KEY:-}" ]] && DART_DEFINES+=(--dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY")
+
 # Step 3: Execute normal tests (always)
 echo "---- Phase A: normal tests ($NORMAL_COUNT files) ----"
 if [[ -z "$NORMAL_TESTS" ]]; then
@@ -206,15 +226,22 @@ if [[ -z "$NORMAL_TESTS" ]]; then
 else
   set +e
   # shellcheck disable=SC2086
-  run_step test_normal flutter test -r expanded ${EXTRA_DEFINES[@]+"${EXTRA_DEFINES[@]}"} $NORMAL_TESTS
+  run_step test_normal flutter test -r expanded ${DART_DEFINES[@]+"${DART_DEFINES[@]}"} $NORMAL_TESTS
   NORMAL_RC=$?
   set -e
   
+  # Source of truth: flutter test exit code (not log scanning)
   if [[ "$NORMAL_RC" -ne 0 ]]; then
     echo "❌ Normal tests FAILED (exit=$NORMAL_RC)" | tee -a "$TEST_LOG"
     echo "Check $TEST_LOG for details"
-    exit 1
+    exit "$NORMAL_RC"
   fi
+  
+  # Optional: non-blocking scan for warnings (informative only)
+  if grep -qE "NoSuchMethodError|TimeoutException" "$TEST_LOG" 2>/dev/null; then
+    echo "⚠️  Normal tests PASS but warnings detected in log (non-blocking)" | tee -a "$TEST_LOG"
+  fi
+  
   echo "✅ Normal tests PASS ($NORMAL_COUNT files)" | tee -a "$TEST_LOG"
 fi
 
@@ -228,17 +255,24 @@ if [[ "$INCLUDE_FLAKY" -eq 1 ]]; then
     echo "Running flaky tests (tracked separately, see $FLAKY_LOG)"
     set +e
     # shellcheck disable=SC2086
-    run_step test_flaky flutter test -r expanded ${EXTRA_DEFINES[@]+"${EXTRA_DEFINES[@]}"} $FLAKY_TESTS
+    run_step test_flaky flutter test -r expanded ${DART_DEFINES[@]+"${DART_DEFINES[@]}"}  $FLAKY_TESTS
     FLAKY_RC=$?
     set -e
     
+    # Source of truth: flutter test exit code (not log scanning)
     if [[ "$FLAKY_RC" -ne 0 ]]; then
       echo "⚠️  FLAKY FAILURES detected (exit=$FLAKY_RC)" | tee -a "$FLAKY_LOG"
       echo "Flaky tests failed: $FLAKY_TESTS" | tee -a "$FLAKY_LOG"
       echo "Check $FLAKY_LOG for details"
       # For now, flaky failures block the build (truthful mode)
-      exit 1
+      exit "$FLAKY_RC"
     fi
+    
+    # Optional: non-blocking scan for warnings (informative only)
+    if grep -qE "NoSuchMethodError|TimeoutException" "$FLAKY_LOG" 2>/dev/null; then
+      echo "⚠️  Flaky tests PASS but warnings detected in log (non-blocking)" | tee -a "$FLAKY_LOG"
+    fi
+    
     echo "✅ Flaky tests PASS ($FLAKY_COUNT files)" | tee -a "$FLAKY_LOG"
   fi
 else

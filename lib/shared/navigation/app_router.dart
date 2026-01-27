@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ml_pp_mvp/shared/providers/session_provider.dart';
@@ -22,7 +23,6 @@ import 'package:ml_pp_mvp/features/dashboard/screens/dashboard_directeur_screen.
 import 'package:ml_pp_mvp/features/dashboard/screens/dashboard_gerant_screen.dart';
 import 'package:ml_pp_mvp/features/dashboard/screens/dashboard_operateur_screen.dart';
 import 'package:ml_pp_mvp/features/dashboard/screens/dashboard_lecture_screen.dart';
-import 'package:ml_pp_mvp/dev/clear_cache_screen.dart';
 import 'package:ml_pp_mvp/features/dashboard/screens/dashboard_pca_screen.dart';
 import 'package:ml_pp_mvp/features/dashboard/widgets/dashboard_shell.dart';
 import 'package:ml_pp_mvp/features/logs/screens/logs_list_screen.dart';
@@ -32,6 +32,44 @@ import 'package:ml_pp_mvp/features/stocks_adjustments/screens/stocks_adjustments
 
 // Default home page for authenticated users
 const String kDefaultHome = '/receptions';
+
+// Compile-time flag to enable dev routes (disabled by default for CI/production)
+const bool kEnableDevRoutes =
+    bool.fromEnvironment('ENABLE_DEV_ROUTES', defaultValue: false);
+
+// Internal placeholder widget for dev routes when disabled
+class _DevPlaceholderScreen extends StatelessWidget {
+  const _DevPlaceholderScreen({required this.routeName});
+
+  final String routeName;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Dev Route'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.developer_mode, size: 64, color: Colors.grey),
+            const SizedBox(height: 16),
+            Text(
+              'Dev route "$routeName" is disabled',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Enable with --dart-define=ENABLE_DEV_ROUTES=true',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   // ⚠️ CORRECTIF : Utiliser le refresh composite (auth + rôle)
@@ -54,12 +92,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (ctx, st) => const SplashScreen(),
       ),
 
-      // Route dev pour purge de cache
-      GoRoute(
-        path: '/dev/cache-reset',
-        name: 'dev-cache-reset',
-        builder: (ctx, st) => const ClearCacheScreen(),
-      ),
+      // Route dev pour purge de cache (only enabled with ENABLE_DEV_ROUTES flag)
+      if (kEnableDevRoutes)
+        GoRoute(
+          path: '/dev/cache-reset',
+          name: 'dev-cache-reset',
+          builder: (ctx, st) =>
+              const _DevPlaceholderScreen(routeName: 'dev-cache-reset'),
+        ),
 
       // === SHELL UNIFIÉ : Toutes les routes protégées ===
       ShellRoute(

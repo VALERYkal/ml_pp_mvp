@@ -2,15 +2,27 @@ name: Flutter CI Nightly (Full Suite)
 
 on:
   schedule:
-    # Run every day at 02:00 UTC
     - cron: "0 2 * * *"
   workflow_dispatch:
-    # Allow manual trigger from GitHub Actions UI
+
+  # Auto-run on PRs targeting main (for validating fixes)
+  pull_request:
+    branches: [ "main" ]
+
+# Concurrency control: cancel in-progress runs on same ref
+concurrency:
+  group: nightly-full-${{ github.ref }}
+  cancel-in-progress: true
+
+# Minimal permissions for security
+permissions:
+  contents: read
 
 jobs:
   test:
     name: Nightly full validation
     runs-on: ubuntu-latest
+    timeout-minutes: 60
 
     steps:
       # 1) Checkout repository
@@ -35,10 +47,65 @@ jobs:
       - name: Flutter doctor
         run: flutter doctor -v
 
-      # 5) Execute D1 one-shot validation (FULL mode: all tests including integration/e2e)
-      # Source of truth: scripts/d1_one_shot.sh --full
-      # Enable DB integration tests with STAGING credentials via dart-defines
-      - name: D1 One-Shot (full)
+      # 5) Check STAGING secrets availability
+      # Output: run_db_tests=true|false
+      # SECURITY: Never echo secret values, only presence check
+      - name: Check STAGING secrets availability
+        id: secrets
+        env:
+          SUPABASE_URL_STAGING: ${{ secrets.SUPABASE_URL_STAGING }}
+          SUPABASE_ANON_KEY_STAGING: ${{ secrets.SUPABASE_ANON_KEY_STAGING }}
+          TEST_USER_EMAIL_STAGING: ${{ secrets.TEST_USER_EMAIL_STAGING }}
+          TEST_USER_PASSWORD_STAGING: ${{ secrets.TEST_USER_PASSWORD_STAGING }}
+        run: |
+          echo "Checking STAGING secrets availability..."
+          
+          # Check each secret without exposing values
+          MISSING=0
+          
+          if [ -z "$SUPABASE_URL_STAGING" ]; then
+            echo "❌ SUPABASE_URL_STAGING: missing"
+            MISSING=$((MISSING + 1))
+          else
+            echo "✅ SUPABASE_URL_STAGING: present"
+          fi
+          
+          if [ -z "$SUPABASE_ANON_KEY_STAGING" ]; then
+            echo "❌ SUPABASE_ANON_KEY_STAGING: missing"
+            MISSING=$((MISSING + 1))
+          else
+            echo "✅ SUPABASE_ANON_KEY_STAGING: present"
+          fi
+          
+          if [ -z "$TEST_USER_EMAIL_STAGING" ]; then
+            echo "❌ TEST_USER_EMAIL_STAGING: missing"
+            MISSING=$((MISSING + 1))
+          else
+            echo "✅ TEST_USER_EMAIL_STAGING: present"
+          fi
+          
+          if [ -z "$TEST_USER_PASSWORD_STAGING" ]; then
+            echo "❌ TEST_USER_PASSWORD_STAGING: missing"
+            MISSING=$((MISSING + 1))
+          else
+            echo "✅ TEST_USER_PASSWORD_STAGING: present"
+          fi
+          
+          # Set output based on availability
+          if [ $MISSING -eq 0 ]; then
+            echo "✅ All STAGING secrets available → DB tests will run"
+            echo "run_db_tests=true" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️  $MISSING secret(s) missing → DB tests will be skipped"
+            echo "run_db_tests=false" >> $GITHUB_OUTPUT
+          fi
+
+      # 6) Execute D1 one-shot validation (FULL mode)
+      # Conditional execution based on secrets availability
+      # WITH secrets: run DB tests (RUN_DB_TESTS=1 + STAGING credentials)
+      # WITHOUT secrets: run unit/widget tests only (RUN_DB_TESTS=0)
+      - name: D1 One-Shot (full) - WITH DB tests
+        if: steps.secrets.outputs.run_db_tests == 'true'
         env:
           SUPABASE_URL_STAGING: ${{ secrets.SUPABASE_URL_STAGING }}
           SUPABASE_ANON_KEY_STAGING: ${{ secrets.SUPABASE_ANON_KEY_STAGING }}
@@ -47,14 +114,21 @@ jobs:
         run: |
           chmod +x scripts/d1_one_shot.sh
           ./scripts/d1_one_shot.sh web --full \
-            --dart-define=RUN_DB_TESTS=true \
+            --dart-define=RUN_DB_TESTS=1 \
             --dart-define=SUPABASE_ENV=STAGING \
             --dart-define=SUPABASE_URL="$SUPABASE_URL_STAGING" \
             --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY_STAGING" \
             --dart-define=TEST_USER_EMAIL="$TEST_USER_EMAIL_STAGING" \
             --dart-define=TEST_USER_PASSWORD="$TEST_USER_PASSWORD_STAGING"
 
-      # 6) Upload CI logs (always, even on failure)
+      - name: D1 One-Shot (full) - WITHOUT DB tests
+        if: steps.secrets.outputs.run_db_tests == 'false'
+        run: |
+          chmod +x scripts/d1_one_shot.sh
+          ./scripts/d1_one_shot.sh web --full \
+            --dart-define=RUN_DB_TESTS=0
+
+      # 7) Upload CI logs (always, even on failure)
       - name: Upload CI logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -63,3 +137,14 @@ jobs:
           path: .ci_logs/
           retention-days: 14
           if-no-files-found: warn
+
+      # 8) Summary (for debugging, without exposing secrets)
+      - name: CI Summary
+        if: always()
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "🌙 Nightly Full Suite - Execution Summary"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "DB tests enabled: ${{ steps.secrets.outputs.run_db_tests }}"
+          echo "CI logs: Available as artifact 'ci-logs-nightly-${{ github.run_id }}'"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
