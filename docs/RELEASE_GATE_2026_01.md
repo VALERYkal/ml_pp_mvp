@@ -147,7 +147,37 @@ grep -n "run_step" scripts/d1_one_shot.sh
 - Modification limitée au script CI
 - Objectif : éviter un crash shell sous environnement strict
 
-**Note** : Cette action ne constitue pas une résolution définitive. La validation finale dépend du résultat du prochain run Nightly GitHub.
+**État** :
+- ✅ D1 = **TECHNIQUEMENT LEVÉ** (correctif appliqué, validation locale réussie)
+- ⏳ **Validation finale** : conditionnée au Nightly GitHub vert
+
+**Note importante** : Aucun passage PROD sans Nightly FULL vert. Le correctif technique est en place, mais la validation complète dépend du résultat du prochain run Nightly GitHub.
+
+##### Nightly (Full Suite) — État
+
+**Symptômes observés** :
+- Échec précoce du Nightly : `DART_DEFINES[@]: unbound variable` sous `set -u` lors de l'exécution de `d1_one_shot.sh` (Phase tests, normal/flaky).
+- Warning GitHub : "No files were found with the provided path: .ci_logs/" (artefacts manquants) observé sur certains runs.
+
+**Correctifs appliqués** (3 actions) :
+
+1. **Hardening d1_one_shot** : Rendu l'expansion de `DART_DEFINES` compatible `set -u` (normal + flaky) via expansion sûre `${DART_DEFINES[@]+"${DART_DEFINES[@]}"}`.
+2. **Sécurisation collecte artefacts** : Garantie que `.ci_logs/` existe systématiquement (même si crash early), pour éviter l'avertissement "No artifacts will be uploaded".
+3. **Déclenchement CI Nightly** : Ajout d'un déclenchement `pull_request` vers `main` afin d'obtenir une exécution full suite au moment des changements (sans remplacer le cron).
+
+**Critères d'acceptation** :
+- ✅ PR full suite green
+- ✅ Manual run green
+- ⏳ Scheduled run green (non confirmé)
+
+**État actuel** :
+- ✅ OK sur PR + run manuel (ex: "Flutter CI Nightly (Full Suite) #29" vert)
+- ⏳ Exécution cron à confirmer (attendre/observer le prochain run schedule à 02:00 UTC)
+
+**Validation finale CI** :
+- [x] PR full suite green ✅
+- [x] Manual run green ✅
+- [ ] Scheduled run green ⏳ (non confirmé)
 
 #### Tag Git existant et documenté
 
