@@ -2,10 +2,12 @@ name: Flutter CI Nightly (Full Suite)
 
 on:
   schedule:
-    # Run every day at 02:00 UTC
     - cron: "0 2 * * *"
   workflow_dispatch:
-    # Allow manual trigger from GitHub Actions UI
+
+  # Auto-run on PRs targeting main (for validating fixes)
+  pull_request:
+    branches: [ "main" ]
 
 # Concurrency control: cancel in-progress runs on same ref
 concurrency:
