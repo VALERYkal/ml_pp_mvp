@@ -454,3 +454,49 @@ L'incident CI Nightly est résolu et ne constitue plus un blocage pour le déplo
 **Document créé le** : 2026-01-23  
 **Dernière mise à jour** : 2026-01-24  
 **Auteur** : Équipe DevOps / QA Lead
+
+---
+
+## Incident STAGING — Reset + Seed prod-like (Jan 2026)
+
+### Contexte
+Lors des opérations de stabilisation Nightly et de préparation GO PROD, l’environnement **STAGING** présentait :
+- des citernes fantômes (`TANK STAGING 1`, `TANK TEST`)
+- une base parfois vide ou incohérente après reset
+- des échecs intermittents de connexion `psql` malgré une URL valide
+
+### Cause racine
+1. **Seed STAGING volontairement vide par défaut** (`seed_empty.sql`), ce qui est correct, mais nécessitait un seed métier explicite pour les tests fonctionnels.
+2. **Citernes de test historiques** (IDs `3333…` / `4444…`) non explicitement interdites.
+3. **Mot de passe Postgres contenant des caractères spéciaux** non URL-encodés dans `STAGING_DB_URL`, provoquant un échec silencieux lors de `source env/.env.staging`.
+
+### Correctifs appliqués
+- Création d’un **seed opt-in prod-like** :
+  - `staging/sql/seed_staging_prod_like.sql`
+  - Dépôt réel (ID fixe)
+  - Produits **hardcodés dans l’app Flutter** (AGO / Essence)
+  - 6 citernes actives **TANK1 → TANK6**
+  - Idempotent (`ON CONFLICT DO UPDATE`)
+- Ajout d’une **garde anti-citernes fantômes** (hard fail).
+- Maintien de `seed_empty.sql` comme **comportement par défaut**.
+- Encodage correct du mot de passe dans `STAGING_DB_URL` (URL-encoding).
+- Validation manuelle post-reset :
+  - `depots = 1`
+  - `produits = 2`
+  - `citernes_actives = 6`
+
+### Invariants P0 établis
+- **Produits** :  
+  - `452b557c-e974-4315-b6c2-cda8487db428` → Gasoil / AGO  
+  - `640cf7ec-1616-4503-a484-0a61afb20005` → Essence  
+  Ces IDs sont hardcodés dans l’app et doivent exister en STAGING/PROD.
+- **Citernes** :
+  - Chargées dynamiquement depuis la DB
+  - Noms autorisés : `TANK1..TANK6`
+  - Citernes fantômes strictement interdites
+- **Reset STAGING** : toujours protégé par double confirmation + anti-PROD guard.
+
+### Statut
+✅ Incident résolu  
+✅ STAGING désormais **miroir PROD opérationnel**  
+✅ Scripts et seeds prêts pour GO PROD

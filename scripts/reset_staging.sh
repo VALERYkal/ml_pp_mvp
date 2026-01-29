@@ -76,6 +76,15 @@ fi
 
 echo "🧨 RESET STAGING DB: $STAGING_PROJECT_REF"
 
+# PROD-READY: standard reset must restore schema too (STAGING stays usable)
+SCHEMA_FILE="$ROOT_DIR/staging/sql/000_prod_schema_public.safe.sql"
+if [[ ! -f "$SCHEMA_FILE" ]]; then
+  echo "❌ Missing schema file: $SCHEMA_FILE"
+  exit 1
+fi
+
+echo "1/3) Drop public objects..."
+
 psql "$STAGING_DB_URL" -v ON_ERROR_STOP=1 <<'SQL'
 -- Hard reset public schema content (staging only)
 DO $$
@@ -94,14 +103,19 @@ BEGIN
   END LOOP;
 
   -- drop all functions (public)
-  FOR r IN (SELECT proname, oidvectortypes(proargtypes) AS args
-            FROM pg_proc p JOIN pg_namespace n ON p.pronamespace=n.oid
-            WHERE n.nspname='public')
+  FOR r IN (
+    SELECT proname, oidvectortypes(proargtypes) AS args
+    FROM pg_proc p JOIN pg_namespace n ON p.pronamespace=n.oid
+    WHERE n.nspname='public'
+  )
   LOOP
     EXECUTE format('DROP FUNCTION IF EXISTS public.%I(%s) CASCADE', r.proname, r.args);
   END LOOP;
 END $$;
 SQL
+
+echo "2/3) Import schema: $SCHEMA_FILE"
+psql "$STAGING_DB_URL" -v ON_ERROR_STOP=1 -f "$SCHEMA_FILE"
 
 SEED_FILE="${SEED_FILE:-staging/sql/seed_empty.sql}"
 
@@ -112,7 +126,7 @@ if [[ "$SEED_FILE" == *"minimal"* ]] || [[ "$SEED_FILE" == *"DISABLED"* ]]; then
   exit 1
 fi
 
-echo "➡️  Applying seed: $SEED_FILE"
+echo "3/3) Seed: $SEED_FILE"
 psql "$STAGING_DB_URL" -v ON_ERROR_STOP=1 -f "$ROOT_DIR/$SEED_FILE"
 
 echo "✅ Staging reset + seed done."
