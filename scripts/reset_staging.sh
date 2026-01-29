@@ -7,6 +7,12 @@ set -euo pipefail
 #     ALLOW_STAGING_RESET=true \
 #     ./scripts/reset_staging.sh
 #
+#   Reset avec seed prod-like (tests métier / GO PROD):
+#     CONFIRM_STAGING_RESET=I_UNDERSTAND_THIS_WILL_DROP_PUBLIC \
+#     ALLOW_STAGING_RESET=true \
+#     SEED_FILE=staging/sql/seed_staging_prod_like.sql \
+#     ./scripts/reset_staging.sh
+#
 #   Reset avec seed minimal (pour DB-tests):
 #     CONFIRM_STAGING_RESET=I_UNDERSTAND_THIS_WILL_DROP_PUBLIC \
 #     ALLOW_STAGING_RESET=true \
