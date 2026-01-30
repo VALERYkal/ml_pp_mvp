@@ -7,6 +7,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/models/profil.dart';
+import '../../../shared/utils/app_log.dart';
 
 /// Service de gestion des profils utilisateur
 ///
@@ -116,7 +117,7 @@ class ProfilService {
   /// Utilisé pour modifier les informations du profil
   Future<void> updateProfil(Profil profil) async {
     try {
-      debugPrint('🔄 ProfilService: Mise à jour du profil - ID: ${profil.id}');
+      appLog('🔄 ProfilService: Mise à jour du profil - ID: ${profil.id}');
 
       // ✅ P0 security (client-side hardening):
       // Whitelist stricte : on n'envoie jamais les champs sensibles (role, depot_id, user_id, created_at...)
