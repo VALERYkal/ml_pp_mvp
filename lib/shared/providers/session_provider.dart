@@ -44,16 +44,16 @@ final isAuthenticatedProvider = Provider<bool>((ref) {
       return auth;
     },
     loading: () {
-      // Pendant le chargement, vérifier l'état instantané
-      final fallback = Supabase.instance.client.auth.currentSession != null;
+      // IMPORTANT: ne jamais "optimistiquement" authentifier rappel (évite loop /splash)
+      const fallback = false;
       debugPrint(
         '🔐 isAuthenticatedProvider: loading state -> fallback=$fallback',
       );
       return fallback;
     },
     error: (_, __) {
-      // En cas d'erreur, vérifier l'état instantané
-      final fallback = Supabase.instance.client.auth.currentSession != null;
+      // IMPORTANT: en erreur, rester non-auth (évite redirections instables)
+      const fallback = false;
       debugPrint(
         '🔐 isAuthenticatedProvider: error state -> fallback=$fallback',
       );
