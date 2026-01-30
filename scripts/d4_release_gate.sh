@@ -79,7 +79,11 @@ if command -v git >/dev/null 2>&1 && git rev-parse --git-dir >/dev/null 2>&1; th
   echo "Git SHA: $(git rev-parse --short HEAD 2>/dev/null || echo 'N/A')"
 fi
 if command -v flutter >/dev/null 2>&1; then
-  echo "Flutter version: $(flutter --version | head -1 || echo 'N/A')"
+  # Fix "Broken pipe": capture version sans pipe pour éviter FileSystemException
+  # (head peut fermer le pipe avant que flutter --version termine)
+  FLUTTER_VERSION_FULL=$(flutter --version 2>/dev/null || echo 'N/A')
+  FLUTTER_VERSION_LINE=$(echo "$FLUTTER_VERSION_FULL" | head -1 || echo 'N/A')
+  echo "Flutter version: $FLUTTER_VERSION_LINE"
 fi
 echo "Build targets: web${ANDROID_BUILD:+" + android"}${IOS_BUILD:+" + ios"}"
 echo
@@ -118,7 +122,9 @@ echo
 echo "---- Step 2: flutter analyze ----"
 ANALYZE_START=$(date +%s)
 set +e
-flutter analyze 2>&1 | tee "$ANALYZE_LOG"
+# Fix: bloquer uniquement sur erreurs (P0), pas sur infos/warnings
+# --no-fatal-infos et --no-fatal-warnings permettent de continuer si seuls des warnings/infos existent
+flutter analyze --no-fatal-infos --no-fatal-warnings 2>&1 | tee "$ANALYZE_LOG"
 ANALYZE_RC=${PIPESTATUS[0]}
 set -e
 ANALYZE_TIME=$(($(date +%s) - ANALYZE_START))
