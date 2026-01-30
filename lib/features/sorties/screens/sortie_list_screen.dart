@@ -7,6 +7,7 @@ import 'package:ml_pp_mvp/shared/utils/date_formatter.dart';
 import 'package:ml_pp_mvp/shared/utils/volume_formatter.dart';
 import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart';
 import 'package:ml_pp_mvp/core/models/user_role.dart';
+import 'package:ml_pp_mvp/shared/utils/app_log.dart';
 
 class SortieListScreen extends ConsumerStatefulWidget {
   const SortieListScreen({super.key});
@@ -56,7 +57,6 @@ class _SortieListScreenState extends ConsumerState<SortieListScreen> {
             ),
       body: asyncRows.when(
         loading: () {
-          debugPrint('[SortiesList] loading...');
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -74,7 +74,7 @@ class _SortieListScreenState extends ConsumerState<SortieListScreen> {
           );
         },
         error: (e, st) {
-          debugPrint('[SortiesList] error=$e');
+          appLog('[SortiesList] error=$e');
           return Center(
             child: Padding(
               padding: const EdgeInsets.all(24),
@@ -109,8 +109,6 @@ class _SortieListScreenState extends ConsumerState<SortieListScreen> {
           );
         },
         data: (rows) {
-          debugPrint('[SortiesList] rows=${rows.length} compact=$isCompact');
-
           // État vide
           if (rows.isEmpty) {
             return Center(
@@ -223,9 +221,6 @@ class _SortieListScreenState extends ConsumerState<SortieListScreen> {
                         width: tableWidth.toDouble(), // ✅ largeur FINIE (pas ∞)
                         child: Builder(
                           builder: (context) {
-                            debugPrint(
-                              '[TABLE Sorties] rowCount=$rowCount _rowsPerPage=$_rowsPerPage safe=$safeRowsPerPage',
-                            );
                             return PaginatedDataTable(
                               header: const Text('Sorties'),
                               showCheckboxColumn: false,
