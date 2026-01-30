@@ -97,6 +97,19 @@ Validation locale confirmée :
 
 ## [Unreleased]
 
+### 🔧 **Réduction bruit logs tests — 2026-01-27**
+
+#### **Amélioration logging**
+- **Problème** : Logs verbeux (`debugPrint`) pendant l'exécution des tests (CI et local), polluant les sorties
+- **Solution** :
+  - Mise à jour de `appLog()` pour être silencieux en CI et en tests (détection via `Platform.environment['CI']`)
+  - Remplacement des `debugPrint()` verbeux par `appLog()` dans :
+    - `OwnerStockBreakdownCard` (stocks_kpi_cards.dart)
+    - `depotOwnerStockFromSnapshotProvider` (stocks_kpi_providers.dart)
+    - Logs de payload [AXE A][stocks_adjustments] (stocks_adjustments_service.dart)
+- **Résultat** : Logs silencieux en CI/tests, toujours actifs en développement local
+- **Impact** : Aucun changement fonctionnel, réduction du bruit dans les logs de tests
+
 ### 🚀 **[GO PROD] — Finalisation Documentation & Validation — 2026-01-24**
 
 #### **Clarification périmètre MVP**
