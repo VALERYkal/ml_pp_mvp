@@ -4,13 +4,13 @@
 // 🗃️ Source SQL : Table `public.profils`
 // 🧭 Description : Provider Riverpod pour la gestion du profil utilisateur
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' as Riverpod;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/models/profil.dart';
 import '../../../core/models/user_role.dart';
 import '../data/profil_service.dart';
 import '../../../shared/providers/session_provider.dart';
+import '../../../shared/utils/app_log.dart';
 
 /// Provider pour l'instance du service ProfilService
 ///
@@ -37,14 +37,14 @@ class CurrentProfilNotifier extends Riverpod.AsyncNotifier<Profil?> {
   @override
   Future<Profil?> build() async {
     // 🧪 Log début (temporaire, à retirer après)
-    debugPrint(
+    appLog(
       '🔄 CurrentProfilProvider: build() started (auth user watching)',
     );
 
     // ⚠️ CORRECTIF : Force le rebuild sur changement d'utilisateur (RÉACTIF)
     final user = ref.watch(reactiveUserProvider);
     if (user == null) {
-      debugPrint(
+      appLog(
         '🔄 CurrentProfilProvider: no user (post-auth), returning null',
       );
       return null;
@@ -55,10 +55,8 @@ class CurrentProfilNotifier extends Riverpod.AsyncNotifier<Profil?> {
     // 1) tente de récupérer
     final existing = await svc.getByCurrentUser();
     if (existing != null) {
-      // print log
-      // ignore: avoid_print
-      print('✅ ProfilProvider: Profil trouvé - role: ${existing.role}');
-      debugPrint(
+      appLog('✅ ProfilProvider: Profil trouvé - role: ${existing.role}');
+      appLog(
         '🔄 CurrentProfilProvider: Profil trouvé - role: ${existing.role}',
       );
       return existing;
@@ -72,9 +70,8 @@ class CurrentProfilNotifier extends Riverpod.AsyncNotifier<Profil?> {
       email: email,
     );
 
-    // ignore: avoid_print
-    print('✅ ProfilProvider: Profil créé - role: ${created.role}');
-    debugPrint('🔄 CurrentProfilProvider: Profil créé - role: ${created.role}');
+    appLog('✅ ProfilProvider: Profil créé - role: ${created.role}');
+    appLog('🔄 CurrentProfilProvider: Profil créé - role: ${created.role}');
     return created;
   }
 }
@@ -144,7 +141,7 @@ final userProfilProvider = Riverpod.Provider<Profil?>((ref) {
 final userRoleProvider = Riverpod.Provider<UserRole?>((ref) {
   final p = ref.watch(currentProfilProvider);
   final role = p.maybeWhen(data: (v) => v?.role, orElse: () => null);
-  debugPrint('🧭 userRoleProvider -> $role (state=$p)');
+  appLog('🧭 userRoleProvider -> $role (state=$p)');
   return role;
 });
 
@@ -163,7 +160,7 @@ final profilAuthSyncProvider = Riverpod.Provider<void>((ref) {
     final prevUserId = prevUser?.id;
     final nextUserId = nextUser?.id;
     if (prevUserId != nextUserId) {
-      debugPrint(
+      appLog(
         '🔄 ProfilAuthSync: user changed -> invalidate currentProfilProvider',
       );
       ref.invalidate(currentProfilProvider);
