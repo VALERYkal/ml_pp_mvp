@@ -419,7 +419,47 @@ Un **nouveau Release Gate est requis** si :
 
 ---
 
+---
+
+## 11. Release Gate — GO PROD Passed (2026-01-27)
+
+### Check final
+
+#### DB integrity ✅
+- Triggers validés (réception, sortie, ajustement)
+- FK contraintes respectées
+- Vues cohérentes (`v_stock_actuel`, `v_stock_actuel_owner_snapshot`)
+- RLS activé sur tables sensibles
+
+#### Sécurité/RLS ✅
+- RLS activé sur `profils` (UPDATE admin only)
+- Trigger DB empêchant modification `role`
+- Whitelist client-side dans `updateProfil()` (champs safe uniquement)
+- Aucun secret exposé (audit Git effectué)
+
+#### CI green ✅
+- PR verte : tests unit/widget passants
+- Nightly verte : Full Suite passante (≥1 cycle complet validé)
+- Tests déterministes : 482 passants, 8 skippés (opt-in DB, suites dépréciées)
+
+#### UX cohérente ✅
+- Citernes : noms réels affichés (TANK1 → TANK6)
+- Stocks : cohérence DB ↔ UI validée
+- KPI : totaux par propriétaire corrects
+- Logs : traçabilité complète
+
+### Décision : Release autorisée
+
+**Date** : 2026-01-27  
+**Validateur** : Release Manager / Tech Lead  
+**Commit de référence** : `HEAD` (après alignement seed STAGING)  
+**Tag** : `prod-ready-2026-01-23-nightly-green` (checkpoint officiel)
+
+**Référence** : `docs/01_DECISIONS/DECISION_GO_PROD_2026_01.md`
+
+---
+
 **Document créé le** : 2026-01-23  
-**Dernière mise à jour** : 2026-01-23  
-**Version** : 1.0  
+**Dernière mise à jour** : 2026-01-27  
+**Version** : 1.1  
 **Responsable** : Release Manager / QA Lead

@@ -990,7 +990,6 @@ Documenter l'état final du projet pour décision GO PROD, avec transparence tot
 
 **Date** : 24 janvier 2026  
 **Statut** : ✅ **SPRINT PROD-READY — CLÔTURÉ**
-<<<<<<< HEAD
 
 ---
 
@@ -1027,5 +1026,58 @@ Renforcer le contrat "stock actuel" et réduire les warnings analyzer sans chang
 
 **Date** : 24 janvier 2026  
 **Statut** : ✅ **Enforcement contractuel validé**
-=======
->>>>>>> origin/main
+
+---
+
+## 🎯 Clôture finale — GO PROD (2026-01-27)
+
+### Statut final du sprint
+
+**Sprint clôturé** : ✅ **TERMINÉ**
+
+**Tous les objectifs critiques atteints** :
+- ✅ Flux métier end-to-end validé (CDR → Réception → Stock → Sortie)
+- ✅ Intégrité DB garantie (triggers, FK, vues, RLS)
+- ✅ UI cohérente avec la DB (Citernes, Stocks, KPI)
+- ✅ CI verte (PR + Nightly)
+- ✅ Sécurité renforcée (RLS, verrouillage rôle utilisateur)
+- ✅ Documentation complète (post-mortem, Release Gate, CHANGELOG)
+
+### GO PROD validé
+
+**Date de validation** : 2026-01-27  
+**Décision** : ✅ **GO PROD AUTORISÉ**
+
+**Justification** :
+- Aucun risque bloquant identifié
+- Flux opérationnel validé en conditions réelles
+- Checklist GO PROD complète validée
+- Seed STAGING aligné avec les IDs hardcodés Flutter
+
+**Référence** : `docs/01_DECISIONS/DECISION_GO_PROD_2026_01.md`
+
+### Limites connues assumées du MVP
+
+**Périmètre MVP (gelé)** :
+- Stock-only : 6 citernes (TANK1 → TANK6)
+- Modules inclus : CDR, Réceptions, Sorties, Stocks, KPI, Logs
+- Modules hors scope : Clients, Fournisseurs, Transporteurs, Douane, Fiscalité, PDF, Commandes
+
+**Tests DB opt-in** :
+- Tests d'intégration DB nécessitent `RUN_DB_TESTS=1` + `env/.env.staging`
+- Tests DB non exécutés par défaut en CI PR (opt-in explicite)
+- Validation DB complète via CI Nightly (mode FULL)
+
+**Bruit logs tests/CI** :
+- Logs verbeux identifiés (debugPrint UI, initialisation Supabase)
+- Stratégie : réduction progressive via flags, séparation signal/bruit
+- Impact : aucun sur sécurité, stabilité, production
+
+### Mention : périmètre gelé pour mise en production
+
+**Décision** : Le périmètre MVP est gelé pour la mise en production. Toute évolution post-MVP nécessitera une nouvelle validation et un nouveau Release Gate.
+
+---
+
+**Date de clôture finale** : 2026-01-27  
+**Statut** : ✅ **SPRINT PROD-READY — CLÔTURÉ — GO PROD AUTORISÉ**

@@ -97,6 +97,24 @@ Validation locale confirmée :
 
 ## [Unreleased]
 
+### 🚀 **[2026-01] — GO PROD**
+
+#### Added
+- Official GO PROD decision for ML_PP MVP (`docs/01_DECISIONS/DECISION_GO_PROD_2026_01.md`)
+- End-to-end validated operational flow (CDR → Stock → Sortie) (`docs/03_TESTING/END_TO_END_VALIDATION.md`)
+- Reset STAGING runbook with validation checklist (`docs/02_RUNBOOKS/RESET_STAGING_RUNBOOK.md`)
+
+#### Fixed
+- Alignment of staging seed with production product IDs (AGO = `22222222-2222-2222-2222-222222222222`)
+- Hardening of staging reset process (anti-pollution guards)
+
+#### Notes
+- MVP declared production-ready
+- Scope frozen post GO PROD
+- All critical objectives achieved (flux métier, DB integrity, UI coherence, CI green, security)
+
+---
+
 ### 🔧 **Réduction bruit logs tests — 2026-01-27**
 
 #### **Amélioration logging**
