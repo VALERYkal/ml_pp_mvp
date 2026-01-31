@@ -137,6 +137,44 @@ final snapshots = await repo.fetchCiterneGlobalSnapshots(
 
 ---
 
+## Process rule — prerequisite for validating sorties (PROD / STAGING)
+
+### Summary
+A sortie (`sorties_produit`) MUST NOT be set to `statut = 'validee'` while the stock snapshot table is empty.
+
+This is a deliberate DB-strict safety mechanism: the validation triggers require a snapshot row to exist for the
+(citerne_id, produit_id, proprietaire_type) tuple. If no snapshot exists, validating a sortie will raise an error.
+
+### Why
+The DB uses `public.stocks_snapshot` as the authoritative "current stock state" used by validation triggers.
+On a fresh environment (seed-only / prod-like), referentials exist but `stocks_snapshot` is empty until the first
+validated reception occurs.
+
+### What happens if violated
+If a sortie is validated while `stocks_snapshot` is empty (or missing the required tuple), Postgres will reject it
+with one of the following errors:
+- `SORTIE_STOCK_INTROUVABLE (snapshot)` (from `sorties_before_validate_trg()`)
+- `SNAPSHOT_MISSING_FOR_NEGATIVE_DELTA` (from `stock_snapshot_apply_delta()` when applying a negative delta)
+
+### Bootstrap rule
+The snapshot is bootstrapped automatically by the first validated reception:
+- Trigger: `reception_after_ins_trg()`
+- Action: calls `stock_snapshot_apply_delta(...)` with a positive delta, which inserts the initial snapshot row.
+
+Therefore:
+- ✅ First validate at least one reception per (citerne, produit, proprietaire) before validating sorties.
+- ❌ Do not validate sorties on a seed-only environment.
+
+### Operational checklist (GO PROD)
+- Confirm `stocks_snapshot` is non-empty before enabling sortie validation.
+  Example check:
+  `select count(*) from public.stocks_snapshot;`
+
+### Notes
+This is a process-level rule (no additional DB bootstrap function is introduced in Strategy A).
+
+---
+
 ## Références
 
 - Repository canonique : `lib/data/repositories/stocks_kpi_repository.dart`
