@@ -808,5 +808,35 @@ Le projet est prêt pour :
 - **Extension uniquement via mises à jour contrôlées** : Pas d'implémentation anticipée
 - **Design scalable** : Architecture permet ajout progressif sans refactorisation majeure
 - **Aucun engagement** : Ces modules ne sont pas dans le scope MVP actuel
-=======
->>>>>>> origin/main
+
+---
+
+## Mise à jour — GO-LIVE Frontend (02/02/2026)
+
+### État du déploiement Frontend
+
+**Hébergement** : Firebase Hosting (Flutter Web SPA)  
+**Domaine canonique** : `https://monaluxe.app`  
+**Domaine redirigé** : `https://www.monaluxe.app` → apex (HTTP 301)
+
+### Validation technique
+
+| Test | Résultat |
+|------|----------|
+| `curl -I https://monaluxe.app` | HTTP/2 200 |
+| `curl -I https://www.monaluxe.app` | HTTP/2 301 → `https://monaluxe.app/` |
+| Refresh sur route interne | ✅ OK |
+| Deep links | ✅ OK |
+
+### Statut
+
+- ✅ **Application accessible et fonctionnelle**
+- ✅ **HTTPS actif côté edge** (confirmé par `curl`)
+- 🟡 **Certificat Firebase** : Propagation en cours (délai normal jusqu'à 24h)
+- ✅ **Projet reste PROD-READY**
+
+### Clarification
+
+Le statut "nécessite une configuration" dans la console Firebase est un indicateur visuel pendant la propagation DNS. Les tests techniques (`curl -I`) confirment que le HTTPS est fonctionnel.
+
+**Référence** : `docs/02_RUNBOOKS/GO_LIVE_FRONT_CHECKPOINT_2026-02-02.md`
