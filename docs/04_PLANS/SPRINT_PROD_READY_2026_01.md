@@ -1081,3 +1081,39 @@ Renforcer le contrat "stock actuel" et réduire les warnings analyzer sans chang
 
 **Date de clôture finale** : 2026-01-27  
 **Statut** : ✅ **SPRINT PROD-READY — CLÔTURÉ — GO PROD AUTORISÉ**
+
+---
+
+## 🌐 GO-LIVE Frontend — Firebase Hosting (02/02/2026)
+
+### Contexte
+
+Déploiement du frontend Flutter Web sur Firebase Hosting avec domaine custom `monaluxe.app`.
+
+### État actuel
+
+| Élément | Statut |
+|---------|--------|
+| Firebase Hosting | ✅ Actif |
+| Domaine `monaluxe.app` | ✅ Accessible |
+| Domaine `www.monaluxe.app` | ✅ Redirige vers apex (301) |
+| HTTPS | ✅ Actif côté edge |
+| Certificat Firebase | 🟡 Propagation en cours |
+| SPA routing (GoRouter) | ✅ Fonctionnel |
+
+### Validation
+
+- `curl -I https://monaluxe.app` → HTTP/2 200
+- `curl -I https://www.monaluxe.app` → HTTP/2 301, `Location: https://monaluxe.app/`
+- Refresh sur routes internes → OK
+- Deep links → OK
+
+### Conformité
+
+- ✅ **État conforme et attendu**
+- ✅ **Projet reste PROD-READY**
+- ✅ **Aucune action corrective requise**
+
+### Référence
+
+`docs/02_RUNBOOKS/GO_LIVE_FRONT_CHECKPOINT_2026-02-02.md`

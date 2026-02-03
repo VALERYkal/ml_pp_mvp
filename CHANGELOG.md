@@ -97,6 +97,28 @@ Validation locale confirmée :
 
 ## [Unreleased]
 
+### 🌐 **[2026-02] — GO-LIVE Frontend — Firebase Hosting**
+
+#### Deployed
+- Flutter Web SPA deployed on Firebase Hosting
+- Custom domain `monaluxe.app` configured and accessible
+- Redirect `www.monaluxe.app` → `monaluxe.app` (HTTP 301)
+
+#### Validated
+- HTTPS active (edge-level confirmation via `curl -I`)
+- SPA routing (GoRouter) functional — refresh and deep links OK
+- DNS propagated and verified
+
+#### Status
+- Firebase certificate propagation in progress (normal delay up to 24h)
+- Application accessible and functional
+- Project remains PROD-READY
+
+#### Reference
+- `docs/02_RUNBOOKS/GO_LIVE_FRONT_CHECKPOINT_2026-02-02.md`
+
+---
+
 ### 🚀 **[2026-01] — GO PROD**
 
 #### Added
