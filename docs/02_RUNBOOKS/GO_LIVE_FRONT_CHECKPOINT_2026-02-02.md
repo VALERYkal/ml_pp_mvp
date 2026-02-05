@@ -138,7 +138,85 @@ Hors scope de réouverture :
 
 ---
 
-## 8. Non-objectifs / Post-PROD
+## 8. Incident Safari — écran blanc après déploiement
+
+### Symptôme
+
+- **Date** : 2026-02-05 (après déploiement PROD)
+- **Navigateur** : Safari (macOS/iOS)
+- **Comportement** : Écran blanc après chargement de l'application
+- **Navigateurs non affectés** : Chrome OK, Firefox OK
+
+### Cause identifiée
+
+**Service Worker Flutter cache ancien build** :
+
+- Le Service Worker Flutter (PWA) avait mis en cache une version antérieure du build
+- Après déploiement d'un nouveau build, Safari tentait de charger l'ancien cache via le Service Worker
+- Résultat : écran blanc (build incompatible avec le cache)
+
+### Résolution appliquée
+
+1. **Purge données site** : Safari → Développeur → Vider les caches → Données de site
+2. **Unregister Service Worker** : Console développeur → Application → Service Workers → Unregister
+3. **Hard refresh** : `Cmd + Shift + R` (ou `Ctrl + Shift + R`)
+
+**Résultat** : ✅ Application fonctionnelle sur Safari après purge
+
+### Statut
+
+- ✅ **Résolu** : Incident isolé, résolu par purge cache utilisateur
+- ✅ **Validation** : Safari normal OK après résolution
+- ✅ **Impact** : Aucun impact sur Chrome ou autres navigateurs
+
+### Recommandation post-PROD
+
+**Envisager désactivation PWA Flutter pour back-office MVP** :
+
+- Le Service Worker Flutter (PWA) peut causer des problèmes de cache après déploiement
+- Pour un back-office MVP, la fonctionnalité PWA (offline, installable) n'est pas critique
+- **Note** : Recommandation uniquement — aucune implémentation requise immédiatement
+- **Décision future** : À évaluer selon les besoins métier (offline requis ou non)
+
+---
+
+## 9. Validation finale exécutée (J0 PROD — 2026-02-05)
+
+### Build Flutter Web
+
+- **Commande** : `flutter build web --release` avec `--dart-define SUPABASE_URL` + `--dart-define SUPABASE_ANON_KEY`
+- **Statut** : ✅ Build réussi
+- **Configuration** : Variables d'environnement injectées via `--dart-define`
+
+### Déploiement Firebase Hosting
+
+- **Commande** : `firebase deploy --only hosting`
+- **Statut** : ✅ Déploiement réussi
+- **Plateforme** : Firebase Hosting (projet `ml-pp-mvp-web`)
+
+### Domaine custom validé
+
+- **Domaine** : `https://monaluxe.app`
+- **Statut** : ✅ Actif et accessible
+- **HTTPS** : ✅ Certificat actif (validé via `curl -I`)
+- **Redirection** : ✅ `www.monaluxe.app` → `monaluxe.app` (HTTP 301)
+
+### Incident Safari résolu
+
+- **Symptôme** : Écran blanc après déploiement (Safari uniquement)
+- **Cause** : Service Worker Flutter cache ancien build
+- **Résolution** : Purge données site, unregister SW, hard refresh
+- **Statut** : ✅ Résolu — Safari fonctionnel
+
+### URL de référence PROD
+
+- **Frontend Web** : `https://monaluxe.app`
+- **Environnement** : PROD (actif depuis 2026-02-05)
+- **Accès** : Public (authentification requise pour usage métier)
+
+---
+
+## 10. Non-objectifs / Post-PROD
 
 Liste des éléments hors périmètre de ce checkpoint (à traiter ultérieurement si nécessaire) :
 
@@ -147,11 +225,11 @@ Liste des éléments hors périmètre de ce checkpoint (à traiter ultérieureme
 - Environnement staging Firebase séparé
 - Cache headers personnalisés
 - Optimisation bundle size
-- PWA manifest / Service Worker avancé
+- PWA manifest / Service Worker avancé (voir recommandation section 8)
 
 ---
 
 **Document créé le** : 2026-02-02  
-**Mise à jour** : 2026-02-02  
+**Mise à jour** : 2026-02-05  
 **Auteur** : Session Cursor  
-**Statut** : ✅ Checkpoint validé — Propagation certificat en cours
+**Statut** : ✅ Checkpoint validé — Propagation certificat en cours — Incident Safari résolu
