@@ -106,7 +106,70 @@
 
 ---
 
+## 7. Avenant — Activation effective PROD (2026-02-05)
+
+### ✅ Décision GO PROD ACTÉE / APPLIQUÉE / EN EXPLOITATION
+
+**Date d'activation** : 2026-02-05  
+**Statut** : 🟢 **PROD EN EXPLOITATION**
+
+### Contexte d'activation
+
+La décision GO PROD du 2026-01-27 a été **ACTÉE** et **APPLIQUÉE** le 2026-02-05 :
+
+- **Production Database** : Schéma `public` créé et seed PROD-like minimal appliqué
+- **Frontend Web** : Flutter Web déployé sur Firebase Hosting (`https://monaluxe.app`)
+- **Exploitation** : Monaluxe a la main sur l'environnement PROD
+- **Backups** : Backups J0 créés (schéma seul + schéma + données)
+
+---
+
+## 8. Addendum — Exécution effective GO PROD (J0)
+
+### Date d'exécution réelle
+
+**J0 PROD** : 2026-02-05
+
+### Confirmation environnement actif
+
+- ✅ **PROD est désormais l'environnement actif** pour l'exploitation Monaluxe
+- ✅ **STAGING reste disponible** pour tests, améliorations et validation de nouvelles fonctionnalités
+- ✅ **Séparation claire** : STAGING ≠ PROD (voir `docs/02_RUNBOOKS/RESET_STAGING_RUNBOOK.md`)
+
+### Usage Monaluxe en cours
+
+- **Création CDR** : Monaluxe a commencé l'usage réel (CDR en création)
+- **Données réelles** : PROD contient désormais des données réelles Monaluxe
+- **Interdiction** : Aucune action destructive sur PROD sans décision formelle et backup validé
+
+### Rappel STAGING
+
+- **STAGING** : Environnement de test et validation disponible
+- **Reset autorisé** : Reset STAGING autorisé via runbook dédié (PROD exclu)
+- **Validation** : Nouvelles fonctionnalités validées en STAGING avant déploiement PROD
+
+### Règle de gouvernance post-activation
+
+**Toute action future doit être classée comme** :
+
+- ✅ **POST-PROD** : Amélioration contrôlée, évolution fonctionnelle
+- ✅ **MAINTENANCE** : Corrections, optimisations, monitoring
+- ✅ **SCALE** : Montée en charge, performance, infrastructure
+- ✅ **AUDIT** : Vérifications, conformité, sécurité
+
+**Interdictions absolues** :
+
+- ❌ Aucune réinitialisation PROD sans backup validé
+- ❌ Aucune modification DB sans backup préalable
+- ❌ Aucune remise en question de la décision GO PROD (décision assumée et traçable)
+
+### Source de vérité stock (rappel)
+
+**Vue canonique** : `v_stock_actuel` — toute lecture de stock actuel DOIT passer par cette vue.
+
+---
+
 **Document créé le** : 2026-01-27  
-**Dernière mise à jour** : 2026-01-27  
-**Version** : 1.0  
+**Dernière mise à jour** : 2026-02-05  
+**Version** : 1.1  
 **Responsable** : Release Manager / Tech Lead

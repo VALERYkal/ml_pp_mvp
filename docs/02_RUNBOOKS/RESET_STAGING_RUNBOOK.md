@@ -2,13 +2,43 @@
 
 **Date de création** : 2026-01-27  
 **Statut** : Actif  
-**Version** : 1.0
+**Version** : 1.1
+
+---
+
+## ⚠️ ATTENTION — ENVIRONNEMENT PROD
+
+> **Ce runbook ne s'applique PAS à PROD.**
+
+### ⚠️ Important
+
+- **STAGING ≠ PROD** : Ce runbook concerne uniquement l'environnement STAGING
+- **RESET interdit sur PROD** : Aucune action de reset/drop autorisée sur l'environnement PROD
+- **PROD contient des données réelles** : PROD contient désormais des données réelles Monaluxe (depuis J0 — 2026-02-05)
+
+### Interdictions absolues
+
+- ❌ **Interdiction reset PROD** : Ce runbook est strictement réservé à l'environnement STAGING
+- ❌ **Interdiction drop public en PROD** : Aucune action destructive sur la base de données PROD
+- ❌ **Interdiction seed PROD** : Aucun seed appliqué directement en PROD sans validation formelle
+
+### Règles PROD (obligatoires)
+
+- ✅ **Backup préalable obligatoire** : Toute action DB en PROD nécessite un backup validé avant exécution
+- ✅ **Validation formelle** : Toute modification PROD doit être validée par le responsable technique
+- ✅ **Traçabilité** : Toute action PROD doit être documentée et traçable
+
+### Environnement PROD
+
+- **Statut** : 🟢 **PROD EN EXPLOITATION** (depuis 2026-02-05)
+- **Responsable** : Valery Kalonga
+- **Documentation** : `docs/00_REFERENCE/PROD_STATUS.md`
 
 ---
 
 ## 1. Objectif
 
-Ce runbook décrit la procédure de reset de l'environnement STAGING pour garantir un état propre, prod-like et aligné avec la production.
+Ce runbook décrit la procédure de reset de l'environnement **STAGING UNIQUEMENT** pour garantir un état propre, prod-like et aligné avec la production.
 
 ---
 
@@ -177,6 +207,6 @@ Ce runbook est un **pré-requis obligatoire** avant toute décision GO PROD :
 ---
 
 **Document créé le** : 2026-01-27  
-**Dernière mise à jour** : 2026-01-27  
-**Version** : 1.0  
+**Dernière mise à jour** : 2026-02-05  
+**Version** : 1.1  
 **Responsable** : DevOps / Release Manager

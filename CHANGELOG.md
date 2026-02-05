@@ -95,7 +95,79 @@ Validation locale confirmée :
 
 ---
 
+## [2026-02-05] — GO-LIVE PROD EFFECTIF (Frontend + DB)
+
+### 🚀 **Activation Production — 2026-02-05**
+
+#### **Production Database**
+
+- **Schéma PROD créé** : Schéma `public` déployé depuis `staging/sql/000_prod_schema_public.safe.sql`
+- **Tables transactionnelles** : `citernes`, `cours_de_route`, `receptions`, `sorties_produit`, `stocks_snapshot`, `stocks_journaliers`, `log_actions`, etc.
+- **Vues canoniques** : `v_stock_actuel` (source unique de vérité stock), `v_stock_actuel_owner_snapshot`, `v_stock_actuel_snapshot`, `v_kpi_stock_global`, etc.
+- **Seed PROD-like minimal** : Appliqué depuis `staging/sql/seed_staging_prod_like.sql`
+  - Dépôts : 1
+  - Produits : 2 (UUID canoniques Essence et Gasoil/AGO alignés avec l'application Flutter)
+  - Citernes : 6 (TANK1 → TANK6)
+
+#### **Backups & Sécurité**
+
+- **Backup schéma seul** : `backups/ml_pp_prod_J0_schema_only.dump`
+- **Backup schéma + données** : `backups/ml_pp_prod_J0_seeded_with_data.dump`
+- **Règle de gouvernance** : Backup préalable obligatoire pour toute action DB en PROD
+- **Interdiction** : Aucune suppression/réinitialisation PROD autorisée sans backup validé
+
+#### **Frontend Web**
+
+- **Build Flutter Web** : `flutter build web --release` avec `--dart-define SUPABASE_URL` + `--dart-define SUPABASE_ANON_KEY`
+- **Déploiement Firebase** : `firebase deploy --only hosting`
+- **Domaine actif** : `https://monaluxe.app` (HTTPS validé)
+- **Incident Safari résolu** : Écran blanc après déploiement causé par Service Worker Flutter (cache ancien build) — résolu par purge données site, unregister SW, hard refresh
+- **Statut navigateurs** : Safari normal OK, Chrome OK
+
+#### **Validation Métier**
+
+- **Exploitation en cours** : Monaluxe a la main sur l'environnement PROD
+- **Création CDR** : En cours d'utilisation réelle
+- **Source de vérité stock** : `v_stock_actuel` (vue canonique) — toute lecture de stock actuel DOIT passer par cette vue
+- **Flux opérationnel** : CDR → Réception → Stock → Sortie validé et en production
+
+#### **Gouvernance**
+
+- **Statut** : ✅ **PROD EN EXPLOITATION**
+- **Responsable** : Valery Kalonga
+- **Date activation** : 2026-02-05
+- **Règle absolue** : Toute action future = POST-PROD / MAINTENANCE / SCALE / AUDIT
+- **Interdiction** : Aucune modification DB sans backup préalable validé
+
+---
+
 ## [Unreleased]
+
+### 🚀 **[2026-02-05] — Passage effectif STAGING → PROD (J0)**
+
+#### Initialisation DB PROD
+- Schéma `public` créé depuis `staging/sql/000_prod_schema_public.safe.sql`
+- RLS (Row Level Security) activé et configuré
+- Triggers transactionnels opérationnels
+- Seed prod-like minimal appliqué (dépôt, produits canoniques, 6 citernes)
+
+#### Backup J0 PROD
+- Backup schéma seul : `backups/ml_pp_prod_J0_schema_only.dump`
+- Backup schéma + données : `backups/ml_pp_prod_J0_seeded_with_data.dump`
+
+#### Déploiement Flutter Web PROD
+- Build `flutter build web --release` avec `--dart-define` (SUPABASE_URL + SUPABASE_ANON_KEY)
+- Déploiement Firebase Hosting effectué
+- Domaine `monaluxe.app` actif et validé
+
+#### Passage STAGING → PROD
+- ✅ PROD désormais environnement actif
+- ✅ Monaluxe a commencé l'usage (CDR en création)
+- ✅ STAGING reste disponible pour tests/améliorations
+
+> **Voir détails complets** : Section `[2026-02-05] — GO-LIVE PROD EFFECTIF (Frontend + DB)` ci-dessous.
+
+---
 
 ### 🌐 **[2026-02] — GO-LIVE Frontend — Firebase Hosting**
 
