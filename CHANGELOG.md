@@ -143,6 +143,12 @@ Validation locale confirmée :
 
 ## [Unreleased]
 
+### 📄 **docs: Stock externe dépôt ami (citerne logique) — 2026-02-06**
+- Ajout de la documentation solution temporaire "stock externe dépôt ami" (citerne logique Supabase) : objectif, principe, règles non négociables, risques et mitigation, checklist de validation.
+- Ajout de la procédure **SQL Editor** pour la création d’une citerne externe supplémentaire (étapes 1 à 5 + exemple "DEPOT AMI 2", rollback documenté).
+- Référence au runbook dans `docs/00_REFERENCE/PROD_STATUS.md`.
+- Aucun changement de code (lib/), ni de tests, ni de scripts.
+
 ### 🚀 **[2026-02-05] — Passage effectif STAGING → PROD (J0)**
 
 #### Initialisation DB PROD
