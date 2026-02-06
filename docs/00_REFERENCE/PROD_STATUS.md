@@ -31,7 +31,7 @@
 
 ### Tables transactionnelles (clés)
 
-- `citernes` : 6 citernes (TANK1 → TANK6)
+- `citernes` : 6 citernes (TANK1 → TANK6) ; des citernes logiques supplémentaires (stock externe dépôt ami) peuvent exister — voir `docs/02_RUNBOOKS/DEPOT_AMI_STOCK_EXTERNE.md`
 - `cours_de_route` : Cours de route (CDR) — **en usage réel Monaluxe**
 - `receptions` : Réceptions produits
 - `sorties_produit` : Sorties produits
@@ -156,6 +156,7 @@
 
 - `docs/02_RUNBOOKS/GO_LIVE_FRONT_CHECKPOINT_2026-02-02.md` : Checkpoint GO-LIVE Frontend + Incident Safari
 - `docs/02_RUNBOOKS/RESET_STAGING_RUNBOOK.md` : Runbook reset STAGING (⚠️ ne s'applique PAS à PROD)
+- `docs/02_RUNBOOKS/DEPOT_AMI_STOCK_EXTERNE.md` : Stock externe dépôt ami (citerne logique) — procédure et garde-fous
 - `docs/03_TESTING/END_TO_END_VALIDATION.md` : Validation end-to-end GO PROD
 
 ### Documents techniques
