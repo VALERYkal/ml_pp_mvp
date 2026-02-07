@@ -143,6 +143,16 @@ Validation locale confirmée :
 
 ## [Unreleased]
 
+### 📄 **docs: Chaîne Contractuelle Fournisseur (POST-PROD, ERP-grade) — 2026-02-07**
+- **Added**: Requirement normatif fournisseur v2.0 — `docs/05_REQUIREMENTS/REQUIREMENT_FOURNISSEUR_CONTRACT_CHAIN_V2.md` (exigences SBLC, Proforma, CDR, Réceptions, Écarts, Facture Finale, Paiements, Compte & Relevé Fournisseur).
+- **Added**: User Stories fournisseur v2 — `docs/06_USER_STORIES/USER_STORIES_FOURNISSEUR_V2.md` (backlog actionnable par phase : Structuration contractuelle, Suivi & clôture, Écarts & facture finale, Paiements & relevé).
+- **Added**: Plan d'exécution sprints POST-PROD fournisseur v2 — `docs/04_PLANS/PLAN_POST_PROD_FOURNISSEURS_V2.md`.
+- **Changed**: Référencement croisé dans `docs/00_REFERENCE/PROD_STATUS.md` (section POST-PROD — Chaîne Contractuelle Fournisseur : références officielles, chaîne couverte, contraintes de sécurité).
+- **Compatibility**: Aucun impact sur les flux PROD existants (Cours de Route → Réception → Stock → Sortie). Documentation uniquement ; aucun changement de code, de schéma DB ou de comportement applicatif.
+- **Business Impact**: Base documentaire pour une gestion contractuelle fournisseur auditable (SBLC → Proforma → Facture Finale → Paiements → Relevé), sans modifier l'exploitation PROD actuelle.
+
+---
+
 ### 📄 **docs: Stock externe dépôt ami (citerne logique) — 2026-02-06**
 - Ajout de la documentation solution temporaire "stock externe dépôt ami" (citerne logique Supabase) : objectif, principe, règles non négociables, risques et mitigation, checklist de validation.
 - Ajout de la procédure **SQL Editor** pour la création d’une citerne externe supplémentaire (étapes 1 à 5 + exemple "DEPOT AMI 2", rollback documenté).

@@ -170,6 +170,29 @@
 
 ---
 
+## POST-PROD — Chaîne Contractuelle Fournisseur (ERP-grade)
+
+Le module **Chaîne Contractuelle Fournisseur** est une évolution **POST-PROD** strictement **non destructive** et **compatible PROD**.  
+Il n'a **aucun impact** sur le flux cœur immuable :
+
+**Cours de Route → Réception → Stock → Sortie**
+
+### Références officielles
+- Requirements (normatif) : `docs/05_REQUIREMENTS/REQUIREMENT_FOURNISSEUR_CONTRACT_CHAIN_V2.md`
+- User Stories (backlog) : `docs/06_USER_STORIES/USER_STORIES_FOURNISSEUR_V2.md`
+- Plan d'exécution (sprints) : `docs/04_PLANS/PLAN_POST_PROD_FOURNISSEURS_V2.md`
+
+### Chaîne couverte
+**SBLC → Proforma → Cours de Route → Réceptions → Écarts → Facture Finale → Paiements → Compte & Relevé Fournisseur**
+
+### Contraintes de sécurité
+- Interdiction d'automatisation bancaire (paiements déclaratifs)
+- Dette créée uniquement à la validation de la facture finale
+- Traçabilité & audit obligatoires (logs + snapshots)
+- RLS obligatoire par rôle (PCA lecture globale)
+
+---
+
 **Document créé le** : 2026-02-05  
 **Dernière mise à jour** : 2026-02-05  
 **Version** : 1.0  
