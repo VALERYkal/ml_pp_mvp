@@ -29,6 +29,9 @@ import 'package:ml_pp_mvp/features/logs/screens/logs_list_screen.dart';
 import 'package:ml_pp_mvp/features/citernes/screens/citerne_list_screen.dart';
 import 'package:ml_pp_mvp/features/stocks/screens/stocks_screen.dart';
 import 'package:ml_pp_mvp/features/stocks_adjustments/screens/stocks_adjustments_list_screen.dart';
+import 'package:ml_pp_mvp/features/fournisseurs/presentation/screens/fournisseurs_list_screen.dart';
+import 'package:ml_pp_mvp/features/fournisseurs/presentation/screens/fournisseur_detail_screen.dart';
+import 'package:ml_pp_mvp/shared/navigation/nav_config.dart';
 
 // Default home page for authenticated users
 const String kDefaultHome = '/receptions';
@@ -201,6 +204,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (ctx, st) => const CiterneListScreen(),
           ),
           GoRoute(path: '/stocks', builder: (ctx, st) => const StocksScreen()),
+          GoRoute(
+            path: '/fournisseurs',
+            builder: (ctx, st) => const FournisseursListScreen(),
+          ),
+          GoRoute(
+            path: '/fournisseurs/:id',
+            builder: (ctx, st) {
+              final id = st.pathParameters['id']!;
+              return FournisseurDetailScreen(fournisseurId: id);
+            },
+          ),
           GoRoute(path: '/logs', builder: (ctx, st) => const LogsListScreen()),
           GoRoute(
             path: '/stocks-adjustments',
@@ -237,6 +251,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // 3) Connecté + rôle prêt : normalisation
       if (loc.isEmpty || loc == '/' || loc == '/login' || loc == '/dashboard') {
         return role.dashboardPath; // ton getter existant
+      }
+
+      // 4) Fournisseurs : accès réservé admin / directeur / gérant / pca
+      if (loc.startsWith('/fournisseurs') && !kFournisseurRoles.contains(role)) {
+        return role.dashboardPath;
       }
 
       return null; // rien à faire
