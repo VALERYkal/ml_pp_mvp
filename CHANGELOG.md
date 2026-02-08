@@ -143,6 +143,16 @@ Validation locale confirmée :
 
 ## [Unreleased]
 
+### ✅ **Module Fournisseurs Sprint 1 (lecture seule) — 2026-02-08**
+#### Added
+- Fournisseurs module (read-only): list and detail screens
+- Role-gated navigation entry "Fournisseurs" (Admin, Directeur, Gérant, PCA only)
+
+#### Tests
+- Navigation role-visibility unit test for Fournisseurs
+
+---
+
 ### 📄 **docs: Chaîne Contractuelle Fournisseur (POST-PROD, ERP-grade) — 2026-02-07**
 - **Added**: Requirement normatif fournisseur v2.0 — `docs/05_REQUIREMENTS/REQUIREMENT_FOURNISSEUR_CONTRACT_CHAIN_V2.md` (exigences SBLC, Proforma, CDR, Réceptions, Écarts, Facture Finale, Paiements, Compte & Relevé Fournisseur).
 - **Added**: User Stories fournisseur v2 — `docs/06_USER_STORIES/USER_STORIES_FOURNISSEUR_V2.md` (backlog actionnable par phase : Structuration contractuelle, Suivi & clôture, Écarts & facture finale, Paiements & relevé).

@@ -170,6 +170,44 @@
 
 ---
 
+## 📦 Module Fournisseurs — Sprint 1 (Lecture seule)
+
+**Statut :** ✅ ACTIF EN PROD  
+**Date d'intégration :** 2026-02-08  
+**Portée :** Lecture seule (liste + détail)
+
+### Fonctionnalités disponibles
+- Liste des fournisseurs
+- Recherche (nom, pays, contact)
+- Consultation fiche fournisseur
+
+### Sécurité & rôles
+- Accès autorisé :
+  - Admin
+  - Directeur
+  - Gérant
+  - PCA
+- Accès refusé (menu + route) :
+  - Opérateur
+  - Lecture
+
+### Navigation
+- Entrée **Fournisseurs** visible dans le menu principal
+- Position : après **Cours de route**
+- Source de vérité : `nav_config.dart`
+
+### Qualité & validation
+- Tests UI Fournisseurs : ✅
+- Tests unitaires navigation (role-gating) : ✅
+- CI Flutter : ✅ (PR #56, #57)
+
+### Impact PROD
+- ❌ Aucun changement base de données
+- ❌ Aucun impact sur flux métier critiques
+- ✅ Module isolé
+
+---
+
 ## POST-PROD — Chaîne Contractuelle Fournisseur (ERP-grade)
 
 Le module **Chaîne Contractuelle Fournisseur** est une évolution **POST-PROD** strictement **non destructive** et **compatible PROD**.  
@@ -194,6 +232,6 @@ Il n'a **aucun impact** sur le flux cœur immuable :
 ---
 
 **Document créé le** : 2026-02-05  
-**Dernière mise à jour** : 2026-02-05  
+**Dernière mise à jour** : 2026-02-08  
 **Version** : 1.0  
 **Responsable** : Valery Kalonga
