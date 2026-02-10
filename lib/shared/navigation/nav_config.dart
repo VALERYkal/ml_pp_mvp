@@ -20,14 +20,6 @@ const kAllRoles = <UserRole>[
   UserRole.lecture, // <- déjà présent mais on centralise
 ];
 
-// Rôles autorisés pour le module Fournisseurs (admin, directeur, gérant, pca)
-const kFournisseurRoles = <UserRole>[
-  UserRole.admin,
-  UserRole.directeur,
-  UserRole.gerant,
-  UserRole.pca,
-];
-
 class NavItem {
   final String id;
   final String title;
@@ -106,20 +98,12 @@ class NavConfig {
       order: 5,
     ),
     NavItem(
-      id: 'fournisseurs',
-      title: 'Fournisseurs',
-      path: '/fournisseurs',
-      icon: Icons.business_outlined,
-      allowedRoles: kFournisseurRoles,
-      order: 6,
-    ),
-    NavItem(
       id: 'logs',
       title: 'Logs / Audit',
       path: '/logs',
       icon: Icons.list_alt_outlined,
       allowedRoles: kAllRoles,
-      order: 7,
+      order: 6,
     ),
     NavItem(
       id: 'stocks-adjustments',
@@ -127,7 +111,7 @@ class NavConfig {
       path: '/stocks-adjustments',
       icon: Icons.tune_outlined,
       allowedRoles: kAllRoles,
-      order: 8,
+      order: 7,
     ),
   ];
 
