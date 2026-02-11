@@ -15,6 +15,14 @@ sans impacter le socle PROD (CDR → Réception → Stock → Sortie).
 - Aucune suppression destructive
 - Aucune opération risquée sur PROD sans backup validé
 
+### Stock – Source réelle
+- **stocks_snapshot** = source de vérité opérationnelle
+- **stocks_adjustments** = corrections contrôlées
+- **v_stock_actuel** = vue contractuelle de lecture
+- **stocks_journaliers** = journal quotidien (écriture bloquée hors triggers)
+
+Les sorties validées lisent le stock disponible depuis le SNAPSHOT. Toute logique POST-PROD doit préserver cette architecture.
+
 ---
 
 ## 2. Conventions DB (v1)
@@ -31,6 +39,15 @@ sans impacter le socle PROD (CDR → Réception → Stock → Sortie).
 - Vocabulaire commun (DRAFT, VALIDATED, CANCELLED, PARTIALLY_PAID, PAID, DISPUTED)
 - Toute transition = loggée
 
+#### ⚠️ Legacy MVP – Conventions existantes
+- **CDR** → statuts en MAJUSCULES ASCII : CHARGEMENT, TRANSIT, FRONTIERE, ARRIVE, DECHARGE
+- **Réceptions** → statuts legacy en minuscules : validee, rejetee
+- **Sorties** → statuts legacy en minuscules : brouillon, validee, rejetee
+
+⚠️ Ces valeurs sont protégées par CHECK constraints en PROD. Elles ne doivent PAS être modifiées pour préserver la compatibilité.
+
+**Nouvelle règle :** Les modules POST-PROD devront utiliser exclusivement des statuts MAJUSCULES ASCII. Les conventions legacy restent isolées au socle MVP.
+
 ### 2.3 Montants / devises
 - Montant : numeric/decimal (pas float)
 - Devise : code ISO (ex: USD, EUR, CDF)
@@ -41,18 +58,27 @@ sans impacter le socle PROD (CDR → Réception → Stock → Sortie).
 ## 3. Audit & Traçabilité
 
 ### 3.1 Log central
-- Réutiliser `log_actions` comme journal unique quand possible
-- Ajouter de nouveaux `action_type` POST-PROD :
-  - SBLC_CREATED / SBLC_ACTIVATED / SBLC_EXPIRED / SBLC_CLOSED
-  - PROFORMA_CREATED / PROFORMA_VALIDATED / PROFORMA_CLOSED
-  - BL_CREATED / BL_CONFIRMED / BL_CANCELLED
-  - FACTURE_CLIENT_CREATED / FACTURE_CLIENT_VALIDATED / FACTURE_CLIENT_PAID / FACTURE_CLIENT_CANCELLED
-  - FACTURE_FOURNISSEUR_CREATED / ... / PAID / CANCELLED
-  - FOURNISSEUR_PAYMENT_RECORDED / FOURNISSEUR_PAYMENT_CANCELLED
-  - CLIENT_ENCAISSEMENT_RECORDED / CLIENT_ENCAISSEMENT_CANCELLED
-  - TRANSPORTEUR_PAYMENT_RECORDED / TRANSPORTEUR_PAYMENT_CANCELLED
-  - ECART_CREATED / ECART_STATUS_CHANGED / ECART_RESOLVED
-  - EXPORT_GENERATED
+La table réelle **public.log_actions** contient notamment :
+- **action** (text)
+- **module** (text)
+- **niveau** (INFO / WARNING / CRITICAL)
+- **details** (jsonb)
+- **cible_id** (uuid)
+- **user_id**
+
+Toute nouvelle action POST-PROD devra utiliser la table existante **public.log_actions**. Aucune nouvelle table d'audit ne doit être créée.
+
+Nouvelles valeurs pour **log_actions.action** (POST-PROD) :
+- SBLC_CREATED / SBLC_ACTIVATED / SBLC_EXPIRED / SBLC_CLOSED
+- PROFORMA_CREATED / PROFORMA_VALIDATED / PROFORMA_CLOSED
+- BL_CREATED / BL_CONFIRMED / BL_CANCELLED
+- FACTURE_CLIENT_CREATED / FACTURE_CLIENT_VALIDATED / FACTURE_CLIENT_PAID / FACTURE_CLIENT_CANCELLED
+- FACTURE_FOURNISSEUR_CREATED / ... / PAID / CANCELLED
+- FOURNISSEUR_PAYMENT_RECORDED / FOURNISSEUR_PAYMENT_CANCELLED
+- CLIENT_ENCAISSEMENT_RECORDED / CLIENT_ENCAISSEMENT_CANCELLED
+- TRANSPORTEUR_PAYMENT_RECORDED / TRANSPORTEUR_PAYMENT_CANCELLED
+- ECART_CREATED / ECART_STATUS_CHANGED / ECART_RESOLVED
+- EXPORT_GENERATED
 
 ### 3.2 Métadonnées export
 Chaque export doit stocker :
@@ -77,6 +103,18 @@ Approche :
 - Politiques READ par rôle sur toutes tables POST-PROD
 - Politiques WRITE spécifiques (insert/update) par statut et rôle
 - Mise à jour de statut via RPC/trigger (recommandé) ou update contrôlé
+
+#### ⚠️ Rôles autorisés en PROD (CHECK constraint profils.role)
+Valeurs actuelles :
+- admin
+- directeur
+- gerant
+- lecture
+- pca
+
+⚠️ Les rôles "finance" ou "operateur" n'existent PAS officiellement dans le CHECK constraint.
+
+Avant d'introduire un nouveau rôle POST-PROD : créer une migration contrôlée modifiant le CHECK constraint. Ne jamais utiliser un rôle inexistant en RLS.
 
 ---
 
@@ -111,6 +149,8 @@ DB :
 - factures_clients : 1 facture = 1..n BL (v1)
 - encaissements (partiels)
 - vues solde client
+
+Pour préserver la non-invasivité du MVP : préférer une table **bons_livraison** avec **sortie_id UNIQUE** plutôt qu'ajouter des colonnes dans sorties_produit.
 
 App :
 - BL depuis sortie
@@ -158,5 +198,5 @@ App :
 - Aucun test existant cassé
 - Aucun changement sur v_stock_actuel / triggers stock / RLS existante
 - Tables POST-PROD avec RLS active
-- Logs action_type présents
+- Logs log_actions.action présents
 - Exports disponibles en staging avant prod
