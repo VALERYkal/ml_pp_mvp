@@ -36,7 +36,12 @@ String _readEnv(String key) {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   LogRedactor.install();
-  await dotenv.load(fileName: ".env");
+  // En PROD (Web), on n'utilise PAS dotenv. Les secrets doivent venir via --dart-define.
+  // En local/dev, dotenv est autorisé.
+  const isProd = bool.fromEnvironment('dart.vm.product');
+  if (!isProd) {
+    await dotenv.load(fileName: ".env");
+  }
 
   // Initialiser le formatage des dates pour le package intl
   await initializeDateFormatting('fr', null);
