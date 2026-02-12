@@ -26,7 +26,7 @@ final hasDepotAdjustmentsProvider = FutureProvider.family<bool, String>((
     
     // Vérifier s'il existe au moins un ajustement pour ce dépôt dans les 30 derniers jours
     final response = await client
-        .from('stock_adjustments')
+        .from('stocks_adjustments')
         .select('id')
         .eq('depot_id', depotId)
         .gte('created_at', cutoffDate.toIso8601String())
@@ -61,7 +61,7 @@ final hasCiterneAdjustmentsProvider = FutureProvider.family<bool, String>((
     
     // Vérifier s'il existe au moins un ajustement pour cette citerne dans les 30 derniers jours
     final response = await client
-        .from('stock_adjustments')
+        .from('stocks_adjustments')
         .select('id')
         .eq('citerne_id', citerneId)
         .gte('created_at', cutoffDate.toIso8601String())
