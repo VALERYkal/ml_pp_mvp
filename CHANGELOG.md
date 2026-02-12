@@ -2,6 +2,24 @@
 
 Ce fichier documente les changements notables du projet **ML_PP MVP**, conformément aux bonnes pratiques de versionnage sémantique.
 
+## [Unreleased] — 2026-02-12
+
+### Security
+- Activation / validation RLS sur table `stocks_adjustments`
+- Vérification que PCA n'a pas accès aux ajustements
+
+### Fix
+- Correction endpoint `stock_adjustments` → `stocks_adjustments`
+- Fix navigation post-login Web (env injection)
+
+### Infra
+- Suppression usage dotenv en PROD Web
+- Passage officiel à injection via `--dart-define`
+- Standardisation build Web avec SUPABASE_URL + SUPABASE_ANON_KEY
+- Validation déploiement Firebase Hosting
+
+---
+
 ## [Released] — v1.0.0-prod-ready (2026-01-15)
 
 ### ✅ **[AXE D] — Clôture Prod-Ready — 2026-01-15**

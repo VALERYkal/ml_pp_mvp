@@ -48,6 +48,24 @@ cursor.json              # Configuration IA (Cursor)
 
 ---
 
+## 🚀 Déploiement PROD Web
+
+ML_PP est en **PROD en exploitation** (GO LIVE acté). Le déploiement Web est manuel et contrôlé via le script officiel.
+
+- **Runbook officiel** : [docs/02_RUNBOOKS/DEPLOY_WEB_PROD_RUNBOOK.md](docs/02_RUNBOOKS/DEPLOY_WEB_PROD_RUNBOOK.md)
+- **Script** : `tools/release_web_prod.sh` (ne pas modifier)
+- **Domaine** : https://monaluxe.app  
+Chaque release doit être taguée (`prod-web-YYYYMMDD-HHMM`) après déploiement réussi.
+
+---
+
+## Environnement Web PROD
+
+Le build Web PROD utilise **exclusivement** `--dart-define`.  
+**dotenv est interdit** en production.
+
+---
+
 ## 📁 Dossier `docs/` (inclus dans cursor.json)
 
 Contient toutes les spécifications et documents nécessaires :
