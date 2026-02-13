@@ -14,6 +14,7 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 
 ### Infra
 - Suppression usage dotenv en PROD Web
+- docs: add monitoring & alerting runbook (UptimeRobot + Sentry Phase 1)
 - Passage officiel à injection via `--dart-define`
 - Standardisation build Web avec SUPABASE_URL + SUPABASE_ANON_KEY
 - Validation déploiement Firebase Hosting

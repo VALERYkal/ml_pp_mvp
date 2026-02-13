@@ -15,5 +15,6 @@
 - [05 — Transporteurs — Requirements](05_TRANSPORTEURS_REQUIREMENTS.md)
 - [06 — Écarts & Anomalies (Requirements)](06_ECARTS_ANOMALIES_REQUIREMENTS.md)
 - [07 — Reporting & Audit — Requirements](07_REPORTING_AUDIT_REQUIREMENTS.md)
+- [08 — Monitoring & Alerting (Industriel)](08_MONITORING_ALERTING.md)
 
 ## 4. À venir

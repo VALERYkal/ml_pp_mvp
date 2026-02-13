@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'shared/navigation/app_router.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'features/profil/providers/profil_provider.dart';
@@ -33,7 +36,7 @@ String _readEnv(String key) {
   return _stripOuterQuotes(raw);
 }
 
-Future<void> main() async {
+Future<void> _bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
   LogRedactor.install();
   // En PROD (Web), on n'utilise PAS dotenv. Les secrets doivent venir via --dart-define.
@@ -71,6 +74,28 @@ Future<void> main() async {
   await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
 
   runApp(const ProviderScope(child: MyApp()));
+}
+
+Future<void> main() async {
+  const sentryDsn = String.fromEnvironment('SENTRY_DSN');
+  if (sentryDsn.isNotEmpty) {
+    await SentryFlutter.init(
+      (options) {
+        options.dsn = sentryDsn;
+        options.tracesSampleRate = 0.0;
+        options.sendDefaultPii = false;
+        options.environment =
+            const String.fromEnvironment('APP_ENV', defaultValue: 'production');
+        options.release =
+            const String.fromEnvironment('APP_RELEASE', defaultValue: 'mlpp-web');
+      },
+      appRunner: () async {
+        await _bootstrap();
+      },
+    );
+  } else {
+    await _bootstrap();
+  }
 }
 
 class MyApp extends ConsumerWidget {
