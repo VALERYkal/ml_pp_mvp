@@ -17,4 +17,9 @@
 - [07 — Reporting & Audit — Requirements](07_REPORTING_AUDIT_REQUIREMENTS.md)
 - [08 — Monitoring & Alerting (Industriel)](08_MONITORING_ALERTING.md)
 
-## 4. À venir
+## 5. Phase 2 — Industrialisation
+- [09 — Phase 2 Stratégie](09_PHASE2_STRATEGIE.md)
+- [10 — Phase 2 Plan 10 Actions](10_PHASE2_PLAN_10_ACTIONS.md)
+- [11 — Phase 2 Tracker](11_PHASE2_TRACKER.md)
+
+## 6. À venir
