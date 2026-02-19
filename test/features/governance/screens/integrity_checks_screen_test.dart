@@ -1,0 +1,230 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ml_pp_mvp/features/governance/domain/integrity_check.dart';
+import 'package:ml_pp_mvp/features/governance/providers/integrity_providers.dart';
+import 'package:ml_pp_mvp/features/governance/screens/integrity_checks_screen.dart';
+
+IntegrityCheck _createCheck({
+  required String checkCode,
+  required String severity,
+  String entityType = 'CDR',
+  String entityId = 'id-1',
+  String message = 'Test message',
+  Map<String, dynamic>? payload,
+}) {
+  return IntegrityCheck(
+    checkCode: checkCode,
+    severity: severity,
+    entityType: entityType,
+    entityId: entityId,
+    message: message,
+    payload: payload ?? {},
+    detectedAt: DateTime(2025, 2, 6, 10, 0, 0),
+  );
+}
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  group('IntegrityChecksScreen', () {
+    testWidgets('affiche "Aucun check détecté." quand liste vide', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            integrityChecksProvider.overrideWith((ref) async => []),
+          ],
+          child: const MaterialApp(
+            home: IntegrityChecksScreen(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('Aucun check détecté.'), findsOneWidget);
+      expect(find.text('Integrity Checks'), findsOneWidget);
+      expect(find.byIcon(Icons.refresh), findsOneWidget);
+    });
+
+    testWidgets('affiche counts CRITICAL et WARN + items listés', (
+      tester,
+    ) async {
+      final warnCheck = _createCheck(
+        checkCode: 'CDR_ARRIVE_STALE',
+        severity: 'WARN',
+        entityType: 'CDR',
+        message: 'CDR en ARRIVE > 2 jours.',
+      );
+      final criticalCheck = _createCheck(
+        checkCode: 'STOCK_NEGATIF',
+        severity: 'CRITICAL',
+        entityType: 'CITERNE_STOCK',
+        message: 'Stock négatif détecté.',
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            integrityChecksProvider.overrideWith((ref) async => [
+                  criticalCheck,
+                  warnCheck,
+                ]),
+          ],
+          child: const MaterialApp(
+            home: IntegrityChecksScreen(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('CRITICAL'), findsWidgets);
+      expect(find.text('WARN'), findsWidgets);
+      expect(find.text('STOCK_NEGATIF • CITERNE_STOCK'), findsOneWidget);
+      expect(find.text('CDR_ARRIVE_STALE • CDR'), findsOneWidget);
+      expect(find.text('Stock négatif détecté.'), findsOneWidget);
+      expect(find.text('CDR en ARRIVE > 2 jours.'), findsOneWidget);
+    });
+
+    testWidgets('bouton refresh invalide le provider', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            integrityChecksProvider.overrideWith((ref) async => []),
+          ],
+          child: const MaterialApp(
+            home: IntegrityChecksScreen(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('Aucun check détecté.'), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.refresh));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Aucun check détecté.'), findsOneWidget);
+    });
+
+    testWidgets('filtre severity CRITICAL affiche seulement CRITICAL + compteurs cohérents',
+        (tester) async {
+      final warnCheck = _createCheck(
+        checkCode: 'CDR_ARRIVE_STALE',
+        severity: 'WARN',
+        entityType: 'CDR',
+        message: 'CDR stale',
+      );
+      final criticalCheck = _createCheck(
+        checkCode: 'STOCK_NEGATIF',
+        severity: 'CRITICAL',
+        entityType: 'CITERNE_STOCK',
+        message: 'Stock négatif',
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            integrityChecksProvider.overrideWith((ref) async => [
+                  criticalCheck,
+                  warnCheck,
+                ]),
+          ],
+          child: const MaterialApp(
+            home: IntegrityChecksScreen(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('STOCK_NEGATIF • CITERNE_STOCK'), findsOneWidget);
+      expect(find.text('CDR_ARRIVE_STALE • CDR'), findsOneWidget);
+
+      await tester.tap(find.descendant(
+        of: find.byType(SegmentedButton<String?>),
+        matching: find.text('CRITICAL'),
+      ));
+      await tester.pumpAndSettle();
+
+      expect(find.text('STOCK_NEGATIF • CITERNE_STOCK'), findsOneWidget);
+      expect(find.text('CDR_ARRIVE_STALE • CDR'), findsNothing);
+      expect(find.text('sur 2 checks chargés'), findsOneWidget);
+    });
+
+    testWidgets('filtre entity_type CDR affiche seulement CDR', (tester) async {
+      final cdrCheck = _createCheck(
+        checkCode: 'CDR_ARRIVE_STALE',
+        severity: 'WARN',
+        entityType: 'CDR',
+        message: 'CDR stale',
+      );
+      final stockCheck = _createCheck(
+        checkCode: 'STOCK_NEGATIF',
+        severity: 'CRITICAL',
+        entityType: 'CITERNE_STOCK',
+        message: 'Stock négatif',
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            integrityChecksProvider.overrideWith((ref) async => [
+                  cdrCheck,
+                  stockCheck,
+                ]),
+          ],
+          child: const MaterialApp(
+            home: IntegrityChecksScreen(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(DropdownButton<String?>));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('CDR').last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('CDR_ARRIVE_STALE • CDR'), findsOneWidget);
+      expect(find.text('STOCK_NEGATIF • CITERNE_STOCK'), findsNothing);
+    });
+
+    testWidgets('bouton Copier affiche SnackBar Copié', (tester) async {
+      final check = _createCheck(
+        checkCode: 'TEST',
+        severity: 'WARN',
+        entityType: 'CDR',
+        payload: {'key': 'value'},
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            integrityChecksProvider.overrideWith((ref) async => [check]),
+          ],
+          child: const MaterialApp(
+            home: IntegrityChecksScreen(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('TEST • CDR'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Copier'), findsOneWidget);
+      await tester.tap(find.text('Copier'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Copié'), findsOneWidget);
+    });
+  });
+}

@@ -29,9 +29,18 @@ import 'package:ml_pp_mvp/features/logs/screens/logs_list_screen.dart';
 import 'package:ml_pp_mvp/features/citernes/screens/citerne_list_screen.dart';
 import 'package:ml_pp_mvp/features/stocks/screens/stocks_screen.dart';
 import 'package:ml_pp_mvp/features/stocks_adjustments/screens/stocks_adjustments_list_screen.dart';
+import 'package:ml_pp_mvp/features/governance/screens/integrity_checks_screen.dart';
 
 // Default home page for authenticated users
 const String kDefaultHome = '/receptions';
+
+bool _isGovernanceRole(UserRole role) =>
+    role == UserRole.admin ||
+    role == UserRole.directeur ||
+    role == UserRole.pca;
+
+bool _isGovernancePath(String loc) =>
+    loc.startsWith('/logs') || loc.startsWith('/governance');
 
 // Compile-time flag to enable dev routes (disabled by default for CI/production)
 const bool kEnableDevRoutes =
@@ -203,6 +212,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/stocks', builder: (ctx, st) => const StocksScreen()),
           GoRoute(path: '/logs', builder: (ctx, st) => const LogsListScreen()),
           GoRoute(
+            path: '/governance/integrity',
+            builder: (ctx, st) => const IntegrityChecksScreen(),
+          ),
+          GoRoute(
             path: '/stocks-adjustments',
             name: 'stocksAdjustments',
             builder: (ctx, st) => const StocksAdjustmentsListScreen(),
@@ -215,11 +228,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final loc = state.fullPath ?? state.uri.path;
 
-      // ✅ LIRE ICI, à la volée (pas capturé en amont)
       final isAuthenticated = ref.read(isAuthenticatedProvider);
-      final role = ref.read(userRoleProvider); // UserRole? nullable
+      final role = ref.read(userRoleProvider);
 
-      // 🧪 Logs ciblés (temporaires)
       debugPrint(
         '🔁 RedirectEval: loc=$loc, auth=$isAuthenticated, role=$role',
       );
@@ -229,17 +240,22 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return (loc == '/login') ? null : '/login';
       }
 
-      // 2) Connecté mais rôle pas encore prêt -> /splash (neutre si déjà dessus)
+      // 2) Connecté mais rôle pas encore prêt -> /splash
       if (role == null) {
         return (loc == '/splash') ? null : '/splash';
       }
 
-      // 3) Connecté + rôle prêt : normalisation
+      // 3) Connecté + rôle prêt : normalisation racine
       if (loc.isEmpty || loc == '/' || loc == '/login' || loc == '/dashboard') {
-        return role.dashboardPath; // ton getter existant
+        return role.dashboardPath;
       }
 
-      return null; // rien à faire
+      // 4) Guard gouvernance : /logs et /governance/* réservés à admin, directeur, pca
+      if (_isGovernancePath(loc) && !_isGovernanceRole(role)) {
+        return role.dashboardPath;
+      }
+
+      return null;
     },
   );
 });

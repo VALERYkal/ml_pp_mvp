@@ -16,8 +16,15 @@ const kAllRoles = <UserRole>[
   UserRole.directeur,
   UserRole.gerant,
   UserRole.operateur,
-  UserRole.pca, // <- AJOUT
-  UserRole.lecture, // <- déjà présent mais on centralise
+  UserRole.pca,
+  UserRole.lecture,
+];
+
+// Gouvernance : admin, directeur, pca uniquement (Logs / Audit, Integrity Checks)
+const kGovernanceRoles = <UserRole>[
+  UserRole.admin,
+  UserRole.directeur,
+  UserRole.pca,
 ];
 
 class NavItem {
@@ -52,7 +59,7 @@ class NavConfig {
     NavItem(
       id: 'dashboard',
       title: 'Accueil',
-      path: '/dashboard', // remplacé dynamiquement selon le rôle
+      path: '/dashboard',
       icon: Icons.dashboard_outlined,
       isDashboard: true,
       order: 0,
@@ -63,7 +70,7 @@ class NavConfig {
       path: '/receptions',
       icon: Icons.download_outlined,
       allowedRoles: kAllRoles,
-      order: 1,
+      order: 10,
     ),
     NavItem(
       id: 'sorties',
@@ -71,23 +78,7 @@ class NavConfig {
       path: '/sorties',
       icon: Icons.upload_outlined,
       allowedRoles: kAllRoles,
-      order: 2,
-    ),
-    NavItem(
-      id: 'stocks',
-      title: 'Stocks',
-      path: '/stocks',
-      icon: Icons.inventory_outlined,
-      allowedRoles: kAllRoles,
-      order: 3,
-    ),
-    NavItem(
-      id: 'citernes',
-      title: 'Citernes',
-      path: '/citernes',
-      icon: Icons.local_gas_station_outlined,
-      allowedRoles: kAllRoles,
-      order: 4,
+      order: 11,
     ),
     NavItem(
       id: 'cours',
@@ -95,15 +86,23 @@ class NavConfig {
       path: '/cours',
       icon: Icons.local_shipping_outlined,
       allowedRoles: kAllRoles,
-      order: 5,
+      order: 12,
     ),
     NavItem(
-      id: 'logs',
-      title: 'Logs / Audit',
-      path: '/logs',
-      icon: Icons.list_alt_outlined,
+      id: 'stocks',
+      title: 'Stocks',
+      path: '/stocks',
+      icon: Icons.inventory_outlined,
       allowedRoles: kAllRoles,
-      order: 6,
+      order: 20,
+    ),
+    NavItem(
+      id: 'citernes',
+      title: 'Citernes',
+      path: '/citernes',
+      icon: Icons.local_gas_station_outlined,
+      allowedRoles: kAllRoles,
+      order: 21,
     ),
     NavItem(
       id: 'stocks-adjustments',
@@ -111,7 +110,23 @@ class NavConfig {
       path: '/stocks-adjustments',
       icon: Icons.tune_outlined,
       allowedRoles: kAllRoles,
-      order: 7,
+      order: 22,
+    ),
+    NavItem(
+      id: 'logs',
+      title: 'Logs / Audit',
+      path: '/logs',
+      icon: Icons.list_alt_outlined,
+      allowedRoles: kGovernanceRoles,
+      order: 100,
+    ),
+    NavItem(
+      id: 'integrity',
+      title: 'Integrity Checks',
+      path: '/governance/integrity',
+      icon: Icons.health_and_safety_outlined,
+      allowedRoles: kGovernanceRoles,
+      order: 101,
     ),
   ];
 
