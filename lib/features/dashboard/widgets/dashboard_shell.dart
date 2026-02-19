@@ -73,19 +73,18 @@ class DashboardShell extends ConsumerWidget {
       error: (_, __) => '—',
     );
     final items = NavConfig.getItemsForRole(role);
-
-    // Sélection active depuis la route
     final location = GoRouterState.of(context).uri.toString();
-    final selectedIndex = _selectedIndexFor(location, items, role);
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final isWide = constraints.maxWidth >= 1000;
         final isMobile = constraints.maxWidth < 600;
 
-        // Filtrer les items pour mobile (exclure Logs et Ajustements)
+        // Filtrer les items pour mobile BottomNav (exclure Logs, Ajustements, Integrity)
         final mobileItems = items.where((item) {
-          return item.id != 'logs' && item.id != 'stocks-adjustments';
+          return item.id != 'logs' &&
+              item.id != 'stocks-adjustments' &&
+              item.id != 'integrity';
         }).toList();
 
         // Items pour desktop (tous les items)
@@ -101,20 +100,43 @@ class DashboardShell extends ConsumerWidget {
           role,
         );
 
-        // NavigationRail pour desktop/tablet
-        final rail = NavigationRail(
-          selectedIndex: effectiveSelectedIndex,
-          onDestinationSelected: (i) =>
-              context.go(effectivePath(effectiveItems[i], role)),
-          extended: isWide,
-          destinations: [
-            for (final item in effectiveItems)
-              NavigationRailDestination(
-                icon: Icon(item.icon),
-                selectedIcon: Icon(item.icon),
-                label: Text(item.title),
-              ),
-          ],
+        // Menu custom avec sections (desktop/tablet) — remplace NavigationRail
+        final navEntries = _buildNavEntries(role, desktopItems);
+        final navMenuWidth = isWide ? 260.0 : 220.0;
+        final navMenu = SizedBox(
+          width: navMenuWidth,
+          child: ListView(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            children: [
+              for (final entry in navEntries)
+                if (entry.header != null)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                    child: Text(
+                      entry.header!,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurfaceVariant
+                                .withValues(alpha: 0.8),
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                  )
+                else if (entry.item != null)
+                  ListTile(
+                    leading: Icon(entry.item!.icon),
+                    title: Text(entry.item!.title),
+                    selected: _isSelected(location, entry.item!, role),
+                    selectedTileColor: Theme.of(context)
+                        .colorScheme
+                        .primaryContainer
+                        .withValues(alpha: 0.5),
+                    onTap: () =>
+                        context.go(effectivePath(entry.item!, role)),
+                  ),
+            ],
+          ),
         );
 
         // BottomNavigationBar pour mobile (4-5 items max)
@@ -132,7 +154,8 @@ class DashboardShell extends ConsumerWidget {
           ],
         );
 
-        // Drawer pour mobile (tous les items, y compris Logs et Ajustements)
+        // Drawer pour mobile — même structure sections que le menu desktop
+        final drawerEntries = _buildNavEntries(role, items);
         final drawer = Drawer(
           child: ListView(
             children: [
@@ -155,17 +178,35 @@ class DashboardShell extends ConsumerWidget {
                   ],
                 ),
               ),
-              // Drawer affiche tous les items (même Logs et Ajustements)
-              for (int i = 0; i < items.length; i++)
-                ListTile(
-                  leading: Icon(items[i].icon),
-                  title: Text(items[i].title),
-                  selected: i == selectedIndex,
-                  onTap: () {
-                    Navigator.pop(context);
-                    context.go(effectivePath(items[i], role));
-                  },
-                ),
+              for (final entry in drawerEntries)
+                if (entry.header != null)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                    child: Text(
+                      entry.header!,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurfaceVariant
+                                .withValues(alpha: 0.8),
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                  )
+                else if (entry.item != null)
+                  ListTile(
+                    leading: Icon(entry.item!.icon),
+                    title: Text(entry.item!.title),
+                    selected: _isSelected(location, entry.item!, role),
+                    selectedTileColor: Theme.of(context)
+                        .colorScheme
+                        .primaryContainer
+                        .withValues(alpha: 0.5),
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.go(effectivePath(entry.item!, role));
+                    },
+                  ),
             ],
           ),
         );
@@ -208,7 +249,7 @@ class DashboardShell extends ConsumerWidget {
           ),
           body: Row(
             children: [
-              if (!isMobile) rail,
+              if (!isMobile) navMenu,
               if (!isMobile) const VerticalDivider(width: 1),
               Expanded(
                 child: AnimatedSwitcher(
@@ -249,4 +290,65 @@ int _selectedIndexFor(String location, List<NavItem> items, UserRole? role) {
     if (location == p || location.startsWith('$p/')) return i;
   }
   return 0;
+}
+
+/// Entrée du menu : header de section ou item de navigation
+class _NavEntry {
+  final String? header;
+  final NavItem? item;
+
+  const _NavEntry.header(this.header) : item = null;
+  const _NavEntry.item(this.item) : header = null;
+}
+
+/// Ordre canonique des ids (sans dashboard en début car géré à part)
+const _opsIds = ['receptions', 'sorties', 'cours'];
+const _stockIds = ['stocks', 'citernes', 'stocks-adjustments'];
+const _govIds = ['logs', 'integrity'];
+
+bool _isGovernanceRole(UserRole? role) =>
+    role != null &&
+    (role == UserRole.admin || role == UserRole.directeur || role == UserRole.pca);
+
+/// Construit la liste ordonnée des entrées menu (headers + items) à afficher.
+List<_NavEntry> _buildNavEntries(UserRole? role, List<NavItem> items) {
+  final byId = {for (final it in items) it.id: it};
+  final entries = <_NavEntry>[];
+
+  // Accueil
+  final dashboard = byId['dashboard'];
+  if (dashboard != null) {
+    entries.add(_NavEntry.item(dashboard));
+  }
+
+  // OPÉRATIONS
+  entries.add(const _NavEntry.header('OPÉRATIONS'));
+  for (final id in _opsIds) {
+    final it = byId[id];
+    if (it != null) entries.add(_NavEntry.item(it));
+  }
+
+  // Gestion de stock
+  entries.add(const _NavEntry.header('Gestion de stock'));
+  for (final id in _stockIds) {
+    final it = byId[id];
+    if (it != null) entries.add(_NavEntry.item(it));
+  }
+
+  // GOUVERNANCE (admin, directeur, pca only)
+  if (_isGovernanceRole(role)) {
+    entries.add(const _NavEntry.header('GOUVERNANCE'));
+    for (final id in _govIds) {
+      final it = byId[id];
+      if (it != null) entries.add(_NavEntry.item(it));
+    }
+  }
+
+  return entries;
+}
+
+/// Retourne true si la location correspond à l'item
+bool _isSelected(String location, NavItem item, UserRole? role) {
+  final p = effectivePath(item, role);
+  return location == p || location.startsWith('$p/');
 }
