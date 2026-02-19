@@ -8,7 +8,18 @@
 
 ## Contexte
 
-ML_PP est en exploitation production sur https://monaluxe.app. La Phase 1 (monitoring Niveau 0 + Niveau 1) est déployée (UptimeRobot, Sentry). La Phase 2 vise l’**industrialisation** et l’**observabilité métier** sans expansion fonctionnelle.
+ML_PP est en exploitation production sur https://monaluxe.app. La Phase 1 (monitoring Niveau 0 + Niveau 1) est déployée (UptimeRobot, Sentry). La Phase 2 vise l'**industrialisation** et l'**observabilité métier** sans expansion fonctionnelle.
+
+---
+
+## État d'avancement — Livrables réalisés (STAGING)
+
+- **Action 1 (v_integrity_checks) : DONE en STAGING**
+  - Script : `staging/sql/phase2/phase2_01_v_integrity_checks.sql`
+  - Contrat : `docs/db/v_integrity_checks_contract.md`
+  - Vue : `public.v_integrity_checks`
+  - Validation : exécutable en STAGING, 1 alerte CDR_ARRIVE_STALE pertinente, pas de bruit sur les autres checks.
+  - **STAGING-first** : promotion PROD uniquement après PR + validation formelle.
 
 ---
 

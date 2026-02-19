@@ -15,16 +15,18 @@
 
 ---
 
-## Action 1 — Vue SQL v_integrity_checks (DOC uniquement)
+## Action 1 — Vue SQL v_integrity_checks (DOC + STAGING-first) ✅ DONE
 
 | Élément | Détail |
 |---------|--------|
-| **Objectif** | Documenter la spec d’une vue SQL agrégée des contrôles d’intégrité métier (stock négatif, snapshots manquants, etc.) |
-| **Livrables doc** | Fichier `docs/db/spec_v_integrity_checks.md` décrivant colonnes, sources, règles |
-| **Livrables tech** | Aucun (DOC uniquement à ce stade) |
+| **Objectif** | Vue SQL agrégée des contrôles d'intégrité métier (stock négatif, surcapacité, CDR stale, écarts réception/sortie 15°C) |
+| **Livrables doc** | `docs/db/v_integrity_checks_contract.md` (colonnes, sources, règles V1) |
+| **Livrables tech** | `staging/sql/phase2/phase2_01_v_integrity_checks.sql` — Vue `public.v_integrity_checks` (STAGING uniquement) |
 | **Owner** | [À assigner] |
 | **Dépendances** | Aucune |
-| **Done** | Spec validée et versionnée |
+| **Done** | Vue exécutable en STAGING + validation "pas de bruit" (ex. 1 alerte CDR_ARRIVE_STALE pertinente, 0 sur A/B/D/E) |
+
+**Règles V1 incluses** : STOCK_NEGATIF (CRITICAL), STOCK_OVER_CAPACITY (CRITICAL), CDR_ARRIVE_STALE (WARN), RECEPTION_ECART_15C (WARN), SORTIE_ECART_15C (WARN). Promotion PROD après PR + validation formelle.
 
 ---
 
