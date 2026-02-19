@@ -59,7 +59,48 @@ Une ligne par couple `(check_code, entity_type, entity_id)`. Le job de sync fera
 
 ## Mise à jour de last_detected_at
 
-Le job de synchronisation (patch 2.2) mettra à jour `last_detected_at` à chaque passage lorsque l’anomalie est toujours présente dans la vue. Si l’anomalie disparaît de la vue, le job pourra soit laisser la ligne en place (pour historique), soit la marquer RESOLVED — à définir dans la spec du job.
+Le job de synchronisation (patch 2.2) met à jour `last_detected_at` à chaque passage lorsque l'anomalie est toujours présente dans la vue.
+
+---
+
+## Sync job semantics (Patch 2.2)
+
+Fonction : `public.sync_system_alerts_from_integrity(p_limit int DEFAULT 200)`.
+
+### Upsert
+
+Pour chaque ligne de `v_integrity_checks` (LIMIT p_limit) :
+
+- **INSERT** si aucune ligne n'existe pour `(check_code, entity_type, entity_id)`.
+- **UPDATE** si la ligne existe : `severity`, `message`, `payload`, `last_detected_at` = now().
+- Ne jamais modifier `first_detected_at` après création.
+- Si statut existant = ACK : conserver `acknowledged_by`, `acknowledged_at`.
+
+### Reopen (RESOLVED → OPEN)
+
+Si une alerte est en RESOLVED et que la vérification réapparaît dans la vue :
+
+- `status` = 'OPEN'
+- `resolved_by`, `resolved_at` = NULL
+- `acknowledged_by`, `acknowledged_at` = NULL (nouveau cycle)
+- Mise à jour de `severity`, `message`, `payload`, `last_detected_at` = now()
+
+### Auto-resolve
+
+Toute alerte en OPEN ou ACK dont `(check_code, entity_type, entity_id)` n'est plus présent dans le snapshot courant :
+
+- `status` = 'RESOLVED'
+- `resolved_by` = NULL (résolution système)
+- `resolved_at` = now()
+- Aucune suppression de lignes.
+
+### p_limit
+
+Par défaut 200. Limite le nombre de lignes prises en compte dans `v_integrity_checks` à chaque exécution.
+
+### Scheduler
+
+Pas de cron/pg_cron dans ce patch. La fonction est appelée manuellement ou par un job externe.
 
 ---
 
@@ -75,8 +116,14 @@ Pas de politique pour `anon`.
 
 ## Rollback (STAGING)
 
+Table (Patch 2.1) :
 ```sql
 DROP TABLE IF EXISTS public.system_alerts CASCADE;
+```
+
+Fonction sync (Patch 2.2) :
+```sql
+DROP FUNCTION IF EXISTS public.sync_system_alerts_from_integrity(int);
 ```
 
 Ne pas supprimer les fonctions partagées (`public.update_updated_at_column`, `app_*`).
