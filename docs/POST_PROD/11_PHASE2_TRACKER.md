@@ -35,7 +35,7 @@
 | Patch | Description | Artifacts | Statut |
 |-------|-------------|-----------|--------|
 | 2.1 | DOC + SQL STAGING | `docs/db/spec_system_alerts.md`, `staging/sql/phase2/phase2_02_system_alerts.sql` | TODO |
-| 2.2 | Job de sync (v_integrity_checks → system_alerts) | `spec_job_integrity_evaluation.md`, migration SQL | TODO |
+| 2.2 | Job de sync (v_integrity_checks → system_alerts) | `staging/sql/phase2/phase2_03_system_alerts_sync.sql` | DONE |
 | 2.3 | UI workflow ACK/RESOLVE | Flutter (IntegrityChecksScreen, repository) | TODO |
 
 **PR** : placeholder (à créer pour 2.1 après validation STAGING).
