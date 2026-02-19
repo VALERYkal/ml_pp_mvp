@@ -21,6 +21,12 @@ Mettre en place une surveillance "industrielle" progressive, sans surdimensionne
   - [docs/02_RUNBOOKS/MONITORING_ALERTING.md](../02_RUNBOOKS/MONITORING_ALERTING.md)
 
 ## À faire ensuite (Phase 2)
-- Monitoring métier (invariants SQL)
+
+### Monitoring métier — Implémenté partiellement
+- **v_integrity_checks** : vue SQL temps réel des anomalies (stock négatif, surcapacité, CDR stale, écarts 15°C). Source de vérité pour détection.
+- **system_alerts** : couche de persistance et workflow (OPEN → ACK → RESOLVED). Alimentée par le job de sync (patch séparé). Permet ACK/RESOLVE par admin/directeur.
+- **Écran Integrity Checks** : exploitable en PROD, lit aujourd’hui `v_integrity_checks`. Une future évolution lira `system_alerts` et proposera les actions ACK/RESOLVE.
+
+### À documenter
 - Monitoring backend/sécurité (RLS/5xx/latence)
 - Mini "cockpit santé" interne (option post Phase 2)
