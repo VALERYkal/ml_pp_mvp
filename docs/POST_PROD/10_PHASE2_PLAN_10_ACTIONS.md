@@ -31,16 +31,17 @@
 
 ---
 
-## Action 2 — Table system_alerts (DOC uniquement)
+## Action 2 — Table system_alerts (persistence + workflow)
 
 | Élément | Détail |
 |---------|--------|
-| **Objectif** | Documenter la spec d’une table `system_alerts` pour persister les alertes générées par le job d’évaluation |
-| **Livrables doc** | Fichier `docs/db/spec_system_alerts.md` (colonnes, contraintes, index) |
-| **Livrables tech** | Aucun (DOC uniquement à ce stade) |
+| **Objectif** | Persister les alertes intégrité avec workflow OPEN → ACK → RESOLVED via `public.system_alerts` |
+| **Livrables doc** | `docs/db/spec_system_alerts.md` (schéma, workflow, RLS, rollback) |
+| **Livrables tech** | `staging/sql/phase2/phase2_02_system_alerts.sql` — table, index, RLS, trigger updated_at |
+| **Approche** | STAGING-first puis PROD avec backup. Sync job séparé (Patch 2.2). |
 | **Owner** | [À assigner] |
-| **Dépendances** | Aucune |
-| **Done** | Spec validée et versionnée |
+| **Dépendances** | Action 1 (v_integrity_checks) |
+| **Done** | Spec validée, SQL STAGING exécuté et validé |
 
 ---
 
@@ -57,16 +58,22 @@
 
 ---
 
-## Action 4 — Écran intégrité système (DOC uniquement)
+## Action 4 — Écran intégrité système (DOC + IMPLEMENTATION) ✅ DONE
 
 | Élément | Détail |
 |---------|--------|
-| **Objectif** | Documenter le design d’un écran Flutter « Intégrité système » affichant les alertes actives et l’état des contrôles |
-| **Livrables doc** | Fichier `docs/app/spec_ecran_integrite_systeme.md` (routes, rôles, wireframes) |
-| **Livrables tech** | Aucun (DOC uniquement à ce stade) |
-| **Owner** | [À assigner] |
-| **Dépendances** | Actions 1, 2, 3 |
-| **Done** | Spec validée et versionnée |
+| **Statut** | DONE (DOC + IMPLEMENTATION) |
+| **Objectif** | Écran Flutter d'observabilité métier basé sur `public.v_integrity_checks` |
+| **Livrables doc** | `docs/app/spec_ecran_integrite_systeme.md` |
+| **Livrables tech** | UI Flutter + Repository + Riverpod + Tests |
+| **Route** | `/governance/integrity` |
+| **Rôles** | admin, directeur, pca |
+| **Sorting** | CRITICAL > WARN |
+| **Limit** | 200 |
+| **DB Mutation** | None |
+| **Conformité** | Conforme stratégie Phase 2 |
+| **PR** | #71 |
+| **Tag** | checkpoint-phase2-integrity-ui-2026-02-19 |
 
 ---
 
@@ -150,6 +157,6 @@
 
 ## Interdictions
 
-- **lib/** : aucun changement autorisé dans cette Phase 2 (DOC uniquement).
-- **test/** : aucun changement autorisé.
+- **lib/** : interdiction levée pour Action 4 validée.
+- **test/** : interdiction levée pour Action 4 validée.
 - **Migrations SQL** : aucune migration ni trigger ni RLS à modifier dans le cadre de ce plan DOC.

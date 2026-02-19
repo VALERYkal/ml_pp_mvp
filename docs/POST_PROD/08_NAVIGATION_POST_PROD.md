@@ -59,6 +59,21 @@ Navigation maximum : 2 niveaux.
 
 ---
 
+## SECTION 6 — GOUVERNANCE
+
+### Integrity Checks
+Route: /governance/integrity
+
+Accès:
+- admin
+- directeur
+- pca (lecture seule)
+
+Objectif:
+Observabilité métier (stock négatif, CDR stale, etc.)
+
+---
+
 # 3. Accès transversal
 
 ## Depuis une fiche :

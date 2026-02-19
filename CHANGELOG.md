@@ -2,7 +2,37 @@
 
 Ce fichier documente les changements notables du projet **ML_PP MVP**, conformément aux bonnes pratiques de versionnage sémantique.
 
-## [Unreleased] — 2026-02-12
+## [Unreleased]
+
+## 2026-02-19 — Phase 2 Integrity Observability (PR #71)
+
+### Added
+- Integrity Checks UI (read-only) — route `/governance/integrity`
+- Governance navigation section (admin, directeur, pca)
+- Repository + Riverpod pattern for `v_integrity_checks`
+- Filters: severity (ALL / CRITICAL / WARN)
+- Filter: entity_type
+- Counters (TOTAL / CRITICAL / WARN)
+- JSON payload detail dialog with copy-to-clipboard
+- Limit 200 results, sorted CRITICAL > WARN
+
+### Documentation
+- `docs/POST_PROD/INTEGRITY_RUNBOOK.md`
+- Phase 2 Tracker updated (Action 4 → DONE)
+- Phase 2 Plan aligned (Action 4 delivered)
+- Monitoring & Alerting updated (observability métier)
+
+### Governance
+- No DB mutation
+- No RLS change
+- No production flow modification
+- Fully compliant with Phase 2 strategy
+
+Tag: `checkpoint-phase2-integrity-ui-2026-02-19`
+
+---
+
+## 2026-02-12
 
 ### Security
 - Activation / validation RLS sur table `stocks_adjustments`

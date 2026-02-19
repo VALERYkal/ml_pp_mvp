@@ -21,5 +21,8 @@
 - [09 — Phase 2 Stratégie](09_PHASE2_STRATEGIE.md)
 - [10 — Phase 2 Plan 10 Actions](10_PHASE2_PLAN_10_ACTIONS.md)
 - [11 — Phase 2 Tracker](11_PHASE2_TRACKER.md)
+- [Integrity Runbook](INTEGRITY_RUNBOOK.md)
+- [Spec Écran Intégrité](../app/spec_ecran_integrite_systeme.md)
+- [Spec system_alerts](../db/spec_system_alerts.md)
 
 ## 6. À venir
