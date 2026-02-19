@@ -23,6 +23,23 @@ ML_PP est en exploitation production sur https://monaluxe.app. La Phase 1 (monit
 
 ---
 
+## État d'avancement — PROD
+
+### Action 1 — v_integrity_checks
+Statut : DEPLOYED (PROD)
+
+- STAGING validation completed
+- Full backup PROD created:
+  - prod_pre_phase2_integrity_20260219_1342_full.dump
+  - prod_pre_phase2_integrity_20260219_1343_schema.dump
+- View created successfully
+- Post-deployment check:
+  - 5 WARN (CDR_ARRIVE_STALE)
+  - 0 CRITICAL
+- No operational impact
+
+---
+
 ## Objectif
 
 Mettre en place les fondations pour une exploitation industrielle : invariants métier surveillés, traçabilité des releases, sécurité renforcée, discipline de déploiement. Aucune nouvelle fonctionnalité métier (exclure Préparation Finance, SBLC, factures, paiements).

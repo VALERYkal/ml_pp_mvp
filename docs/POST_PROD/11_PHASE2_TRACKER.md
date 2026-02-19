@@ -8,7 +8,7 @@
 
 | ID | Action | Axe | Priorité | Statut | Owner | PR/Commit | Date début | Date fin | Notes |
 |----|--------|-----|----------|--------|-------|-----------|------------|----------|-------|
-| 1 | Vue SQL v_integrity_checks | 1 | P1 | DONE (STAGING) | — | — | — | — | voir Evidence ci-dessous |
+| 1 | Vue SQL v_integrity_checks | 1 | P1 | DONE (STAGING + PROD) | — | — | — | — | voir Evidence ci-dessous |
 | 2 | Table system_alerts (DOC) | 1 | P1 | TODO | — | — | — | — | |
 | 3 | Job périodique d'évaluation (DOC) | 1 | P1 | TODO | — | — | — | — | |
 | 4 | Écran intégrité système (DOC) | 1 | P2 | TODO | — | — | — | — | |
@@ -21,18 +21,25 @@
 
 **Légende Statut** : TODO | IN_PROGRESS | DONE | BLOCKED
 
-### Action 1 — Evidence (DONE STAGING)
+### Action 1 — Evidence (DONE STAGING + PROD)
 - **Script** : `staging/sql/phase2/phase2_01_v_integrity_checks.sql`
 - **Contrat** : `docs/db/v_integrity_checks_contract.md`
 - **Vue** : `public.v_integrity_checks`
-- **Validation** : `select check_code, count(*) from public.v_integrity_checks group by check_code` — 1 alerte CDR_ARRIVE_STALE pertinente, 0 bruit sur STOCK_NEGATIF / STOCK_OVER_CAPACITY / RECEPTION_ECART_15C / SORTIE_ECART_15C.
+- **Risk** : Low
+- **Rollback** : `DROP VIEW public.v_integrity_checks`
+- **Validation STAGING** : 1 alerte CDR_ARRIVE_STALE pertinente, 0 bruit sur STOCK_NEGATIF / STOCK_OVER_CAPACITY / RECEPTION_ECART_15C / SORTIE_ECART_15C.
 - **Next** : Action 2 (system_alerts persistence) reste TODO.
+
+### PROD Validation Snapshot
+- CDR_ARRIVE_STALE: 5
+- No critical alerts
+- Backup validated
 
 ---
 
 ## Checkpoint actuel
 
-Phase 2 : Action 1 (v_integrity_checks) DONE en STAGING. Script `staging/sql/phase2/phase2_01_v_integrity_checks.sql`, contrat `docs/db/v_integrity_checks_contract.md`. Prochaine étape : Action 2 (system_alerts). Promotion PROD uniquement après PR + validation formelle.
+Phase 2 : Action 1 (v_integrity_checks) DONE en STAGING et PROD. Vue `public.v_integrity_checks` déployée. Backup PROD validé. Deployment log : `docs/POST_PROD/12_PHASE2_PROD_DEPLOY_LOG.md`. Prochaine étape : Action 2 (system_alerts).
 
 ---
 

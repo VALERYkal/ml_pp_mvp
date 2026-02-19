@@ -17,6 +17,7 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 - docs: add monitoring & alerting runbook (UptimeRobot + Sentry Phase 1)
 - docs: add Phase 2 strategy, plan 10 actions, tracker (industrialisation)
 - db: add v_integrity_checks (Phase 2 Action 1, STAGING-first) + contract doc
+- db: deploy v_integrity_checks to PROD (Phase 2 Action 1) after validated backup
 - Passage officiel à injection via `--dart-define`
 - Standardisation build Web avec SUPABASE_URL + SUPABASE_ANON_KEY
 - Validation déploiement Firebase Hosting

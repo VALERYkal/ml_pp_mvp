@@ -15,18 +15,19 @@
 
 ---
 
-## Action 1 — Vue SQL v_integrity_checks (DOC + STAGING-first) ✅ DONE
+## Action 1 — Vue SQL v_integrity_checks (DOC + STAGING + PROD) ✅ DONE
 
 | Élément | Détail |
 |---------|--------|
+| **Statut** | DONE (STAGING) — DONE (PROD) |
 | **Objectif** | Vue SQL agrégée des contrôles d'intégrité métier (stock négatif, surcapacité, CDR stale, écarts réception/sortie 15°C) |
 | **Livrables doc** | `docs/db/v_integrity_checks_contract.md` (colonnes, sources, règles V1) |
-| **Livrables tech** | `staging/sql/phase2/phase2_01_v_integrity_checks.sql` — Vue `public.v_integrity_checks` (STAGING uniquement) |
+| **Livrables tech** | `staging/sql/phase2/phase2_01_v_integrity_checks.sql` — Vue `public.v_integrity_checks` (STAGING + PROD) |
 | **Owner** | [À assigner] |
 | **Dépendances** | Aucune |
-| **Done** | Vue exécutable en STAGING + validation "pas de bruit" (ex. 1 alerte CDR_ARRIVE_STALE pertinente, 0 sur A/B/D/E) |
+| **Done** | Vue exécutable en STAGING + validation "pas de bruit" ; Production deployment completed ; Deployment log : `docs/POST_PROD/12_PHASE2_PROD_DEPLOY_LOG.md` |
 
-**Règles V1 incluses** : STOCK_NEGATIF (CRITICAL), STOCK_OVER_CAPACITY (CRITICAL), CDR_ARRIVE_STALE (WARN), RECEPTION_ECART_15C (WARN), SORTIE_ECART_15C (WARN). Promotion PROD après PR + validation formelle.
+**Règles V1 incluses** : STOCK_NEGATIF (CRITICAL), STOCK_OVER_CAPACITY (CRITICAL), CDR_ARRIVE_STALE (WARN), RECEPTION_ECART_15C (WARN), SORTIE_ECART_15C (WARN).
 
 ---
 
