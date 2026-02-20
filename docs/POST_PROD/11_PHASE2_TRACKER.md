@@ -35,10 +35,16 @@
 | Patch | Description | Artifacts | Statut |
 |-------|-------------|-----------|--------|
 | 2.1 | DOC + SQL STAGING | `docs/db/spec_system_alerts.md`, `staging/sql/phase2/phase2_02_system_alerts.sql` | TODO |
-| 2.2 | Job de sync (v_integrity_checks → system_alerts) | `staging/sql/phase2/phase2_03_system_alerts_sync.sql` | DONE |
-| 2.3 | UI workflow ACK/RESOLVE | Flutter (IntegrityChecksScreen, repository) | TODO |
+| 2.2 | Job de sync (v_integrity_checks → system_alerts) | `staging/sql/phase2/phase2_03_system_alerts_sync.sql` | MERGED (PR #73) |
+| 2.3 | STAGING execution proof | — | DONE |
+| 2.4 | UI workflow ACK/RESOLVE | Flutter (IntegrityChecksScreen, repository) | TODO |
 
-**PR** : placeholder (à créer pour 2.1 après validation STAGING).
+**Proof (STAGING)** :
+- system_alerts créée après sync (OPEN count = 1)
+- Idempotence confirmée (first_detected_at stable, last_detected_at mis à jour)
+- Auto-resolve confirmé via FAKE_CHECK → RESOLVED (resolved_by NULL)
+
+**PR** : 2.2 merged via PR #73.
 
 ### PROD Validation Snapshot
 - CDR_ARRIVE_STALE: 5

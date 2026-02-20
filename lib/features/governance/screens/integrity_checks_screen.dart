@@ -4,15 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/models/user_role.dart';
+import '../../../features/profil/providers/profil_provider.dart';
 import '../../../shared/utils/date_formatter.dart';
 import '../domain/integrity_check.dart';
 import '../providers/integrity_providers.dart';
 
 enum _SeverityFilter { all, critical, warn }
 
-/// Écran read-only — Integrity Checks (Phase 2)
-/// Source: public.v_integrity_checks via IntegrityRepository + Riverpod.
-/// Filtres côté client, détail enrichi, copie payload.
+/// Écran Integrity Checks (Phase 2)
+/// Source: public.system_alerts. Workflow ACK/RESOLVE pour admin/directeur.
 class IntegrityChecksScreen extends ConsumerStatefulWidget {
   const IntegrityChecksScreen({super.key});
 
@@ -23,6 +24,7 @@ class IntegrityChecksScreen extends ConsumerStatefulWidget {
 
 class _IntegrityChecksScreenState extends ConsumerState<IntegrityChecksScreen> {
   _SeverityFilter _severityFilter = _SeverityFilter.all;
+  String? _loadingAlertId;
 
   String? get _severityFilterToNullableString {
     return switch (_severityFilter) {
@@ -45,7 +47,7 @@ class _IntegrityChecksScreenState extends ConsumerState<IntegrityChecksScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final async = ref.watch(integrityChecksProvider);
+    final async = ref.watch(integrityAlertsProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -54,7 +56,7 @@ class _IntegrityChecksScreenState extends ConsumerState<IntegrityChecksScreen> {
           IconButton(
             tooltip: 'Rafraîchir',
             icon: const Icon(Icons.refresh),
-            onPressed: () => ref.invalidate(integrityChecksProvider),
+            onPressed: () => ref.invalidate(integrityAlertsProvider),
           ),
         ],
       ),
@@ -73,7 +75,7 @@ class _IntegrityChecksScreenState extends ConsumerState<IntegrityChecksScreen> {
                 ),
                 const SizedBox(height: 16),
                 FilledButton.icon(
-                  onPressed: () => ref.invalidate(integrityChecksProvider),
+                  onPressed: () => ref.invalidate(integrityAlertsProvider),
                   icon: const Icon(Icons.refresh),
                   label: const Text('Réessayer'),
                 ),
@@ -236,9 +238,15 @@ class _IntegrityChecksScreenState extends ConsumerState<IntegrityChecksScreen> {
               itemCount: filtered.length,
               itemBuilder: (context, index) {
                 final check = filtered[index];
+                final role = ref.watch(userRoleProvider);
+                final canMutate = role == UserRole.admin ||
+                    role == UserRole.directeur;
                 return _IntegrityCheckTile(
                   check: check,
                   onTap: () => _showDetailDialog(context, check),
+                  onAck: canMutate ? () => _onAck(context, check) : null,
+                  onResolve: canMutate ? () => _onResolve(context, check) : null,
+                  isLoading: _loadingAlertId == check.id,
                 );
               },
             ),
@@ -252,6 +260,46 @@ class _IntegrityChecksScreenState extends ConsumerState<IntegrityChecksScreen> {
       context: context,
       builder: (ctx) => _IntegrityDetailDialog(check: check),
     );
+  }
+
+  Future<void> _onAck(BuildContext context, IntegrityCheck check) async {
+    if (_loadingAlertId != null) return;
+    setState(() => _loadingAlertId = check.id);
+    try {
+      await ref.read(integrityRepositoryProvider).ackAlert(check.id);
+      if (!context.mounted) return;
+      ref.invalidate(integrityAlertsProvider);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Alerte acquittée')),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _loadingAlertId = null);
+    }
+  }
+
+  Future<void> _onResolve(BuildContext context, IntegrityCheck check) async {
+    if (_loadingAlertId != null) return;
+    setState(() => _loadingAlertId = check.id);
+    try {
+      await ref.read(integrityRepositoryProvider).resolveAlert(check.id);
+      if (!context.mounted) return;
+      ref.invalidate(integrityAlertsProvider);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Alerte résolue')),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _loadingAlertId = null);
+    }
   }
 }
 
@@ -289,10 +337,16 @@ class _CountChip extends StatelessWidget {
 class _IntegrityCheckTile extends StatelessWidget {
   final IntegrityCheck check;
   final VoidCallback onTap;
+  final VoidCallback? onAck;
+  final VoidCallback? onResolve;
+  final bool isLoading;
 
   const _IntegrityCheckTile({
     required this.check,
     required this.onTap,
+    this.onAck,
+    this.onResolve,
+    this.isLoading = false,
   });
 
   Color _severityColor(BuildContext context) {
@@ -311,6 +365,61 @@ class _IntegrityCheckTile extends StatelessWidget {
     return Icons.info_outline;
   }
 
+  Widget? _buildTrailing(BuildContext context) {
+    final actions = <Widget>[];
+    if (onAck != null && check.canAck) {
+      actions.add(
+        FilledButton.tonal(
+          onPressed: isLoading ? null : onAck,
+          style: FilledButton.styleFrom(
+            visualDensity: VisualDensity.compact,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+          ),
+          child: const Text('ACK'),
+        ),
+      );
+    }
+    if (onResolve != null && check.canResolve) {
+      actions.add(
+        FilledButton(
+          onPressed: isLoading ? null : onResolve,
+          style: FilledButton.styleFrom(
+            visualDensity: VisualDensity.compact,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            foregroundColor: Theme.of(context).colorScheme.onError,
+          ),
+          child: const Text('RESOLVE'),
+        ),
+      );
+    }
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (actions.isNotEmpty) ...actions,
+        const SizedBox(width: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: _severityColor(context).withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: _severityColor(context).withValues(alpha: 0.5),
+            ),
+          ),
+          child: Text(
+            check.isResolved ? 'RESOLVED' : check.severity,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: _severityColor(context),
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListTile(
@@ -324,23 +433,7 @@ class _IntegrityCheckTile extends StatelessWidget {
         style: Theme.of(context).textTheme.titleSmall,
       ),
       subtitle: Text(check.message),
-      trailing: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: _severityColor(context).withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: _severityColor(context).withValues(alpha: 0.5),
-          ),
-        ),
-        child: Text(
-          check.severity,
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: _severityColor(context),
-                fontWeight: FontWeight.w600,
-              ),
-        ),
-      ),
+      trailing: _buildTrailing(context),
       onTap: onTap,
     );
   }
@@ -366,10 +459,11 @@ class _IntegrityDetailDialog extends StatelessWidget {
           children: [
             _DetailRow(label: 'check_code', value: check.checkCode),
             _DetailRow(label: 'severity', value: check.severity),
+            _DetailRow(label: 'status', value: check.status),
             _DetailRow(label: 'entity_type', value: check.entityType),
             _DetailRow(label: 'entity_id', value: check.entityId),
             _DetailRow(
-              label: 'detected_at',
+              label: 'last_detected_at',
               value: DateFormatter.formatDateTime(check.detectedAt),
             ),
             const SizedBox(height: 12),
