@@ -2,19 +2,19 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../domain/integrity_check.dart';
 
-/// Repository read-only pour public.v_integrity_checks.
-/// Aucune écriture DB.
+/// Repository pour public.system_alerts (source intégrité avec workflow ACK/RESOLVE).
 class IntegrityRepository {
   final SupabaseClient client;
 
   IntegrityRepository(this.client);
 
-  /// Récupère les checks d'intégrité (limit 200 par défaut).
-  /// Tri côté Dart : severity CRITICAL > WARN, puis detected_at DESC.
-  Future<List<IntegrityCheck>> fetchIntegrityChecks({int limit = 200}) async {
+  /// Récupère les alertes (limit 200).
+  /// Tri: severity CRITICAL > WARN, puis last_detected_at DESC.
+  Future<List<IntegrityCheck>> fetchAlerts({int limit = 200}) async {
     final response = await client
-        .from('v_integrity_checks')
+        .from('system_alerts')
         .select()
+        .order('last_detected_at', ascending: false)
         .limit(limit);
 
     final rows = response as List<dynamic>;
@@ -32,5 +32,29 @@ class IntegrityRepository {
     });
 
     return list;
+  }
+
+  /// ACK une alerte.
+  Future<void> ackAlert(String id) async {
+    final uid = client.auth.currentUser?.id;
+    if (uid == null) throw StateError('Utilisateur non connecté');
+
+    await client.from('system_alerts').update({
+      'status': 'ACK',
+      'acknowledged_at': DateTime.now().toUtc().toIso8601String(),
+      'acknowledged_by': uid,
+    }).eq('id', id);
+  }
+
+  /// RESOLVE une alerte.
+  Future<void> resolveAlert(String id) async {
+    final uid = client.auth.currentUser?.id;
+    if (uid == null) throw StateError('Utilisateur non connecté');
+
+    await client.from('system_alerts').update({
+      'status': 'RESOLVED',
+      'resolved_at': DateTime.now().toUtc().toIso8601String(),
+      'resolved_by': uid,
+    }).eq('id', id);
   }
 }

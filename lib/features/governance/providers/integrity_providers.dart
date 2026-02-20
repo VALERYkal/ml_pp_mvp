@@ -11,17 +11,20 @@ final integrityRepositoryProvider =
   return IntegrityRepository(client);
 });
 
-/// Liste des checks d'intégrité (limit 200, tri CRITICAL > WARN > detected_at desc).
-final integrityChecksProvider =
+/// Liste des alertes (limit 200, tri CRITICAL > WARN > last_detected_at desc).
+final integrityAlertsProvider =
     riverpod.FutureProvider.autoDispose<List<IntegrityCheck>>((ref) async {
   final repo = ref.watch(integrityRepositoryProvider);
-  return repo.fetchIntegrityChecks(limit: 200);
+  return repo.fetchAlerts(limit: 200);
 });
 
-/// Comptages CRITICAL et WARN dérivés de integrityChecksProvider.
+/// Alias pour compatibilité.
+final integrityChecksProvider = integrityAlertsProvider;
+
+/// Comptages CRITICAL et WARN dérivés de integrityAlertsProvider.
 final integrityCountsProvider =
     riverpod.Provider.autoDispose<({int critical, int warn})>((ref) {
-  final async = ref.watch(integrityChecksProvider);
+  final async = ref.watch(integrityAlertsProvider);
   return async.when(
     data: (list) => (
       critical: list.where((c) => c.isCritical).length,

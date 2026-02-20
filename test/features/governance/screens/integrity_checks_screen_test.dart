@@ -1,25 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ml_pp_mvp/core/models/user_role.dart';
 import 'package:ml_pp_mvp/features/governance/domain/integrity_check.dart';
 import 'package:ml_pp_mvp/features/governance/providers/integrity_providers.dart';
 import 'package:ml_pp_mvp/features/governance/screens/integrity_checks_screen.dart';
+import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart';
 
 IntegrityCheck _createCheck({
   required String checkCode,
   required String severity,
+  String id = 'test-id-1',
+  String status = 'OPEN',
   String entityType = 'CDR',
   String entityId = 'id-1',
   String message = 'Test message',
   Map<String, dynamic>? payload,
 }) {
   return IntegrityCheck(
+    id: id,
     checkCode: checkCode,
     severity: severity,
     entityType: entityType,
     entityId: entityId,
     message: message,
     payload: payload ?? {},
+    status: status,
     detectedAt: DateTime(2025, 2, 6, 10, 0, 0),
   );
 }
@@ -34,7 +40,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            integrityChecksProvider.overrideWith((ref) async => []),
+            integrityAlertsProvider.overrideWith((ref) async => []),
           ],
           child: const MaterialApp(
             home: IntegrityChecksScreen(),
@@ -68,7 +74,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            integrityChecksProvider.overrideWith((ref) async => [
+            integrityAlertsProvider.overrideWith((ref) async => [
                   criticalCheck,
                   warnCheck,
                 ]),
@@ -93,7 +99,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            integrityChecksProvider.overrideWith((ref) async => []),
+            integrityAlertsProvider.overrideWith((ref) async => []),
           ],
           child: const MaterialApp(
             home: IntegrityChecksScreen(),
@@ -129,7 +135,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            integrityChecksProvider.overrideWith((ref) async => [
+            integrityAlertsProvider.overrideWith((ref) async => [
                   criticalCheck,
                   warnCheck,
                 ]),
@@ -173,7 +179,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            integrityChecksProvider.overrideWith((ref) async => [
+            integrityAlertsProvider.overrideWith((ref) async => [
                   cdrCheck,
                   stockCheck,
                 ]),
@@ -207,7 +213,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            integrityChecksProvider.overrideWith((ref) async => [check]),
+            integrityAlertsProvider.overrideWith((ref) async => [check]),
           ],
           child: const MaterialApp(
             home: IntegrityChecksScreen(),
@@ -225,6 +231,81 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Copié'), findsOneWidget);
+    });
+
+    testWidgets('ACK bouton visible pour admin', (tester) async {
+      final check = _createCheck(
+        checkCode: 'TEST',
+        severity: 'WARN',
+        status: 'OPEN',
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            integrityAlertsProvider.overrideWith((ref) async => [check]),
+            userRoleProvider.overrideWith((ref) => UserRole.admin),
+          ],
+          child: const MaterialApp(
+            home: IntegrityChecksScreen(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('ACK'), findsOneWidget);
+      expect(find.text('RESOLVE'), findsOneWidget);
+    });
+
+    testWidgets('ACK bouton visible pour directeur', (tester) async {
+      final check = _createCheck(
+        checkCode: 'TEST',
+        severity: 'WARN',
+        status: 'OPEN',
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            integrityAlertsProvider.overrideWith((ref) async => [check]),
+            userRoleProvider.overrideWith((ref) => UserRole.directeur),
+          ],
+          child: const MaterialApp(
+            home: IntegrityChecksScreen(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('ACK'), findsOneWidget);
+      expect(find.text('RESOLVE'), findsOneWidget);
+    });
+
+    testWidgets('Pas de boutons ACK/RESOLVE pour PCA', (tester) async {
+      final check = _createCheck(
+        checkCode: 'TEST',
+        severity: 'WARN',
+        status: 'OPEN',
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            integrityAlertsProvider.overrideWith((ref) async => [check]),
+            userRoleProvider.overrideWith((ref) => UserRole.pca),
+          ],
+          child: const MaterialApp(
+            home: IntegrityChecksScreen(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('ACK'), findsNothing);
+      expect(find.text('RESOLVE'), findsNothing);
     });
   });
 }
