@@ -65,7 +65,7 @@
 
 **Checklist** :
 - [ ] Doc package créé (ce PR)
-- [ ] Backup PROD effectué
+- [x] Backup PROD effectué : `backups/prod_pre_astm53b_20260221_2253_data.dump` (pré-requis avant BLOC 2 — moteur ASTM 53B)
 - [ ] Golden dataset capturé (20–30 cas) + suite de tests verte
 - [ ] Rapport de simulation approuvé (8 réceptions)
 - [ ] Migration exécutée + rebuild stock fait
