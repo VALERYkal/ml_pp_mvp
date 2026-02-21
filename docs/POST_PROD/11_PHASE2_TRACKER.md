@@ -84,6 +84,12 @@ Phase 2 : Action 1 (v_integrity_checks) DONE ; Action 2 (system_alerts + workflo
 
 ---
 
+## Note — Statut README (Feb 2026)
+
+Le README racine a été mis à jour : reclassification "Industriel NO-GO" → "Industriel opérationnel" suite au RLS hardening (0 policy `{public}`). Références : [RUNBOOK_RLS_HARDENING.md](RUNBOOK_RLS_HARDENING.md), [PHASE2_TECH_DEBT.md](PHASE2_TECH_DEBT.md).
+
+---
+
 ## Règles d'update
 
 À chaque PR ou commit lié à la Phase 2 :

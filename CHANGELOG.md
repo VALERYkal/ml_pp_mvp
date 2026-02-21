@@ -4,6 +4,12 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 
 ## [Unreleased]
 
+### Documentation
+- **Docs** : Reclassification industrial status after RLS hardening (PR #75, 7297c7c)
+- **Docs** : Industrial maturity table + history in README (Phase Initiale → Transition → Opérationnel)
+
+---
+
 ### ✨ Phase 2 — Governance ACK/RESOLVE Workflow (Feb 2026)
 
 #### Added
