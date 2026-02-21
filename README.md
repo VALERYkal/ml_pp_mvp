@@ -3,26 +3,53 @@
 **Objectif** : Application de gestion logistique pétrolière pour Monaluxe  
 **Stack technique** : Flutter + Supabase + Riverpod + GoRouter + Clean Architecture
 
-> ⚠️ **SPRINT EN COURS (31/12/2025) :** Finalisation production industrielle  
-> 📋 [Sprint Prod-Ready 10-15 jours](docs/SPRINT_PROD_READY_2025-12-31.md) | [Suivi](docs/SUIVI_SPRINT_PROD_READY.md)
+---
 
-**Objectif Sprint :** ML_PP MVP déployable en production industrielle auditée
+## 📊 Statut Global — Industrial Maturity (Feb 2026)
 
-**Avancement :** 0/11 tickets (0%)
-- 🔴 AXE A (DB-STRICT) : 0/3
-- 🔴 AXE B (Tests DB) : 0/2
-- 🔴 AXE C (Sécurité) : 0/2
-- 🟡 AXE D (Stabilisation) : 0/4
+- GO PROD official (tag `go-prod-2026-01`)
+- E2E business flow validated: CDR → Réception → Stock → Sortie
+- Canonical stock source: `v_stock_actuel`
+- Front live: https://monaluxe.app
+- CI green (PR + Nightly)
+- RLS hardening complete: 0 `{public}` policies
 
-**Verdict actuel :**
-- 🟢 **Fonctionnel : GO** (production interne contrôlée)
-- 🔴 **Industriel : NO-GO** (chantiers P0 requis : 7-10j)
+## 🏗️ Maturité Industrielle — Évaluation Structurée
 
-**Décision :**
-- ✅ GO production interne contrôlée
-- ❌ NO-GO production industrielle auditée (points 1-6 requis)
+| Domaine | Statut | Niveau |
+|---------|--------|--------|
+| Flux métier DB | Validé & Trigger-unified | 🟢 Stable |
+| Sécurité RLS | 0 policy `{public}` | 🟢 Hardened |
+| Exposition ANON REST | Neutralisée | 🟢 Secure |
+| Gouvernance Git | PR obligatoire + CI verte | 🟢 Industriel |
+| Documentation | Traçable & versionnée | 🟢 Mature |
+| Infra Front | Firebase + SSL + DNS propre | 🟢 Stable |
+| Tests Flutter | Majoritairement isolés | 🟡 Avancé |
+| Tests DB triggers | Partiellement automatisés | 🟡 En consolidation |
+| Guardrails CI sécurité | Non encore implémentés | 🟡 À implémenter |
+| Monitoring métier | Phase 2 en cours | 🟡 En progression |
 
-📋 **[Voir le rapport complet →](docs/RAPPORT_SYNTHESE_PRODUCTION_2025-12-31.md)**
+## 🎯 Conclusion Officielle
+
+- 🟢 **Industriel opérationnel**
+- 🟡 Industrialisation avancée en cours (Automation & Monitoring)
+- Aucune dette critique connue à date de ce checkpoint.
+
+## 📈 Historique de Maturité Industrielle
+
+### 🔴 Phase Initiale — "Industriel : NO-GO" (Jan 2026)
+
+Verdict conservative, orienté audit. Les axes A–D (DB-STRICT, Tests DB, Sécurité, Stabilisation) restaient ouverts. Risque identifié : policies `{public}` + exposition potentielle ANON REST.
+
+📋 Rapport d'époque : [docs/90_ARCHIVE/RAPPORT_SYNTHESE_PRODUCTION_2025-12-31.md](docs/90_ARCHIVE/RAPPORT_SYNTHESE_PRODUCTION_2025-12-31.md)
+
+### 🟡 Phase Transition — RLS Hardening (21 Feb 2026)
+
+Audit STAGING + PROD ; migration `{public}` → `{authenticated}` ; curl ANON retourne vide sur tables sensibles. Documenté et mergé (PR #75, commit 7297c7c).
+
+### 🟢 Phase Actuelle — Industriel Opérationnel (Late Feb 2026)
+
+État actuel : RLS durci, front en exploitation. Restant : guardrails CI sécurité, automatisation tests DB triggers, monitoring métier Phase 2.
 
 ---
 

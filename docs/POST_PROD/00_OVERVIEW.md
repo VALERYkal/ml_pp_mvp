@@ -39,3 +39,5 @@ Faire évoluer ML_PP vers une plateforme ERP pétrolière modulaire :
 - **Constat** : Audit RLS a révélé des policies `roles = {public}` (dont `SELECT true`) → exposition possible via ANON REST (clé ANON embarquée dans le front Flutter Web).
 - **Résultat** : STAGING et PROD durcis — **0 policy `{public}`** restante. Fuites critiques corrigées (ex. `stocks_journaliers`, `citernes`). Toute policy cible désormais `authenticated` (ou rôles explicites) avec conditions.
 - **Docs** : `docs/POST_PROD/RUNBOOK_RLS_HARDENING.md`, `12_PHASE2_PROD_DEPLOY_LOG.md` (Entry 2). Standard post-prod : **aucune policy publique** ; revue obligatoire pour toute nouvelle policy.
+
+**Statut README** : Mis à jour (fév 2026) — passage de "Industriel NO-GO" à "Industriel opérationnel" suite au RLS hardening. Voir `README.md` sections « Statut Global », « Maturité Industrielle », « Historique ». Références : [RUNBOOK_RLS_HARDENING.md](RUNBOOK_RLS_HARDENING.md), [PHASE2_TECH_DEBT.md](PHASE2_TECH_DEBT.md).
