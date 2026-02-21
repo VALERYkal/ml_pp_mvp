@@ -2,7 +2,10 @@
 
 ## Contexte
 ML_PP (Monaluxe Petrol Platform) est en PROD EN EXPLOITATION depuis le 2026-02-05.
+URL active : https://monaluxe.app
 Le socle logistique est validé et ne doit pas être modifié.
+
+**Dernière évolution majeure (Feb 2026)** : Phase 2 Action 2 — Governance Integrity avec cycle de vie des alertes (OPEN → ACK → RESOLVED), table `public.system_alerts`, UI enrichie. Dette technique documentée dans `docs/POST_PROD/PHASE2_TECH_DEBT.md`.
 
 ## Règle absolue
 Toute évolution doit être classée dans une catégorie POST-PROD :
@@ -28,3 +31,11 @@ Faire évoluer ML_PP vers une plateforme ERP pétrolière modulaire :
 - Logistique (socle existant)
 - Contractuel & financier (nouveaux modules)
 - Contrôle (écarts, litiges, audit)
+
+---
+
+## RLS Hardening — Feb 2026
+
+- **Constat** : Audit RLS a révélé des policies `roles = {public}` (dont `SELECT true`) → exposition possible via ANON REST (clé ANON embarquée dans le front Flutter Web).
+- **Résultat** : STAGING et PROD durcis — **0 policy `{public}`** restante. Fuites critiques corrigées (ex. `stocks_journaliers`, `citernes`). Toute policy cible désormais `authenticated` (ou rôles explicites) avec conditions.
+- **Docs** : `docs/POST_PROD/RUNBOOK_RLS_HARDENING.md`, `12_PHASE2_PROD_DEPLOY_LOG.md` (Entry 2). Standard post-prod : **aucune policy publique** ; revue obligatoire pour toute nouvelle policy.
