@@ -103,16 +103,16 @@
 
 ---
 
-## Action 7 — Audit RLS complet (DOC uniquement)
+## Action 7 — Audit RLS complet + Hardening (0 public policies) ✅ DONE
 
 | Élément | Détail |
 |---------|--------|
-| **Objectif** | Documenter l’audit RLS de toutes les tables sensibles : politiques par rôle, revue des trous, recommandations |
-| **Livrables doc** | Fichier `docs/db/security/AUDIT_RLS_COMPLET.md` ou mise à jour de `docs/db/policies.md` |
-| **Livrables tech** | Aucun (DOC uniquement à ce stade) |
-| **Owner** | [À assigner] |
-| **Dépendances** | Aucune |
-| **Done** | Audit documenté et validé |
+| **Statut** | DONE (2026-02-21) |
+| **Objectif** | Documenter l’audit RLS de toutes les tables sensibles : éliminer toute policy `{public}` (notamment `SELECT true`) pour supprimer l'exposition via ANON REST |
+| **Livrables doc** | `docs/POST_PROD/RUNBOOK_RLS_HARDENING.md` ; Entry 2 dans `12_PHASE2_PROD_DEPLOY_LOG.md` ; standard "0 public policies" dans stratégie/plan. |
+| **Livrables tech** | RLS uniquement : DROP/migration policies (STAGING puis PROD). Aucune mutation de données. |
+| **Résultat** | STAGING et PROD : `count(public policies) = 0`. Fuites ANON corrigées (ex. stocks_journaliers, citernes). |
+| **Done** | Audit exécuté ; hardening appliqué ; runbook et déploiement log à jour. |
 
 ---
 

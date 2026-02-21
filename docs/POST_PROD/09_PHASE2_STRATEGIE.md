@@ -98,3 +98,9 @@ La Phase 2 est validée comme priorité post-PROD. Exécution progressive, docum
 - **Contrats DB** : Aucune modification destructive des schémas, vues ou RLS existants sans validation formelle. Les ajouts (nouvelles tables, vues) sont autorisés tant qu’ils ne cassent pas les contrats en place.
 - **Tests** : Aucune suppression de tests. Les ajouts de tests sont encouragés.
 - **Déploiement** : Le script officiel `tools/release_web_prod.sh` et le runbook `docs/02_RUNBOOKS/DEPLOY_WEB_PROD_RUNBOOK.md` restent la référence.
+
+## Standard sécurité RLS — 0 policy publique (Feb 2026)
+
+- **Décision** : Aucune policy RLS ne doit avoir `roles = {public}`. Toute policy doit cibler `authenticated` (ou rôles explicites) avec une condition métier ou technique (jamais `SELECT true` pour public).
+- **Raison** : La clé ANON est exposée dans le front (Flutter Web). Une policy `{public}` avec `SELECT true` permet l'accès en lecture (voire écriture) sans authentification via REST.
+- **Revue** : Toute nouvelle migration ou modification RLS doit être revue pour ne pas réintroduire de policy `public`. Un check automatique (CI ou script) est recommandé pour bloquer la réintroduction de policies `{public}` (voir `docs/POST_PROD/RUNBOOK_RLS_HARDENING.md`).

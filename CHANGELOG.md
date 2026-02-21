@@ -4,6 +4,34 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 
 ## [Unreleased]
 
+### ✨ Phase 2 — Governance ACK/RESOLVE Workflow (Feb 2026)
+
+#### Added
+- Alert lifecycle states: OPEN / ACK / RESOLVED
+- Role-gated mutations (admin/directeur only) sur écran Integrity Checks
+- Trigger `system_alerts_set_actor` pour auto-fill acknowledged_at, acknowledged_by, resolved_at, resolved_by
+- Boutons ACK / RESOLVE dans l'écran Governance Integrity
+
+#### Changed
+- Integrity Checks UI mise à jour avec boutons de cycle de vie
+- Écran Governance enrichi (source: `public.system_alerts` au lieu de `v_integrity_checks`)
+
+#### Known Issues
+- `acknowledged_by` pas systématiquement renseigné
+- UI ne rafraîchit pas toujours l'état de l'alerte après mutation
+- Policy RLS : devrait comparer `user_id` au lieu de `id`
+
+---
+
+### 🔒 Security / Governance — RLS Hardening (Feb 2026)
+- **Audit RLS** : Table-by-table audit revealed policies with `roles = {public}` (including dangerous `SELECT true`) → possible exposure via ANON REST (front embeds ANON key).
+- **Protocol** : STAGING-first (fix + validate), then PROD (audit + fix). One action at a time; curl ANON tests to prove exposure/closure. No data-destructive changes — RLS policies only (DROP/CREATE).
+- **STAGING** : Dropped/migrated all `{public}` policies; migrated 14 conditional policies to `{authenticated}` (profils, cours_de_route, prises_de_hauteur, sorties_produit, stocks_journaliers). Final: `count(public policies) = 0`.
+- **PROD** : Fixed critical leaks — dropped `read stocks_journaliers` and `read citernes` (both `{public} SELECT true`). Migrated remaining `{public}` → `{authenticated}`. Final: `count(public policies) = 0`; curl ANON on `stocks_journaliers` and `citernes` returns `[]`.
+- **Docs** : `docs/POST_PROD/RUNBOOK_RLS_HARDENING.md`, `12_PHASE2_PROD_DEPLOY_LOG.md` (RLS entry), Phase 2 Tracker Action 7 → DONE, standard "0 public policies" in strategy/plan.
+
+---
+
 ## 2026-02-19 — Phase 2 Integrity Observability (PR #71)
 
 ### Added
