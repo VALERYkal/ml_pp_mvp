@@ -61,3 +61,5 @@ Faire évoluer ML_PP vers une plateforme ERP pétrolière modulaire :
 **STOP gate** : Aucune modification DB avant backup complet et rapport de simulation validé.
 
 **Runbook** : [RUNBOOK_VOLUMETRICS_ASTM_53B_MIGRATION.md](RUNBOOK_VOLUMETRICS_ASTM_53B_MIGRATION.md)
+
+**Backup PROD 2026-02-21** : `backups/prod_pre_astm53b_20260221_2253_data.dump` — Snapshot de référence avant migration du calcul volume@15°C vers ASTM 53B (réceptions GASOIL).
