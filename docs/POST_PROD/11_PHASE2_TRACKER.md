@@ -55,6 +55,30 @@
 - No critical alerts
 - Backup validated
 
+---
+
+## PROD Operation — ASTM 53B Volumetric Migration
+
+**Statut** : IN PROGRESS — PRE-BACKUP DOC
+
+**Runbook** : [RUNBOOK_VOLUMETRICS_ASTM_53B_MIGRATION.md](RUNBOOK_VOLUMETRICS_ASTM_53B_MIGRATION.md)
+
+**Checklist** :
+- [ ] Doc package créé (ce PR)
+- [ ] Backup PROD effectué
+- [ ] Golden dataset capturé (20–30 cas) + suite de tests verte
+- [ ] Rapport de simulation approuvé (8 réceptions)
+- [ ] Migration exécutée + rebuild stock fait
+- [ ] Sorties dégelées
+- [ ] Vérification post-migration (spot checks vs app ASTM)
+
+**Risk / Notes** :
+- Ne pas valider de sorties pendant l'opération.
+- Aucune mise à jour silencieuse ; logger l'événement global.
+- Sémantique : `densite_a_15` est un misnomer actuel (stocke la densité observée, pas la densité@15).
+
+---
+
 ### Action 7 — Evidence (DONE — RLS Hardening Feb 2026)
 - **Objectif** : Audit RLS + élimination des policies `{public}` (exposition ANON).
 - **STAGING** : DROP/migration policies `{public}` (log_actions, stocks_journaliers, citernes, puis 14 policies conditionnelles → `authenticated`). Vérif : count(public) = 0.

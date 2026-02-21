@@ -30,3 +30,22 @@
 
 - Déploiement : Entry 3 — `docs/POST_PROD/12_PHASE2_PROD_DEPLOY_LOG.md`
 - Tracker : Action 2 — `docs/POST_PROD/11_PHASE2_TRACKER.md`
+
+---
+
+## 🧨 TECH-DEBT — Volumetric Standardization
+
+### Problème identifié
+
+- **Misnomer** : `densite_a_15` stocke actuellement la densité **observée** (ambiant), pas la densité@15.
+- **Manque** : Pas de champs explicites pour `observed_density`, `computed_density_at_15`, `VCF` ; pas de support Volume@20.
+
+### Évolution prévue
+
+- Renommer / clarifier `densite_a_15` (densité observée vs densité@15).
+- Introduire explicitement : `observed_density`, `computed_density_at_15`, `VCF`.
+- Ajouter support Volume@20 si besoin métier.
+
+### Contexte
+
+- Migration ASTM 53B en cours : [RUNBOOK_VOLUMETRICS_ASTM_53B_MIGRATION.md](RUNBOOK_VOLUMETRICS_ASTM_53B_MIGRATION.md)
