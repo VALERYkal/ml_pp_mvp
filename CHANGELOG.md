@@ -7,6 +7,7 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 ### Documentation
 - **Docs** : Reclassification industrial status after RLS hardening (PR #75, 7297c7c)
 - **Docs** : Industrial maturity table + history in README (Phase Initiale → Transition → Opérationnel)
+- **Docs** : Runbook et entrée tracker pour migration volumétrique PROD ASTM 53B (pre-backup)
 
 ---
 

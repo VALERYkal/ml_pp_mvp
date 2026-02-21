@@ -41,3 +41,23 @@ Faire évoluer ML_PP vers une plateforme ERP pétrolière modulaire :
 - **Docs** : `docs/POST_PROD/RUNBOOK_RLS_HARDENING.md`, `12_PHASE2_PROD_DEPLOY_LOG.md` (Entry 2). Standard post-prod : **aucune policy publique** ; revue obligatoire pour toute nouvelle policy.
 
 **Statut README** : Mis à jour (fév 2026) — passage de "Industriel NO-GO" à "Industriel opérationnel" suite au RLS hardening. Voir `README.md` sections « Statut Global », « Maturité Industrielle », « Historique ». Références : [RUNBOOK_RLS_HARDENING.md](RUNBOOK_RLS_HARDENING.md), [PHASE2_TECH_DEBT.md](PHASE2_TECH_DEBT.md).
+
+---
+
+## PROD Operation — Volumetric Migration to ASTM 53B (Gasoil)
+
+**Constat** : Écart volumétrique confirmé entre ML_PP et l'app terrain ASTM : ~50–70 L par opération sur GASOIL. L'app terrain (ASTM 53B) fournit densité observée + température → densité@15 + VCF.
+
+**Risque** : Cumul financier, prévention litiges facturation. Aucune facture fournisseur émise à ce jour ; aucun paiement engagé.
+
+**Statut opérationnel** : **SORTIES FREEZE** en exploitation contrôlée jusqu'à completion de la migration. Deux sorties prévues aujourd'hui dépendent du stock actuel → opérations gelées.
+
+**Périmètre** : GASOIL uniquement ; 8 réceptions depuis début du mois ; 2 citernes ; chronologie validée, aucune édition post-validation.
+
+**Stratégie choisie** : Industriel strict — ML_PP devient la source officielle du calcul volumétrique (moteur ASTM en Dart, résultats stockés en DB avec garde-fous).
+
+**Plan général** : Backup → Validation moteur → Simulation (8 réceptions) → Migration DB → Rebuild stock → Reprise opérations.
+
+**STOP gate** : Aucune modification DB avant backup complet et rapport de simulation validé.
+
+**Runbook** : [RUNBOOK_VOLUMETRICS_ASTM_53B_MIGRATION.md](RUNBOOK_VOLUMETRICS_ASTM_53B_MIGRATION.md)
