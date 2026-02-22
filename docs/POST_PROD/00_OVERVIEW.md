@@ -63,3 +63,5 @@ Faire évoluer ML_PP vers une plateforme ERP pétrolière modulaire :
 **Runbook** : [RUNBOOK_VOLUMETRICS_ASTM_53B_MIGRATION.md](RUNBOOK_VOLUMETRICS_ASTM_53B_MIGRATION.md)
 
 **Backup PROD 2026-02-21** : `backups/prod_pre_astm53b_20260221_2253_data.dump` — Snapshot de référence avant migration du calcul volume@15°C vers ASTM 53B (réceptions GASOIL).
+
+- **Moteur volumétrique ASTM 53B (Étape A)** : ajout d'un module core dédié (`lib/core/volumetrics/astm53b_engine.dart`) avec API stable (densité observée + température + volume observé → densité@15, VCF, volume@15) et tests unitaires taggés `astm53b`. À ce stade, le moteur lève encore un `UnimplementedError` : aucune formule ASTM n'est utilisée en PROD tant que les golden cases et les tolérances n'ont pas été validés.

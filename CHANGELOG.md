@@ -6,6 +6,7 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 
 ### Added
 - Backup PROD pré-migration ASTM 53B : `backups/prod_pre_astm53b_20260221_2253_data.dump`
+- Moteur volumétrique ASTM 53B (squelette) ajouté dans `lib/core/volumetrics/astm53b_engine.dart` avec tests dédiés (`test/core/volumetrics/astm53b_engine_test.dart`), prêt pour l'implémentation des formules et des golden tests.
 
 ### Documentation
 - **Docs** : Reclassification industrial status after RLS hardening (PR #75, 7297c7c)

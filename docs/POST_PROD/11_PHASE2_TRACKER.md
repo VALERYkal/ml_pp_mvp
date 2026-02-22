@@ -66,6 +66,7 @@
 **Checklist** :
 - [ ] Doc package créé (ce PR)
 - [x] Backup PROD effectué : `backups/prod_pre_astm53b_20260221_2253_data.dump` (pré-requis avant BLOC 2 — moteur ASTM 53B)
+- [x] BLOC 2 / Étape A — Squelette moteur ASTM 53B : `lib/core/volumetrics/astm53b_engine.dart` + `test/core/volumetrics/astm53b_engine_test.dart` (tests taggés `astm53b`). Moteur non implémenté (UnimplementedError) ; aucune incidence PROD.
 - [ ] Golden dataset capturé (20–30 cas) + suite de tests verte
 - [ ] Rapport de simulation approuvé (8 réceptions)
 - [ ] Migration exécutée + rebuild stock fait

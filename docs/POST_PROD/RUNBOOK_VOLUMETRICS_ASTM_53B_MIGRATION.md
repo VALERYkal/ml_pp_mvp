@@ -54,6 +54,12 @@
 - Créer un jeu de tests golden (20–30 cas) validés contre l'app ASTM ou des tableaux de référence.
 - **Cible** : Suite de tests verte avant simulation.
 
+#### BLOC 2 — Moteur ASTM 53B
+
+1. [x] **Étape A** — Créer le squelette du moteur volumétrique ASTM 53B en Dart pur (`lib/core/volumetrics/astm53b_engine.dart`) + tests unitaires taggés `astm53b` (`test/core/volumetrics/astm53b_engine_test.dart`), avec `DefaultAstm53bCalculator` qui lève `UnimplementedError`.
+2. [ ] **Étape B** — Définir les golden cases (réceptions PROD + app terrain) et les tolérances numériques.
+3. [ ] **Étape C** — Implémenter les formules ASTM 53B / API MPMS 11.1 et brancher le moteur dans le flux Réception.
+
 ### Phase 4 — Simulation Report (required)
 
 - Appliquer le moteur sur les 8 réceptions (mode simulation, sans écriture DB).
