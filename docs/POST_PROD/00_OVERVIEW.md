@@ -62,4 +62,8 @@ Faire évoluer ML_PP vers une plateforme ERP pétrolière modulaire :
 
 **Runbook** : [RUNBOOK_VOLUMETRICS_ASTM_53B_MIGRATION.md](RUNBOOK_VOLUMETRICS_ASTM_53B_MIGRATION.md)
 
+- **Étape B — Dataset golden ASTM 53B (créé)**  
+  Structure des cas de référence (`kAstm53bGoldenCases`) + test golden squelette.  
+  Aucun impact en production ; prépare la calibration moteur.
+
 **Backup PROD 2026-02-21** : `backups/prod_pre_astm53b_20260221_2253_data.dump` — Snapshot de référence avant migration du calcul volume@15°C vers ASTM 53B (réceptions GASOIL).

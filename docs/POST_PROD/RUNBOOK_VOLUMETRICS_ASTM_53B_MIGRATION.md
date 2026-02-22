@@ -86,6 +86,26 @@
 
 ---
 
+## BLOC 2 — Progression
+
+### Étape A — Squelette moteur ASTM 53B
+- Objectif : poser les types et le contrat (Astm53bInput, Astm53bResult, Astm53bCalculator).
+- Fichier : `lib/core/volumetrics/astm53b_engine.dart`
+- Statut : **terminé**.
+
+### Étape B — Dataset golden ASTM 53B
+- Objectif : créer la structure des cas de référence pour valider le moteur ASTM 53B.
+- Fichiers introduits :
+  - `lib/core/volumetrics/astm53b_golden_cases.dart`
+  - `test/core/volumetrics/astm53b_golden_test.dart`
+- Statut : **terminé**.
+- Remarque : Les valeurs golden sont temporaires ; calibration prévue Étape C.
+
+### Étape C — Calibration moteur
+- À faire : implémentation formule ASTM 53B + calibration sur cas terrain.
+
+---
+
 ## Acceptance Criteria
 
 - VCF matches field app within ±0,1 %.
