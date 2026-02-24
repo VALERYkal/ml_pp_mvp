@@ -149,3 +149,19 @@ If a legitimate use case requires a public policy (rare): recreate the policy wi
 ## 5. Governance Notes
 - Déploiement PROD validé
 - Dette technique identifiée et volontairement différée (voir PHASE2_TECH_DEBT.md)
+
+---
+
+# Entry 4 — ASTM53B infrastructure (flag + router) — 2026-02-24
+
+## 1. Metadata
+- **Date (UTC)** : 2026-02-24
+- **Environment** : N/A (code only, no PROD deploy)
+- **Change ID** : BLOC3-ASTM53B-Flag-Router
+
+## 2. Change Description
+- ASTM53B infrastructure added (flag + router).
+- No deployment impact.
+- No DB migration.
+- No runtime activation (flag disabled by default).
+- PR #86. Controlled activation strategy.

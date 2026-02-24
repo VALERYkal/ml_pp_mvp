@@ -104,3 +104,13 @@ La Phase 2 est validée comme priorité post-PROD. Exécution progressive, docum
 - **Décision** : Aucune policy RLS ne doit avoir `roles = {public}`. Toute policy doit cibler `authenticated` (ou rôles explicites) avec une condition métier ou technique (jamais `SELECT true` pour public).
 - **Raison** : La clé ANON est exposée dans le front (Flutter Web). Une policy `{public}` avec `SELECT true` permet l'accès en lecture (voire écriture) sans authentification via REST.
 - **Revue** : Toute nouvelle migration ou modification RLS doit être revue pour ne pas réintroduire de policy `public`. Un check automatique (CI ou script) est recommandé pour bloquer la réintroduction de policies `{public}` (voir `docs/POST_PROD/RUNBOOK_RLS_HARDENING.md`).
+
+---
+
+## BLOC 3 — ASTM53B Controlled Integration (2026-02-24)
+
+- **Étape 1** : Feature Flag — `lib/core/feature_flags/feature_flags.dart` ; flag `USE_ASTM53B_15C` (default: false). Controlled activation strategy.
+- **Étape 2** : Volume15C Router — `lib/core/volumetrics/volume15c_router.dart` ; fonction `computeVolume15c()`. Flag OFF → legacy (volumeAmbient) ; Flag ON → DefaultAstm53bCalculator.compute().
+- **Statut** : SAFE / NO PROD IMPACT. Aucun wiring Réception, aucune migration DB, aucun impact runtime (flag désactivé par défaut).
+- **Prochaine étape** : Wiring Réception (à venir).
+- **PR** : #86. CI verte (Flutter CI pull_request, push, nightly full suite).

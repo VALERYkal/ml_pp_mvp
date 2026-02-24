@@ -96,6 +96,12 @@
 - Aucune mise à jour silencieuse ; logger l'événement global.
 - Sémantique : `densite_a_15` est un misnomer actuel (stocke la densité observée, pas la densité@15).
 
+**BLOC 3 — Router + Feature Flag (2026-02-24)** :
+- Bloc 3 – Router intégré (Étape 1 & 2).
+- Feature Flag OFF par défaut.
+- CI verte (PR #86).
+- Aucun impact PROD.
+
 ---
 
 ### Action 7 — Evidence (DONE — RLS Hardening Feb 2026)
