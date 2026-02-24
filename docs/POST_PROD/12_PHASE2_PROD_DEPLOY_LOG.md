@@ -165,3 +165,18 @@ If a legitimate use case requires a public policy (rare): recreate the policy wi
 - No DB migration.
 - No runtime activation (flag disabled by default).
 - PR #86. Controlled activation strategy.
+
+---
+
+# Entry 5 — Décision stratégique – Norme volumétrique officielle (documentation) — 2026-02-24
+
+## 1. Metadata
+- **Date (UTC)** : 2026-02-24
+- **Environment** : N/A (documentation only, no deploy)
+- **Change ID** : Norme-Volumetrie-API-MPMS-11.1-2019
+
+## 2. Change Description
+- **Décision** : Adoption officielle API MPMS 11.1 (2019). ML_PP devient autorité volumétrique interne.
+- Fin de dépendance aux outils tiers comme référence normative ; migration progressive des calculs historiques si nécessaire.
+- Documentation normative : `docs/NORMES/VOLUMETRIE_API_MPMS_11_1_2019.md`.
+- Aucune modification moteur, logique ou PROD ; PR purement documentaire. Toute correction future devra être tracée et auditée.

@@ -8,6 +8,9 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 - Backup PROD pré-migration ASTM 53B : `backups/prod_pre_astm53b_20260221_2253_data.dump`
 - Dataset ASTM 53B (BLOC 2 — Étape B) : structure des golden cases (`astm53b_golden_cases.dart`) + test golden skeleton.
 - **BLOC 3 – Étape 1 & 2 (2026-02-24)** : Feature flag `USE_ASTM53B_15C` (default OFF) ; Volume15C router (`computeVolume15c()`) avec switch ASTM 53B ; tests unitaires routeur (OFF → legacy, ON → volume corrigé). PR #86. CI verte. Controlled activation strategy.
+- Adoption officielle de la norme volumétrique API MPMS 11.1 (2019).
+- ML_PP déclaré autorité volumétrique interne.
+- Documentation normative ajoutée dans `docs/NORMES/`.
 
 ### Documentation
 - **Docs** : Reclassification industrial status after RLS hardening (PR #75, 7297c7c)
@@ -18,6 +21,10 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 - No DB impact.
 - No PROD impact (flag disabled by default).
 - No Réception wiring ; no runtime activation until explicit opt-in.
+
+### Governance (Norme volumétrique officielle — 2026-02-24)
+- Interdiction de calibration empirique du moteur volumétrique.
+- Outils tiers (ex : SEP) considérés comme indicatifs uniquement.
 
 ---
 
