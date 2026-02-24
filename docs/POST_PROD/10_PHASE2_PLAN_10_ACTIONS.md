@@ -165,6 +165,17 @@
 
 ---
 
+## Décision stratégique – Norme volumétrique officielle
+
+**Date** : 24 février 2026  
+**Décision** : Adoption API MPMS 11.1 (2019)
+
+- ML_PP déclaré autorité volumétrique ; les actions et évolutions du moteur volumétrique s’alignent sur la norme (Table 54B, 15°C, arrondi au litre).
+- Aucune calibration empirique ni alignement sur outil tiers autorisé.
+- Migration progressive des calculs historiques si nécessaire ; toute évolution du moteur doit être tracée et documentée.
+
+---
+
 ## Interdictions
 
 - **lib/** : interdiction levée pour Action 4 validée.

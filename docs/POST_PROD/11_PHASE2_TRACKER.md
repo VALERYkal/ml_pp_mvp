@@ -127,6 +127,15 @@
 
 ---
 
+## Décision stratégique – Norme volumétrique officielle (2026-02-24)
+
+- **Date** : 24 février 2026. **Décision** : Adoption API MPMS 11.1 (2019).
+- ML_PP devient autorité volumétrique interne ; fin de dépendance normative aux outils tiers.
+- Migration progressive des calculs historiques si nécessaire ; toute correction future tracée et auditée.
+- Référence : `docs/NORMES/VOLUMETRIE_API_MPMS_11_1_2019.md`.
+
+---
+
 ## Checkpoint actuel
 
 Phase 2 : Action 1 (v_integrity_checks) DONE ; Action 2 (system_alerts + workflow ACK/RESOLVE) **DONE (PROD)** ; Action 4 (Écran intégrité système) DONE ; Action 7 (Audit RLS + hardening) DONE. Table `public.system_alerts` déployée avec trigger actor. UI Integrity Checks avec boutons ACK/RESOLVE en exploitation sur https://monaluxe.app. Dette technique documentée dans `docs/POST_PROD/PHASE2_TECH_DEBT.md`.

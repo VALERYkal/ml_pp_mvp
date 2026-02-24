@@ -92,6 +92,17 @@ La Phase 2 est validée comme priorité post-PROD. Exécution progressive, docum
 
 ---
 
+## Décision stratégique – Norme volumétrique officielle
+
+**Date** : 24 février 2026  
+**Décision** : Adoption API MPMS 11.1 (2019)
+
+- ML_PP devient autorité volumétrique interne ; fin de dépendance aux outils tiers comme référence normative.
+- Référence documentée : `docs/NORMES/VOLUMETRIE_API_MPMS_11_1_2019.md`.
+- Migration progressive des calculs historiques si nécessaire ; toute correction future devra être tracée et auditée.
+
+---
+
 ## Règles de non-régression
 
 - **GO PROD** : Les flux métier actuellement en production (réceptions, sorties, stocks, dashboard, cours de route) ne doivent pas être modifiés fonctionnellement.
