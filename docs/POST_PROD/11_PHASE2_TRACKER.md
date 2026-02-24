@@ -72,6 +72,19 @@
 - [ ] Sorties dégelées
 - [ ] Vérification post-migration (spot checks vs app ASTM)
 
+**BLOC 2 — Progression ASTM 53B** :
+
+| Étape | Description | Statut |
+|-------|--------------|--------|
+| A | Squelette moteur ASTM 53B (astm53b_engine.dart) | [x] Fait |
+| B | Dataset golden ASTM 53B (structure + tests) | [x] Fait |
+| C | Calibration moteur + formule ASTM 53B | [ ] À faire |
+
+**Notes Étape B** :
+- Fichier : `lib/core/volumetrics/astm53b_golden_cases.dart`
+- Test : `test/core/volumetrics/astm53b_golden_test.dart`
+- Valeurs encore placeholders ; calibration prévue Étape C.
+
 **Risk / Notes** :
 - Ne pas valider de sorties pendant l'opération.
 - Aucune mise à jour silencieuse ; logger l'événement global.
