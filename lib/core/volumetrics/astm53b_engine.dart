@@ -1,5 +1,7 @@
 // lib/core/volumetrics/astm53b_engine.dart
 
+import 'dart:math' as math;
+
 /// Moteur de calcul volumétrique selon ASTM 53B / API MPMS 11.1.
 ///
 /// Ce module est conçu pour :
@@ -12,12 +14,7 @@
 /// - Le terrain utilise ASTM 53B pour convertir en densité 15 °C et VCF
 /// - ML_PP doit produire les mêmes résultats (densité@15, VCF, volume@15)
 ///
-/// Cette première version ne contient PAS encore la formule ASTM 53B.
-/// On pose uniquement :
-/// - les types d'entrée/sortie
-/// - le contrat métier
-/// - les invariants
-/// L'implémentation réelle sera ajoutée dans une étape ultérieure.
+/// Implémentation Table 54B (produits raffinés, base 15°C).
 class Astm53bInput {
   /// Densité observée (à la température observée), en kg/m³.
   ///
@@ -94,26 +91,72 @@ abstract class Astm53bCalculator {
   /// - vcf > 0
   /// - volume15Liters = volumeObservedLiters * vcf (à un epsilon numérique près)
   ///
-  /// Pour l'instant, cette méthode n'est PAS implémentée et lèvera une erreur.
   Astm53bResult compute(Astm53bInput input);
 }
 
-/// Implémentation par défaut (placeholder) du calculateur ASTM 53B.
+/// Implémentation ASTM 53B / API MPMS 11.1 pour produits raffinés (GASOIL).
 ///
-/// ATTENTION : cette implémentation ne fait encore aucun calcul.
-/// Elle existe uniquement pour brancher le code applicatif et les tests.
-/// L'implémentation réelle sera ajoutée dans un commit ultérieur, une fois
-/// les cas "golden" et les tolérances définis.
+/// Formules Table 54B : VCF = exp(-α × dT × (1 + 0.8 × α × dT))
+/// avec α = (K0 + K1 × ρ15) / ρ15²
+/// Densité à 15°C : ρ15 = ρ_obs / VCF (itératif car α dépend de ρ15)
 class DefaultAstm53bCalculator implements Astm53bCalculator {
   const DefaultAstm53bCalculator();
 
+  /// Constantes Table 54B pour produits raffinés, densité ≥ 839 kg/m³ @ 15°C.
+  /// Source: ASTM D1250 / API MPMS 11.1 (1980).
+  static const double _k0 = 186.9696;
+  static const double _k1 = 0.48618;
+
   @override
   Astm53bResult compute(Astm53bInput input) {
-    // TODO(astm53b): implémenter la formule ASTM 53B / API MPMS 11.1.
-    // Pour le moment, on bloque explicitement pour éviter tout usage
-    // "approximatif" en PROD.
-    throw UnimplementedError(
-      'ASTM 53B engine not implemented yet. See BLOC 2 roadmap.',
+    final density15 = _densityAt15FromObservedB(
+      input.densityObservedKgPerM3,
+      input.temperatureObservedC,
+    );
+    final vcf = _vcfTo15B(density15, input.temperatureObservedC);
+    final volume15 = _round(
+      input.volumeObservedLiters * vcf,
+      0,
+    );
+    return Astm53bResult(
+      density15KgPerM3: density15,
+      vcf: vcf,
+      volume15Liters: volume15,
     );
   }
+
+  /// Densité à 15°C à partir de la densité observée (Table 53B/54B).
+  /// Itération : ρ15 = ρ_obs / VCF, avec VCF dépendant de ρ15.
+  double _densityAt15FromObservedB(double densityObs, double tempC) {
+    double density15 = densityObs;
+    for (var i = 0; i < 10; i++) {
+      final vcf = _vcfTo15B(density15, tempC);
+      final density15New = densityObs / vcf;
+      if ((density15New - density15).abs() < 0.0001) {
+        return density15New;
+      }
+      density15 = density15New;
+    }
+    return density15;
+  }
+
+  /// VCF vers 15°C (Table 54B) : VCF = exp(-α × dT × (1 + 0.8 × α × dT)).
+  double _vcfTo15B(double densityAt15KgM3, double tempC) {
+    final dT = tempC - 15.0;
+    final alpha = (_k0 + _k1 * densityAt15KgM3) /
+        (densityAt15KgM3 * densityAt15KgM3);
+    return _exp(-alpha * dT * (1 + 0.8 * alpha * dT));
+  }
+
+  /// Arrondi à [decimals] décimales.
+  double _round(double value, int decimals) {
+    if (decimals == 0) {
+      return value.roundToDouble();
+    }
+    final factor = _pow(10.0, decimals);
+    return (value * factor).round() / factor;
+  }
+
+  double _exp(double x) => math.exp(x);
+  double _pow(double x, int n) => math.pow(x, n).toDouble();
 }
