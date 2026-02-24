@@ -155,6 +155,16 @@
 
 ---
 
+## BLOC 3 — ASTM53B Controlled Integration
+
+| Élément | Détail |
+|---------|--------|
+| **[ ] Étape 3** | Réception wiring vers routeur |
+| **Statut** | NOT STARTED |
+| **Dépendance** | Validation dataset golden cases terrain |
+
+---
+
 ## Interdictions
 
 - **lib/** : interdiction levée pour Action 4 validée.
