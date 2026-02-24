@@ -66,7 +66,7 @@
 **Checklist** :
 - [ ] Doc package créé (ce PR)
 - [x] Backup PROD effectué : `backups/prod_pre_astm53b_20260221_2253_data.dump` (pré-requis avant BLOC 2 — moteur ASTM 53B)
-- [ ] Golden dataset capturé (20–30 cas) + suite de tests verte
+- [x] Golden dataset capturé (8 cas PROD SEP) + suite de tests verte
 - [ ] Rapport de simulation approuvé (8 réceptions)
 - [ ] Migration exécutée + rebuild stock fait
 - [ ] Sorties dégelées
@@ -78,12 +78,18 @@
 |-------|--------------|--------|
 | A | Squelette moteur ASTM 53B (astm53b_engine.dart) | [x] Fait |
 | B | Dataset golden ASTM 53B (structure + tests) | [x] Fait |
-| C | Calibration moteur + formule ASTM 53B | [ ] À faire |
+| C | Calibration moteur + formule ASTM 53B | [x] Fait (MERGED) |
 
 **Notes Étape B** :
 - Fichier : `lib/core/volumetrics/astm53b_golden_cases.dart`
 - Test : `test/core/volumetrics/astm53b_golden_test.dart`
 - Valeurs encore placeholders ; calibration prévue Étape C.
+
+**Notes Étape C** :
+- scope = 15°C only
+- golden = 8 cases SEP PROD
+- tests = green
+- tag = volumetrics-calibrated-15c-2026-02-24
 
 **Risk / Notes** :
 - Ne pas valider de sorties pendant l'opération.

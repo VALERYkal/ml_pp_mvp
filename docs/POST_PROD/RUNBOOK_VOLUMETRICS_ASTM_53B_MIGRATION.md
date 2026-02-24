@@ -102,7 +102,22 @@
 - Remarque : Les valeurs golden sont temporaires ; calibration prévue Étape C.
 
 ### Étape C — Calibration moteur
-- À faire : implémentation formule ASTM 53B + calibration sur cas terrain.
+- Objectif : implémentation formule ASTM 53B + calibration sur cas terrain.
+- Statut : **✅ DONE (MERGED)**.
+- Aucune intégration métier, aucune migration DB, aucun recalcul stock (pas encore).
+
+**Evidence / Proof** :
+- **Tag** : `volumetrics-calibrated-15c-2026-02-24`
+- **Commande de test** : `flutter test test/core/volumetrics/astm53b_engine_test.dart test/core/volumetrics/astm53b_golden_test.dart -r expanded`
+- **Golden dataset** : 8 cases GASOIL PROD (source SEP)
+
+---
+
+## Next (BLOC 3)
+
+- Intégration contrôlée via feature flag (OFF par défaut).
+- Plan migration DB : renommer `densite_a_15` / séparer densité observée vs densité@15.
+- Stratégie de rollout : staging d'abord.
 
 ---
 
