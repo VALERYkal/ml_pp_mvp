@@ -15,6 +15,17 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 
 ---
 
+### Volumetrics / ASTM 53B (15°C) — BLOC 2 (2026-02-24)
+
+- **Moteur** : Implémentation `DefaultAstm53bCalculator` (ASTM 53B / API MPMS 11.1) — correction à 15°C uniquement, pour produits raffinés.
+- **Dataset golden** : 8 cas PROD GASOIL (source : application SEP terrain).
+- **Tests** : Golden tests actifs, green ; tolérances validées (±0.1 kg/m³, ±0.00005 VCF, ±1 L).
+- **Impact** : Aucun changement DB, UI, providers ou recalcul stock.
+- **CI** : Suite verte.
+- **Tag** : `volumetrics-calibrated-15c-2026-02-24`
+
+---
+
 ### ✨ Phase 2 — Governance ACK/RESOLVE Workflow (Feb 2026)
 
 #### Added

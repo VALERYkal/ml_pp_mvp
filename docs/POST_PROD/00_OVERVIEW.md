@@ -67,3 +67,13 @@ Faire évoluer ML_PP vers une plateforme ERP pétrolière modulaire :
   Aucun impact en production ; prépare la calibration moteur.
 
 **Backup PROD 2026-02-21** : `backups/prod_pre_astm53b_20260221_2253_data.dump` — Snapshot de référence avant migration du calcul volume@15°C vers ASTM 53B (réceptions GASOIL).
+
+---
+
+## Volumetrics — ASTM 53B (15°C) — Calibrated
+
+- **Problème** : Écart 50–70 L / réception confirmé vs app terrain SEP.
+- **Livré** : Moteur 15°C (`DefaultAstm53bCalculator`), dataset golden 8 cas PROD GASOIL (source SEP), tests golden actifs et green.
+- **Non livré** : Aucune intégration métier, aucune migration DB, aucun recalcul stock.
+- **Tag** : `volumetrics-calibrated-15c-2026-02-24`
+- **Next step** : Block 3 = intégration contrôlée (feature-flag) puis migration DB après validation.
