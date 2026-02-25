@@ -45,7 +45,7 @@ class SortieService {
       'volume_ambiant': volumeAmbiant,
       'volume_corrige_15c': volume15c,
       'temperature_ambiante_c': temperature,
-      'densite_a_15': densite15,
+      'densite_a_15_kgm3': densite15,
       'proprietaire_type': 'MONALUXE',
       'statut': 'validee', // Le MVP valide directement
       if (dateSortie != null)
@@ -126,7 +126,7 @@ class SortieService {
       'volume_ambiant': volumeAmbiant,
       'volume_corrige_15c': volume15c,
       'temperature_ambiante_c': temperature,
-      'densite_a_15': densite15,
+      'densite_a_15_kgm3': densite15,
       'proprietaire_type': 'PARTENAIRE',
       'statut': 'validee', // Le MVP valide directement
       if (dateSortie != null)
@@ -237,7 +237,7 @@ class SortieService {
         'volume_ambiant': volumeAmbiant,
         'volume_corrige_15c': volume15c,
         'temperature_ambiante_c': temperatureCAmb,
-        'densite_a_15': densiteA15,
+        'densite_a_15_kgm3': densiteA15,
         'proprietaire_type': 'MONALUXE',
         'statut': 'validee',
         if (dateSortie != null)
@@ -309,7 +309,7 @@ class SortieService {
         'volume_ambiant': volumeAmbiant,
         'volume_corrige_15c': volume15c,
         'temperature_ambiante_c': temperatureCAmb,
-        'densite_a_15': densiteA15,
+        'densite_a_15_kgm3': densiteA15,
         'proprietaire_type': 'PARTENAIRE',
         'statut': 'validee',
         if (dateSortie != null)
