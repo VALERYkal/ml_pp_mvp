@@ -169,6 +169,7 @@ void main() {
     // - anon : utilisé pour TOUTES les écritures/RPC/ensure profil (avec JWT)
     // - serviceOrAnon : optionnel, pour SELECT uniquement
     final anon = staging.anonClient;
+    final serviceClient = staging.serviceClient!;
     final serviceOrAnon = staging.serviceClient ?? anon;
 
     final ids = FixtureIds.makeRunTag();
@@ -185,12 +186,12 @@ void main() {
     if (session == null) {
       throw StateError('[DB-TEST] Authentication failed: no session after ensureStagingAuth');
     }
+    final authedClient = anon;
     // ignore: avoid_print
     print('[DB-TEST] Authenticated: userId=${session.user.id}, email=${session.user.email}');
 
-    // 1) Seed: depot+produit+citerne + stock via reception (via anon pour que les triggers aient auth.uid())
-    // ⚠️ IMPORTANT : seedStockReady fait des INSERT (clients, receptions) qui nécessitent auth.uid()
-    await seedStockReady(client: anon, ids: ids);
+    // 1) Seed: depot+produit+citerne + stock via reception (via service_role pour bypass RLS)
+    await seedStockReady(client: serviceClient, ids: ids);
 
     // SELECT peut utiliser serviceOrAnon (optionnel, pour bypass RLS si nécessaire)
     // Calculer dateJourIso pour filtrer par date (YYYY-MM-DD)
@@ -265,7 +266,7 @@ void main() {
           'index_avant': 0,
           'index_apres': 500, // volume_ambiant = 500 via validate_sortie fallback
           'temperature_ambiante_c': 20,
-          'densite_a_15': 0.83,
+          'densite_a_15_kgm3': 830,
           'proprietaire_type': 'MONALUXE',
           'note': note,
           'statut': 'brouillon', // IMPORTANT: requis pour validate_sortie
@@ -280,9 +281,8 @@ void main() {
     // ignore: avoid_print
     print('[DB-TEST] Sortie inserted(brouillon): id=$sortieId statut=${inserted['statut']} created_by=${inserted['created_by']}');
 
-    // 5) Validate via anon RPC (authentifié avec JWT)
-    // ⚠️ IMPORTANT : RPC validate_sortie nécessite auth.uid() pour les triggers
-    await anon.rpc('validate_sortie', params: {'p_id': sortieId});
+    // 5) Validate via RPC (authentifié avec JWT)
+    await authedClient.rpc('validate_sortie', params: {'p_id': sortieId});
 
     // Relire la sortie après validation (SELECT peut utiliser service ou anon)
     final s1 = await anon
@@ -345,7 +345,7 @@ void main() {
           'index_avant': 0,
           'index_apres': tooMuch.toInt(),
           'temperature_ambiante_c': 20,
-          'densite_a_15': 0.83,
+          'densite_a_15_kgm3': 830,
           'proprietaire_type': 'MONALUXE',
           'note': 'TEST SORTIE REJECT ${ids.tag}',
           'statut': 'brouillon',
@@ -361,7 +361,7 @@ void main() {
     // validate_sortie must throw
     bool rejected = false;
     try {
-      await anon.rpc('validate_sortie', params: {'p_id': sortieId2});
+      await authedClient.rpc('validate_sortie', params: {'p_id': sortieId2});
     } on PostgrestException catch (e) {
       rejected = true;
       // ignore: avoid_print

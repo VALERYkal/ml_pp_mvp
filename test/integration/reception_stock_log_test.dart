@@ -85,7 +85,7 @@ void main() {
               'index_apres': 1000,
               'volume_corrige_15c': volume15c,
               'temperature_ambiante_c': 20,
-              'densite_a_15': 0.83,
+              'densite_a_15_kgm3': 830,
               'proprietaire_type': 'MONALUXE',
               'note': 'TEST ${ids.tag}',
               'volume_ambiant': volumeAmb,
