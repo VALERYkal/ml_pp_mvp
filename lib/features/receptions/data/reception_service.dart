@@ -142,7 +142,7 @@ class ReceptionService {
     if (densiteA15 == null) {
       throw ReceptionValidationException(
         'La densité à 15°C est obligatoire pour calculer le volume corrigé.',
-        field: 'densite_a_15',
+        field: 'densite_a_15_kgm3',
       );
     }
 
@@ -201,7 +201,7 @@ class ReceptionService {
       'volume_ambiant': volumeAmbiant,
       'temperature_ambiante_c':
           temperatureCAmb, // toujours présent (validation obligatoire)
-      'densite_a_15': densiteA15, // toujours présent (validation obligatoire)
+      'densite_a_15_kgm3': densiteA15, // toujours présent (validation obligatoire)
       'volume_corrige_15c':
           volumeCorrige15CFinal, // toujours calculé (non-null)
       'proprietaire_type': proprietaireTypeFinal,

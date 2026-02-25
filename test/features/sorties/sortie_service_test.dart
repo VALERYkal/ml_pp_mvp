@@ -204,7 +204,7 @@ void main() {
 
       // Vérifier les mesures
       expect(payload['temperature_ambiante_c'], equals(temperatureCAmb));
-      expect(payload['densite_a_15'], equals(densiteA15));
+      expect(payload['densite_a_15_kgm3'], equals(densiteA15));
 
       // Vérifier les volumes
       expect(
@@ -281,7 +281,7 @@ void main() {
         expect(payload['index_avant'], equals(indexAvant));
         expect(payload['index_apres'], equals(indexApres));
         expect(payload['temperature_ambiante_c'], equals(temperatureCAmb));
-        expect(payload['densite_a_15'], equals(densiteA15));
+        expect(payload['densite_a_15_kgm3'], equals(densiteA15));
         expect(payload['volume_ambiant'], equals(100.0)); // 150 - 50
         expect(payload['volume_corrige_15c'], equals(100.0));
         expect(payload['statut'], equals('validee'));

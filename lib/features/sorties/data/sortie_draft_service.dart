@@ -66,7 +66,7 @@ class SortieDraftService {
       'index_apres': input.indexApres,
       'volume_ambiant': volumeAmbiant,
       'temperature_ambiante_c': input.temperatureC,
-      'densite_a_15': input.densiteA15,
+      'densite_a_15_kgm3': input.densiteA15,
       'volume_corrige_15c': v15,
       'proprietaire_type': input.proprietaireType,
       'note': input.note,

@@ -2,6 +2,8 @@
 
 import 'dart:math' as math;
 
+import 'package:meta/meta.dart';
+
 /// Moteur de calcul volumétrique selon ASTM 53B / API MPMS 11.1.
 ///
 /// Ce module est conçu pour :
@@ -109,20 +111,31 @@ class DefaultAstm53bCalculator implements Astm53bCalculator {
 
   @override
   Astm53bResult compute(Astm53bInput input) {
+    if (input.volumeObservedLiters < 0) {
+      throw ArgumentError('volumeObservedLiters must be >= 0');
+    }
+    if (input.densityObservedKgPerM3 <= 0) {
+      throw ArgumentError('densityObservedKgPerM3 must be > 0');
+    }
+    if (input.temperatureObservedC < -50 || input.temperatureObservedC > 100) {
+      throw ArgumentError('temperatureObservedC out of supported range');
+    }
     final density15 = _densityAt15FromObservedB(
       input.densityObservedKgPerM3,
       input.temperatureObservedC,
     );
     final vcf = _vcfTo15B(density15, input.temperatureObservedC);
-    final volume15 = _round(
-      input.volumeObservedLiters * vcf,
-      0,
-    );
+    final volume15 = input.volumeObservedLiters * vcf;
     return Astm53bResult(
       density15KgPerM3: density15,
       vcf: vcf,
       volume15Liters: volume15,
     );
+  }
+
+  @visibleForTesting
+  double vcfFromDensity15(double density15KgPerM3, double temperatureObservedC) {
+    return _vcfTo15B(density15KgPerM3, temperatureObservedC);
   }
 
   /// Densité à 15°C à partir de la densité observée (Table 53B/54B).
@@ -140,11 +153,29 @@ class DefaultAstm53bCalculator implements Astm53bCalculator {
     return density15;
   }
 
+  double _alpha54B(double den15) {
+    if (den15 >= 839.0) {
+      // Zone 1
+      return (_k0 + _k1 * den15) / (den15 * den15);
+    }
+    if (den15 >= 778.0) {
+      // Zone 2
+      const k0 = 594.5418;
+      return k0 / (den15 * den15);
+    }
+    if (den15 >= 770.0) {
+      // Transition zone
+      const A = -0.0033612;
+      const B = 2680.32;
+      return A + (B / (den15 * den15));
+    }
+    throw ArgumentError('Density@15 out of Table 54B domain: $den15');
+  }
+
   /// VCF vers 15°C (Table 54B) : VCF = exp(-α × dT × (1 + 0.8 × α × dT)).
   double _vcfTo15B(double densityAt15KgM3, double tempC) {
     final dT = tempC - 15.0;
-    final alpha = (_k0 + _k1 * densityAt15KgM3) /
-        (densityAt15KgM3 * densityAt15KgM3);
+    final alpha = _alpha54B(densityAt15KgM3);
     return _exp(-alpha * dT * (1 + 0.8 * alpha * dT));
   }
 

@@ -481,7 +481,7 @@ void main() {
           throwsA(
             isA<ReceptionValidationException>()
                 .having((e) => e.message, 'message', contains('densité'))
-                .having((e) => e.field, 'field', equals('densite_a_15')),
+                .having((e) => e.field, 'field', equals('densite_a_15_kgm3')),
           ),
         );
       });

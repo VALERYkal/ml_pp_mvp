@@ -114,6 +114,10 @@ L'application Flutter ne peut jamais contourner les règles métier. Toute modif
 
 **Scope** : Patch limité à STAGING. En PROD, cette fonction est déjà patched ou utilise une autre mécanique autorisée.
 
+### Reset STAGING (CDR only) — prérequis optionnel
+
+Quand l'environnement STAGING est pollué (données de réceptions/sorties/stocks résiduelles), un **reset "CDR only"** peut être exécuté avant de relancer les tests B2.2. Le script [docs/DB_CHANGES/2026-02-25_staging_reset_cdr_only.sql](../DB_CHANGES/2026-02-25_staging_reset_cdr_only.sql) purge uniquement les tables de mouvement stock et préserve `cours_de_route`. Voir [docs/02_RUNBOOKS/staging.md](../02_RUNBOOKS/staging.md) et [docs/tests/B2_2_INTEGRATION_DB_STAGING.md](../tests/B2_2_INTEGRATION_DB_STAGING.md). STAGING only.
+
 ### Pourquoi ces patches sont limités à STAGING
 
 - **STAGING** : Environnement de test où on peut assouplir temporairement les règles pour valider les tests

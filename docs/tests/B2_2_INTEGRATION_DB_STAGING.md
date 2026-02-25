@@ -86,6 +86,16 @@ Le profil correspondant doit être créé dans la table `profils` avec le rôle 
 
 **Documentation complète :** `docs/B2.2.1_TEST_USER.md`
 
+### 5. Environment hygiene (reset CDR only)
+
+Si les tests B2.2 sont pollués par des données résiduelles (réceptions/sorties/stocks antérieurs), exécuter le **reset STAGING "CDR only"** avant de relancer les tests :
+
+- **Script** : [docs/DB_CHANGES/2026-02-25_staging_reset_cdr_only.sql](../DB_CHANGES/2026-02-25_staging_reset_cdr_only.sql)
+- **Effet** : Purge des tables receptions, sorties_produit, stocks_journaliers et log_actions (scopés receptions/sorties/stock) ; **cours_de_route** conservé. STAGING only.
+- **Procédure** : Voir [docs/02_RUNBOOKS/staging.md](../02_RUNBOOKS/staging.md) section « RESET STAGING (CDR only) ».
+
+**Hygiene (stock UI non zéro après reset)** : Si l’UI affiche encore du stock après le reset CDR only, vérifier et purger `public.stocks_snapshot` et supprimer la citerne fantôme TANK TEST si présente. Script : [docs/DB_CHANGES/2026-02-25_staging_hygiene_remove_tank_test_and_purge_snapshot.sql](../DB_CHANGES/2026-02-25_staging_hygiene_remove_tank_test_and_purge_snapshot.sql). Prérequis recommandé avant simulation UX / validation ASTM : `stocks_snapshot` doit être vide.
+
 ---
 
 ## 📁 Fichiers de tests

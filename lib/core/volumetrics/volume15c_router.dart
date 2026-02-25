@@ -10,7 +10,7 @@ double computeVolume15c({
   required FeatureFlags flags,
   required double volumeAmbient,
   required double temperatureC,
-  required double densityAt15,
+  required double densityObservedKgPerM3,
 }) {
   if (!flags.useAstm53b15c) {
     // Legacy: tant que l'intégration n'est pas branchée dans Réception,
@@ -21,7 +21,7 @@ double computeVolume15c({
   const calculator = DefaultAstm53bCalculator();
   final result = calculator.compute(
     Astm53bInput(
-      densityObservedKgPerM3: densityAt15,
+      densityObservedKgPerM3: densityObservedKgPerM3,
       temperatureObservedC: temperatureC,
       volumeObservedLiters: volumeAmbient,
     ),

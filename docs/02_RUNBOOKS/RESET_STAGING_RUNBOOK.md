@@ -132,6 +132,15 @@ WHERE nom IN ('TANK STAGING 1', 'TANK TEST')
 
 **Attendu** : `0` (aucune citerne fantôme)
 
+#### 3b. stocks_snapshot vide
+
+```sql
+-- Vérifier que le cache snapshot est vide (baseline stock=0)
+SELECT COUNT(*) FROM public.stocks_snapshot;
+```
+
+**Attendu** : `0` (stocks_snapshot vide ; prérequis avant simulation UX / ASTM)
+
 #### 4. Création CDR
 
 **Action** : Créer un CDR via l'application (rôle Admin)
@@ -189,10 +198,11 @@ Le script `reset_staging.sh` refuse automatiquement :
 Ce runbook est un **pré-requis obligatoire** avant toute décision GO PROD :
 
 1. ✅ Reset STAGING exécuté avec succès
-2. ✅ Validation post-reset complète (6 vérifications)
-3. ✅ Aucune citerne fantôme détectée
-4. ✅ Flux métier validé (CDR → Réception → Sortie)
-5. ✅ Stock cohérent (DB ↔ UI)
+2. ✅ Validation post-reset complète (7 vérifications)
+3. ✅ Aucune citerne fantôme détectée (dont absence de TANK TEST — id `4444…`)
+4. ✅ stocks_snapshot vide (baseline stock=0)
+5. ✅ Flux métier validé (CDR → Réception → Sortie)
+6. ✅ Stock cohérent (DB ↔ UI)
 
 ---
 
@@ -203,6 +213,7 @@ Ce runbook est un **pré-requis obligatoire** avant toute décision GO PROD :
 - `staging/sql/seed_empty.sql` : Seed vide (par défaut)
 - `staging/sql/seed_staging_prod_like.sql` : Seed prod-like (opt-in explicite)
 - `docs/04_PLANS/SPRINT_PROD_READY_2026_01.md` : Journal de sprint (hardening STAGING)
+- `docs/DB_CHANGES/2026-02-25_staging_hygiene_remove_tank_test_and_purge_snapshot.sql` : Hygiene STAGING (TANK TEST + purge stocks_snapshot)
 
 ---
 
