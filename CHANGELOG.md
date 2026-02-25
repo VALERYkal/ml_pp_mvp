@@ -26,6 +26,39 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 - Interdiction de calibration empirique du moteur volumétrique.
 - Outils tiers (ex : SEP) considérés comme indicatifs uniquement.
 
+### 🛢️ Volumétrie — Migration ASTM 53B (API MPMS 11.1)
+
+- Intégration moteur ASTM 53B (15°C) dans `astm53b_engine.dart`
+- Ajout golden tests Table 54B (VCF zones densité)
+- Intégration dans `volume15c_router`
+- Adaptation `reception_service` et `sortie_service`
+- Feature flag pour activation contrôlée ASTM
+- Alignement calcul volume corrigé 15°C avec standard API MPMS 11.1
+
+### 🔐 DB-STRICT — validate_sortie (P0)
+
+- Mise à jour `validate_sortie` pour autoriser écritures contrôlées via set_config
+- Mise à jour `sorties_produit_block_update_delete`
+- Protection immutabilité table sorties_produit hors RPC
+- Maintien modèle INSERT + RPC uniquement
+
+### 📄 RUNBOOK PROD
+
+- Création `docs/POST_PROD/13_ASTMB53B_PROD_RUNBOOK.md`
+- Définition :
+  - Pré-requis terrain
+  - Backup obligatoire
+  - Étapes techniques
+  - Smoke tests PROD
+  - Plan rollback
+  - Documentation post-intervention obligatoire
+
+### 🗄️ DB (STAGING) — Reset CDR only (2026-02-25)
+
+- **db(staging)** : Reset STAGING to CDR-only by purging receptions, sorties_produit, stocks_journaliers et log_actions scopés (receptions/sorties/stock). Compatible DB-STRICT : flags transactionnels `app.receptions_allow_write`, `app.sorties_produit_allow_write`, `app.stocks_journaliers_allow_write` activés pendant la transaction de purge. Invariants : cours_de_route conservés (CDR = 4). Objectif : base saine pour validation ASTM/UX sans pollution historique.
+- **db(strict)** : `receptions_block_update_delete` prend en charge les écritures contrôlées via `app.receptions_allow_write` (STAGING only). Comportement inchangé si flag non posé.
+- Script SQL source de vérité : `docs/DB_CHANGES/2026-02-25_staging_reset_cdr_only.sql`.
+
 ---
 
 ### Volumetrics / ASTM 53B (15°C) — BLOC 2 (2026-02-24)

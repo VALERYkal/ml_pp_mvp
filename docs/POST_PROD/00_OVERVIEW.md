@@ -56,6 +56,8 @@ Faire évoluer ML_PP vers une plateforme ERP pétrolière modulaire :
 
 **Stratégie choisie** : Industriel strict — ML_PP devient la source officielle du calcul volumétrique (moteur ASTM en Dart, résultats stockés en DB avec garde-fous).
 
+**STAGING** : L'environnement STAGING doit rester propre pour la validation ASTM/UX. Un reset "CDR only" est disponible (`docs/DB_CHANGES/2026-02-25_staging_reset_cdr_only.sql`) et sert de baseline avant campagnes de tests ; cours_de_route est préservé, seules les tables de mouvement stock sont purgées. STAGING only.
+
 **Plan général** : Backup → Validation moteur → Simulation (8 réceptions) → Migration DB → Rebuild stock → Reprise opérations.
 
 **STOP gate** : Aucune modification DB avant backup complet et rapport de simulation validé.

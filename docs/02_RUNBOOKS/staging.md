@@ -83,6 +83,26 @@ Certains patches DB sont nécessaires pour permettre les tests d'intégration :
 
 **Important** : Ces patches sont limités à STAGING. PROD reste strictement contrôlé.
 
+## 🔄 RESET STAGING (CDR only)
+
+Pour repartir d'une base STAGING propre (sans réceptions/sorties/stocks historiques) tout en conservant les **cours de route** (CDR), exécuter le script SQL de reset **STAGING only**.
+
+### Prérequis
+
+- Accès SQL Editor STAGING (Supabase Dashboard ou `psql "$STAGING_DB_URL"`).
+- **Ne jamais exécuter en PROD** : le script est destiné à l'environnement STAGING uniquement.
+
+### Procédure
+
+1. Ouvrir le fichier `docs/DB_CHANGES/2026-02-25_staging_reset_cdr_only.sql`.
+2. Exécuter le script en entier dans l'éditeur SQL STAGING (il applique d'abord le patch `receptions_block_update_delete` puis la purge en une transaction).
+3. Vérifier les comptages affichés en NOTICE : **AFTER** doit montrer `receptions=0`, `sorties_produit=0`, `stocks_journaliers=0`, `log_actions(scoped)=0`, et `cours_de_route` inchangé (ex. 4).
+4. Les flags DB-STRICT (`app.receptions_allow_write`, `app.sorties_produit_allow_write`, `app.stocks_journaliers_allow_write`) sont **transaction-scoped** : actifs uniquement pendant la transaction de purge, puis réinitialisés.
+
+### Invariant
+
+- **cours_de_route** n'est jamais supprimé ; seules les tables de mouvement stock (receptions, sorties_produit, stocks_journaliers, log_actions scopés) sont purgées.
+
 ## 📝 Notes
 
 - Le fichier `env/.env.staging` est dans `.gitignore` (ne sera jamais commité)

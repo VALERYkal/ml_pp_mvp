@@ -28,4 +28,8 @@
 - [Spec Écran Intégrité](../app/spec_ecran_integrite_systeme.md)
 - [Spec system_alerts](../db/spec_system_alerts.md)
 
+## 7. ASTM53B / Volumétrie
+- [13 — RUNBOOK PROD ASTM53B](13_ASTMB53B_PROD_RUNBOOK.md) — Migration volumétrique ASTM 53B (API MPMS 11.1)
+- **Reset STAGING (CDR only)** — [script SQL](../DB_CHANGES/2026-02-25_staging_reset_cdr_only.sql) + procédure (voir [13](13_ASTMB53B_PROD_RUNBOOK.md) §3.5 et [staging.md](../02_RUNBOOKS/staging.md))
+
 ## 6. À venir
