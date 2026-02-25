@@ -59,6 +59,10 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 - **db(strict)** : `receptions_block_update_delete` prend en charge les écritures contrôlées via `app.receptions_allow_write` (STAGING only). Comportement inchangé si flag non posé.
 - Script SQL source de vérité : `docs/DB_CHANGES/2026-02-25_staging_reset_cdr_only.sql`.
 
+### 🗄️ DB (STAGING) — Hygiene TANK TEST + purge stocks_snapshot (2026-02-25)
+
+- **db(staging)** : Hygiene — remove TANK TEST fixture tank and purge `stocks_snapshot` to restore clean baseline (stock=0). STAGING only ; ne pas exécuter en PROD. Prérequis recommandé avant simulation UX terrain / validation ASTM. Après reset CDR only, l’UI pouvait encore afficher du stock non-zéro car `stocks_snapshot` contenait des lignes historiques et la FK vers `citernes` bloquait la suppression de la citerne fantôme TANK TEST (`44444444-4444-4444-4444-444444444444`). Script : `docs/DB_CHANGES/2026-02-25_staging_hygiene_remove_tank_test_and_purge_snapshot.sql`.
+
 ---
 
 ### Volumetrics / ASTM 53B (15°C) — BLOC 2 (2026-02-24)
