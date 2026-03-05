@@ -143,7 +143,7 @@ void main() {
     );
     await tester.ensureVisible(partenaireChip);
     await tester.tap(partenaireChip);
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(const Duration(milliseconds: 300));
 
     // Sélectionner un partenaire via l'autocomplete
     final partenaireField = find.widgetWithText(TextField, 'Partenaire');
@@ -162,7 +162,7 @@ void main() {
       reason: 'L\'option Partenaire X doit apparaître dans la liste.',
     );
     await tester.tap(partenaireOption.first);
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(const Duration(milliseconds: 300));
 
     // Les produits sont sélectionnés via ChoiceChip avec le format "CODE · Nom"
     // Chercher le texte "DSL · Diesel" ou "Diesel" dans le widget tree puis taper le ChoiceChip
@@ -186,7 +186,7 @@ void main() {
     );
     await tester.ensureVisible(productChip);
     await tester.tap(productChip);
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(const Duration(milliseconds: 300));
 
     // select citerne - Les citernes sont sélectionnées via RadioListTile
     // Attendre que les citernes soient chargées après la sélection du produit
@@ -212,32 +212,34 @@ void main() {
       await tester.ensureVisible(citerneRadio);
       await tester.tap(citerneRadio);
     }
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(const Duration(milliseconds: 300));
 
-    // enter indices
-    await tester.enterText(
-      find.widgetWithText(TextField, 'Index avant *'),
-      '0',
-    );
-    await tester.enterText(
-      find.widgetWithText(TextField, 'Index après *'),
-      '100',
-    );
+    // enter indices (Key-based finders pour stabilité Nightly)
+    final indexAvant = find.byKey(const Key('reception_index_avant'));
+    expect(indexAvant, findsOneWidget);
+    await tester.enterText(indexAvant, '0');
+    await tester.pump();
+
+    final indexApres = find.byKey(const Key('reception_index_apres'));
+    expect(indexApres, findsOneWidget);
+    await tester.enterText(indexApres, '100');
+    await tester.pump();
 
     // enter temperature and density (required fields)
-    await tester.enterText(
-      find.widgetWithText(TextField, 'Température (°C) *'),
-      '15',
-    );
-    await tester.enterText(
-      find.widgetWithText(TextField, 'Densité @15°C *'),
-      '0.83',
-    );
+    final tempField = find.byKey(const Key('reception_temp'));
+    expect(tempField, findsOneWidget);
+    await tester.enterText(tempField, '15');
+    await tester.pump();
+
+    final densField = find.byKey(const Key('reception_dens'));
+    expect(densField, findsOneWidget);
+    await tester.enterText(densField, '830');
+    await tester.pump();
 
     // submit
-    await tester.pumpAndSettle(); // S'assurer que tout est chargé
+    await tester.pumpAndSettle(const Duration(milliseconds: 300));
 
-    final submitButton = find.text('Enregistrer la réception');
+    final submitButton = find.byKey(const Key('reception_submit_btn'));
     expect(
       submitButton,
       findsOneWidget,

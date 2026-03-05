@@ -201,9 +201,11 @@ class ReceptionService {
       'volume_ambiant': volumeAmbiant,
       'temperature_ambiante_c':
           temperatureCAmb, // toujours présent (validation obligatoire)
-      'densite_a_15_kgm3': densiteA15, // toujours présent (validation obligatoire)
-      'volume_corrige_15c':
-          volumeCorrige15CFinal, // toujours calculé (non-null)
+      // ✅ INPUT canonique (STAGING/PROD-ready): densité observée (à T ambiante)
+      // La DB calcule ensuite densite_a_15_kgm3 + volume_15c via triggers.
+      'densite_observee_kgm3': densiteA15,
+      // ❌ Ne plus envoyer volume_corrige_15c
+      // La DB est la seule source de vérité pour volume_15c (ASTM lookup-grid).
       'proprietaire_type': proprietaireTypeFinal,
       if (partenaireId != null && partenaireId.trim().isNotEmpty)
         'partenaire_id': partenaireId.trim(),

@@ -4,6 +4,37 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 
 ## [Unreleased]
 
+## [2026-03-05]
+
+### CI stabilisation
+- **D1 one-shot validation green:** Full validation passed locally with `./scripts/d1_one_shot.sh web --full --dart-define=RUN_DB_TESTS=0`. Summary: pub get OK, flutter analyze OK (non-blocking warnings), build_runner/codegen check OK, 85 normal tests PASS, 2 flaky tests PASS (87 test files). Flutter application layer is stable and reproducible.
+- **Runbook:** `docs/02_RUNBOOKS/RUNBOOK_CI_D1_ONE_SHOT.md` — purpose of D1 script, steps (pub get, analyze, build_runner, tests), light vs full mode, commands to reproduce PR CI and Nightly CI locally.
+
+### STAGING database reset for volumetric validation
+- **Decision:** Transactional data (receptions, sorties, stocks_journaliers, related log_actions) removed on STAGING to obtain a clean baseline; Cours de Route preserved. Production unchanged.
+- **Runbook:** `docs/02_RUNBOOKS/RUNBOOK_STAGING_RESET_FOR_ASTM.md` — why STAGING was reset, tables impacted, risk analysis, rollback strategy, procedure to replicate volumetric engine to production later.
+- **Decision log:** `docs/01_DECISIONS/DECISION_STAGING_RESET_FOR_VOLUMETRICS.md` — why transactional data was removed, why alignment with field calculation was prioritised, impact on production.
+
+### Volumetric engine documentation
+- **Reference:** `docs/00_REFERENCE/VOLUMETRIC_ENGINE_ARCHITECTURE.md` — inputs (volume ambient, temperature, observed density), conversion logic, 15°C normalisation, clarification that UI density input is **observed density** (at ambient temperature) while **density at 15°C** is computed by the system; current and future ASTM alignment. UX/UI reminder: correct labelling of density input (observed vs at 15°C) required before production.
+
+---
+
+## [Unreleased]
+
+### 🛢️ Volumetrics — Mode stabilité STAGING (oracle ASTM_APP) — 2026-02-28
+
+- **Décision** : Alignement sur l’application terrain « ASTM » (oracle) pour stabilité immédiate ; report de la conformité au standard international API MPMS 11.1.
+- **db(staging)** : Ajout du garde-fou `public.app_settings.env` ; fonctions `astm.ctl_from_golden` et `astm.compute_15c_from_golden` (interpolation IDW sur golden cases) ; trigger BEFORE INSERT sur `public.receptions` pour calcul serveur de `volume_15c` (arrondi à l’unité), `densite_a_15_kgm3`, `densite_a_15_g_cm3`. Moteur borné au domaine des 5 golden cases (source ASTM_APP) ; hors domaine → erreur actionnable.
+- **Sécurité** : STAGING only ; si `env != 'staging'` → `RECEPTION_VOLUMETRICS_BLOCKED` ; pas de déploiement PROD de ce moteur.
+- **Script** : `docs/DB_CHANGES/2026-02-28_staging_astm_app_golden_engine.sql`. Décision : `docs/01_DECISIONS/DECISION_2026-02-28_ASTM_APP_ALIGNMENT_STABILITY.md`. Runbook : `docs/POST_PROD/ASTM/2026-02-28_STAGING_ASTM_APP_GOLDEN_ENGINE_CHECKPOINT.md`.
+
+### 🛢️ Volumetrics / ASTM — DB Source of Truth (2026-02-27)
+
+- **Décision** : DB devient source de vérité volumétrique ASTM (API MPMS 11.1 / ASTM 53B). Réceptions : la base calcule et persiste volume_ambiant, densite_a_15_kgm3, vcf, volume_15c ; Flutter collecte les inputs (index_avant/index_apres, température, densité observée) et lit les outputs. Contexte : divergence SEP vs ML_PP (~30 L) due à sémantique densité fausse (ρ_obs saisie comme ρ@15) et calcul côté Flutter non auditable.
+- **Roadmap** : Rebuild STAGING en premier (DROP + RECREATE `public.receptions`, zéro legacy) ; suppression planifiée des champs legacy (volume_corrige_15c, volume_observe, densite_a_15_g_cm3) ; triggers stock consomment volume_15c ; moteur ASTM côté DB ; gates SEP (golden cases, écart ≤ 1 L) avant toute modification PROD. PROD ne bouge pas tant que golden cases non validés.
+- **Docs** : ADR `docs/01_DECISIONS/ADR-2026-02-27-ASTM_DB_SOURCE_OF_TRUTH_RECEPTIONS.md` ; plan STAGING `docs/POST_PROD/ASTM/2026-02-27_STAGING_RECEPTIONS_CLEAN_REBUILD_PLAN.md` ; checklist réutilisable `docs/POST_PROD/ASTM/ASTM_VOLU_GATES_CHECKLIST.md`. Aucun code ni SQL exécutable modifié dans cette entrée.
+
 ### Added
 - Backup PROD pré-migration ASTM 53B : `backups/prod_pre_astm53b_20260221_2253_data.dump`
 - Dataset ASTM 53B (BLOC 2 — Étape B) : structure des golden cases (`astm53b_golden_cases.dart`) + test golden skeleton.
