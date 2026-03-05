@@ -40,8 +40,8 @@ mixin _$SortieProduit {
   double? get volumeCorrige15c => throw _privateConstructorUsedError;
   @JsonKey(name: 'temperature_ambiante_c')
   double? get temperatureAmbianteC => throw _privateConstructorUsedError;
-  @JsonKey(name: 'densite_a_15')
-  double? get densiteA15 => throw _privateConstructorUsedError; // Statut & propriété
+  @JsonKey(name: 'densite_a_15_kgm3')
+  double? get densiteA15Kgm3 => throw _privateConstructorUsedError; // Statut & propriété
   @JsonKey(name: 'statut')
   String get statut => throw _privateConstructorUsedError;
   @JsonKey(name: 'proprietaire_type')
@@ -92,7 +92,7 @@ abstract class $SortieProduitCopyWith<$Res> {
     @JsonKey(name: 'volume_ambiant') double? volumeAmbiant,
     @JsonKey(name: 'volume_corrige_15c') double? volumeCorrige15c,
     @JsonKey(name: 'temperature_ambiante_c') double? temperatureAmbianteC,
-    @JsonKey(name: 'densite_a_15') double? densiteA15,
+    @JsonKey(name: 'densite_a_15_kgm3') double? densiteA15Kgm3,
     @JsonKey(name: 'statut') String statut,
     @JsonKey(name: 'proprietaire_type') String proprietaireType,
     @JsonKey(name: 'date_sortie') DateTime? dateSortie,
@@ -132,7 +132,7 @@ class _$SortieProduitCopyWithImpl<$Res, $Val extends SortieProduit>
     Object? volumeAmbiant = freezed,
     Object? volumeCorrige15c = freezed,
     Object? temperatureAmbianteC = freezed,
-    Object? densiteA15 = freezed,
+    Object? densiteA15Kgm3 = freezed,
     Object? statut = null,
     Object? proprietaireType = null,
     Object? dateSortie = freezed,
@@ -187,9 +187,9 @@ class _$SortieProduitCopyWithImpl<$Res, $Val extends SortieProduit>
                 ? _value.temperatureAmbianteC
                 : temperatureAmbianteC // ignore: cast_nullable_to_non_nullable
                       as double?,
-            densiteA15: freezed == densiteA15
-                ? _value.densiteA15
-                : densiteA15 // ignore: cast_nullable_to_non_nullable
+            densiteA15Kgm3: freezed == densiteA15Kgm3
+                ? _value.densiteA15Kgm3
+                : densiteA15Kgm3 // ignore: cast_nullable_to_non_nullable
                       as double?,
             statut: null == statut
                 ? _value.statut
@@ -261,7 +261,7 @@ abstract class _$$SortieProduitImplCopyWith<$Res>
     @JsonKey(name: 'volume_ambiant') double? volumeAmbiant,
     @JsonKey(name: 'volume_corrige_15c') double? volumeCorrige15c,
     @JsonKey(name: 'temperature_ambiante_c') double? temperatureAmbianteC,
-    @JsonKey(name: 'densite_a_15') double? densiteA15,
+    @JsonKey(name: 'densite_a_15_kgm3') double? densiteA15Kgm3,
     @JsonKey(name: 'statut') String statut,
     @JsonKey(name: 'proprietaire_type') String proprietaireType,
     @JsonKey(name: 'date_sortie') DateTime? dateSortie,
@@ -300,7 +300,7 @@ class __$$SortieProduitImplCopyWithImpl<$Res>
     Object? volumeAmbiant = freezed,
     Object? volumeCorrige15c = freezed,
     Object? temperatureAmbianteC = freezed,
-    Object? densiteA15 = freezed,
+    Object? densiteA15Kgm3 = freezed,
     Object? statut = null,
     Object? proprietaireType = null,
     Object? dateSortie = freezed,
@@ -355,9 +355,9 @@ class __$$SortieProduitImplCopyWithImpl<$Res>
             ? _value.temperatureAmbianteC
             : temperatureAmbianteC // ignore: cast_nullable_to_non_nullable
                   as double?,
-        densiteA15: freezed == densiteA15
-            ? _value.densiteA15
-            : densiteA15 // ignore: cast_nullable_to_non_nullable
+        densiteA15Kgm3: freezed == densiteA15Kgm3
+            ? _value.densiteA15Kgm3
+            : densiteA15Kgm3 // ignore: cast_nullable_to_non_nullable
                   as double?,
         statut: null == statut
             ? _value.statut
@@ -422,7 +422,7 @@ class _$SortieProduitImpl implements _SortieProduit {
     @JsonKey(name: 'volume_ambiant') this.volumeAmbiant,
     @JsonKey(name: 'volume_corrige_15c') this.volumeCorrige15c,
     @JsonKey(name: 'temperature_ambiante_c') this.temperatureAmbianteC,
-    @JsonKey(name: 'densite_a_15') this.densiteA15,
+    @JsonKey(name: 'densite_a_15_kgm3') this.densiteA15Kgm3,
     @JsonKey(name: 'statut') this.statut = 'brouillon',
     @JsonKey(name: 'proprietaire_type') this.proprietaireType = 'MONALUXE',
     @JsonKey(name: 'date_sortie') this.dateSortie,
@@ -471,8 +471,8 @@ class _$SortieProduitImpl implements _SortieProduit {
   @JsonKey(name: 'temperature_ambiante_c')
   final double? temperatureAmbianteC;
   @override
-  @JsonKey(name: 'densite_a_15')
-  final double? densiteA15;
+  @JsonKey(name: 'densite_a_15_kgm3')
+  final double? densiteA15Kgm3;
   // Statut & propriété
   @override
   @JsonKey(name: 'statut')
@@ -511,7 +511,7 @@ class _$SortieProduitImpl implements _SortieProduit {
 
   @override
   String toString() {
-    return 'SortieProduit(id: $id, citerneId: $citerneId, produitId: $produitId, clientId: $clientId, partenaireId: $partenaireId, indexAvant: $indexAvant, indexApres: $indexApres, volumeAmbiant: $volumeAmbiant, volumeCorrige15c: $volumeCorrige15c, temperatureAmbianteC: $temperatureAmbianteC, densiteA15: $densiteA15, statut: $statut, proprietaireType: $proprietaireType, dateSortie: $dateSortie, chauffeurNom: $chauffeurNom, plaqueCamion: $plaqueCamion, plaqueRemorque: $plaqueRemorque, transporteur: $transporteur, createdAt: $createdAt, createdBy: $createdBy, validatedBy: $validatedBy, note: $note)';
+    return 'SortieProduit(id: $id, citerneId: $citerneId, produitId: $produitId, clientId: $clientId, partenaireId: $partenaireId, indexAvant: $indexAvant, indexApres: $indexApres, volumeAmbiant: $volumeAmbiant, volumeCorrige15c: $volumeCorrige15c, temperatureAmbianteC: $temperatureAmbianteC, densiteA15Kgm3: $densiteA15Kgm3, statut: $statut, proprietaireType: $proprietaireType, dateSortie: $dateSortie, chauffeurNom: $chauffeurNom, plaqueCamion: $plaqueCamion, plaqueRemorque: $plaqueRemorque, transporteur: $transporteur, createdAt: $createdAt, createdBy: $createdBy, validatedBy: $validatedBy, note: $note)';
   }
 
   @override
@@ -538,8 +538,8 @@ class _$SortieProduitImpl implements _SortieProduit {
                 other.volumeCorrige15c == volumeCorrige15c) &&
             (identical(other.temperatureAmbianteC, temperatureAmbianteC) ||
                 other.temperatureAmbianteC == temperatureAmbianteC) &&
-            (identical(other.densiteA15, densiteA15) ||
-                other.densiteA15 == densiteA15) &&
+            (identical(other.densiteA15Kgm3, densiteA15Kgm3) ||
+                other.densiteA15Kgm3 == densiteA15Kgm3) &&
             (identical(other.statut, statut) || other.statut == statut) &&
             (identical(other.proprietaireType, proprietaireType) ||
                 other.proprietaireType == proprietaireType) &&
@@ -576,7 +576,7 @@ class _$SortieProduitImpl implements _SortieProduit {
     volumeAmbiant,
     volumeCorrige15c,
     temperatureAmbianteC,
-    densiteA15,
+    densiteA15Kgm3,
     statut,
     proprietaireType,
     dateSortie,
@@ -616,7 +616,7 @@ abstract class _SortieProduit implements SortieProduit {
     @JsonKey(name: 'volume_ambiant') final double? volumeAmbiant,
     @JsonKey(name: 'volume_corrige_15c') final double? volumeCorrige15c,
     @JsonKey(name: 'temperature_ambiante_c') final double? temperatureAmbianteC,
-    @JsonKey(name: 'densite_a_15') final double? densiteA15,
+    @JsonKey(name: 'densite_a_15_kgm3') final double? densiteA15Kgm3,
     @JsonKey(name: 'statut') final String statut,
     @JsonKey(name: 'proprietaire_type') final String proprietaireType,
     @JsonKey(name: 'date_sortie') final DateTime? dateSortie,
@@ -663,8 +663,8 @@ abstract class _SortieProduit implements SortieProduit {
   @JsonKey(name: 'temperature_ambiante_c')
   double? get temperatureAmbianteC;
   @override
-  @JsonKey(name: 'densite_a_15')
-  double? get densiteA15; // Statut & propriété
+  @JsonKey(name: 'densite_a_15_kgm3')
+  double? get densiteA15Kgm3; // Statut & propriété
   @override
   @JsonKey(name: 'statut')
   String get statut;

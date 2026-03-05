@@ -165,8 +165,12 @@ else
 fi
 
 if [[ "$SKIP_BUILD_RUNNER" -eq 0 ]]; then
-  echo "---- build runner (mocks) ----"
-  run_step build_runner flutter pub run build_runner build --delete-conflicting-outputs
+  echo "---- build runner + codegen check (d0) ----"
+  if [[ -f scripts/d0_codegen_check.sh ]]; then
+    run_step build_runner scripts/d0_codegen_check.sh
+  else
+    run_step build_runner flutter pub run build_runner build --delete-conflicting-outputs
+  fi
   echo
 else
   echo "ℹ️  Skipping build_runner (--skip-build-runner)"
