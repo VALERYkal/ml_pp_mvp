@@ -17,7 +17,7 @@ _$ReceptionImpl _$$ReceptionImplFromJson(Map<String, dynamic> json) =>
       indexApres: (json['index_apres'] as num).toDouble(),
       temperatureAmbianteC: (json['temperature_ambiante_c'] as num?)
           ?.toDouble(),
-      densiteA15: (json['densite_a_15'] as num?)?.toDouble(),
+      densiteA15Kgm3: (json['densite_a_15_kgm3'] as num?)?.toDouble(),
       volumeCorrige15c: (json['volume_corrige_15c'] as num?)?.toDouble(),
       volumeAmbiant: (json['volume_ambiant'] as num?)?.toDouble(),
       proprietaireType: const OwnerTypeConverter().fromJson(
@@ -42,7 +42,7 @@ Map<String, dynamic> _$$ReceptionImplToJson(_$ReceptionImpl instance) =>
       'index_avant': instance.indexAvant,
       'index_apres': instance.indexApres,
       'temperature_ambiante_c': instance.temperatureAmbianteC,
-      'densite_a_15': instance.densiteA15,
+      'densite_a_15_kgm3': instance.densiteA15Kgm3,
       'volume_corrige_15c': instance.volumeCorrige15c,
       'volume_ambiant': instance.volumeAmbiant,
       'proprietaire_type': const OwnerTypeConverter().toJson(

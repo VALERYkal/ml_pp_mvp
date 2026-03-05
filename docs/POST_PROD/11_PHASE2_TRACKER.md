@@ -102,6 +102,12 @@
 - CI verte (PR #86).
 - Aucun impact PROD.
 
+**STAGING reset CDR-only (2026-02-25) — DONE** :
+- **Branche** : feature/astm11-1-validation-P0
+- **PR** : #89
+- **Script SQL** : `docs/DB_CHANGES/2026-02-25_staging_reset_cdr_only.sql`
+- **Outcome** : Purge exécutée sur STAGING ; counts after : receptions=0, sorties_produit=0, stocks_journaliers=0, log_actions(scoped)=0 ; cours_de_route conservé (CDR=4). Patch `receptions_block_update_delete` (flag `app.receptions_allow_write`) appliqué. STAGING only.
+
 ---
 
 ### Action 7 — Evidence (DONE — RLS Hardening Feb 2026)

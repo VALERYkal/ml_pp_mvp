@@ -19,7 +19,7 @@ _$SortieProduitImpl _$$SortieProduitImplFromJson(Map<String, dynamic> json) =>
       volumeCorrige15c: (json['volume_corrige_15c'] as num?)?.toDouble(),
       temperatureAmbianteC: (json['temperature_ambiante_c'] as num?)
           ?.toDouble(),
-      densiteA15: (json['densite_a_15'] as num?)?.toDouble(),
+      densiteA15Kgm3: (json['densite_a_15_kgm3'] as num?)?.toDouble(),
       statut: json['statut'] as String? ?? 'brouillon',
       proprietaireType: json['proprietaire_type'] as String? ?? 'MONALUXE',
       dateSortie: json['date_sortie'] == null
@@ -49,7 +49,7 @@ Map<String, dynamic> _$$SortieProduitImplToJson(_$SortieProduitImpl instance) =>
       'volume_ambiant': instance.volumeAmbiant,
       'volume_corrige_15c': instance.volumeCorrige15c,
       'temperature_ambiante_c': instance.temperatureAmbianteC,
-      'densite_a_15': instance.densiteA15,
+      'densite_a_15_kgm3': instance.densiteA15Kgm3,
       'statut': instance.statut,
       'proprietaire_type': instance.proprietaireType,
       'date_sortie': instance.dateSortie?.toIso8601String(),

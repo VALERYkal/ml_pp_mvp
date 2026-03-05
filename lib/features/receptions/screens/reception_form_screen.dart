@@ -32,6 +32,15 @@ import 'package:ml_pp_mvp/features/receptions/widgets/partenaire_autocomplete.da
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+const String appEnv =
+    String.fromEnvironment('APP_ENV', defaultValue: 'prod');
+
+const String supabaseEnv =
+    String.fromEnvironment('SUPABASE_ENV', defaultValue: 'PROD');
+
+const bool isStaging =
+    (appEnv == 'staging') || (supabaseEnv == 'STAGING');
+
 enum OwnerType { monaluxe, partenaire }
 
 class ReceptionFormScreen extends ConsumerStatefulWidget {
@@ -67,7 +76,7 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
   final ctrlAvant = TextEditingController();
   final ctrlApres = TextEditingController();
   final ctrlTemp = TextEditingController(text: '15');
-  final ctrlDens = TextEditingController(text: '0.83');
+  final ctrlDens = TextEditingController(text: '830');
   final ctrlNote = TextEditingController();
 
   // plus de brouillon en MVP
@@ -258,12 +267,14 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
       return;
     }
     final volAmb = computeVolumeAmbiant(avant, apres);
-    // temp et dens sont garantis non-null par validation ci-dessus
-    final vol15 = calcV15(
-      volumeObserveL: volAmb,
-      temperatureC: temp,
-      densiteA15: dens,
-    );
+    // STAGING: DB trigger calcule volume_15c ; on n'envoie pas de valeur legacy.
+    final double? vol15ForPayload = isStaging
+        ? null
+        : calcV15(
+            volumeObserveL: volAmb,
+            temperatureC: temp,
+            densiteA15: dens,
+          );
 
     setState(() => busy = true);
     try {
@@ -279,7 +290,7 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
             indexApres: apres,
             temperatureCAmb: temp, // Non-null garanti par validation UI (lignes 251-256)
             densiteA15: dens, // Non-null garanti par validation UI (lignes 251-256)
-            volumeCorrige15C: vol15,
+            volumeCorrige15C: vol15ForPayload,
             proprietaireType: _owner == OwnerType.monaluxe
                 ? 'MONALUXE'
                 : 'PARTENAIRE',
@@ -410,9 +421,15 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
     final effProdCode = isMonaluxe
         ? (produitCodeFromCours ?? produitCode)
         : produitCode;
-    // Calcul du volume 15°C : si température et densité sont présents, calculer, sinon afficher volume ambiant
+    // Volume 15°C : en STAGING on n'affiche pas de valeur calculée (DB au save).
     final vol15 = (temp != null && dens != null)
-        ? calcV15(volumeObserveL: volAmb, temperatureC: temp, densiteA15: dens)
+        ? (isStaging
+            ? volAmb
+            : calcV15(
+                volumeObserveL: volAmb,
+                temperatureC: temp,
+                densiteA15: dens,
+              ))
         : volAmb;
     final isWide = MediaQuery.of(context).size.width >= 1024;
 
@@ -515,12 +532,15 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
                       children: [
                         const Text('Récapitulatif'),
                         Text('• Propriétaire : $proprietaireType'),
-                        Text('• Citerne : ${_selectedCiterneId ?? '-'}'),
+                        Text('• Citerne : ${_citerneLabelById(_selectedCiterneId)}'),
                         Text(
                           '• Index : ${ctrlAvant.text} → ${ctrlApres.text} (Δ = ${volAmb.toStringAsFixed(2)} L)',
                         ),
                         Text(
-                          '• Temp/Dens : ${ctrlTemp.text} °C / ${ctrlDens.text}  →  V15 ≈ ${vol15.toStringAsFixed(2)} L',
+                          '• Temp/Dens : ${ctrlTemp.text} °C / ${ctrlDens.text}',
+                        ),
+                        Text(
+                          "• Volume 15°C (calculé à l'enregistrement)",
                         ),
                         const SizedBox(height: 8),
                         TextField(
@@ -587,6 +607,17 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
         apres > avant &&
         temp != null && // Température obligatoire
         dens != null; // Densité obligatoire
+  }
+
+  /// Libellé humain pour la citerne (nom affiché dans la liste radio).
+  String _citerneLabelById(String? id) {
+    if (id == null || id.isEmpty) return '—';
+    final list = ref.read(refs.citernesActivesProvider).valueOrNull;
+    if (list == null) return '—';
+    for (final c in list) {
+      if (c.id == id) return c.nom.isNotEmpty ? c.nom : _shorten(id, 8);
+    }
+    return '—';
   }
 
   Widget _buildProduitCiterneCard(
@@ -738,6 +769,7 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
               children: [
                 Expanded(
                   child: TextField(
+                    key: const Key('reception_index_avant'),
                     controller: ctrlAvant,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
@@ -749,6 +781,7 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: TextField(
+                    key: const Key('reception_index_apres'),
                     controller: ctrlApres,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
@@ -763,11 +796,12 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
               children: [
                 Expanded(
                   child: TextField(
+                    key: const Key('reception_temp'),
                     controller: ctrlTemp,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
-                      labelText: 'Température (°C) *',
-                      helperText: 'Obligatoire pour calcul volume 15°C',
+                      labelText: 'Température ambiante (°C) *',
+                      helperText: 'Obligatoire pour calcul du volume corrigé (15°C)',
                     ),
                     onChanged: (_) => setState(() {}),
                   ),
@@ -775,11 +809,12 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: TextField(
+                    key: const Key('reception_dens'),
                     controller: ctrlDens,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
-                      labelText: 'Densité @15°C *',
-                      helperText: 'Obligatoire pour calcul volume 15°C',
+                      labelText: 'Densité observée (kg/m³) *',
+                      helperText: 'Obligatoire pour calcul du volume corrigé (15°C)',
                     ),
                     onChanged: (_) => setState(() {}),
                   ),
@@ -789,7 +824,9 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
             const SizedBox(height: 8),
             Text('• Volume ambiant = ${volAmb.toStringAsFixed(2)} L'),
             if (temp != null && dens != null)
-              Text('• Volume corrigé 15°C ≈ ${vol15.toStringAsFixed(2)} L')
+              isStaging
+                  ? Text("• Volume 15°C (calculé à l'enregistrement)")
+                  : Text('• Volume corrigé 15°C ≈ ${vol15.toStringAsFixed(2)} L')
             else
               Text(
                 '• Volume corrigé 15°C : Saisissez température et densité',

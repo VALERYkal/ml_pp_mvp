@@ -83,6 +83,53 @@ Certains patches DB sont nécessaires pour permettre les tests d'intégration :
 
 **Important** : Ces patches sont limités à STAGING. PROD reste strictement contrôlé.
 
+## 🔄 RESET STAGING (CDR only)
+
+Pour repartir d'une base STAGING propre (sans réceptions/sorties/stocks historiques) tout en conservant les **cours de route** (CDR), exécuter le script SQL de reset **STAGING only**.
+
+### Prérequis
+
+- Accès SQL Editor STAGING (Supabase Dashboard ou `psql "$STAGING_DB_URL"`).
+- **Ne jamais exécuter en PROD** : le script est destiné à l'environnement STAGING uniquement.
+
+### Procédure
+
+1. Ouvrir le fichier `docs/DB_CHANGES/2026-02-25_staging_reset_cdr_only.sql`.
+2. Exécuter le script en entier dans l'éditeur SQL STAGING (il applique d'abord le patch `receptions_block_update_delete` puis la purge en une transaction).
+3. Vérifier les comptages affichés en NOTICE : **AFTER** doit montrer `receptions=0`, `sorties_produit=0`, `stocks_journaliers=0`, `log_actions(scoped)=0`, et `cours_de_route` inchangé (ex. 4).
+4. Les flags DB-STRICT (`app.receptions_allow_write`, `app.sorties_produit_allow_write`, `app.stocks_journaliers_allow_write`) sont **transaction-scoped** : actifs uniquement pendant la transaction de purge, puis réinitialisés.
+
+### Invariant
+
+- **cours_de_route** n'est jamais supprimé ; seules les tables de mouvement stock (receptions, sorties_produit, stocks_journaliers, log_actions scopés) sont purgées.
+
+## STAGING hygiene (phantom tanks & snapshot cache)
+
+Si après un reset CDR only l’UI affiche encore du stock non-zéro, la table `public.stocks_snapshot` peut contenir des lignes historiques (cache) et une citerne fantôme (ex. **TANK TEST**) peut être présente ; la FK `stocks_snapshot -> citernes` bloque alors la suppression de la citerne.
+
+### Vérification
+
+- **Citernes non conformes** (TANK TEST) :
+  ```sql
+  SELECT id, nom FROM public.citernes WHERE id = '44444444-4444-4444-4444-444444444444' OR nom = 'TANK TEST';
+  ```
+  Attendu : 0 ligne.
+
+- **Taille du cache snapshot** :
+  ```sql
+  SELECT COUNT(*) FROM public.stocks_snapshot;
+  ```
+  Attendu : 0 (baseline propre).
+
+### Procédure
+
+1. Exécuter le script SQL d’hygiene STAGING only :  
+   `docs/DB_CHANGES/2026-02-25_staging_hygiene_remove_tank_test_and_purge_snapshot.sql`
+2. Vérifier en fin de script les NOTICE : `tank_test_in_citernes = 0`, `tank_test_in_snapshot = 0`, `stocks_snapshot_total = 0`.
+3. Contrôler en UI : Dashboard stock total = 0, écran Stock = 0.
+
+**Résultat attendu** : `stocks_snapshot` vide ; aucune citerne TANK TEST (id `4444…`). Prérequis avant simulation UX / validation ASTM.
+
 ## 📝 Notes
 
 - Le fichier `env/.env.staging` est dans `.gitignore` (ne sera jamais commité)

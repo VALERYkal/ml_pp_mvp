@@ -111,7 +111,7 @@ class FakeReceptionService extends ReceptionService {
       volumeAmbiant: volumeAmbiant,
       volumeCorrige15c: v15c,
       temperatureAmbianteC: temperatureCAmb,
-      densiteA15: densiteA15,
+      densiteA15Kgm3: densiteA15,
       proprietaireType: proprietaireType == 'MONALUXE'
           ? owner_type.OwnerType.monaluxe
           : owner_type.OwnerType.partenaire,

@@ -23,7 +23,7 @@ class SortieProduit with _$SortieProduit {
     @JsonKey(name: 'volume_ambiant') double? volumeAmbiant,
     @JsonKey(name: 'volume_corrige_15c') double? volumeCorrige15c,
     @JsonKey(name: 'temperature_ambiante_c') double? temperatureAmbianteC,
-    @JsonKey(name: 'densite_a_15') double? densiteA15,
+    @JsonKey(name: 'densite_a_15_kgm3') double? densiteA15Kgm3,
 
     // Statut & propriété
     @JsonKey(name: 'statut') @Default('brouillon') String statut,

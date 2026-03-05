@@ -13,7 +13,7 @@ final receptionsTableProvider = FutureProvider.autoDispose<List<ReceptionRowVM>>
   final recRows = await supa
       .from('receptions')
       .select(
-        'id, date_reception, proprietaire_type, produit_id, citerne_id, volume_corrige_15c, volume_ambiant, cours_de_route_id, partenaire_id, created_at',
+        'id, date_reception, proprietaire_type, produit_id, citerne_id, volume_corrige_15c, volume_15c, volume_ambiant, cours_de_route_id, partenaire_id, created_at',
       )
       .order('date_reception', ascending: false);
 
@@ -103,7 +103,8 @@ final receptionsTableProvider = FutureProvider.autoDispose<List<ReceptionRowVM>>
         propriete: (r['proprietaire_type'] as String? ?? '').toUpperCase(),
         produitLabel: prodLabel.isEmpty ? '—' : prodLabel,
         citerneNom: cid != null ? (cNom[cid] ?? cid.substring(0, 8)) : '—',
-        vol15: (r['volume_corrige_15c'] as num?)?.toDouble(),
+        vol15: (r['volume_15c'] as num?)?.toDouble()
+            ?? (r['volume_corrige_15c'] as num?)?.toDouble(),
         volAmb: (r['volume_ambiant'] as num?)?.toDouble(),
         cdrShort: cdrId != null ? '#${cdrId.substring(0, 8)}' : null,
         cdrPlaques: plaques.isEmpty ? null : plaques,

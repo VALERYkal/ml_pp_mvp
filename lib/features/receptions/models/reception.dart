@@ -20,7 +20,7 @@ class Reception with _$Reception {
     @JsonKey(name: 'index_avant') required double indexAvant,
     @JsonKey(name: 'index_apres') required double indexApres,
     @JsonKey(name: 'temperature_ambiante_c') double? temperatureAmbianteC,
-    @JsonKey(name: 'densite_a_15') double? densiteA15,
+    @JsonKey(name: 'densite_a_15_kgm3') double? densiteA15Kgm3,
     @JsonKey(name: 'volume_corrige_15c') double? volumeCorrige15c,
     @JsonKey(name: 'volume_ambiant') double? volumeAmbiant,
 

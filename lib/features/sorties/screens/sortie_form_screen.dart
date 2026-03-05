@@ -25,6 +25,15 @@ import 'package:ml_pp_mvp/features/sorties/kpi/sorties_kpi_provider.dart';
 import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart';
 import 'package:ml_pp_mvp/shared/refresh/refresh_helpers.dart';
 
+const String appEnv =
+    String.fromEnvironment('APP_ENV', defaultValue: 'prod');
+
+const String supabaseEnv =
+    String.fromEnvironment('SUPABASE_ENV', defaultValue: 'PROD');
+
+const bool isStaging =
+    (appEnv == 'staging') || (supabaseEnv == 'STAGING');
+
 enum OwnerType { monaluxe, partenaire }
 
 class SortieFormScreen extends ConsumerStatefulWidget {
@@ -54,7 +63,7 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
   final ctrlAvant = TextEditingController();
   final ctrlApres = TextEditingController();
   final ctrlTemp = TextEditingController(text: '15');
-  final ctrlDens = TextEditingController(text: '0.83');
+  final ctrlDens = TextEditingController(text: '830');
   final ctrlChauffeur = TextEditingController();
   final ctrlPlaqueCamion = TextEditingController();
   final ctrlPlaqueRemorque = TextEditingController();
@@ -210,12 +219,14 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
     }
 
     final volAmb = computeVolumeAmbiant(avant, apres);
-    // temp et dens sont garantis non-null et > 0 par validation ci-dessus
-    final vol15 = calcV15(
-      volumeObserveL: volAmb,
-      temperatureC: temp,
-      densiteA15: dens,
-    );
+    // STAGING: DB calcule le volume_15c (lookup-grid). Ne pas calculer/propager de valeur legacy.
+    final double? vol15ForPayload = isStaging
+        ? null
+        : calcV15(
+            volumeObserveL: volAmb,
+            temperatureC: temp,
+            densiteA15: dens,
+          );
 
     // Construire le payload pour logging détaillé (debug uniquement)
     final payloadMap = <String, dynamic>{
@@ -226,7 +237,7 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
       'index_avant': avant,
       'index_apres': apres,
       'volume_ambiant': volAmb,
-      'volume_corrige_15c': vol15,
+      if (!isStaging) 'volume_corrige_15c': vol15ForPayload,
       'temperature_ambiante_c': temp,
       'densite_a_15': dens,
       'proprietaire_type': _owner == OwnerType.monaluxe
@@ -263,7 +274,7 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
         indexApres: apres,
         temperatureCAmb: temp, // Non-null garanti par validation UI
         densiteA15: dens, // Non-null garanti par validation UI
-        volumeCorrige15C: vol15,
+        volumeCorrige15C: vol15ForPayload,
         proprietaireType: _owner == OwnerType.monaluxe
             ? 'MONALUXE'
             : 'PARTENAIRE',
@@ -303,7 +314,7 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
         // Log console détaillé pour diagnostic
         final citerneNom = _getCiterneNom(_selectedCiterneId);
         debugPrint(
-          '[SORTIE] Succès • Volume: ${vol15.toStringAsFixed(2)} L • Citerne: $citerneNom',
+          '[SORTIE] Succès • Volume: ${vol15ForPayload?.toStringAsFixed(2) ?? "DB"} L • Citerne: $citerneNom',
         );
 
         // Invalidate impacted providers
@@ -825,8 +836,10 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
                   child: TextFormField(
                     controller: ctrlDens,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Densité @15°C *',
+                    decoration: InputDecoration(
+                      labelText: isStaging
+                          ? 'Densité observée (kg/m³) *'
+                          : 'Densité @15°C *',
                       helperText:
                           'Obligatoire pour calcul volume 15°C (0.7 - 1.1)',
                     ),
@@ -851,7 +864,9 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
             const SizedBox(height: 8),
             Text('• Volume ambiant = ${volAmb.toStringAsFixed(2)} L'),
             if (temp != null && temp > 0 && dens != null && dens > 0)
-              Text('• Volume corrigé 15°C ≈ ${vol15.toStringAsFixed(2)} L')
+              isStaging
+                  ? Text("• Volume 15°C (calculé à l'enregistrement)")
+                  : Text('• Volume corrigé 15°C ≈ ${vol15.toStringAsFixed(2)} L')
             else
               Text(
                 '• Volume corrigé 15°C : Saisissez température et densité',

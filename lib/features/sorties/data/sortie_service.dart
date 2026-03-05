@@ -9,6 +9,12 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ml_pp_mvp/core/errors/sortie_service_exception.dart';
 // no riverpod import here; provider is defined in providers/sortie_providers.dart
 
+const String appEnv =
+    String.fromEnvironment('APP_ENV', defaultValue: 'prod');
+const String supabaseEnv =
+    String.fromEnvironment('SUPABASE_ENV', defaultValue: 'PROD');
+const bool isStaging = (appEnv == 'staging') || (supabaseEnv == 'STAGING');
+
 class SortieService {
   final SupabaseClient client;
 
@@ -43,9 +49,13 @@ class SortieService {
       'index_avant': indexAvant,
       'index_apres': indexApres,
       'volume_ambiant': volumeAmbiant,
-      'volume_corrige_15c': volume15c,
+      if (!isStaging) 'volume_corrige_15c': volume15c,
       'temperature_ambiante_c': temperature,
-      'densite_a_15': densite15,
+
+      // STAGING: input canonique pour le moteur DB (densité observée @T ambiante)
+      // PROD: on garde l'ancien champ tant que la migration n'est pas répliquée.
+      if (isStaging) 'densite_observee_kgm3': densite15,
+      if (!isStaging) 'densite_a_15_kgm3': densite15,
       'proprietaire_type': 'MONALUXE',
       'statut': 'validee', // Le MVP valide directement
       if (dateSortie != null)
@@ -126,7 +136,7 @@ class SortieService {
       'volume_ambiant': volumeAmbiant,
       'volume_corrige_15c': volume15c,
       'temperature_ambiante_c': temperature,
-      'densite_a_15': densite15,
+      'densite_a_15_kgm3': densite15,
       'proprietaire_type': 'PARTENAIRE',
       'statut': 'validee', // Le MVP valide directement
       if (dateSortie != null)
@@ -237,7 +247,7 @@ class SortieService {
         'volume_ambiant': volumeAmbiant,
         'volume_corrige_15c': volume15c,
         'temperature_ambiante_c': temperatureCAmb,
-        'densite_a_15': densiteA15,
+        'densite_a_15_kgm3': densiteA15,
         'proprietaire_type': 'MONALUXE',
         'statut': 'validee',
         if (dateSortie != null)
@@ -309,7 +319,7 @@ class SortieService {
         'volume_ambiant': volumeAmbiant,
         'volume_corrige_15c': volume15c,
         'temperature_ambiante_c': temperatureCAmb,
-        'densite_a_15': densiteA15,
+        'densite_a_15_kgm3': densiteA15,
         'proprietaire_type': 'PARTENAIRE',
         'statut': 'validee',
         if (dateSortie != null)

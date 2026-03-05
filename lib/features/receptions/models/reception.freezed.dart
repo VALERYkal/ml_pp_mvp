@@ -36,8 +36,8 @@ mixin _$Reception {
   double get indexApres => throw _privateConstructorUsedError;
   @JsonKey(name: 'temperature_ambiante_c')
   double? get temperatureAmbianteC => throw _privateConstructorUsedError;
-  @JsonKey(name: 'densite_a_15')
-  double? get densiteA15 => throw _privateConstructorUsedError;
+  @JsonKey(name: 'densite_a_15_kgm3')
+  double? get densiteA15Kgm3 => throw _privateConstructorUsedError;
   @JsonKey(name: 'volume_corrige_15c')
   double? get volumeCorrige15c => throw _privateConstructorUsedError;
   @JsonKey(name: 'volume_ambiant')
@@ -79,7 +79,7 @@ abstract class $ReceptionCopyWith<$Res> {
     @JsonKey(name: 'index_avant') double indexAvant,
     @JsonKey(name: 'index_apres') double indexApres,
     @JsonKey(name: 'temperature_ambiante_c') double? temperatureAmbianteC,
-    @JsonKey(name: 'densite_a_15') double? densiteA15,
+    @JsonKey(name: 'densite_a_15_kgm3') double? densiteA15Kgm3,
     @JsonKey(name: 'volume_corrige_15c') double? volumeCorrige15c,
     @JsonKey(name: 'volume_ambiant') double? volumeAmbiant,
     @JsonKey(name: 'proprietaire_type')
@@ -116,7 +116,7 @@ class _$ReceptionCopyWithImpl<$Res, $Val extends Reception>
     Object? indexAvant = null,
     Object? indexApres = null,
     Object? temperatureAmbianteC = freezed,
-    Object? densiteA15 = freezed,
+    Object? densiteA15Kgm3 = freezed,
     Object? volumeCorrige15c = freezed,
     Object? volumeAmbiant = freezed,
     Object? proprietaireType = null,
@@ -160,9 +160,9 @@ class _$ReceptionCopyWithImpl<$Res, $Val extends Reception>
                 ? _value.temperatureAmbianteC
                 : temperatureAmbianteC // ignore: cast_nullable_to_non_nullable
                       as double?,
-            densiteA15: freezed == densiteA15
-                ? _value.densiteA15
-                : densiteA15 // ignore: cast_nullable_to_non_nullable
+            densiteA15Kgm3: freezed == densiteA15Kgm3
+                ? _value.densiteA15Kgm3
+                : densiteA15Kgm3 // ignore: cast_nullable_to_non_nullable
                       as double?,
             volumeCorrige15c: freezed == volumeCorrige15c
                 ? _value.volumeCorrige15c
@@ -220,7 +220,7 @@ abstract class _$$ReceptionImplCopyWith<$Res>
     @JsonKey(name: 'index_avant') double indexAvant,
     @JsonKey(name: 'index_apres') double indexApres,
     @JsonKey(name: 'temperature_ambiante_c') double? temperatureAmbianteC,
-    @JsonKey(name: 'densite_a_15') double? densiteA15,
+    @JsonKey(name: 'densite_a_15_kgm3') double? densiteA15Kgm3,
     @JsonKey(name: 'volume_corrige_15c') double? volumeCorrige15c,
     @JsonKey(name: 'volume_ambiant') double? volumeAmbiant,
     @JsonKey(name: 'proprietaire_type')
@@ -256,7 +256,7 @@ class __$$ReceptionImplCopyWithImpl<$Res>
     Object? indexAvant = null,
     Object? indexApres = null,
     Object? temperatureAmbianteC = freezed,
-    Object? densiteA15 = freezed,
+    Object? densiteA15Kgm3 = freezed,
     Object? volumeCorrige15c = freezed,
     Object? volumeAmbiant = freezed,
     Object? proprietaireType = null,
@@ -300,9 +300,9 @@ class __$$ReceptionImplCopyWithImpl<$Res>
             ? _value.temperatureAmbianteC
             : temperatureAmbianteC // ignore: cast_nullable_to_non_nullable
                   as double?,
-        densiteA15: freezed == densiteA15
-            ? _value.densiteA15
-            : densiteA15 // ignore: cast_nullable_to_non_nullable
+        densiteA15Kgm3: freezed == densiteA15Kgm3
+            ? _value.densiteA15Kgm3
+            : densiteA15Kgm3 // ignore: cast_nullable_to_non_nullable
                   as double?,
         volumeCorrige15c: freezed == volumeCorrige15c
             ? _value.volumeCorrige15c
@@ -353,7 +353,7 @@ class _$ReceptionImpl implements _Reception {
     @JsonKey(name: 'index_avant') required this.indexAvant,
     @JsonKey(name: 'index_apres') required this.indexApres,
     @JsonKey(name: 'temperature_ambiante_c') this.temperatureAmbianteC,
-    @JsonKey(name: 'densite_a_15') this.densiteA15,
+    @JsonKey(name: 'densite_a_15_kgm3') this.densiteA15Kgm3,
     @JsonKey(name: 'volume_corrige_15c') this.volumeCorrige15c,
     @JsonKey(name: 'volume_ambiant') this.volumeAmbiant,
     @JsonKey(name: 'proprietaire_type')
@@ -393,8 +393,8 @@ class _$ReceptionImpl implements _Reception {
   @JsonKey(name: 'temperature_ambiante_c')
   final double? temperatureAmbianteC;
   @override
-  @JsonKey(name: 'densite_a_15')
-  final double? densiteA15;
+  @JsonKey(name: 'densite_a_15_kgm3')
+  final double? densiteA15Kgm3;
   @override
   @JsonKey(name: 'volume_corrige_15c')
   final double? volumeCorrige15c;
@@ -422,7 +422,7 @@ class _$ReceptionImpl implements _Reception {
 
   @override
   String toString() {
-    return 'Reception(id: $id, coursDeRouteId: $coursDeRouteId, citerneId: $citerneId, produitId: $produitId, partenaireId: $partenaireId, indexAvant: $indexAvant, indexApres: $indexApres, temperatureAmbianteC: $temperatureAmbianteC, densiteA15: $densiteA15, volumeCorrige15c: $volumeCorrige15c, volumeAmbiant: $volumeAmbiant, proprietaireType: $proprietaireType, note: $note, createdAt: $createdAt, statut: $statut, createdBy: $createdBy, validatedBy: $validatedBy)';
+    return 'Reception(id: $id, coursDeRouteId: $coursDeRouteId, citerneId: $citerneId, produitId: $produitId, partenaireId: $partenaireId, indexAvant: $indexAvant, indexApres: $indexApres, temperatureAmbianteC: $temperatureAmbianteC, densiteA15Kgm3: $densiteA15Kgm3, volumeCorrige15c: $volumeCorrige15c, volumeAmbiant: $volumeAmbiant, proprietaireType: $proprietaireType, note: $note, createdAt: $createdAt, statut: $statut, createdBy: $createdBy, validatedBy: $validatedBy)';
   }
 
   @override
@@ -445,8 +445,8 @@ class _$ReceptionImpl implements _Reception {
                 other.indexApres == indexApres) &&
             (identical(other.temperatureAmbianteC, temperatureAmbianteC) ||
                 other.temperatureAmbianteC == temperatureAmbianteC) &&
-            (identical(other.densiteA15, densiteA15) ||
-                other.densiteA15 == densiteA15) &&
+            (identical(other.densiteA15Kgm3, densiteA15Kgm3) ||
+                other.densiteA15Kgm3 == densiteA15Kgm3) &&
             (identical(other.volumeCorrige15c, volumeCorrige15c) ||
                 other.volumeCorrige15c == volumeCorrige15c) &&
             (identical(other.volumeAmbiant, volumeAmbiant) ||
@@ -475,7 +475,7 @@ class _$ReceptionImpl implements _Reception {
     indexAvant,
     indexApres,
     temperatureAmbianteC,
-    densiteA15,
+    densiteA15Kgm3,
     volumeCorrige15c,
     volumeAmbiant,
     proprietaireType,
@@ -510,7 +510,7 @@ abstract class _Reception implements Reception {
     @JsonKey(name: 'index_avant') required final double indexAvant,
     @JsonKey(name: 'index_apres') required final double indexApres,
     @JsonKey(name: 'temperature_ambiante_c') final double? temperatureAmbianteC,
-    @JsonKey(name: 'densite_a_15') final double? densiteA15,
+    @JsonKey(name: 'densite_a_15_kgm3') final double? densiteA15Kgm3,
     @JsonKey(name: 'volume_corrige_15c') final double? volumeCorrige15c,
     @JsonKey(name: 'volume_ambiant') final double? volumeAmbiant,
     @JsonKey(name: 'proprietaire_type')
@@ -550,8 +550,8 @@ abstract class _Reception implements Reception {
   @JsonKey(name: 'temperature_ambiante_c')
   double? get temperatureAmbianteC;
   @override
-  @JsonKey(name: 'densite_a_15')
-  double? get densiteA15;
+  @JsonKey(name: 'densite_a_15_kgm3')
+  double? get densiteA15Kgm3;
   @override
   @JsonKey(name: 'volume_corrige_15c')
   double? get volumeCorrige15c;

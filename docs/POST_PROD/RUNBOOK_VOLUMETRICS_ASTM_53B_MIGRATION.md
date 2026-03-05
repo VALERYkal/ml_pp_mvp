@@ -113,6 +113,18 @@
 
 ---
 
+## STAGING — Validation & hygiène
+
+### Reset STAGING (CDR only) — étape préalable recommandée
+
+Avant une campagne de validation ASTM ou tests d'intégration B2.2, il est recommandé de repartir d'une base STAGING propre (sans données historiques de réceptions/sorties/stocks).
+
+- **Script SQL rejouable** : [docs/DB_CHANGES/2026-02-25_staging_reset_cdr_only.sql](../DB_CHANGES/2026-02-25_staging_reset_cdr_only.sql)
+- **Invariant** : `cours_de_route` est préservé ; seules les tables de mouvement stock sont purgées (receptions, sorties_produit, stocks_journaliers, log_actions scopés).
+- **DB-STRICT** : Le script applique le patch `receptions_block_update_delete` (flag `app.receptions_allow_write`) puis exécute la purge dans une transaction avec les trois flags (receptions, sorties_produit, stocks_journaliers). STAGING only.
+
+---
+
 ## Next (BLOC 3)
 
 - Intégration contrôlée via feature flag (OFF par défaut).

@@ -8,7 +8,7 @@ void main() {
       flags: const FeatureFlags(useAstm53b15c: false),
       volumeAmbient: 1000.0,
       temperatureC: 30.0,
-      densityAt15: 850.0,
+      densityObservedKgPerM3: 850.0,
     );
 
     expect(result, 1000.0);
@@ -19,7 +19,7 @@ void main() {
       flags: const FeatureFlags(useAstm53b15c: true),
       volumeAmbient: 1000.0,
       temperatureC: 30.0,
-      densityAt15: 850.0,
+      densityObservedKgPerM3: 850.0,
     );
 
     expect(result, lessThan(1000.0));
