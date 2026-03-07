@@ -22,7 +22,8 @@
 
 | # | Item | Statut |
 |---|------|--------|
-| 1 | Golden cases SEP exécutés sur STAGING ; écart ML_PP vs SEP ≤ 1 L (volume_15c) | ☐ |
+| 0 | **STAGING homogène** : un seul moteur volumétrique (lookup-grid) pour réceptions **et** sorties ; si STAGING hybride (réceptions=lookup-grid, sorties=golden) → NO-GO (voir `docs/POST_PROD/ASTM/2026-03-07_INVESTIGATION_STAGING_PROD_VOLUMETRIC_ALIGNMENT.md`) | ☐ |
+| 1 | Golden cases / lookup-grid validés sur STAGING ; écart ML_PP vs référence ≤ tolérance (volume_15c) | ☐ |
 | 2 | `volume_15c` NOT NULL sur toutes les réceptions validées (STAGING) | ☐ |
 | 3 | Triggers stock (stocks_journaliers, snapshot) vérifiés avec volume_15c | ☐ |
 | 4 | Backup PROD complet (schema + data) effectué et vérifié | ☐ |
@@ -30,6 +31,14 @@
 | 6 | Approbation responsable technique / métier (validation terrain si applicable) | ☐ |
 | 7 | PR / revue code : pas d’écart non documenté vs ADR | ☐ |
 | 8 | Plan de rollback PROD lu et compris ; procédure documentée | ☐ |
+
+---
+
+## Investigation 2026-03-07 — Rappel décision
+
+- **Résultat** : NO-GO migration PROD immédiate — STAGING non homogène (réceptions = lookup-grid, sorties = golden).
+- **Cible** : Lookup-grid engine unique pour réceptions et sorties ; golden = validation uniquement.
+- **Référence** : `docs/POST_PROD/ASTM/2026-03-07_INVESTIGATION_STAGING_PROD_VOLUMETRIC_ALIGNMENT.md`.
 
 ---
 

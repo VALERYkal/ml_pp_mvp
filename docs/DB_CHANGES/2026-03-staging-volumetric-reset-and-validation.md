@@ -112,6 +112,7 @@ Une tentative de **DELETE** sur `receptions` a échoué avec un blocage métier 
 
 ## 8. Points de vigilance / limites connues
 
+- **Investigation 2026-03-07** : Une investigation technique a établi qu’en STAGING les **réceptions** sont branchées sur le **lookup-grid engine** (`astm.compute_v15_from_lookup_grid`, trigger `receptions_compute_15c_before_ins`) et les **sorties** sur le **golden engine** (`astm.compute_15c_from_golden`, trigger `trg_00_sorties_compute_golden_15c`). STAGING est donc **hybride**. Décision : **NO-GO migration PROD** tant que STAGING n’est pas homogène. Cible : **lookup-grid engine unique** pour réceptions et sorties ; golden engine = outil de validation uniquement. Voir `docs/POST_PROD/ASTM/2026-03-07_INVESTIGATION_STAGING_PROD_VOLUMETRIC_ALIGNMENT.md`.
 - **Moteur officiel non implémenté** : La fonction `astm.calculate_ctl_54b_15c_official_only(...)` (référence API MPMS 11.1 / ASTM 53B) n’est pas implémentée et lève volontairement `ASTM_OFFICIAL_ENGINE_NOT_IMPLEMENTED_YET`. La validation actuelle repose entièrement sur le golden path (`ctl_from_golden`, `compute_15c_from_golden`).
 - **Validation limitée au domaine golden** : Les calculs ne sont garantis que dans le domaine (densité, température) couvert par `astm_golden_cases_15c`. Hors domaine, le moteur peut lever une exception (ex. `ASTM_GOLDEN_OUT_OF_DOMAIN`).
 - **Immutabilité** : Les tables `receptions` et `sorties_produit` sont immuables pour les corrections manuelles (pas de UPDATE/DELETE direct). Toute correction doit passer par les mécanismes prévus (triggers, RPC, procédures de compensation documentées).
@@ -138,6 +139,7 @@ Une tentative de **DELETE** sur `receptions` a échoué avec un blocage métier 
 - Clarifier la sémantique de la colonne `sorties_produit.densite_a_15_kgm3` (observée vs corrigée 15°C) et aligner le message d’erreur du trigger (`DENSITE_OBSERVEE_REQUIRED`) avec le champ réellement utilisé.
 - Préparer la stratégie d’intervention PROD (purge éventuelle, replay, fenêtre de maintenance, sauvegardes).
 - Valider opérationnellement la fenêtre et les critères de migration avant toute exécution en PROD.
+- Homogénéiser STAGING : basculer les sorties vers `astm.compute_v15_from_lookup_grid`, revalider STAGING, puis préparer la migration PROD (voir investigation 2026-03-07).
 
 ---
 
