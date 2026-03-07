@@ -391,7 +391,34 @@ Ce comportement est conforme aux attentes pour un moteur volumétrique industrie
 
 ---
 
-## 13. Suite
+## 13. Alignement front Dart (formulaire et service sorties)
+
+Après validation du moteur lookup-grid STAGING côté DB, un correctif ciblé a été appliqué côté Flutter/Dart pour supprimer les incohérences entre l’UI, le service et le comportement DB-first.
+
+**Problème observé**
+
+- L’UI affichait déjà « Densité observée (kg/m³) » en STAGING, mais la validation formulaire restait sur l’ancienne plage 0,7 → 1,1 (g/cm³), ce qui rejetait une saisie valide comme 830.
+- Le service `createValidated(...)` reconstruisait encore `volume_corrige_15c = volumeCorrige15C ?? volumeAmbiant` et l’envoyait dans le payload, alors qu’en STAGING c’est le trigger DB qui doit calculer `volume_corrige_15c` à l’INSERT.
+
+**Risque**
+
+- Incohérence front ↔ DB : l’utilisateur saisit en kg/m³, le service envoyait un volume 15°C artificiel, et l’aperçu UI pouvait afficher une estimation locale non canonique.
+
+**Corrections appliquées (Dart uniquement, aucun changement SQL)**
+
+- **Formulaire** (`sortie_form_screen.dart`) : en STAGING, validation densité sur la plage 820 → 860 kg/m³ ; messages et helper text alignés sur le domaine lookup-grid ; hors STAGING, comportement legacy 0,7 → 1,1 inchangé.
+- **Service** (`sortie_service.dart`) : en STAGING, le payload de `createValidated(...)` n’inclut plus `volume_corrige_15c` ; le trigger DB calcule cette valeur à l’enregistrement ; hors STAGING, comportement legacy inchangé.
+- **Aperçu volume 15°C** : en STAGING, plus d’estimation numérique locale ; affichage d’un message explicite du type « Volume 15°C : calculé à l’enregistrement par le moteur ASTM » ; `calcV15(...)` n’est plus utilisé pour l’affichage en STAGING.
+- **Tests** : ajout/ajustement dans `sortie_service_test.dart` et `sortie_form_screen_test.dart` pour couvrir UI densité STAGING/non-STAGING, payload avec/sans `volume_corrige_15c` selon `isStaging`, et texte volume 15°C STAGING.
+
+**Portée**
+
+- Correctif **front et service Dart uniquement**. Aucun changement de trigger, de fonction SQL ou de schéma. Aucune migration PROD exécutée.
+- Résultat : cohérence front ↔ DB-first restaurée en STAGING avant préparation du runbook PROD opératoire.
+
+---
+
+## 14. Suite
 
 **Avant migration PROD**
 

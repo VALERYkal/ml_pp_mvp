@@ -26,6 +26,15 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 
 *Note : PROD database unchanged.*
 
+### Fixed
+
+**fix(sorties): align STAGING Dart form and service with ASTM DB-first flow**
+
+- Correction validation densité STAGING : plage 820–860 kg/m³ (densité observée), label et messages UI alignés ; comportement legacy 0,7–1,1 conservé hors STAGING.
+- Service `createValidated(...)` : en STAGING, le payload n’inclut plus `volume_corrige_15c` (calcul laissé au trigger DB lookup-grid) ; hors STAGING inchangé.
+- Aperçu volume 15°C en STAGING : plus d’estimation numérique locale ; message explicite « calculé à l’enregistrement par le moteur ASTM ».
+- Tests : ajout/ajustement dans `sortie_service_test.dart` et `sortie_form_screen_test.dart` (UI densité, payload selon isStaging, UX volume 15°C). Aucun changement SQL ni migration PROD.
+
 ---
 
 ### 📄 Investigation volumétrique STAGING / PROD (2026-03-07) — NO-GO migration PROD

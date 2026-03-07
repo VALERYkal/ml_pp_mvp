@@ -1,7 +1,8 @@
 // test/features/sorties/sortie_service_test.dart
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ml_pp_mvp/features/sorties/data/sortie_service.dart';
+import 'package:ml_pp_mvp/features/sorties/data/sortie_service.dart'
+    show SortieService, isStaging;
 import 'package:ml_pp_mvp/core/errors/sortie_service_exception.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -212,12 +213,20 @@ void main() {
         equals(100.0),
         reason: 'volume_ambiant = indexApres - indexAvant = 100 - 0',
       );
-      expect(
-        payload['volume_corrige_15c'],
-        equals(100.0),
-        reason: 'volumeCorrige15C null → utilise volumeAmbiant',
-      );
-      expect(payload['volume_corrige_15c'], greaterThan(0));
+      if (isStaging) {
+        expect(
+          payload.containsKey('volume_corrige_15c'),
+          isFalse,
+          reason: 'STAGING: le trigger DB calcule volume_corrige_15c, pas envoyé par le service',
+        );
+      } else {
+        expect(
+          payload['volume_corrige_15c'],
+          equals(100.0),
+          reason: 'volumeCorrige15C null → utilise volumeAmbiant',
+        );
+        expect(payload['volume_corrige_15c'], greaterThan(0));
+      }
 
       // Vérifier le statut
       expect(payload['statut'], equals('validee'));
@@ -283,7 +292,15 @@ void main() {
         expect(payload['temperature_ambiante_c'], equals(temperatureCAmb));
         expect(payload['densite_a_15_kgm3'], equals(densiteA15));
         expect(payload['volume_ambiant'], equals(100.0)); // 150 - 50
-        expect(payload['volume_corrige_15c'], equals(100.0));
+        if (isStaging) {
+          expect(
+            payload.containsKey('volume_corrige_15c'),
+            isFalse,
+            reason: 'STAGING: volume_corrige_15c calculé par le trigger DB',
+          );
+        } else {
+          expect(payload['volume_corrige_15c'], equals(100.0));
+        }
         expect(payload['statut'], equals('validee'));
         expect(payload['note'], equals('Sortie partenaire'));
       },
@@ -316,17 +333,72 @@ void main() {
       // Assert
       final payload = fakeClient.capture.insertedPayloads.first;
 
-      // Vérifier que le volume fourni est utilisé tel quel
-      expect(
-        payload['volume_corrige_15c'],
-        equals(volumeCorrige15C),
-        reason:
-            'Le volumeCorrige15C fourni doit être utilisé tel quel, sans recalcul',
-      );
+      // Vérifier que le volume fourni est utilisé tel quel (hors STAGING)
+      // En STAGING, volume_corrige_15c n'est pas envoyé (calcul DB)
+      if (isStaging) {
+        expect(
+          payload.containsKey('volume_corrige_15c'),
+          isFalse,
+          reason: 'STAGING: le service n\'envoie pas volume_corrige_15c',
+        );
+      } else {
+        expect(
+          payload['volume_corrige_15c'],
+          equals(volumeCorrige15C),
+          reason:
+              'Le volumeCorrige15C fourni doit être utilisé tel quel, sans recalcul',
+        );
+      }
 
       // Vérifier que volume_ambiant est toujours calculé depuis les indices
       expect(payload['volume_ambiant'], equals(100.0));
     });
+
+    test(
+      'createValidated selon isStaging inclut ou exclut volume_corrige_15c dans le payload',
+      () async {
+        // Sécurise le comportement DB-first STAGING vs legacy non-STAGING
+        const citerneId = 'citerne-1';
+        const produitId = 'produit-go';
+        const clientId = 'client-1';
+
+        await service.createValidated(
+          citerneId: citerneId,
+          produitId: produitId,
+          indexAvant: 0.0,
+          indexApres: 100.0,
+          temperatureCAmb: 20.0,
+          densiteA15: isStaging ? 830.0 : 0.83,
+          volumeCorrige15C: null,
+          proprietaireType: 'MONALUXE',
+          clientId: clientId,
+        );
+
+        expect(fakeClient.capture.insertCallCount, equals(1));
+        final payload = fakeClient.capture.insertedPayloads.first;
+
+        // Champs requis toujours présents
+        expect(payload['citerne_id'], equals(citerneId));
+        expect(payload['produit_id'], equals(produitId));
+        expect(payload['volume_ambiant'], equals(100.0));
+        expect(payload['temperature_ambiante_c'], equals(20.0));
+        expect(payload.containsKey('densite_a_15_kgm3'), isTrue);
+
+        if (isStaging) {
+          expect(
+            payload.containsKey('volume_corrige_15c'),
+            isFalse,
+            reason: 'STAGING: volume_corrige_15c calculé par le trigger lookup-grid, pas envoyé',
+          );
+        } else {
+          expect(
+            payload['volume_corrige_15c'],
+            equals(100.0),
+            reason: 'non-STAGING: volumeCorrige15C null → volumeAmbiant envoyé',
+          );
+        }
+      },
+    );
 
     test('lance une exception si clientId manquant pour MONALUXE', () async {
       // Arrange
