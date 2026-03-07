@@ -43,9 +43,9 @@ Ce runbook est un **document d’exécution contrôlée**, pas un script automat
 
 Avant toute exécution en PROD, les conditions suivantes doivent être **toutes** remplies :
 
-1. **STAGING validé** : Volumétrie 15°C validée en STAGING via golden dataset ; réceptions et sorties validées en STAGING.
-2. **Golden dataset** : Chargé et vérifié en STAGING ; moteur utilisé en STAGING basé sur le chemin golden (voir section 12).
-3. **Triggers DB** : Triggers réception et sortie validés en STAGING et déployés en PROD selon la release.
+1. **STAGING validé** : Volumétrie 15°C validée en STAGING ; **STAGING homogène** — un seul moteur volumétrique (lookup-grid) pour réceptions **et** sorties (voir investigation 2026-03-07). En cas de STAGING hybride (réceptions = lookup-grid, sorties = golden), migration PROD = NO-GO.
+2. **Moteur cible** : Lookup-grid engine (`astm.compute_v15_from_lookup_grid`, table `astm_lookup_grid_15c`) validé en STAGING pour réceptions et sorties. Golden engine = outil de validation uniquement.
+3. **Triggers DB** : Triggers réception et sortie validés en STAGING (moteur lookup-grid unique) et déployés en PROD selon la release.
 4. **Sauvegarde PROD complète** : Backup full de la base PROD réalisé et validé (restauration testée si possible).
 5. **Fenêtre d’intervention** : Validée par le métier ; pas de sorties / réceptions en cours pendant la fenêtre.
 6. **Accord explicite** : Accord écrit ou tracé (email, ticket, décision) avant toute opération de purge / replay, conformément à la gouvernance d’immutabilité (voir section 6 et 12).
@@ -88,8 +88,8 @@ Les tables **`receptions`** et **`sorties_produit`** sont **immutables en écrit
 
 Cocher chaque point avant de lancer la procédure :
 
-- [ ] STAGING validé (volumétrie, réceptions, sorties).
-- [ ] Golden dataset chargé et cohérent en STAGING.
+- [ ] STAGING validé (volumétrie, réceptions, sorties) et **homogène** (moteur lookup-grid unique pour réceptions et sorties — voir `docs/POST_PROD/ASTM/2026-03-07_INVESTIGATION_STAGING_PROD_VOLUMETRIC_ALIGNMENT.md`).
+- [ ] Lookup-grid engine chargé et cohérent en STAGING (table `astm_lookup_grid_15c`, batch actif).
 - [ ] Triggers réception et sortie vérifiés (présents et actifs en PROD selon release).
 - [ ] Sauvegarde PROD complète réalisée et validée (liste des objets sauvegardés, test de restauration si possible).
 - [ ] Fenêtre d’intervention validée par le métier (pas de réceptions/sorties en cours).
@@ -208,6 +208,7 @@ Tout écart doit être documenté et décidé (accepté avec réserve ou rollbac
 
 ### NO-GO (arrêt ou rollback)
 
+- **STAGING non homogène** (réceptions et sorties n’utilisent pas le même moteur volumétrique — voir investigation 2026-03-07).
 - **Écart volumétrique** au-delà des tolérances définies.
 - **Incohérence de stock** ou stock négatif non résolu.
 - **Impossibilité de rollback** (backup absent ou invalide).
@@ -244,10 +245,8 @@ En cas de NO-GO : appliquer la section 11 (Rollback), documenter la cause et la 
 ### 13.1 Moteur volumétrique
 
 - La fonction **`astm.calculate_ctl_54b_15c_official_only(...)`** existe en base mais **lève volontairement** l’exception **`ASTM_OFFICIAL_ENGINE_NOT_IMPLEMENTED_YET`**. Elle **ne doit pas** être utilisée comme moteur de migration.
-- Le **chemin réellement validé en STAGING** est le **golden path** :
-  - `astm.ctl_from_golden(...)`
-  - `astm.compute_15c_from_golden(...)`
-- La validation actuelle repose donc sur ce golden path en STAGING ; la migration PROD doit s’appuyer sur le même moteur/chemin que celui validé en STAGING.
+- **Investigation 2026-03-07** : En STAGING, deux moteurs ont été identifiés — **golden engine** (domaine étroit) et **lookup-grid engine** (grille 63 lignes, domaine 820–860 / 10–40). Les réceptions utilisaient le lookup-grid ; les sorties le golden → STAGING **hybride**. Décision : **NO-GO migration PROD** tant que STAGING n’est pas homogène.
+- **Cible** : **Lookup-grid engine unique** (`astm.compute_v15_from_lookup_grid`, table `astm_lookup_grid_15c`) pour réceptions **et** sorties. Golden engine = outil de validation uniquement. La migration PROD doit s’appuyer sur le moteur validé en STAGING (lookup-grid) après homogénéisation. Voir `docs/POST_PROD/ASTM/2026-03-07_INVESTIGATION_STAGING_PROD_VOLUMETRIC_ALIGNMENT.md`.
 
 ### 13.2 Immutabilité et purge
 
@@ -267,7 +266,7 @@ En cas de NO-GO : appliquer la section 11 (Rollback), documenter la cause et la 
 |--------|--------|
 | **Objet** | Migration volumétrique PROD après validation STAGING ; cohérence 15°C, traçabilité, rollback. |
 | **Références** | PR #90, commit 25422eb, tag v0.9-volumetric-staging. |
-| **Prérequis** | STAGING validé, backup PROD, stratégie purge/replay validée, accord explicite. |
+| **Prérequis** | STAGING validé et **homogène** (lookup-grid unique), backup PROD, stratégie purge/replay validée, accord explicite. |
 | **Interdit** | Purge directe sur `receptions`/`sorties_produit` sans procédure validée. |
 | **À confirmer avant PROD** | Procédure de purge/replay face à l’immutabilité ; environnement et comptages. |
 | **GO** | Vérifications OK, pas d’écart inacceptable, rollback possible, validation métier. |

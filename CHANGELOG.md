@@ -4,6 +4,15 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 
 ## [Unreleased]
 
+### 📄 Investigation volumétrique STAGING / PROD (2026-03-07) — NO-GO migration PROD
+- **Audit PROD** : Backup complet `backups/ml_pp_prod_J0_pre_volumetric_engine.dump` (pg_restore --list OK). Comptages : receptions=8, sorties_produit=0, stocks_journaliers=3, stocks_snapshot=2. Schéma ASTM et triggers volumétriques absents en PROD.
+- **Audit STAGING** : Deux moteurs identifiés — Golden engine (astm_golden_cases_15c, 8 lignes, domaine 836–837,6 / 19–29,7) et Lookup-grid engine (astm_lookup_grid_15c, 63 lignes, 820–860 / 10–40). Réceptions branchées sur lookup-grid ; sorties sur golden → STAGING hybride.
+- **Décision** : NO-GO migration PROD immédiate — STAGING non homogène. Cible : moteur unique lookup-grid pour réceptions et sorties ; golden engine réservé à la validation.
+- **Docs** : `docs/POST_PROD/ASTM/2026-03-07_INVESTIGATION_STAGING_PROD_VOLUMETRIC_ALIGNMENT.md` ; mise à jour runbook migration PROD, checklist ASTM, et `docs/DB_CHANGES/2026-03-staging-volumetric-reset-and-validation.md`.
+- **Aucune migration PROD exécutée. Aucune fonction SQL ni logique métier modifiée. Documentation uniquement.**
+
+---
+
 ## [2026-03-05]
 
 ### CI stabilisation
