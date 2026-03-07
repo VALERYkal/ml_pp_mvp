@@ -213,6 +213,8 @@ Puis mise à jour des fonctions de trigger pour appeler l’assertion avant le c
 - **STAGING** : Homogène (réceptions + sorties = lookup-grid). Golden engine réservé à la validation.
 - **PROD** : Aucune migration PROD exécutée. La préparation de la migration PROD passe par : documentation complète, checklist ASTM, runbook migration PROD (`docs/RUNBOOKS/RUNBOOK_PROD_VOLUMETRIC_MIGRATION.md`), préparation du schéma et des colonnes PROD, backup et fenêtre d’intervention validés.
 
+**Alignement Dart (post-migration DB)** : Après la migration STAGING sorties → lookup-grid, le front Flutter a été aligné pour éviter incohérence UI/service : formulaire densité en kg/m³ (820–860) en STAGING, service sans envoi de `volume_corrige_15c` en STAGING, aperçu volume 15°C sans estimation locale. Détail : `docs/POST_PROD/ASTM/2026-03-07_INVESTIGATION_STAGING_PROD_VOLUMETRIC_ALIGNMENT.md` § 13. Aucun changement SQL ni migration PROD.
+
 ---
 
 **Document créé** : 2026-03-07  

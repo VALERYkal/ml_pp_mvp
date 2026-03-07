@@ -202,20 +202,37 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
     }
     if (dens == null || dens <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('La densité à 15°C est obligatoire et doit être > 0'),
+        SnackBar(
+          content: Text(
+            isStaging
+                ? 'La densité observée est obligatoire et doit être > 0'
+                : 'La densité à 15°C est obligatoire et doit être > 0',
+          ),
         ),
       );
       return;
     }
     // Validation densité dans intervalle raisonnable
-    if (dens < 0.7 || dens > 1.1) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('La densité à 15°C doit être entre 0.7 et 1.1'),
-        ),
-      );
-      return;
+    if (isStaging) {
+      if (dens < 820 || dens > 860) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'La densité observée doit être entre 820 et 860 kg/m³',
+            ),
+          ),
+        );
+        return;
+      }
+    } else {
+      if (dens < 0.7 || dens > 1.1) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('La densité à 15°C doit être entre 0.7 et 1.1'),
+          ),
+        );
+        return;
+      }
     }
 
     final volAmb = computeVolumeAmbiant(avant, apres);
@@ -435,8 +452,13 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
           );
     }
 
-    // Calcul du volume 15°C : si température et densité sont présents, calculer, sinon afficher volume ambiant
-    final vol15 = (temp != null && temp > 0 && dens != null && dens > 0)
+    // Calcul du volume 15°C : en STAGING on n'affiche pas d'estimation locale (DB calcule à l'enregistrement).
+    // Hors STAGING : calcul local pour l'aperçu si température et densité présents.
+    final vol15 = (!isStaging &&
+            temp != null &&
+            temp > 0 &&
+            dens != null &&
+            dens > 0)
         ? calcV15(volumeObserveL: volAmb, temperatureC: temp, densiteA15: dens)
         : volAmb;
     final isWide = MediaQuery.of(context).size.width >= 1024;
@@ -840,8 +862,9 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
                       labelText: isStaging
                           ? 'Densité observée (kg/m³) *'
                           : 'Densité @15°C *',
-                      helperText:
-                          'Obligatoire pour calcul volume 15°C (0.7 - 1.1)',
+                      helperText: isStaging
+                          ? 'Obligatoire pour calcul volume 15°C (820 - 860 kg/m³)'
+                          : 'Obligatoire pour calcul volume 15°C (0.7 - 1.1)',
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
@@ -851,8 +874,14 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
                       if (num == null || num <= 0) {
                         return 'La densité doit être un nombre positif';
                       }
-                      if (num < 0.7 || num > 1.1) {
-                        return 'La densité doit être entre 0.7 et 1.1';
+                      if (isStaging) {
+                        if (num < 820 || num > 860) {
+                          return 'La densité observée doit être entre 820 et 860 kg/m³';
+                        }
+                      } else {
+                        if (num < 0.7 || num > 1.1) {
+                          return 'La densité doit être entre 0.7 et 1.1';
+                        }
                       }
                       return null;
                     },
@@ -863,10 +892,20 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
             ),
             const SizedBox(height: 8),
             Text('• Volume ambiant = ${volAmb.toStringAsFixed(2)} L'),
-            if (temp != null && temp > 0 && dens != null && dens > 0)
-              isStaging
-                  ? Text("• Volume 15°C (calculé à l'enregistrement)")
-                  : Text('• Volume corrigé 15°C ≈ ${vol15.toStringAsFixed(2)} L')
+            if (isStaging)
+              Text(
+                (temp != null && temp > 0 && dens != null && dens > 0)
+                    ? '• Volume 15°C : calculé à l\'enregistrement par le moteur ASTM'
+                    : '• Volume 15°C : sera calculé à l\'enregistrement (saisissez température et densité)',
+                style: (temp != null && temp > 0 && dens != null && dens > 0)
+                    ? null
+                    : TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontStyle: FontStyle.italic,
+                      ),
+              )
+            else if (temp != null && temp > 0 && dens != null && dens > 0)
+              Text('• Volume corrigé 15°C ≈ ${vol15.toStringAsFixed(2)} L')
             else
               Text(
                 '• Volume corrigé 15°C : Saisissez température et densité',
