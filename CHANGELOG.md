@@ -4,6 +4,30 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 
 ## [Unreleased]
 
+### Changed
+
+**Volumetric engine alignment (STAGING)**
+
+- sorties_produit migrated from golden engine to lookup-grid
+- new trigger `trg_02_sorties_compute_lookup_15c`
+- new function `sorties_compute_15c_before_ins_lookup`
+- corrected trigger execution order
+- volume 15°C convention standardized to **integer liters**
+- smoke test validated (1000 L → 997 L)
+- snapshot and logs verified
+- documented out-of-domain validation for lookup-grid volumetric engine
+- added centralized lookup-grid domain guard in STAGING
+- added `astm.lookup_grid_domain(...)`
+- added `astm.assert_lookup_grid_domain(...)`
+- wired centralized domain validation into receptions and sorties lookup-grid triggers
+- validated batch domain: density `820-860`, temperature `10-40`, `63` rows
+- validated standardized out-of-domain error handling (`ASTM_LOOKUP_OUT_OF_DOMAIN_DENS`)
+- no PROD migration executed
+
+*Note : PROD database unchanged.*
+
+---
+
 ### 📄 Investigation volumétrique STAGING / PROD (2026-03-07) — NO-GO migration PROD
 - **Audit PROD** : Backup complet `backups/ml_pp_prod_J0_pre_volumetric_engine.dump` (pg_restore --list OK). Comptages : receptions=8, sorties_produit=0, stocks_journaliers=3, stocks_snapshot=2. Schéma ASTM et triggers volumétriques absents en PROD.
 - **Audit STAGING** : Deux moteurs identifiés — Golden engine (astm_golden_cases_15c, 8 lignes, domaine 836–837,6 / 19–29,7) et Lookup-grid engine (astm_lookup_grid_15c, 63 lignes, 820–860 / 10–40). Réceptions branchées sur lookup-grid ; sorties sur golden → STAGING hybride.
