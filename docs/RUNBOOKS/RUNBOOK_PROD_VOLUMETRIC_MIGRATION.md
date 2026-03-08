@@ -28,6 +28,64 @@ Ce runbook est un **document d’exécution contrôlée**, pas un script automat
 
 ---
 
+## 2.9 — Purge contrôlée PROD (CDR-aware)
+
+### 2.9.1 Contexte métier
+
+Les 8 réceptions existantes en PROD sont des réceptions MONALUXE adossées à des **cours_de_route** (CDR).
+
+Séquence métier :
+
+1. CDR créé → statut **ARRIVE**
+2. Statut ARRIVE → réception possible
+3. Réception validée **consomme** le CDR (évolution vers un état aval, ex. DECHARGE)
+
+Si l’on purge les réceptions **sans** restaurer le statut des CDR, ceux-ci restent dans un état aval et ne peuvent plus être réceptionnés. La purge doit donc être **CDR-aware** : remise des CDR concernés au statut ARRIVE après suppression des réceptions et de leurs effets.
+
+### 2.9.2 Objectif réel de la purge
+
+L’objectif n’est pas de « supprimer des données » mais de **remettre la base dans l’état métier** suivant :
+
+- **8 CDR MONALUXE** au statut **ARRIVE**
+- **Aucune réception**
+- **Aucun stock dérivé** (stocks_journaliers, stocks_snapshot)
+- Système **prêt à rejouer les réceptions** après migration ASTM lookup-grid
+
+### 2.9.3 Périmètre de la purge
+
+| Objet | Impact |
+|-------|--------|
+| **receptions** | Suppression des 8 enregistrements (dans le cadre de la procédure validée). |
+| **stocks_journaliers** | Purge des lignes liées aux réceptions. |
+| **stocks_snapshot** | Purge des snapshots impactés. |
+| **log_actions** | Purge ou conservation selon politique projet (traçabilité vs replay). |
+| **cours_de_route** | Remise du **statut** des 8 CDR concernés à **ARRIVE**. |
+
+### 2.9.4 Ordre opératoire métier
+
+1. **Identifier les réceptions** : lister les 8 réceptions PROD (ids, CDR liés).
+2. **Identifier les CDR liés** : lister les 8 CDR MONALUXE concernés (ids, statut actuel).
+3. **Purger les effets de réception** : supprimer ou annuler les écritures dans `stocks_journaliers`, `stocks_snapshot`, et les logs associés selon la procédure validée.
+4. **Supprimer les réceptions** : exécuter la suppression des 8 réceptions dans le cadre de la procédure exceptionnelle validée (RPC admin ou équivalent).
+5. **Remettre les CDR à ARRIVE** : mettre à jour le statut des 8 CDR concernés vers **ARRIVE**.
+6. **Vérifier** : confirmer que les 8 CDR sont de nouveau réceptionnables (statut ARRIVE, pas de réception orpheline).
+7. **Lancer la migration volumétrique** : déploiement schéma ASTM, triggers lookup-grid, puis rejeu des réceptions avec le moteur ASTM.
+
+### 2.9.5 Résultat attendu
+
+Après purge contrôlée CDR-aware :
+
+| Table / objet | Valeur attendue |
+|---------------|-----------------|
+| **receptions** | 0 |
+| **stocks_journaliers** | 0 |
+| **stocks_snapshot** | 0 |
+| **CDR MONALUXE concernés** | 8, statut = **ARRIVE** |
+
+Ces 8 CDR pourront être **réceptionnés à nouveau** avec le moteur ASTM lookup-grid après migration.
+
+---
+
 ## 3. Références techniques
 
 | Élément | Valeur |
