@@ -282,6 +282,87 @@ SELECT 'stocks_journaliers', COUNT(*) FROM public.stocks_journaliers;
 
 ---
 
+## A.5 bis — Schema Alignment (PROD → STAGING)
+
+### Purpose
+
+Before installing the ASTM volumetric engine in production, the schema of the operational tables must be aligned with the STAGING environment.
+
+Recent changes introduced more explicit density fields used by the lookup-grid volumetric engine. Production still contains a legacy field (`densite_a_15`) that is no longer the canonical structure used in STAGING. To ensure that the volumetric triggers and functions can be migrated safely, the schema must be **additively** aligned.
+
+### Alignment Strategy
+
+The alignment follows a strict **additive** strategy:
+
+- Existing columns in production are **preserved**
+- New columns introduced in STAGING are **added** in PROD
+- **No destructive** migration is performed at this stage
+- Legacy fields remain temporarily available for backward compatibility
+
+This minimizes risk during the PROD migration.
+
+### Table: `public.receptions`
+
+| | |
+|---|---|
+| **Columns currently in PROD** | `densite_a_15` |
+| **Columns present in STAGING but missing in PROD** | `densite_a_15_g_cm3`, `densite_a_15_kgm3`, `densite_observee_kgm3` |
+| **Migration action** | Add the missing columns in PROD. |
+
+Example migration:
+
+```sql
+alter table public.receptions
+add column if not exists densite_a_15_g_cm3 double precision,
+add column if not exists densite_a_15_kgm3 double precision,
+add column if not exists densite_observee_kgm3 double precision;
+```
+
+### Table: `public.sorties_produit`
+
+| | |
+|---|---|
+| **Columns currently in PROD** | `densite_a_15` |
+| **Columns present in STAGING but missing in PROD** | `densite_a_15_g_cm3`, `densite_a_15_kgm3` |
+| **Migration action** | Add the missing columns in PROD. |
+
+Example migration:
+
+```sql
+alter table public.sorties_produit
+add column if not exists densite_a_15_g_cm3 double precision,
+add column if not exists densite_a_15_kgm3 double precision;
+```
+
+### Legacy field policy
+
+The field **`densite_a_15`** remains temporarily in the schema for compatibility with historical data and older application code. It will be deprecated only after:
+
+- full validation of the lookup-grid volumetric engine in production
+- confirmation that all application paths use the new density fields
+
+**No drop or rename** of legacy fields occurs in this migration.
+
+### Migration order (updated)
+
+The correct execution order for the production migration is now:
+
+1. **Schema alignment** (this section)
+2. ASTM schema and routines installation
+3. Lookup-grid dataset installation
+4. Controlled CDR-aware purge
+5. Activation of volumetric triggers
+6. Smoke tests
+7. Resume operations
+
+### Status
+
+- Schema delta identified and documented.
+- Migration is additive and non-destructive.
+- The actual SQL will be executed during the production migration runbook.
+
+---
+
 ## 9. Procédure détaillée (étape par étape)
 
 Séquence logique à suivre. Chaque phase doit être validée avant la suivante.
@@ -412,7 +493,84 @@ En cas de NO-GO : appliquer la section 11 (Rollback), documenter la cause et la 
 
 ---
 
-## 14. Résumé exécutif
+## 14. Volumetric Rounding Policy (Reception vs Sortie)
+
+### Purpose
+
+This section clarifies the **rounding policy** used by the volumetric engine in ML_PP MVP.
+
+The volumetric engine computes **Volume@15°C** using the ASTM lookup-grid interpolation. However, the system **intentionally** applies different rounding rules for **receptions** and **sorties**, reflecting operational practices in petroleum logistics.
+
+### Reception volumetrics
+
+For **receptions**, the system stores the calculated value with **one decimal precision**.
+
+The computation chain is:
+
+- `volume_15c = volume_ambiant × VCF`  
+  where: **VCF** = lookup-grid interpolation result
+
+The function responsible for the calculation is:
+
+- `astm.compute_v15_from_lookup_grid(...)`
+
+The final stored value is:
+
+- `volume_15c_l := round(volume_ambiant × VCF, 1)`
+
+This value is written into:
+
+- **`receptions.volume_15c`**
+
+The rationale is to preserve a slightly higher precision for incoming product measurements.
+
+### Sortie volumetrics
+
+For **sorties**, the system applies an **operational rounding to the nearest liter**.
+
+The sortie trigger uses the same lookup-grid volumetric engine but rounds the final result to an **integer liter**. This reflects operational practice where deliveries are typically managed in whole liters.
+
+Therefore:
+
+- `volume_corrige_15c := round(volume_15c)`
+
+This value is stored in:
+
+- **`sorties_produit.volume_corrige_15c`**
+
+### Resulting policy
+
+The system therefore uses the following rounding convention:
+
+| Operation | Stored Precision |
+|-----------|------------------|
+| Reception | 1 decimal        |
+| Sortie    | integer liter    |
+
+This policy is **intentional** and ensures:
+
+- stable volumetric calculations
+- compatibility with operational delivery measurements
+- predictable stock reconciliation
+
+### Important operational note
+
+Because receptions store a decimal precision and sorties round to the nearest liter, **small differences below 0.5 L** may occur in theoretical reconciliation. These differences are **expected and acceptable** within operational tolerance. The lookup-grid engine itself remains **deterministic and consistent** across both flows.
+
+### Governance
+
+This rounding policy must remain consistent across:
+
+- database triggers
+- volumetric functions
+- stock computation logic
+- reporting layers
+
+**Any modification to rounding precision** must be treated as a **controlled change** to the volumetric engine.
+
+---
+
+## 15. Résumé exécutif
 
 | Élément | Contenu |
 |--------|--------|
