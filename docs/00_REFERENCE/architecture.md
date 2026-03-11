@@ -81,5 +81,38 @@ Navigation restreinte via guards dans GoRouter
 
 Audit trail automatique via log_actions
 
+---
+
+## Volumetric Engine
+
+Production volumetric calculations are performed using **lookup-grid interpolation** compliant with **ASTM API MPMS 11.1**.
+
+**Inputs:**
+
+- temperature_ambiante_c
+- densite_observee_kgm3
+- volume_ambiant
+
+**Outputs:**
+
+- densite_a_15_kgm3
+- vcf
+- volume_15c
+
+The interpolation logic is implemented directly in PostgreSQL (schema `astm`). The application supplies inputs and reads outputs; it does not implement the conversion logic.
+
+---
+
+## Operational Guarantees
+
+The system now guarantees:
+
+- **deterministic volumetric calculations** — same inputs yield the same volume @15°C and density @15°C
+- **reproducible stock reconstruction** — stock states can be rebuilt from receptions and sorties using the same engine
+- **centralized database logic** — all volumetric computation is in PostgreSQL; no client-side conversion
+- **elimination of legacy volumetric calculations** — production no longer uses manual density or legacy models
+
+---
+
 ✅ Statut
 Cette architecture est validée pour le MVP v0, avec possibilité d’évolution modulaire vers un PWA ou application hybride plus avancée.
