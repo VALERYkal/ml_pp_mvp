@@ -181,8 +181,16 @@ Le volume standard utilisé est :
 
 ML_PP MVP est un système avancé en phase de stabilisation.
 
-Le moteur volumétrique ASTM est actuellement validé en STAGING.
+The ASTM volumetric engine is now deployed in both STAGING and PRODUCTION.
 
-La prochaine étape majeure est :
+Both environments run the lookup-grid interpolation engine.
 
-l’activation du moteur volumétrique en production.
+The system now computes:
+
+- densite_a_15
+- VCF
+- volume_15c
+
+directly in the database using ASTM lookup-grid interpolation.
+
+The application runtime path is identical between STAGING and PROD.

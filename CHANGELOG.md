@@ -6,6 +6,40 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 
 ---
 
+## Volumetric Engine Migration — PROD aligned with STAGING runtime
+
+### Added
+
+- Activation of ASTM lookup-grid volumetric engine in PROD.
+- Deployment of `public.astm_lookup_grid_15c` in PROD.
+- Deployment of `public.astm_golden_cases_15c` in PROD.
+- Installation of ASTM runtime functions in PROD (see Migration Report).
+- Activation of runtime triggers on `receptions` and `sorties_produit` in PROD.
+- Controlled purge of legacy volumetric transactions.
+- Replay of 8 historical receptions.
+- Reconstruction of stocks and CDR closure.
+- DB protection triggers re-enabled after maintenance.
+
+### Migration executed
+
+- Moteur ASTM lookup-grid installé en PROD.
+- Tables et datasets créés/chargés.
+- Fonctions ASTM utiles installées.
+- Triggers runtime activés.
+- Purge contrôlée des transactions legacy.
+- Replay des 8 réceptions historiques.
+- Stocks reconstruits, protections réactivées.
+
+### Remaining intentional differences
+
+The following functions exist in STAGING but are **not** deployed to PROD by design (non-blocking):
+
+- **astm.calculate_ctl_54b_15c_official_only** — Present in STAGING but not fully implemented; raises an intentional exception. Not required for production runtime.
+- **astm.validate_golden_dataset** — Depends on `calculate_ctl_54b_15c_official_only`; not useful until that function is implemented. Validation-only, not part of runtime path.
+- **astm.fn_sortie_compute_golden_15c** — STAGING-only helper; depends on `public.app_settings` and contains an anti-PROD guard. Not part of production business runtime.
+
+---
+
 ## Volumetric Engine Migration — ASTM Lookup Grid
 
 ### Added

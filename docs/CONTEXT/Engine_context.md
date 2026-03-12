@@ -18,13 +18,9 @@ API MPMS 11.1
 
 # Previous System
 
-L’ancien système utilisait :
+The system previously allowed manual entry of densite_a_15 (density at 15°C).
 
-densite_a_15 saisie manuellement.
-
-Ce modèle était incorrect car :
-
-la densité à 15°C doit être calculée et non saisie.
+The current architecture enforces observed density input (densite_observee) and computes densite_a_15 in the database. Manual densite_a_15 is no longer accepted for the volumetric path; the density at 15°C must be calculated by the engine, not entered by the user.
 
 ---
 
@@ -151,6 +147,16 @@ interpolation bilinéaire.
 Fonction :
 
 astm.lookup_15c_bilinear_v2()
+
+---
+
+# Production Deployment
+
+The ASTM lookup-grid volumetric engine is now deployed in both STAGING and PRODUCTION.
+
+All volumetric computations are executed inside PostgreSQL.
+
+The engine uses the lookup grid dataset (astm_lookup_grid_15c) and bilinear interpolation.
 
 ---
 
