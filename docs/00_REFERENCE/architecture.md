@@ -81,5 +81,67 @@ Navigation restreinte via guards dans GoRouter
 
 Audit trail automatique via log_actions
 
+---
+
+## ASTM Volumetric Architecture
+
+### Runtime path (receptions)
+
+`public.receptions`  
+→ `trg_receptions_compute_15c_before_ins`  
+→ `astm.assert_lookup_grid_domain`  
+→ `astm.compute_v15_from_lookup_grid`  
+→ `astm.lookup_15c_bilinear_v2`  
+→ `public.astm_lookup_grid_15c`
+
+### Runtime path (sorties)
+
+`public.sorties_produit`  
+→ `trg_02_sorties_compute_lookup_15c`  
+→ same lookup-grid engine (assert_lookup_grid_domain, compute_v15_from_lookup_grid, lookup_15c_bilinear_v2, astm_lookup_grid_15c).
+
+### Validation path
+
+`public.astm_golden_cases_15c`  
+→ `astm.ctl_from_golden`  
+→ `astm.compute_15c_from_golden`
+
+### Important note
+
+The lookup-grid runtime path is aligned between STAGING and PROD. A few validation or staging-only functions (e.g. `astm.calculate_ctl_54b_15c_official_only`, `astm.validate_golden_dataset`, `astm.fn_sortie_compute_golden_15c`) remain intentionally not deployed to PROD; they are not part of the production business path.
+
+---
+
+## Volumetric Engine
+
+Production volumetric calculations are performed using **lookup-grid interpolation** compliant with **ASTM API MPMS 11.1**.
+
+**Inputs:**
+
+- temperature_ambiante_c
+- densite_observee_kgm3
+- volume_ambiant
+
+**Outputs:**
+
+- densite_a_15_kgm3
+- vcf
+- volume_15c
+
+The interpolation logic is implemented directly in PostgreSQL (schema `astm`). The application supplies inputs and reads outputs; it does not implement the conversion logic.
+
+---
+
+## Operational Guarantees
+
+The system now guarantees:
+
+- **deterministic volumetric calculations** — same inputs yield the same volume @15°C and density @15°C
+- **reproducible stock reconstruction** — stock states can be rebuilt from receptions and sorties using the same engine
+- **centralized database logic** — all volumetric computation is in PostgreSQL; no client-side conversion
+- **elimination of legacy volumetric calculations** — production no longer uses manual density or legacy models
+
+---
+
 ✅ Statut
 Cette architecture est validée pour le MVP v0, avec possibilité d’évolution modulaire vers un PWA ou application hybride plus avancée.

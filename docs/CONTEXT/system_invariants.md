@@ -27,10 +27,11 @@ Le frontend ne doit jamais calculer :
 - VCF
 - volume à 15°C
 
-Les fonctions responsables sont :
+Les fonctions responsables du runtime sont :
 
 astm.compute_v15_from_lookup_grid  
-astm.lookup_15c_bilinear_v2
+astm.lookup_15c_bilinear_v2  
+astm.assert_lookup_grid_domain
 
 ---
 
@@ -52,6 +53,8 @@ densite_a_15.
 
 Le moteur volumétrique ne doit jamais calculer hors domaine du dataset.
 
+The lookup grid dataset (astm_lookup_grid_15c) defines the allowed computation domain.
+
 Le domaine actuel est :
 
 densité observée :
@@ -64,9 +67,12 @@ température :
 
 Toute tentative de calcul hors domaine doit lever une exception.
 
-Fonction responsable :
+Fonctions responsables :
 
-astm.assert_lookup_grid_domain
+astm.assert_lookup_grid_domain  
+astm.lookup_grid_domain (domain check)  
+astm.compute_v15_from_lookup_grid  
+astm.lookup_15c_bilinear_v2
 
 ---
 
@@ -87,6 +93,8 @@ VCF
 volume_15c
 
 sans dépendre de l’environnement.
+
+Note: The volumetric engine deployed in production must remain deterministic and environment independent.
 
 ---
 

@@ -10,28 +10,19 @@ Mars 2026
 
 ## STAGING
 
-STAGING contient :
-
-- moteur volumétrique ASTM
-- lookup grid dataset
-- golden dataset installé
-- triggers volumétriques actifs
-- nouvelles colonnes densité
-
-Le moteur volumétrique fonctionne correctement.
+- ASTM volumetric engine active
+- lookup grid dataset installed
+- golden dataset installed
+- volumetric triggers active
 
 ---
 
 ## PROD
 
-PROD utilise encore l’ancien moteur volumétrique.
-
-Il manque :
-
-- schéma astm
-- lookup grid dataset
-- triggers volumétriques
-- nouvelles colonnes densité
+- ASTM volumetric engine active
+- lookup grid dataset installed
+- volumetric triggers active
+- historical receptions recalculated
 
 ---
 
@@ -58,19 +49,11 @@ Ces volumes ont été calculés avec l’ancien moteur.
 
 # Migration Strategy
 
-La stratégie choisie est :
+The migration has been completed.
 
-purge contrôlée des transactions.
+Strategy executed: controlled purge of legacy transactions, then installation of ASTM schema, lookup grid dataset, volumetric functions and triggers, replay of the 8 historical receptions, reconstruction of stocks, system reopening.
 
-Les tables suivantes seront vidées :
-
-sorties_produit  
-receptions  
-stocks_journaliers
-
-Ensuite :
-
-le nouveau moteur volumétrique sera activé.
+The new volumetric engine is now active in production.
 
 ---
 
@@ -133,8 +116,18 @@ Préparer le package final d’activation production :
 
 ---
 
+# Migration Result
+
+Production is now aligned with staging on the ASTM lookup-grid volumetric runtime.
+
+All receptions and stock calculations now use the new volumetric engine.
+
+---
+
 # Goal
 
 Activer en production :
 
 le moteur volumétrique lookup-grid conforme API MPMS 11.1.
+
+(Goal achieved: the lookup-grid engine is now active in both STAGING and PROD.)

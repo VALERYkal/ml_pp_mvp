@@ -4,6 +4,137 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 
 ## [Unreleased]
 
+---
+
+## Volumetric Engine Migration — PROD aligned with STAGING runtime
+
+### Added
+
+- Activation of ASTM lookup-grid volumetric engine in PROD.
+- Deployment of `public.astm_lookup_grid_15c` in PROD.
+- Deployment of `public.astm_golden_cases_15c` in PROD.
+- Installation of ASTM runtime functions in PROD (see Migration Report).
+- Activation of runtime triggers on `receptions` and `sorties_produit` in PROD.
+- Controlled purge of legacy volumetric transactions.
+- Replay of 8 historical receptions.
+- Reconstruction of stocks and CDR closure.
+- DB protection triggers re-enabled after maintenance.
+
+### Migration executed
+
+- Moteur ASTM lookup-grid installé en PROD.
+- Tables et datasets créés/chargés.
+- Fonctions ASTM utiles installées.
+- Triggers runtime activés.
+- Purge contrôlée des transactions legacy.
+- Replay des 8 réceptions historiques.
+- Stocks reconstruits, protections réactivées.
+
+### Remaining intentional differences
+
+The following functions exist in STAGING but are **not** deployed to PROD by design (non-blocking):
+
+- **astm.calculate_ctl_54b_15c_official_only** — Present in STAGING but not fully implemented; raises an intentional exception. Not required for production runtime.
+- **astm.validate_golden_dataset** — Depends on `calculate_ctl_54b_15c_official_only`; not useful until that function is implemented. Validation-only, not part of runtime path.
+- **astm.fn_sortie_compute_golden_15c** — STAGING-only helper; depends on `public.app_settings` and contains an anti-PROD guard. Not part of production business runtime.
+
+---
+
+## Volumetric Engine Migration — ASTM Lookup Grid
+
+### Added
+
+- ASTM API MPMS 11.1 lookup-grid volumetric engine.
+- Runtime schema `astm`.
+- Bilinear interpolation engine.
+
+### Database Components Added
+
+**Functions:**
+
+- astm.lookup_grid_domain
+- astm.assert_lookup_grid_domain
+- astm.lookup_15c_bilinear_v2
+- astm.compute_v15_from_lookup_grid
+
+**Triggers:**
+
+- trg_receptions_compute_15c_before_ins
+- trg_02_sorties_compute_lookup_15c
+
+### Migration Executed
+
+Legacy transactions were purged and historical receptions replayed to recompute stock using the ASTM engine.
+
+---
+
+### Volumetric Engine Migration — Production Runbook Finalized
+
+Production database has completed a controlled migration from the legacy volumetric engine to the **ASTM API MPMS 11.1 lookup-grid engine**. The following is confirmed in production.
+
+#### Added
+
+- ASTM API MPMS 11.1 lookup-grid volumetric engine installed in production.
+- Dataset `astm_lookup_grid_15c` deployed with official grid values.
+- Runtime schema `astm` created in production database.
+- Bilinear interpolation engine implemented via `lookup_15c_bilinear_v2`.
+
+#### Added Runtime Functions
+
+- `astm.lookup_grid_domain`
+- `astm.assert_lookup_grid_domain`
+- `astm.lookup_15c_bilinear_v2`
+- `astm.compute_v15_from_lookup_grid`
+
+#### Added Runtime Triggers
+
+**receptions**
+
+- `trg_receptions_compute_15c_before_ins`
+
+**sorties_produit**
+
+- `trg_02_sorties_compute_lookup_15c`
+
+#### Migration Procedure
+
+A controlled production migration was executed:
+
+1. Disable protection triggers
+2. Purge legacy transactions: receptions, stocks_snapshot, stocks_journaliers
+3. Reset CDR statuses
+4. Replay historical receptions
+5. Rebuild stock states
+6. Re-enable protection triggers
+
+#### Result
+
+Production now runs entirely on **API MPMS 11.1 lookup-grid interpolation**. All historical receptions were recomputed using the new engine.
+
+---
+
+### Volumetric Engine Migration — Production Runbook Finalized
+
+The volumetric calculation system has been redesigned to use the **ASTM lookup-grid engine** as the runtime production engine. The **golden dataset engine** is retained only for validation and testing.
+
+This change introduces a **controlled migration procedure** that:
+
+- **Purges** the first 8 receptions created with the legacy volumetric logic
+- **Deploys** the ASTM lookup-grid runtime engine
+- **Replays** the receptions with correct volumetric computation
+- **Guarantees** stock recalculation consistency
+
+Documentation and tooling added:
+
+- **Production migration runbook** (`docs/RUNBOOKS/RUNBOOK_PROD_VOLUMETRIC_MIGRATION.md`) — authoritative procedure
+- **Operational checklist** — GO/NO-GO criteria, technical and business checks
+- **Rollback procedure** — stop application, restore backup, restart (~10 minutes)
+- **Automated verification queries** — precheck, validation, and post-migration scripts in `scripts/prod_migration/`
+
+**Clarification:** The production migration has since been executed and verified. See *Volumetric Engine Migration — Production Activation* above.
+
+---
+
 ### Changed
 
 **Volumetric engine alignment (STAGING)**

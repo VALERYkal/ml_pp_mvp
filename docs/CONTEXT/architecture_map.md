@@ -138,25 +138,19 @@ lookup grid volumetric interpolation.
 
 # Volumetric Pipeline
 
-Inputs terrain :
-
 volume_observe  
 temperature  
 densite_observee
 
-↓
+→ domain guard (astm.assert_lookup_grid_domain)
 
-lookup grid interpolation
+→ lookup grid interpolation (astm.lookup_15c_bilinear_v2, astm.compute_v15_from_lookup_grid)
 
-↓
-
-densite_a_15  
+→ densite_a_15  
 VCF  
 volume_15c
 
-↓
-
-écriture en base
+→ écriture en base
 
 ---
 
@@ -256,17 +250,19 @@ Cela garantit :
 
 STAGING :
 
-moteur volumétrique actif  
-dataset installé  
-triggers actifs
+- ASTM volumetric engine active
+- lookup grid dataset installed
+- triggers active
 
 PROD :
 
-ancien moteur volumétrique encore actif  
-migration prévue
+- ASTM volumetric engine active
+- lookup grid dataset installed
+- triggers active
+- business pipeline aligned with staging
 
 ---
 
 # Next Major Operation
 
-Activation du moteur volumétrique ASTM en production.
+ASTM lookup-grid volumetric engine is now active in production. Ongoing: maintain alignment and monitor volumetric consistency.
