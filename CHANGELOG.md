@@ -6,6 +6,41 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 
 ---
 
+## Fix — Safari white screen (Flutter Web)
+
+**Date :** 2026-03-13
+
+Correction d'un problème d'écran blanc sur Safari après déploiement Flutter Web.
+
+**Cause :** Safari utilisait un ancien service worker Flutter (`flutter_service_worker.js`) chargé depuis le cache.
+
+**Résolution :** Ajout d'un script dans `web/index.html` pour forcer la mise à jour du service worker lors du chargement de l'application :
+
+```javascript
+window.addEventListener('load', function () {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(function (registrations) {
+      for (const registration of registrations) {
+        registration.update();
+      }
+    });
+  }
+});
+```
+
+Redéploiement de l'application via :
+
+- `flutter build web --release`
+- `firebase deploy --only hosting`
+
+**Impact :**
+
+- Safari compatible
+- Chrome inchangé
+- Aucun impact backend
+
+---
+
 ## Volumetric Engine Migration — PROD aligned with STAGING runtime
 
 ### Added
