@@ -88,7 +88,7 @@ class _StocksAdjustmentCreateSheetState
       final res = await client
           .from(tableName)
           .select(
-            'volume_ambiant, temperature_ambiante_c, densite_a_15, volume_corrige_15c',
+            'volume_ambiant, temperature_ambiante_c, densite_a_15, volume_15c, volume_corrige_15c',
           )
           .eq('id', widget.mouvementId)
           .maybeSingle();
@@ -102,6 +102,7 @@ class _StocksAdjustmentCreateSheetState
                 (data['temperature_ambiante_c'] as num?)?.toDouble(),
             densiteA15: (data['densite_a_15'] as num?)?.toDouble(),
             volumeCorrige15c:
+                (data['volume_15c'] as num?)?.toDouble() ??
                 (data['volume_corrige_15c'] as num?)?.toDouble(),
           );
           _isLoadingMovement = false;

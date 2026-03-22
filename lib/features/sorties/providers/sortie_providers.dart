@@ -52,7 +52,7 @@ final sortiesListProvider = Riverpod.FutureProvider<List<Map<String, dynamic>>>(
     final res = await client
         .from('sorties_produit')
         .select(
-          'id, created_at, date_sortie, proprietaire_type, volume_ambiant, volume_corrige_15c, '
+          'id, created_at, date_sortie, proprietaire_type, volume_ambiant, volume_15c, volume_corrige_15c, '
           'produits:produit_id(code, nom), citernes:citerne_id(nom), '
           'client:client_id(nom), partenaire:partenaire_id(nom)',
         )

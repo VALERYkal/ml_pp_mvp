@@ -292,7 +292,7 @@ class StocksAdjustmentsListScreen extends ConsumerWidget {
       if (type == 'RECEPTION') {
         final res = await client
             .from('receptions')
-            .select('id, date_reception, volume_corrige_15c, produits:produit_id(nom)')
+            .select('id, date_reception, volume_15c, volume_corrige_15c, produits:produit_id(nom)')
             .order('date_reception', ascending: false)
             .limit(20);
 
@@ -301,7 +301,9 @@ class StocksAdjustmentsListScreen extends ConsumerWidget {
             final map = row as Map<String, dynamic>;
             final id = map['id'] as String? ?? '';
             final date = map['date_reception'] as String? ?? '';
-            final volume = (map['volume_corrige_15c'] as num?)?.toDouble() ?? 0.0;
+            final volume = (map['volume_15c'] as num?)?.toDouble() ??
+                (map['volume_corrige_15c'] as num?)?.toDouble() ??
+                0.0;
             final produit = map['produits'] as Map<String, dynamic>?;
             final produitNom = produit?['nom'] as String? ?? 'Produit inconnu';
 
@@ -315,7 +317,7 @@ class StocksAdjustmentsListScreen extends ConsumerWidget {
       } else if (type == 'SORTIE') {
         final res = await client
             .from('sorties_produit')
-            .select('id, date_sortie, volume_corrige_15c, produits:produit_id(nom)')
+            .select('id, date_sortie, volume_15c, volume_corrige_15c, produits:produit_id(nom)')
             .order('date_sortie', ascending: false)
             .limit(20);
 
@@ -328,7 +330,9 @@ class StocksAdjustmentsListScreen extends ConsumerWidget {
             final date = dateStr.isNotEmpty && dateStr.length >= 10
                 ? dateStr.substring(0, 10)
                 : 'Date inconnue';
-            final volume = (map['volume_corrige_15c'] as num?)?.toDouble() ?? 0.0;
+            final volume = (map['volume_15c'] as num?)?.toDouble() ??
+                (map['volume_corrige_15c'] as num?)?.toDouble() ??
+                0.0;
             final produit = map['produits'] as Map<String, dynamic>?;
             final produitNom = produit?['nom'] as String? ?? 'Produit inconnu';
 

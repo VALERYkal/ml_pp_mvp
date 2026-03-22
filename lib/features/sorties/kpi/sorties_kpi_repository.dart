@@ -20,7 +20,7 @@ class SortiesKpiRepository {
   ///
   /// Agrège :
   /// - count : nombre de sorties
-  /// - volume15c : somme de volume_corrige_15c
+  /// - volume15c : somme de volume_15c avec fallback volume_corrige_15c (legacy)
   /// - volumeAmbient : somme de volume_ambiant
   ///
   /// Si cette structure est modifiée, mettre à jour:
@@ -46,7 +46,7 @@ class SortiesKpiRepository {
         result = await client
             .from('sorties_produit')
             .select(
-              'volume_corrige_15c, volume_ambiant, citernes!inner(depot_id)',
+              'volume_15c, volume_corrige_15c, volume_ambiant, citernes!inner(depot_id)',
             )
             .eq('statut', 'validee')
             .gte('date_sortie', dayStartIso)
@@ -56,7 +56,7 @@ class SortiesKpiRepository {
         // Global - récupérer toutes les sorties validées du jour
         result = await client
             .from('sorties_produit')
-            .select('volume_corrige_15c, volume_ambiant')
+            .select('volume_15c, volume_corrige_15c, volume_ambiant')
             .eq('statut', 'validee')
             .gte('date_sortie', dayStartIso)
             .lt('date_sortie', dayEndIso);
@@ -75,8 +75,10 @@ class SortiesKpiRepository {
       for (final row in rows) {
         count += 1;
 
-        // Casting sécurisé avec gestion des nulls
-        final v15 = (row['volume_corrige_15c'] as num?)?.toDouble() ?? 0.0;
+        // Priorité volume_15c, fallback legacy volume_corrige_15c
+        final v15 = (row['volume_15c'] as num?)?.toDouble() ??
+            (row['volume_corrige_15c'] as num?)?.toDouble() ??
+            0.0;
         final vAmb = (row['volume_ambiant'] as num?)?.toDouble() ?? 0.0;
 
         volume15c += v15;

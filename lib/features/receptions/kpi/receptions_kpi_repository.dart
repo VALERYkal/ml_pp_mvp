@@ -20,7 +20,7 @@ class ReceptionsKpiRepository {
   ///
   /// Agrège :
   /// - count : nombre de réceptions
-  /// - volume15c : somme de volume_corrige_15c
+  /// - volume15c : somme de volume_15c avec fallback volume_corrige_15c (legacy)
   /// - volumeAmbient : somme de volume_ambiant
   ///
   /// Si cette structure est modifiée, mettre à jour:
@@ -55,7 +55,7 @@ class ReceptionsKpiRepository {
         // Global - récupérer toutes les réceptions validées du jour
         result = await client
             .from('receptions')
-            .select('volume_corrige_15c, volume_ambiant')
+            .select('volume_15c, volume_corrige_15c, volume_ambiant')
             .eq('date_reception', dateStr)
             .eq('statut', 'validee');
       }
@@ -72,8 +72,10 @@ class ReceptionsKpiRepository {
       for (final row in rows) {
         count += 1;
 
-        // Casting sécurisé avec gestion des nulls
-        final v15 = (row['volume_corrige_15c'] as num?)?.toDouble() ?? 0.0;
+        // Casting sécurisé : priorité volume_15c, fallback legacy volume_corrige_15c
+        final v15 = (row['volume_15c'] as num?)?.toDouble() ??
+            (row['volume_corrige_15c'] as num?)?.toDouble() ??
+            0.0;
         final vAmb = (row['volume_ambiant'] as num?)?.toDouble() ?? 0.0;
 
         volume15c += v15;
