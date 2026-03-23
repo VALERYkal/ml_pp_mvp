@@ -44,28 +44,30 @@ final directeurKpiProvider = FutureProvider<DirecteurKpiData>((ref) async {
   // Réceptions du jour (DATE)
   final recs = await supa
       .from('receptions')
-      .select('id, volume_corrige_15c, volume_ambiant')
+      .select('id, volume_15c, volume_corrige_15c, volume_ambiant')
       .eq('statut', 'validee')
       .eq('date_reception', _ymd(dayStart));
 
   // Sorties du jour (TIMESTAMPTZ)
   final sorties = await supa
       .from('sorties_produit')
-      .select('id, volume_corrige_15c, volume_ambiant')
+      .select('id, volume_15c, volume_corrige_15c, volume_ambiant')
       .eq('statut', 'validee')
       .gte('date_sortie', _isoUtc(dayStart))
       .lt('date_sortie', _isoUtc(dayEnd));
 
   double sumReceptions = 0.0;
   for (final m in (recs as List)) {
-    final v15 = (m['volume_corrige_15c'] as num?)?.toDouble();
+    final v15 = (m['volume_15c'] as num?)?.toDouble() ??
+        (m['volume_corrige_15c'] as num?)?.toDouble();
     final va = (m['volume_ambiant'] as num?)?.toDouble() ?? 0.0;
     sumReceptions += (v15 ?? va);
   }
 
   double sumSorties = 0.0;
   for (final m in (sorties as List)) {
-    final v15 = (m['volume_corrige_15c'] as num?)?.toDouble();
+    final v15 = (m['volume_15c'] as num?)?.toDouble() ??
+        (m['volume_corrige_15c'] as num?)?.toDouble();
     final va = (m['volume_ambiant'] as num?)?.toDouble() ?? 0.0;
     sumSorties += (v15 ?? va);
   }

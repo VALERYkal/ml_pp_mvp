@@ -25,7 +25,7 @@ class SortiesRepository {
   }) async {
     // colonnes communes
     String baseCols =
-        'id, statut, volume_ambiant, volume_corrige_15c, date_sortie';
+        'id, statut, volume_ambiant, volume_15c, volume_corrige_15c, date_sortie';
     var query = _supa.from('sorties_produit').select(baseCols);
 
     // join citernes si filtre dépôt
@@ -46,7 +46,9 @@ class SortiesRepository {
     for (final m in (rows as List)) {
       count++;
       sAmb += (m['volume_ambiant'] as num?)?.toDouble() ?? 0.0;
-      s15 += (m['volume_corrige_15c'] as num?)?.toDouble() ?? 0.0;
+      s15 += (m['volume_15c'] as num?)?.toDouble() ??
+          (m['volume_corrige_15c'] as num?)?.toDouble() ??
+          0.0;
     }
 
     if (kDebugMode) {

@@ -19,7 +19,9 @@ void _testAggregationLogic(
 
   for (final row in mockData) {
     count += 1;
-    final v15 = (row['volume_corrige_15c'] as num?)?.toDouble() ?? 0.0;
+    final v15 = (row['volume_15c'] as num?)?.toDouble() ??
+        (row['volume_corrige_15c'] as num?)?.toDouble() ??
+        0.0;
     final vAmb = (row['volume_ambiant'] as num?)?.toDouble() ?? 0.0;
     volume15c += v15;
     volumeAmbient += vAmb;
@@ -89,6 +91,18 @@ void main() {
 
       // Act & Assert
       _testAggregationLogic(mockData, 2, 2000.0, 980.0);
+    });
+
+    test('agrégation - priorité volume_15c sur volume_corrige_15c', () {
+      final mockData = <Map<String, dynamic>>[
+        {
+          'volume_15c': 100.0,
+          'volume_corrige_15c': 999.0,
+          'volume_ambiant': 100.0,
+        },
+      ];
+
+      _testAggregationLogic(mockData, 1, 100.0, 100.0);
     });
 
     test('agrégation - format date correct (TIMESTAMPTZ avec bornes)', () {

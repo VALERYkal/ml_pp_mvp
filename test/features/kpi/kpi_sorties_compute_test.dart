@@ -126,12 +126,12 @@ void main() {
       expect(kpi.volumeAmbient, 330);
     });
 
-    test('utilise volume_15c si volume_corrige_15c est absent', () {
+    test('utilise volume_corrige_15c si volume_15c est absent (fallback legacy)', () {
       final rows = [
         {
           'proprietaire_type': 'MONALUXE',
-          'volume_corrige_15c': null,
-          'volume_15c': 700,
+          'volume_15c': null,
+          'volume_corrige_15c': 700,
           'volume_ambiant': 720,
         },
       ];
@@ -143,6 +143,21 @@ void main() {
       expect(kpi.volumeAmbient, 720);
       expect(kpi.countMonaluxe, 1);
       expect(kpi.countPartenaire, 0);
+    });
+
+    test('priorise volume_15c lorsque volume_corrige_15c est aussi présent', () {
+      final rows = [
+        {
+          'proprietaire_type': 'MONALUXE',
+          'volume_15c': 100.0,
+          'volume_corrige_15c': 999.0,
+          'volume_ambiant': 110.0,
+        },
+      ];
+
+      final kpi = computeKpiSorties(rows);
+
+      expect(kpi.volume15c, 100.0);
     });
   });
 }

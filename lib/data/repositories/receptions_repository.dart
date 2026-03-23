@@ -24,7 +24,7 @@ class ReceptionsRepository {
         rows = await _supa
             .from('receptions')
             .select(
-              'id, statut, volume_corrige_15c, volume_ambiant, citernes!inner(depot_id)',
+              'id, statut, volume_15c, volume_corrige_15c, volume_ambiant, citernes!inner(depot_id)',
             )
             .eq('statut', 'validee')
             .eq('date_reception', eqDay)
@@ -33,7 +33,7 @@ class ReceptionsRepository {
         // Global
         rows = await _supa
             .from('receptions')
-            .select('id, statut, volume_corrige_15c, volume_ambiant')
+            .select('id, statut, volume_15c, volume_corrige_15c, volume_ambiant')
             .eq('statut', 'validee')
             .eq('date_reception', eqDay);
       }
@@ -45,7 +45,9 @@ class ReceptionsRepository {
         count++;
         // Ambiant : privilégier la colonne volume_ambiant si présente, sinon 0
         final amb = (m['volume_ambiant'] as num?)?.toDouble() ?? 0.0;
-        final v15 = (m['volume_corrige_15c'] as num?)?.toDouble() ?? 0.0;
+        final v15 = (m['volume_15c'] as num?)?.toDouble() ??
+            (m['volume_corrige_15c'] as num?)?.toDouble() ??
+            0.0;
         sAmb += amb;
         s15 += v15;
       }

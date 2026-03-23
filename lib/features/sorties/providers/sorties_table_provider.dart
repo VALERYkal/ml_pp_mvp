@@ -21,7 +21,7 @@ final sortiesTableProvider = FutureProvider.autoDispose<List<SortieRowVM>>((
   final sortiesRows = await supa
       .from('sorties_produit')
       .select(
-        'id, date_sortie, proprietaire_type, produit_id, citerne_id, volume_corrige_15c, volume_ambiant, statut, client_id, partenaire_id, created_at',
+        'id, date_sortie, proprietaire_type, produit_id, citerne_id, volume_15c, volume_corrige_15c, volume_ambiant, statut, client_id, partenaire_id, created_at',
       )
       .order('date_sortie', ascending: false);
 
@@ -101,7 +101,8 @@ final sortiesTableProvider = FutureProvider.autoDispose<List<SortieRowVM>>((
         propriete: proprietaireType,
         produitLabel: prodLabel.isEmpty ? '—' : prodLabel,
         citerneNom: cid != null ? (cNom[cid] ?? cid.substring(0, 8)) : '—',
-        vol15: (s['volume_corrige_15c'] as num?)?.toDouble(),
+        vol15: (s['volume_15c'] as num?)?.toDouble() ??
+            (s['volume_corrige_15c'] as num?)?.toDouble(),
         volAmb: (s['volume_ambiant'] as num?)?.toDouble(),
         beneficiaireNom: beneficiaireNom,
         statut: (s['statut'] as String? ?? 'brouillon'),

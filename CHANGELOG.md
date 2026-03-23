@@ -6,6 +6,44 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 
 ---
 
+## Migration `volume_15c` — compatibilité sorties (STAGING, PROD, Flutter)
+
+Migration **validée** en mode **compatibilité** : introduction de la colonne canonique **`volume_15c`** sur **`sorties_produit`**, **sans** suppression de **`volume_corrige_15c`** et **sans** backfill historique destructif sur les sorties.
+
+### Base de données (STAGING puis PROD)
+
+- Ajout de **`public.sorties_produit.volume_15c`**.
+- Adaptation de **`sorties_compute_15c_before_ins_lookup()`** pour écrire **`volume_15c`** et conserver **`volume_corrige_15c`**.
+- Adaptation cohérente de **`sorties_after_insert_trg()`**, **`sorties_before_validate_trg()`**, **`validate_sortie(uuid)`**, **`create_sortie(...)`** (liste factuelle telle que déployée).
+- Usage interne aligné sur **`coalesce(volume_15c, volume_corrige_15c)`** où applicable ; **pas** de retrait du legacy dans cette phase.
+
+### Validation STAGING
+
+- Sortie test : **`volume_corrige_15c`** et **`volume_15c`** cohérents (ex. 10 / 10) ; stock, **`stocks_snapshot`**, **`stocks_journaliers`**, **`log_actions`** validés.
+
+### Validation PROD
+
+- Même schéma fonctionnel déployé ; smoke test sortie avec colonnes **`volume_corrige_15c`** et **`volume_15c`** renseignées ; snapshot décrémenté correctement.
+- Test PROD **compensé** (ajustement stock + correction snapshot technique **`stock_snapshot_apply_delta`** si nécessaire) pour ne pas laisser d’état parasite sur la base réelle.
+
+### Flutter (lecture uniquement)
+
+- Priorité de lecture **`volume_15c ?? volume_corrige_15c`** sur : KPI centraux, repositories réceptions/sorties, providers sorties, écrans d’ajustements de stock.
+- **Aucun** changement des payloads d’écriture dans ce cadre ; modèles / services **non** entièrement harmonisés sur une seule clé — dette documentée.
+
+### Documentation
+
+- `docs/00_REFERENCE/VOLUME_15C_MIGRATION_SUMMARY.md` — résumé technique.
+- `docs/RUNBOOKS/RUNBOOK_VOLUME_15C_COMPAT_MIGRATION.md` — mini runbook / rollback logique.
+- `docs/00_REFERENCE/VOLUME_15C_COMPATIBILITY_NOTE.md` — note de compatibilité lecture.
+
+### Architecture rappelée
+
+- **`v_stock_actuel`** : source de vérité métier stock actuel.
+- **`stocks_snapshot`** : cache / structure dérivée ; peut nécessiter une action explicite après incident.
+
+---
+
 ## Fix — Safari white screen (Flutter Web)
 
 **Date :** 2026-03-13

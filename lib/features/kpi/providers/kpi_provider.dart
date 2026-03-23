@@ -78,8 +78,9 @@ double _toD(dynamic v) {
 /// Elle peut être testée isolément avec des données mockées.
 ///
 /// RÈGLE MÉTIER :
-/// - Pas de fallback automatique : si volume_15c est null, il reste à 0
-/// - Les écarts entre volume_ambiant et volume_15c sont visibles dans le KPI
+/// - Volume @15°C : priorité `volume_15c`, sinon `volume_corrige_15c` (legacy) ; pas de fallback vers volume_ambiant
+/// - Si les deux colonnes sont absentes ou nulles après parsing, la contribution @15°C reste 0
+/// - Les écarts entre volume_ambiant et volume @15°C sont visibles dans le KPI
 /// - Compte séparément les réceptions MONALUXE vs PARTENAIRE
 KpiReceptions computeKpiReceptions(List<Map<String, dynamic>> rows) {
   var count = 0;
@@ -93,7 +94,7 @@ KpiReceptions computeKpiReceptions(List<Map<String, dynamic>> rows) {
 
     // Mapping strict des volumes - NE JAMAIS utiliser volume_ambiant comme fallback pour volume_15c
     final vAmb = _toD(row['volume_ambiant']);
-    final v15c = _toD(row['volume_corrige_15c'] ?? row['volume_15c']);
+    final v15c = _toD(row['volume_15c'] ?? row['volume_corrige_15c']);
 
     volumeAmbient += vAmb;
     volume15c += v15c;
@@ -123,8 +124,9 @@ KpiReceptions computeKpiReceptions(List<Map<String, dynamic>> rows) {
 /// Elle peut être testée isolément avec des données mockées.
 ///
 /// RÈGLE MÉTIER :
-/// - Pas de fallback automatique : si volume_15c est null, il reste à 0
-/// - Les écarts entre volume_ambiant et volume_15c sont visibles dans le KPI
+/// - Volume @15°C : priorité `volume_15c`, sinon `volume_corrige_15c` (legacy) ; pas de fallback vers volume_ambiant
+/// - Si les deux colonnes sont absentes ou nulles après parsing, la contribution @15°C reste 0
+/// - Les écarts entre volume_ambiant et volume @15°C sont visibles dans le KPI
 /// - Compte séparément les sorties MONALUXE vs PARTENAIRE
 KpiSorties computeKpiSorties(List<Map<String, dynamic>> rows) {
   var count = 0;
@@ -137,9 +139,9 @@ KpiSorties computeKpiSorties(List<Map<String, dynamic>> rows) {
     count++;
 
     // Mapping strict des volumes - NE JAMAIS utiliser volume_ambiant comme fallback pour volume_15c
-    // Priorité à volume_corrige_15c, sinon volume_15c, sinon 0
+    // Priorité à volume_15c, sinon volume_corrige_15c (legacy), sinon 0 via _toD
     final vAmb = _toD(row['volume_ambiant']);
-    final v15c = _toD(row['volume_corrige_15c'] ?? row['volume_15c']);
+    final v15c = _toD(row['volume_15c'] ?? row['volume_corrige_15c']);
 
     volumeAmbient += vAmb;
     volume15c += v15c;
@@ -175,7 +177,7 @@ typedef SortieRow = Map<String, dynamic>;
 /// sans dépendre de Supabase ou de RLS.
 ///
 /// Retourne les rows brutes avec les champs :
-/// - volume_corrige_15c (ou volume_15c)
+/// - volume_15c (priorité lecture) et volume_corrige_15c (fallback legacy)
 /// - volume_ambiant
 /// - proprietaire_type (optionnel)
 /// - id, date_reception, statut (pour debug)
@@ -195,7 +197,7 @@ Future<List<ReceptionRow>> _fetchReceptionsRawOfDay(
     result = await supa
         .from('receptions')
         .select(
-          'id, volume_corrige_15c, volume_ambiant, proprietaire_type, date_reception, statut, citernes!inner(depot_id)',
+          'id, volume_15c, volume_corrige_15c, volume_ambiant, proprietaire_type, date_reception, statut, citernes!inner(depot_id)',
         )
         .eq('statut', 'validee')
         .eq('date_reception', dayStr)
@@ -205,7 +207,7 @@ Future<List<ReceptionRow>> _fetchReceptionsRawOfDay(
     result = await supa
         .from('receptions')
         .select(
-          'id, volume_corrige_15c, volume_ambiant, proprietaire_type, date_reception, statut',
+          'id, volume_15c, volume_corrige_15c, volume_ambiant, proprietaire_type, date_reception, statut',
         )
         .eq('statut', 'validee')
         .eq('date_reception', dayStr);
@@ -216,7 +218,7 @@ Future<List<ReceptionRow>> _fetchReceptionsRawOfDay(
   double sum15c = 0.0;
   for (final row in result) {
     final vAmb = _toD(row['volume_ambiant']);
-    final v15c = _toD(row['volume_corrige_15c'] ?? row['volume_15c']);
+    final v15c = _toD(row['volume_15c'] ?? row['volume_corrige_15c']);
     sumAmb += vAmb;
     sum15c += v15c;
   }
@@ -253,7 +255,7 @@ final receptionsRawTodayProvider = FutureProvider.autoDispose<List<ReceptionRow>
 /// sans dépendre de Supabase ou de RLS.
 ///
 /// Retourne les rows brutes avec les champs :
-/// - volume_corrige_15c (ou volume_15c)
+/// - volume_15c (priorité lecture) et volume_corrige_15c (fallback legacy)
 /// - volume_ambiant
 /// - proprietaire_type (optionnel)
 /// - id, date_sortie, statut (pour debug)
@@ -274,7 +276,7 @@ Future<List<SortieRow>> _fetchSortiesRawOfDay(
     result = await supa
         .from('sorties_produit')
         .select(
-          'id, volume_corrige_15c, volume_ambiant, proprietaire_type, date_sortie, statut, citernes!inner(depot_id)',
+          'id, volume_15c, volume_corrige_15c, volume_ambiant, proprietaire_type, date_sortie, statut, citernes!inner(depot_id)',
         )
         .eq('statut', 'validee')
         .gte('date_sortie', dayStart)
@@ -285,7 +287,7 @@ Future<List<SortieRow>> _fetchSortiesRawOfDay(
     result = await supa
         .from('sorties_produit')
         .select(
-          'id, volume_corrige_15c, volume_ambiant, proprietaire_type, date_sortie, statut',
+          'id, volume_15c, volume_corrige_15c, volume_ambiant, proprietaire_type, date_sortie, statut',
         )
         .eq('statut', 'validee')
         .gte('date_sortie', dayStart)
@@ -297,7 +299,7 @@ Future<List<SortieRow>> _fetchSortiesRawOfDay(
   double sum15c = 0.0;
   for (final row in result) {
     final vAmb = _toD(row['volume_ambiant']);
-    final v15c = _toD(row['volume_corrige_15c'] ?? row['volume_15c']);
+    final v15c = _toD(row['volume_15c'] ?? row['volume_corrige_15c']);
     sumAmb += vAmb;
     sum15c += v15c;
   }
