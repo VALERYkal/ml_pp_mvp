@@ -78,6 +78,8 @@ PostgreSQL / Supabase :
 - partenaires
 - log_actions
 
+**Lecture métier du stock actuel :** la source de vérité est la vue **`v_stock_actuel`**. La table **`stocks_snapshot`** est un **cache technique** dérivé ; en cas de divergence constatée (ex. après opération exceptionnelle), une resynchronisation peut passer par des mécanismes dédiés (ex. `stock_snapshot_apply_delta`) — sans substituer la vue métier.
+
 ---
 
 # SOURCES DE VÉRITÉ OPÉRATIONNELLES
@@ -88,9 +90,20 @@ PostgreSQL / Supabase :
 - Flux transport → cours_de_route
 - Audit → log_actions
 
+<<<<<<< HEAD
 Caches dérivés :
 - stocks_snapshot → technique uniquement, non source de vérité métier  
   (voir system_invariants.md)
+=======
+sorties_produit
+
+Calculs / persistance (runtime actuel, mode compatibilité) :
+
+- **`volume_15c`** — colonne cible pour le volume à 15 °C  
+- **`volume_corrige_15c`** — conservée en parallèle (double write + compatibilité transitoire ; arrondi métier sorties documenté sur ce champ)
+
+**Lecture applicative (Flutter) :** règle officielle **`volume_15c ?? volume_corrige_15c`** sur les périmètres migrés.
+>>>>>>> 9d68912 (snapshot: état stable avant restructuration repo (IA pack + gouvernance contexte))
 
 ---
 
