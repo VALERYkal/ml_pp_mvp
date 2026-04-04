@@ -9,6 +9,8 @@ part 'reception.g.dart';
 
 @freezed
 class Reception with _$Reception {
+  const Reception._();
+
   const factory Reception({
     required String id,
 
@@ -21,6 +23,7 @@ class Reception with _$Reception {
     @JsonKey(name: 'index_apres') required double indexApres,
     @JsonKey(name: 'temperature_ambiante_c') double? temperatureAmbianteC,
     @JsonKey(name: 'densite_a_15_kgm3') double? densiteA15Kgm3,
+    @JsonKey(name: 'volume_15c') double? volume15c,
     @JsonKey(name: 'volume_corrige_15c') double? volumeCorrige15c,
     @JsonKey(name: 'volume_ambiant') double? volumeAmbiant,
 
@@ -36,4 +39,9 @@ class Reception with _$Reception {
 
   factory Reception.fromJson(Map<String, dynamic> json) =>
       _$ReceptionFromJson(json);
+
+  /// Volume @15 °C effectif : canonique DB puis fallback legacy (lecture uniquement).
+  double? get effectiveVolume15c => volume15c ?? volumeCorrige15c;
+
+  bool get hasCanonicalVolume15c => volume15c != null;
 }

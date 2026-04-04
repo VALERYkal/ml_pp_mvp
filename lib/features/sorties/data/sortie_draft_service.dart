@@ -1,10 +1,13 @@
 /* ===========================================================
    ML_PP — SortieDraftService
    - createDraft: insert ligne 'brouillon' dans sorties_produit
-   - validate: appelle RPC validate_sortie
+   - validate: appelle RPC validate_sortie (hors ce fichier)
+
+   DB-first : aucun volume @15 °C « métier » n’est calculé ni imposé ici.
+   Les champs `volume_15c` / `volume_corrige_15c` sont laissés à la DB
+   (triggers / validation) ; le brouillon n’applique pas les effets stock.
    =========================================================== */
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:ml_pp_mvp/shared/utils/volume_calc.dart';
 import 'sortie_input.dart';
 
 class SortieDraftService {
@@ -48,15 +51,10 @@ class SortieDraftService {
       );
     }
 
-    // 3) Calculs (ambiant & 15°C)
+    // 3) Volume ambiant (indices) — seul calcul géométrique direct ; pas de @15 °C client.
     final double volumeAmbiant = input.indexApres! - input.indexAvant!;
-    final double v15 = calcV15(
-      volumeObserveL: volumeAmbiant,
-      temperatureC: input.temperatureC ?? 15.0,
-      densiteA15: input.densiteA15 ?? 0.83,
-    );
 
-    // 4) Insert brouillon
+    // 4) Insert brouillon — pas de `volume_corrige_15c` / `volume_15c` : vérité volumétrique @15 °C = DB.
     final payload = {
       'citerne_id': input.citerneId,
       'produit_id': input.produitId,
@@ -67,7 +65,6 @@ class SortieDraftService {
       'volume_ambiant': volumeAmbiant,
       'temperature_ambiante_c': input.temperatureC,
       'densite_a_15_kgm3': input.densiteA15,
-      'volume_corrige_15c': v15,
       'proprietaire_type': input.proprietaireType,
       'note': input.note,
       'statut': 'brouillon',

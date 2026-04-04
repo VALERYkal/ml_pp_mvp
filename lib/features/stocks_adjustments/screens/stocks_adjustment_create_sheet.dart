@@ -101,8 +101,8 @@ class _StocksAdjustmentCreateSheetState
             temperatureC:
                 (data['temperature_ambiante_c'] as num?)?.toDouble(),
             densiteA15: (data['densite_a_15'] as num?)?.toDouble(),
+            volume15c: (data['volume_15c'] as num?)?.toDouble(),
             volumeCorrige15c:
-                (data['volume_15c'] as num?)?.toDouble() ??
                 (data['volume_corrige_15c'] as num?)?.toDouble(),
           );
           _isLoadingMovement = false;

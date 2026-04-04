@@ -89,7 +89,9 @@ Le système calcule en base :
 - **`volume_15c`** (colonne cible pour le volume à 15 °C, moteur ASTM lookup-grid)  
 - **`volume_corrige_15c`** (maintenue en parallèle pour **compatibilité transitoire** et conventions d’arrondi métier associées)
 
-**Migration progressive :** le frontend lit en priorité **`volume_15c`** avec repli sur **`volume_corrige_15c`** ; les modèles et payloads d’écriture ne sont pas entièrement harmonisés sur un seul nom — convergence ultérieure possible hors périmètre actuel.
+**Contrat de lecture app :** **`volume_15c ?? volume_corrige_15c`** (canonique puis legacy) sur les périmètres alignés VOL15.
+
+**Validation STAGING récente :** le chemin critique réception / sortie / stock / RLS a été contrôlé avec succès sur **STAGING** (DB tests + vérifications associées), cohérent avec ce contrat et la volumétrie calculée en base.
 
 ---
 
@@ -147,6 +149,8 @@ Cela inclut :
 - triggers automatiques
 - journalisation des opérations
 
+Les validations récentes sur **STAGING** confirment que les **calculs critiques** (volumétrie, stock, effets de mouvements) restent portés par la **DB** ; le **frontend** assure saisie, lecture et orchestration sans substituer la vérité métier.
+
 Ce choix garantit :
 
 - cohérence métier
@@ -184,18 +188,12 @@ Le volume standard utilisé est :
 
 # Project Status
 
-ML_PP MVP est un système avancé en phase de stabilisation.
+ML_PP MVP est un **système avancé en stabilisation** après validation récente du **pipeline critique** sur **STAGING** (smoke DB, réception → `stocks_journaliers`, sortie → stock → log, RLS admin / lecture / refus non-admin, alignement **VOL15** lecture côté app sur les flux testés).
 
-The ASTM volumetric engine is now deployed in both STAGING and PRODUCTION.
+Le **moteur volumétrique ASTM** (lookup-grid) est déployé en **STAGING** et en **PRODUCTION** ; les environnements partagent le même principe d’interpolation en base.
 
-Both environments run the lookup-grid interpolation engine.
+Le système calcule en base (selon le pipeline déployé) notamment **densité à 15 °C**, **VCF** et **`volume_15c`**.
 
-The system now computes:
+Le **frontend VOL15** est aligné sur la DB : lecture **`volume_15c ?? volume_corrige_15c`**, sans logique métier volumétrique critique côté application sur le périmètre traité.
 
-- densite_a_15
-- VCF
-- volume_15c
-
-directly in the database using ASTM lookup-grid interpolation.
-
-The application runtime path is identical between STAGING and PROD.
+La **validation documentée ici** porte sur les **preuves STAGING** ; elle ne remplace pas un rapport de tests PROD distinct si le périmètre l’exige.

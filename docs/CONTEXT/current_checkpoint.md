@@ -21,6 +21,10 @@ Point d’entrée principal pour comprendre l’état actuel du système et agir
 - Moteur volumétrique ASTM actif (lookup-grid)
 - STAGING et PROD alignés sur les fondamentaux critiques
 - DB = source de vérité
+- **VOL15 frontend** aligné (lecture canonique `volume_15c ?? volume_corrige_15c`, pas de vérité volumétrique critique côté app)
+- **DB tests STAGING** du pipeline critique exécutés avec succès (voir **VALIDATION STAGING RÉCENTE**)
+- Schéma **ASTM** accessible côté STAGING ; **RLS**, **stock**, **réception**, **sortie** validés sur ce périmètre en STAGING
+- Pack canonique et **invariants VOL15** synchronisés (`docs/system_invariants.md`, `docs/CONTEXT/system_invariants.md`)
 
 ---
 
@@ -54,11 +58,23 @@ Constats issus de `docs/DB/staging_status.md` et `docs/DB/prod_status.md` (inves
 
 ---
 
+# VALIDATION STAGING RÉCENTE
+
+Constats issus des **DB tests** et vérifications manuelles sur **STAGING** (pas de revendication de rejeu complet des mêmes tests sur PROD).
+
+- Smoke test STAGING (connectivité / base) OK
+- Réception → **`stocks_journaliers`** OK
+- Sortie → stock → **`log_actions`** OK
+- RLS : insert admin OK ; insert non-admin refusé OK ; select lecture OK
+- **VOL15** frontend + comportement DB sur le périmètre critique validé en STAGING
+
+---
+
 # FOCUS ACTUEL
 
-- Mise en place du pack canonique IA
-- Structuration documentaire
-- Sécurisation des interactions IA
+- Stabilisation post-validation STAGING (pipeline critique app + DB + RLS)
+- Gouvernance du pack canonique maintenue
+- Pistes prioritaires : observabilité stock, audit automatique DB / staging–prod, hardening tests / monitoring
 
 ---
 
@@ -68,13 +84,15 @@ Constats issus de `docs/DB/staging_status.md` et `docs/DB/prod_status.md` (inves
 - Stock (calcul DB)
 - Moteur ASTM
 - Triggers, fonctions et vues critiques
+- **Pipeline VOL15 côté frontend** (contrat de lecture, services DB-first sur le périmètre traité) — considéré stable ; **ne pas refactorer sans besoin réel**
 
 ---
 
 # ZONES EN COURS
 
-- Documentation canonique
-- Gouvernance IA
+- Observabilité stock
+- Audit automatique DB / alignement staging–prod
+- Hardening tests / monitoring
 
 ---
 
@@ -150,3 +168,4 @@ Une modification est validée si :
 - validée en staging si DB impactée
 - cohérente avec la DB
 - pack canonique mis à jour
+- si le **périmètre critique DB** (stock, volumétrie, RLS, réception/sortie, ASTM) est touché : les **DB tests STAGING** pertinents du projet doivent rester **verts** (hors périmètre : pas d’obligation globale sur tous les tests du dépôt)

@@ -6,6 +6,51 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 
 ---
 
+## [STAGING VALIDATION] - VOL15 / ASTM / RLS / Stock pipeline
+
+### Validated
+
+- STAGING smoke DB connectivity
+- reception → `stocks_journaliers` path
+- sortie → stock → log path
+- RLS critical checks (admin insert, non-admin reject, lecture select)
+- frontend VOL15 canonical read contract against STAGING-backed critical flows
+
+### Changed
+
+- DB integration tests hardened for reruns on real STAGING
+- canonical docs / AI pack aligned with validated system state
+
+### Notes
+
+- `volume_15c` remains canonical
+- `volume_corrige_15c` remains compatibility-only
+- STAGING validation confirmed critical DB-first behavior (no claim of full PROD re-test via the same DB test suite)
+
+---
+
+## [VOL15] - Frontend alignment (DB-first)
+
+### Added
+- `volume_15c` support across models (Reception, Sortie)
+- `effectiveVolume15c` getter (canonical read contract)
+- UI distinction between DB-calculated and estimated volumes
+
+### Changed
+- Removal of local volumetric truth (calcV15 no longer authoritative)
+- Draft services now DB-first (inputs only)
+- Adjustment logic migrated to canonical + fallback model
+
+### Fixed
+- Inconsistent use of `volume_corrige_15c` as canonical
+- UI ambiguity on volume @15°C origin
+
+### Notes
+- `calcV15` retained for UX estimation only (non-canonical)
+- DB remains sole source of volumetric truth
+
+---
+
 ## 2026-04-04 — Documentation canonique + fix critique stock sortie
 
 ### Documentation / pack IA

@@ -412,15 +412,16 @@ void main() {
     // 6. VOLUME 15°C
     // ============================================================
     group('Volume 15°C', () {
-      test('calcule volume_15c si température et densité présents', () async {
+      test(
+        'accepte température et densité observée (volume @15 °C calculé en DB)',
+        () async {
         final service = ReceptionService.withClient(
           mockClient,
           citerneServiceFactory: (_) => FakeCiterneServiceActive(),
           refRepo: FakeRefRepoWithProduits(),
         );
 
-        // Test: Vérifier qu'aucune ReceptionValidationException n'est levée
-        // Le calcul de volume_15c est validé par l'absence d'exception métier
+        // Pas d’exception métier : le client n’impose pas volume_15c (DB-first).
         await expectLater(
           service.createValidated(
             citerneId: 'cit-1',
@@ -481,7 +482,11 @@ void main() {
           throwsA(
             isA<ReceptionValidationException>()
                 .having((e) => e.message, 'message', contains('densité'))
-                .having((e) => e.field, 'field', equals('densite_a_15_kgm3')),
+                .having(
+                  (e) => e.field,
+                  'field',
+                  equals('densite_observee_kgm3'),
+                ),
           ),
         );
       });
