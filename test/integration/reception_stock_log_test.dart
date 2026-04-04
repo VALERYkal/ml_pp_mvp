@@ -6,13 +6,27 @@ import 'package:flutter_test/flutter_test.dart';
 import '_harness/staging_supabase_client.dart';
 import '_staging_fixtures.dart';
 
+double? _numToDoubleNullable(dynamic v) {
+  if (v == null) return null;
+  if (v is num) return v.toDouble();
+  return null;
+}
+
+/// Volume @15 °C effectif côté ligne (aligné app : volume_15c ?? volume_corrige_15c).
+double _effectiveVolume15c(Map<String, dynamic> row) {
+  final v15 = _numToDoubleNullable(row['volume_15c']);
+  final legacy = _numToDoubleNullable(row['volume_corrige_15c']);
+  return (v15 ?? legacy ?? 0.0);
+}
+
 /// Test d'intégration Réception -> Stocks journaliers (STAGING DB réel).
 ///
 /// 🔎 Objectif :
 /// - Insérer une réception via l'API Supabase directe
 /// - Vérifier que :
 ///   - la table `stocks_journaliers` est créditée correctement
-///   - `stocks_journaliers.stock_15c >= volume_corrige_15c` de la réception
+///   - `stocks_journaliers.stock_15c >=` le scalaire @15 °C effectif de la réception
+///     (`volume_15c ?? volume_corrige_15c`)
 ///
 /// 📋 Prérequis :
 /// - `env/.env.staging` doit exister avec les vraies clés STAGING
@@ -30,7 +44,7 @@ void main() {
 
   group('[DB-TEST] Réception -> Stocks journaliers (STAGING)', () {
     test(
-      'Insert réception avec volume_corrige_15c met à jour stocks_journaliers',
+      'Insert réception : stocks_journaliers crédité selon volume @15 °C effectif',
       () async {
       final staging = await StagingSupabase.create(envPath: 'env/.env.staging');
       final client = staging.serviceClient ?? staging.anonClient;
@@ -62,7 +76,6 @@ void main() {
         fail(
           '[DB-TEST] Timeout querying STAGING. Check network/DNS or Supabase status.',
         );
-        return;
       } catch (e) {
         // Ignore si la citerne existe déjà ou si l'upsert échoue pour une autre raison
         // ignore: avoid_print
@@ -97,23 +110,29 @@ void main() {
               'volume_15c': null, // explicit (optionnel)
             })
             .select(
-                'id, citerne_id, produit_id, volume_ambiant, volume_corrige_15c, statut')
+              'id, citerne_id, produit_id, volume_ambiant, volume_15c, volume_corrige_15c, statut',
+            )
             .single()
             .timeout(const Duration(seconds: 10));
       } on TimeoutException {
         fail(
           '[DB-TEST] Timeout querying STAGING. Check network/DNS or Supabase status.',
         );
-        return;
       }
 
-      expect((receptionRow['volume_corrige_15c'] as num).toDouble(), equals(volume15c));
+      final credited15c = _effectiveVolume15c(receptionRow);
+      expect(
+        credited15c,
+        greaterThan(0),
+        reason:
+            'La réception doit exposer un volume @15 °C (volume_15c ou volume_corrige_15c)',
+      );
       expect(receptionRow['statut'], equals('validee'));
 
       // Attendre un peu pour que le trigger s'exécute
       await Future.delayed(const Duration(milliseconds: 500));
 
-      // Assert : Vérifier que stocks_journaliers.stock_15c >= volume_corrige_15c
+      // Assert : stocks_journaliers.stock_15c >= volume @15 °C effectif réception
       final dateReception = DateTime.now();
       final dateStr = '${dateReception.year.toString().padLeft(4, '0')}-'
           '${dateReception.month.toString().padLeft(2, '0')}-'
@@ -133,21 +152,23 @@ void main() {
         fail(
           '[DB-TEST] Timeout querying STAGING. Check network/DNS or Supabase status.',
         );
-        return;
       }
 
       expect(stockRow, isNotNull, reason: 'La ligne stocks_journaliers devrait exister');
 
-      final stock15c = (stockRow!['stock_15c'] as num?)?.toDouble() ?? 0.0;
+      final stock15c = _numToDoubleNullable(stockRow!['stock_15c']) ?? 0.0;
 
       expect(
         stock15c,
-        greaterThanOrEqualTo(volume15c),
-        reason: 'stocks_journaliers.stock_15c ($stock15c) doit être >= volume_corrige_15c ($volume15c)',
+        greaterThanOrEqualTo(credited15c),
+        reason:
+            'stocks_journaliers.stock_15c ($stock15c) doit être >= volume @15 °C effectif réception ($credited15c)',
       );
 
       // ignore: avoid_print
-      print('[DB-TEST] Réception insérée avec volume_corrige_15c=$volume15c, stock_15c=$stock15c');
+      print(
+        '[DB-TEST] Réception crédit @15 °C effectif=$credited15c (volume_15c ?? volume_corrige_15c), stock_15c=$stock15c',
+      );
       },
       skip: runDbTests
           ? false

@@ -23,13 +23,12 @@ void main() {
 
       // Admin = service role (bypass RLS)
       final client = staging.serviceClient;
-      expect(
-        client,
-        isNotNull,
-        reason: 'Service role key required for admin test',
-      );
-      // Refine type: create non-null variable after expect() check
-      final supa = client!;
+      if (client == null) {
+        fail(
+          'Service role key required for admin test (SUPABASE_SERVICE_ROLE_KEY dans env/.env.staging).',
+        );
+      }
+      final supa = client;
 
       // 1) Find an existing mouvement to attach the adjustment to (avoid hardcoded UUID flakiness)
       String? mouvementType;
@@ -98,13 +97,16 @@ void main() {
       // Fallback to previous hardcoded value if needed (still better than null)
       createdBy ??= '2bf68c7c-a907-4504-9aba-89061be487a2';
 
+      // UNIQUE (mouvement_type, mouvement_id, delta_ambiant, delta_15c, reason) — éviter doublon au rerun STAGING
+      final runTag = DateTime.now().microsecondsSinceEpoch.toString();
+
       // Minimal valid payload (must satisfy DB constraints & triggers)
       final payload = {
         'mouvement_type': mouvementType,
         'mouvement_id': mouvementId,
         'delta_ambiant': 0.0,
         'delta_15c': 1.0,
-        'reason': 'ADMIN_TEST',
+        'reason': 'ADMIN_TEST_$runTag',
         'created_by': createdBy,
       };
 

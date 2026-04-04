@@ -242,7 +242,7 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
     }
 
     // 🚨 PROD-LOCK: Validation UI température/densité OBLIGATOIRES - DO NOT MODIFY
-    // RÈGLE MÉTIER : Température et densité sont OBLIGATOIRES pour calculer volume 15°C.
+    // Entrées terrain requises pour le pipeline volumétrique en base (`volume_15c` calculé côté DB).
     // Cette validation UI doit correspondre à la validation service (reception_service.dart).
     // Si cette validation est modifiée, mettre à jour:
     // - Tests E2E (reception_flow_e2e_test.dart - vérifie 4 TextField obligatoires)
@@ -421,7 +421,7 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
     final effProdCode = isMonaluxe
         ? (produitCodeFromCours ?? produitCode)
         : produitCode;
-    // Volume 15°C : en STAGING on n'affiche pas de valeur calculée (DB au save).
+    // Aperçu local uniquement (non canonique) ; `volume_15c` officiel = base à l'enregistrement.
     final vol15 = (temp != null && dens != null)
         ? (isStaging
             ? volAmb
@@ -539,8 +539,8 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
                         Text(
                           '• Temp/Dens : ${ctrlTemp.text} °C / ${ctrlDens.text}',
                         ),
-                        Text(
-                          "• Volume 15°C (calculé à l'enregistrement)",
+                        const Text(
+                          '• Volume @15 °C (volume_15c) : calculé en base de données à l’enregistrement',
                         ),
                         const SizedBox(height: 8),
                         TextField(
@@ -801,7 +801,8 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
                       labelText: 'Température ambiante (°C) *',
-                      helperText: 'Obligatoire pour calcul du volume corrigé (15°C)',
+                      helperText:
+                          'Entrée pour le calcul volumétrique officiel en base (volume_15c)',
                     ),
                     onChanged: (_) => setState(() {}),
                   ),
@@ -814,7 +815,8 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
                       labelText: 'Densité observée (kg/m³) *',
-                      helperText: 'Obligatoire pour calcul du volume corrigé (15°C)',
+                      helperText:
+                          'Entrée pour le calcul volumétrique officiel en base (volume_15c)',
                     ),
                     onChanged: (_) => setState(() {}),
                   ),
@@ -823,13 +825,27 @@ class _ReceptionFormScreenState extends ConsumerState<ReceptionFormScreen> {
             ),
             const SizedBox(height: 8),
             Text('• Volume ambiant = ${volAmb.toStringAsFixed(2)} L'),
-            if (temp != null && dens != null)
-              isStaging
-                  ? Text("• Volume 15°C (calculé à l'enregistrement)")
-                  : Text('• Volume corrigé 15°C ≈ ${vol15.toStringAsFixed(2)} L')
-            else
+            if (temp != null && dens != null) ...[
+              if (isStaging)
+                const Text(
+                  '• Volume @15 °C (volume_15c) : calculé en base de données à l’enregistrement',
+                )
+              else ...[
+                const Text(
+                  '• Volume @15 °C officiel (volume_15c) : calculé en base de données à l’enregistrement.',
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '• Estimation locale (non canonique, aperçu) ≈ ${vol15.toStringAsFixed(2)} L',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ] else
               Text(
-                '• Volume corrigé 15°C : Saisissez température et densité',
+                '• Volume @15 °C (volume_15c) : saisir température et densité ; calcul officiel en base à l’enregistrement.',
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontStyle: FontStyle.italic,

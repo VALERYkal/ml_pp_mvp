@@ -7,7 +7,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' as Riverpod;
 
 import '../../citernes/data/citerne_service.dart';
-import 'package:ml_pp_mvp/shared/utils/volume_calc.dart';
 import 'package:ml_pp_mvp/shared/referentiels/referentiels.dart' as refs;
 import 'package:ml_pp_mvp/core/errors/reception_validation_exception.dart';
 import 'package:ml_pp_mvp/core/errors/reception_insert_exception.dart';
@@ -15,6 +14,8 @@ import 'package:ml_pp_mvp/core/errors/reception_insert_exception.dart';
 class ReceptionService {
   final SupabaseClient _client;
   final CiterneService Function(SupabaseClient) _citerneServiceFactory;
+  // Conservé pour le constructeur / Provider / tests ; createValidated ne calcule pas le @15 °C (DB-first).
+  // ignore: unused_field
   final refs.ReferentielsRepo _refRepo;
 
   const ReceptionService.withClient(
@@ -32,7 +33,9 @@ class ReceptionService {
   /// - Indices/volume (index_avant >= 0, index_apres > index_avant, volume_ambiant >= 0)
   /// - Citerne/produit (citerne active, produit compatible)
   /// - Propriétaire (normalisation, partenaire_id requis si PARTENAIRE)
-  /// - Volume 15°C (OBLIGATOIRE : température et densité requises, volume_15c toujours calculé)
+  /// - Entrées ASTM (obligatoires) : température ambiante + densité **observée** ; **`volume_15c`** est calculé **en DB** (triggers), pas dans Flutter.
+  /// - Paramètre [densiteA15] : densité **observée** (kg/m³), envoyée comme `densite_observee_kgm3`.
+  /// - Paramètre [volumeCorrige15C] : **non utilisé** (compatibilité d’appel) ; aucun volume @15 °C n’est envoyé depuis le client.
   Future<String> createValidated({
     String? coursDeRouteId,
     required String citerneId,
@@ -124,69 +127,27 @@ class ReceptionService {
       }
     }
 
-    // 🚨 PROD-LOCK: Validation température/densité OBLIGATOIRES - DO NOT MODIFY
-    // RÈGLE MÉTIER : La conversion à 15°C est obligatoire pour toutes les réceptions.
-    // Température et densité sont des champs OBLIGATOIRES.
-    // Si cette validation est modifiée, mettre à jour:
-    // - Tests unitaires (reception_service_test.dart)
-    // - Tests E2E (reception_flow_e2e_test.dart)
-    // - Documentation métier
+    // 🚨 PROD-LOCK: Validation température / densité observée — requises pour le pipeline DB (ASTM / triggers).
+    // Le volume @15 °C n’est pas calculé ici ; la DB écrit `volume_15c` (et champs dérivés).
 
     if (temperatureCAmb == null) {
       throw ReceptionValidationException(
-        'La température ambiante (°C) est obligatoire pour calculer le volume à 15°C.',
+        'La température ambiante (°C) est obligatoire (entrée pour le calcul volumétrique en base).',
         field: 'temperature_ambiante_c',
       );
     }
 
     if (densiteA15 == null) {
       throw ReceptionValidationException(
-        'La densité à 15°C est obligatoire pour calculer le volume corrigé.',
-        field: 'densite_a_15_kgm3',
+        'La densité observée (kg/m³) est obligatoire (entrée pour le calcul volumétrique en base).',
+        field: 'densite_observee_kgm3',
       );
     }
 
-    // Récupérer le code produit pour le calcul
-    final produits = await _refRepo.loadProduits();
-
-    // Trouver le produit correspondant
-    refs.ProduitRef? produit;
-    try {
-      produit = produits.firstWhere((p) => p.id == produitId);
-    } catch (_) {
-      // Si produit non trouvé, utiliser le premier disponible comme fallback
-      if (produits.isNotEmpty) {
-        produit = produits.first;
-      }
-    }
-
-    // 🚨 PROD-LOCK: Calcul volume 15°C OBLIGATOIRE - DO NOT MODIFY
-    // RÈGLE MÉTIER : volume_corrige_15c est TOUJOURS calculé (non-null).
-    // Température et densité sont garanties non-null par validation ci-dessus.
-    // Si cette logique est modifiée, mettre à jour:
-    // - Tests unitaires (reception_service_test.dart)
-    // - Tests E2E (reception_flow_e2e_test.dart)
-    // - Schéma DB (contrainte NOT NULL sur volume_corrige_15c)
-
-    // Calculer le volume à 15°C (toujours calculé car température et densité sont non-null)
-    double volumeCorrige15CFinal;
-    if (produit != null) {
-      // Utiliser computeV15 qui gère le produitCode
-      volumeCorrige15CFinal = computeV15(
-        volumeAmbiant: volumeAmbiant,
-        temperatureC: temperatureCAmb, // non-null garanti par validation
-        densiteA15: densiteA15, // non-null garanti par validation
-        produitCode: produit.code,
-      );
-    } else {
-      // Fallback si produit non trouvé : utiliser volume_ambiant
-      // (cas rare, mais on évite une exception)
-      volumeCorrige15CFinal = volumeAmbiant;
-    }
-
-    // Si volumeCorrige15C était fourni explicitement, on l'utilise (priorité)
     if (volumeCorrige15C != null) {
-      volumeCorrige15CFinal = volumeCorrige15C;
+      debugPrint(
+        '[ReceptionService] volumeCorrige15C ignoré (volume @15 °C calculé en DB uniquement)',
+      );
     }
 
     // ============================================================

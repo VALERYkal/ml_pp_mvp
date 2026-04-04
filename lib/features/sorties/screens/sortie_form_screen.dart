@@ -180,7 +180,7 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
     }
 
     // 🚨 PROD-LOCK: Validation UI température/densité OBLIGATOIRES - DO NOT MODIFY
-    // RÈGLE MÉTIER : Température et densité sont OBLIGATOIRES pour calculer volume 15°C.
+    // Entrées terrain requises pour le pipeline volumétrique en base (`volume_15c` calculé côté DB).
     // Cette validation UI doit correspondre à la validation service (sortie_service.dart).
     // Si cette validation est modifiée, mettre à jour:
     // - Tests E2E (si applicable)
@@ -331,7 +331,7 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
         // Log console détaillé pour diagnostic
         final citerneNom = _getCiterneNom(_selectedCiterneId);
         debugPrint(
-          '[SORTIE] Succès • Volume: ${vol15ForPayload?.toStringAsFixed(2) ?? "DB"} L • Citerne: $citerneNom',
+          '[SORTIE] Succès • volume_15c (officiel) : calcul en base • aperçu payload legacy si présent: ${vol15ForPayload?.toStringAsFixed(2) ?? "—"} L • Citerne: $citerneNom',
         );
 
         // Invalidate impacted providers
@@ -427,7 +427,7 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
     final dens = _num(ctrlDens.text);
     final volAmb = computeVolumeAmbiant(avant, apres);
 
-    // Récupérer le code produit pour le calcul
+    // Code produit (affichage / contexte) ; volume @15 °C officiel = base (`volume_15c`).
     String produitCode = 'ESS'; // fallback
     if (_selectedProduitId != null) {
       ref
@@ -452,8 +452,7 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
           );
     }
 
-    // Calcul du volume 15°C : en STAGING on n'affiche pas d'estimation locale (DB calcule à l'enregistrement).
-    // Hors STAGING : calcul local pour l'aperçu si température et densité présents.
+    // Hors STAGING : `calcV15` = estimation locale d’aperçu uniquement (non canonique vs `volume_15c` DB).
     final vol15 = (!isStaging &&
             temp != null &&
             temp > 0 &&
@@ -838,7 +837,8 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
                       labelText: 'Température (°C) *',
-                      helperText: 'Obligatoire pour calcul volume 15°C',
+                      helperText:
+                          'Entrée pour le calcul volumétrique officiel en base (volume_15c)',
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
@@ -863,8 +863,8 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
                           ? 'Densité observée (kg/m³) *'
                           : 'Densité @15°C *',
                       helperText: isStaging
-                          ? 'Obligatoire pour calcul volume 15°C (820 - 860 kg/m³)'
-                          : 'Obligatoire pour calcul volume 15°C (0.7 - 1.1)',
+                          ? 'Entrée pour volume_15c en base (820 - 860 kg/m³)'
+                          : 'Entrée pour volume_15c en base (0.7 - 1.1)',
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
@@ -895,8 +895,8 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
             if (isStaging)
               Text(
                 (temp != null && temp > 0 && dens != null && dens > 0)
-                    ? '• Volume 15°C : calculé à l\'enregistrement par le moteur ASTM'
-                    : '• Volume 15°C : sera calculé à l\'enregistrement (saisissez température et densité)',
+                    ? '• Volume @15 °C (volume_15c) : calculé en base de données à l’enregistrement (moteur ASTM).'
+                    : '• Volume @15 °C (volume_15c) : saisir mesures ; calcul officiel en base à l’enregistrement.',
                 style: (temp != null && temp > 0 && dens != null && dens > 0)
                     ? null
                     : TextStyle(
@@ -904,11 +904,21 @@ class _SortieFormScreenState extends ConsumerState<SortieFormScreen> {
                         fontStyle: FontStyle.italic,
                       ),
               )
-            else if (temp != null && temp > 0 && dens != null && dens > 0)
-              Text('• Volume corrigé 15°C ≈ ${vol15.toStringAsFixed(2)} L')
-            else
+            else if (temp != null && temp > 0 && dens != null && dens > 0) ...[
+              const Text(
+                '• Volume @15 °C officiel (volume_15c) : calculé en base de données à l’enregistrement.',
+              ),
+              const SizedBox(height: 4),
               Text(
-                '• Volume corrigé 15°C : Saisissez température et densité',
+                '• Estimation locale (non canonique, aperçu) ≈ ${vol15.toStringAsFixed(2)} L',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontSize: 13,
+                ),
+              ),
+            ] else
+              Text(
+                '• Volume @15 °C (volume_15c) : saisir température et densité ; calcul officiel en base à l’enregistrement.',
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontStyle: FontStyle.italic,
