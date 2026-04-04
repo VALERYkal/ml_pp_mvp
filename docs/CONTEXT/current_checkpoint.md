@@ -1,94 +1,122 @@
-# Current Checkpoint — Volumetric Migration
+# CURRENT CHECKPOINT — ML_PP MVP
 
-## Date
+## ROLE
+Point d’entrée principal pour comprendre l’état actuel du système et agir sans dérive.
 
-Mars 2026
+## UPDATE FREQUENCY
+À chaque modification significative (DB, logique métier, structure, règles).
 
----
-
-# Environment Status
-
-## STAGING
-
-- ASTM volumetric engine active
-- lookup grid dataset installed
-- golden dataset installed
-- volumetric triggers active
+## LECTURE ORDER
+1. current_checkpoint.md
+2. architecture_rules.md
+3. architecture_map.md
+4. DB/critical_objects.md
 
 ---
 
-## PROD
+# PROJECT STATUS
 
-- ASTM volumetric engine active
-- lookup grid dataset installed
-- volumetric triggers active
-- historical receptions recalculated
-
----
-
-# Data State
-
-PROD contient :
-
-8 réceptions historiques.
-
-Volumes approximatifs :
-
-39291  
-39296  
-39391  
-36971  
-38312  
-39330  
-37383  
-33445
-
-Ces volumes correspondent à l’historique rejoué après migration ASTM (référence terrain / audit).
+- Application en production
+- Système logistique stable
+- Moteur volumétrique ASTM actif (lookup-grid)
+- STAGING et PROD alignés sur les fondamentaux critiques
+- DB = source de vérité
 
 ---
 
-# Post volume_15c compatibility migration
+# FOCUS ACTUEL
 
-État **après** migration colonne **`volume_15c`** sur **`sorties_produit`** (mode compatibilité, **sans** suppression de **`volume_corrige_15c`**) :
-
-- Migration **STAGING** puis **PROD** exécutée et validée (triggers sorties, fonctions associées, double write **`volume_15c`** + **`volume_corrige_15c`**).
-- **Flutter** aligné en **lecture** : **`volume_15c ?? volume_corrige_15c`** sur les zones concernées (KPI, repositories, providers sorties, ajustements de stock) ; écritures / modèles **non** entièrement unifiés (migration progressive documentée ailleurs).
-- Système **exploitable en PROD** avec moteur volumétrique ASTM lookup-grid actif.
-- **Test PROD** ponctuel sur sortie : exécuté puis **compensé** (`stocks_adjustments`) ; correction technique snapshot si besoin via **`stock_snapshot_apply_delta`** — pas de pollution durable du stock métier (**`v_stock_actuel`** reste la référence).
-
-Références : `docs/00_REFERENCE/VOLUME_15C_MIGRATION_SUMMARY.md`, `docs/RUNBOOKS/RUNBOOK_VOLUME_15C_COMPAT_MIGRATION.md`, `docs/00_REFERENCE/VOLUME_15C_COMPATIBILITY_NOTE.md`.
+- Mise en place du pack canonique IA
+- Structuration documentaire
+- Sécurisation des interactions IA
 
 ---
 
-# Migration Strategy (volumétrie ASTM — référence)
+# ZONES STABLES (NE PAS MODIFIER)
 
-The ASTM volumetric migration has been completed.
-
-Strategy executed: controlled purge of legacy transactions, then installation of ASTM schema, lookup grid dataset, volumetric functions and triggers, replay of the 8 historical receptions, reconstruction of stocks, system reopening.
-
-The ASTM lookup-grid volumetric engine is active in production.
-
----
-
-# Schéma et étapes (archive de haut niveau)
-
-Les évolutions de schéma détaillées (colonnes densité, **`volume_15c` sorties**, etc.) sont consignées dans les scripts SQL versionnés et les documents **`docs/DB_CHANGES/`** / runbooks volumétrie.  
-Phases typiques déjà couvertes : backup, purge contrôlée si applicable, schéma `astm`, datasets, fonctions, triggers, smoke tests, réouverture.
+- Réception
+- Stock (calcul DB)
+- Moteur ASTM
+- Triggers, fonctions et vues critiques
 
 ---
 
-# Migration Result
+# ZONES EN COURS
 
-Production is now aligned with staging on the ASTM lookup-grid volumetric runtime.
-
-All receptions and stock calculations now use the new volumetric engine.
+- Documentation canonique
+- Gouvernance IA
 
 ---
 
-# Goal
+# RISQUES
 
-Activer en production :
+- Modification des triggers DB
+- Altération des vues de stock
+- Désalignement staging / prod
+- Utilisation de docs non alignés avec la DB
 
-le moteur volumétrique lookup-grid conforme API MPMS 11.1.
+---
 
-(Goal achieved: the lookup-grid engine is now active in both STAGING and PROD.)
+# SOURCES DE VÉRITÉ
+
+- DB → vérité métier (stock, volumétrie, logique)
+- Invariants → règles
+- Code → implémentation
+- Pack canonique → représentation contrôlée
+
+---
+
+# ORDRE DE LECTURE IA
+
+1. CONTEXT
+2. DB
+3. DB_GOVERNANCE
+4. REFERENCE
+5. SUPPORT
+
+---
+
+# RÈGLES CRITIQUES
+
+- Ne jamais modifier la DB sans migration
+- Ne jamais recalculer le stock côté application
+- Ne jamais implémenter de logique métier critique en frontend
+- Toujours valider staging avant prod
+- Ne jamais inventer :
+  - tables
+  - champs
+  - logique métier
+
+---
+
+# QUAND VÉRIFIER LA DB
+
+Vérification obligatoire si :
+- modification DB
+- logique métier critique
+- incohérence détectée
+- doute sur stock ou volume
+
+Sinon :
+- se fier au pack canonique
+
+---
+
+# COMMANDES IA
+
+- respecte strictement current_checkpoint.md
+- vérifie architecture_rules.md
+- vérifie la DB si nécessaire
+- ne touche pas aux zones stables
+- propose sans casser la DB
+
+---
+
+# DEFINITION OF DONE
+
+Une modification est validée si :
+- respecte les règles
+- ne casse aucune zone stable
+- validée en staging si DB impactée
+- cohérente avec la DB
+- pack canonique mis à jour
