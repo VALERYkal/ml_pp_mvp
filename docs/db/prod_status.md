@@ -1,0 +1,146 @@
+# PROD STATUS — ML_PP MVP
+
+## ROLE
+Donner l’état actuel de la base de production et sécuriser toute intervention.
+
+## UPDATE FREQUENCY
+À chaque modification en production (migration, correction, incident).
+
+---
+
+## STATUT ACTUEL
+
+- **Environnement** : PRODUCTION  
+- **État général** : stable  
+- **Alignement avec staging** : aligné sur **logique critique** (débit after-insert sortie @15 °C) ; périmètre global encore **partiel** (voir points de vigilance).  
+
+**Tables critiques** : `cours_de_route`, `receptions`, `sorties_produit`, `stocks_journaliers`, `stocks_snapshot`, `stocks_adjustments`, `log_actions`.
+
+**`public.v_stock_actuel`** : exécutable ; lit `v_stocks_snapshot_corrige`. Colonnes : `depot_id`, `citerne_id`, `produit_id`, `proprietaire_type`, `stock_ambiant`, `stock_15c`, `last_movement_at`, `updated_at`, `stock_ambiant_base`, `stock_15c_base`, `delta_ambiant_total`, `delta_15c_total`. Au moins une ligne avec `delta_ambiant_total = 10` et `delta_15c_total = 10`.
+
+**Triggers `receptions`** : `receptions_after_ins` → `reception_after_ins_trg()` ; `trg_00_receptions_block_update_delete` ; `trg_receptions_check_cdr_arrive` ; `trg_receptions_check_produit_citerne` ; `trg_receptions_compute_15c_before_ins` ; `trg_receptions_log_created` ; `trg_receptions_set_created_by` ; `trg_receptions_set_volume_ambiant`.
+
+**Triggers `sorties_produit`** : `trg_sorties_after_insert` → `sorties_after_insert_trg()` ; `trg_00_sorties_produit_block_update_delete` ; `trg_00_sorties_set_created_by` ; `trg_01_sorties_set_volume_ambiant` ; `trg_02_sorties_compute_lookup_15c` ; `trg_sortie_before_ins` ; `trg_sortie_before_upd` ; `trg_sorties_check_produit_citerne`.
+
+**ASTM** : schéma `astm` ; `astm.assert_lookup_grid_domain`, `astm.compute_v15_from_lookup_grid`, `astm.lookup_15c_bilinear_v2`. Table `public.astm_lookup_grid_15c` : 63 lignes ; densité 820–860 ; température 10–40.
+
+**Réception** : `reception_after_ins_trg()` → `stocks_journaliers`, `stocks_snapshot` via `stock_snapshot_apply_delta()`, `log_actions`, CDR possible en DECHARGE. `receptions_compute_15c_before_ins` : lookup-grid, **sans** garde `env=staging` en PROD, remplit `volume_15c` ; `volume_corrige_15c` nul ou legacy ; chemin `volume_15c` confirmé.
+
+**Sortie** : `sorties_after_insert_trg()` → `stocks_journaliers` (delta négatif), snapshot via `stock_snapshot_apply_delta()`, `log_actions`. `sorties_compute_15c_before_ins_lookup` : lookup-grid ; `volume_15c` + `volume_corrige_15c` ; legacy partiel sur le chemin volumétrique amont ; densité observée via `densite_a_15_kgm3`. **Débit after-insert** : utilise désormais **`COALESCE(NEW.volume_15c, NEW.volume_corrige_15c, 0)`** — **aligné sur STAGING**, cohérent avec la migration volumétrique `volume_15c` ; `log_actions.details.volume_15c` harmonisé sur la même coalesce. **Correction appliquée 2026-04-04** (migration `20260404120000_sorties_after_insert_trg_coalesce_volume_15c.sql`).
+
+**Stock** : `stock_upsert_journalier`, `stock_snapshot_apply_delta`, `rebuild_stocks_journaliers` confirmées.
+
+**Comptages (périmètre inspecté)** : CDR 16, réceptions 8, sorties 1, `stocks_journaliers` 3, `stocks_snapshot` 2, `stocks_adjustments` 1, `log_actions` 19. Périmètre **réduit** ; cohérent ; faible volumétrie **sur ce périmètre** uniquement.
+
+**`stocks_adjustments`** : 1 ligne — annulation test migration `volume_15c` **2026-03-22** ; `mouvement_type = SORTIE` ; deltas 10 / 10 ; cohérent avec `v_stock_actuel`.
+
+**`log_actions`** : `SORTIE_CREEE`, `SORTIE_VALIDE`, `RECEPTION_CREEE`, `RECEPTION_VALIDE` observés ; coexistence conventions / legacy possible.
+
+**Doc vs PROD** : doc peut citer `receptions_apply_effects()` / `fn_sorties_after_insert()` ; réel : `reception_after_ins_trg()`, `sorties_after_insert_trg()` — désalignement documentaire partiel.
+
+**Migrations** : `auth.schema_migrations`, `realtime.schema_migrations`, `storage.migrations` visibles ; `supabase_migrations.schema_migrations` **non confirmé** ; dernière migration exacte **non confirmé**.
+
+---
+
+## DERNIÈRE INTERVENTION
+
+- **2026-03-22** — ajustement stock lié à un test migration `volume_15c` observé en production  
+- **2026-04-04** — investigation structurelle PROD (tables, vue stock, triggers, ASTM, stock, données)  
+- **2026-04-04** — correction critique **`sorties_after_insert_trg()`** (alignement STAGING/PROD sur débit @15 °C)  
+- Dernière migration exacte : **non confirmé**
+
+---
+
+## POINTS DE VIGILANCE
+
+- Désalignement documentaire partiel (doc vs triggers réellement branchés).  
+- Ajustement stock réel présent (`stocks_adjustments`).  
+- Conventions de logs / couches legacy coexistantes.  
+- Dernière migration exacte : non confirmé.  
+- Sortie : chemin volumétrique partiellement legacy.
+
+---
+
+## REQUÊTES DE VÉRIFICATION
+
+### Smoke test — table critique
+
+```sql
+SELECT COUNT(*)
+FROM public.receptions;
+```
+
+### Smoke test — vue stock
+
+```sql
+SELECT *
+FROM public.v_stock_actuel
+LIMIT 10;
+```
+
+### Triggers — receptions
+
+```sql
+SELECT tgname, pg_get_triggerdef(oid)
+FROM pg_trigger
+WHERE tgrelid = 'public.receptions'::regclass
+  AND NOT tgisinternal
+ORDER BY tgname;
+```
+
+### Triggers — sorties_produit
+
+```sql
+SELECT tgname, pg_get_triggerdef(oid)
+FROM pg_trigger
+WHERE tgrelid = 'public.sorties_produit'::regclass
+  AND NOT tgisinternal
+ORDER BY tgname;
+```
+
+### Fonctions ASTM
+
+```sql
+SELECT routine_name
+FROM information_schema.routines
+WHERE routine_schema = 'astm'
+ORDER BY routine_name;
+```
+
+### Dataset ASTM
+
+```sql
+SELECT count(*) FROM public.astm_lookup_grid_15c;
+```
+
+### Ajustements stock
+
+```sql
+SELECT count(*) FROM public.stocks_adjustments;
+```
+
+### Référence complémentaire
+
+Voir `docs/DB/critical_objects.md`.
+
+---
+
+## VALIDATION TECHNIQUE DU FIX
+
+**Contexte :** correction documentée **`sorties_after_insert_trg()`** (2026-04-04, migration versionnée dans le repo). **La documentation n’équivaut pas à une preuve d’exécution** sur l’instance PROD.
+
+À **confirmer** sur la base **PROD** réelle (audit / runbook) :
+
+- **`pg_get_functiondef('public.sorties_after_insert_trg()'::regproc)`** : présence de **`COALESCE(NEW.volume_15c, NEW.volume_corrige_15c, 0)`** dans le corps — **à confirmer**
+- **Test sortie contrôlée** : insert `validee` avec **`volume_15c` renseigné**, **`volume_corrige_15c` NULL** → cohérence **`stocks_journaliers`**, **`stocks_snapshot`**, **`v_stock_actuel`**, **`log_actions.details`** @15 °C — **à confirmer**
+
+Tant que ces points ne sont pas cochés : le pack est **cohérent sur l’intention** ; le **système PROD** reste **à valider** côté exécution.
+
+---
+
+## NOTES
+
+- Toute intervention en production est critique.  
+- Lecture stock : **`public.v_stock_actuel`**.  
+- Alignement **complet** sur tout le périmètre : non garanti tant que d’autres écarts (doc, migrations, legacy amont sortie) subsistent — voir points de vigilance.  
+- Toute modification doit passer par staging avant déploiement.

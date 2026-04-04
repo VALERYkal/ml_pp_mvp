@@ -6,6 +6,32 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 
 ---
 
+## 2026-04-04 — Documentation canonique + fix critique stock sortie
+
+### Documentation / pack IA
+
+- Stabilisation du **pack canonique** : `docs/CONTEXT/current_checkpoint.md`, `architecture_rules.md`, `architecture_map.md`, `docs/DB/critical_objects.md`, `staging_status.md`, `prod_status.md`, `README_CANONICAL.md`.
+- Section **ALIGNEMENT STAGING / PROD** et suivi des écarts confirmés dans le checkpoint.
+
+### Correction critique (base de données)
+
+- **Alignement STAGING / PROD** sur **`public.sorties_after_insert_trg()`** : débit stock sortie @15 °C.
+- **Avant (PROD, constat pré-correction) :** usage de **`volume_corrige_15c` seul** pour le delta @15 °C (journal, snapshot, log).
+- **Après :** **`COALESCE(NEW.volume_15c, NEW.volume_corrige_15c, 0)`** — aligné sur STAGING, cohérent avec la migration **`volume_15c`** ; `log_actions.details.volume_15c` harmonisé.
+- Migration versionnée : `supabase/migrations/20260404120000_sorties_after_insert_trg_coalesce_volume_15c.sql`.
+
+### Impact
+
+- Suppression de l’**écart critique** : sortie avec **`volume_15c` renseigné** et **`volume_corrige_15c` NULL** ne débite plus **0** @15 °C de manière erronée.
+- **Pipeline sortie** (after-insert) : logique critique **alignée** entre STAGING et PROD pour ce point.
+
+### Type
+
+- **FIX CRITIQUE** (logique métier stock / volumétrie sortie)
+- **DOCUMENTATION STRUCTURELLE** (pack canonique, statuts DB)
+
+---
+
 ## Migration `volume_15c` — compatibilité sorties (STAGING, PROD, Flutter)
 
 Migration **validée** en mode **compatibilité** : introduction de la colonne canonique **`volume_15c`** sur **`sorties_produit`**, **sans** suppression de **`volume_corrige_15c`** et **sans** backfill historique destructif sur les sorties.
