@@ -1,268 +1,143 @@
-# ML_PP MVP — Architecture Map
+# ARCHITECTURE MAP — ML_PP MVP
 
-## Purpose
+## ROLE
+Fournir une vue claire du système pour savoir où intervenir sans casser les invariants.
 
-Ce document fournit une vue d’ensemble rapide de l’architecture du système ML_PP MVP.
+## UPDATE FREQUENCY
+À chaque modification structurelle du système (DB, flux métier, modules).
 
-Il permet à un développeur ou à une IA de comprendre immédiatement :
-
-- les flux métier
-- les composants techniques
-- la logique volumétrique
-- les interactions entre modules
-
----
-
-# System Overview
-
-ML_PP MVP est un système de gestion logistique pour un dépôt pétrolier.
-
-Le système suit le flux physique du carburant :
-
-Fournisseur  
-→ Transport camion  
-→ Cours de Route  
-→ Réception dépôt  
-→ Stock citerne  
-→ Sortie client
-
-Chaque étape est enregistrée dans la base de données et impacte les stocks.
+## OBJECTIF
+Permettre de :
+- comprendre les flux métier
+- identifier les zones d’intervention
+- éviter les modifications dangereuses
 
 ---
 
-# High Level Architecture
+# VUE GLOBALE
 
-Frontend
+ML_PP MVP est un système de gestion logistique pétrolière piloté par la base de données.
 
-Flutter Web  
-Riverpod  
-GoRouter
-
-↓
-
-API
-
-Supabase
-
-↓
-
-Backend
-
-PostgreSQL
-
-↓
-
-Business Logic
-
-DB Triggers  
-DB Functions  
-Volumetric Engine
+Principe central :
+- DB = source de vérité
+- logique métier critique = DB
+- frontend = UI + orchestration
 
 ---
 
-# Core Business Flow
+# FLUX MÉTIER PRINCIPAL
 
-## 1 — Transport
-
-Table :
-
-cours_de_route
-
-Statuts :
-
-CHARGEMENT  
-TRANSIT  
-FRONTIERE  
-ARRIVE  
-DECHARGE
+Fournisseur
+→ Cours de Route
+→ Réception
+→ Stock
+→ Sortie
 
 ---
 
-## 2 — Réception carburant
+# MODULES PRINCIPAUX
 
-Table :
-
-receptions
-
-Inputs terrain :
-
-index_avant  
-index_apres  
-temperature  
-densite_observee
-
-Calculs effectués :
-
-volume_ambiant  
-densite_a_15  
-volume_15c
+- Authentification / profils
+- Cours de route
+- Réceptions
+- Stocks
+- Sorties produit
+- Citernes
+- Logs / audit
+- Dashboard
 
 ---
 
-## 3 — Stock
+# RESPONSABILITÉS PAR COUCHE
 
-Table :
+## Frontend
+Flutter :
+- affiche
+- orchestre
+- valide l’expérience utilisateur
+- ne porte pas la logique métier critique
 
-stocks_journaliers
-
-Le stock est recalculé automatiquement après :
-
-- réception
-- sortie produit
-
----
-
-## 4 — Sortie carburant
-
-Table :
-
-sorties_produit
-
-Calcul :
-
-volume_corrige_15c
+## Backend / DB
+PostgreSQL / Supabase :
+- applique les règles métier
+- calcule les volumes
+- calcule le stock
+- protège la cohérence via triggers, fonctions et vues
 
 ---
 
-# Volumetric Engine
+# TABLES CLÉS
 
-Le système utilise un moteur volumétrique basé sur :
-
-API MPMS 11.1.
-
-Architecture :
-
-lookup grid volumetric interpolation.
-
----
-
-# Volumetric Pipeline
-
-volume_observe  
-temperature  
-densite_observee
-
-→ domain guard (astm.assert_lookup_grid_domain)
-
-→ lookup grid interpolation (astm.lookup_15c_bilinear_v2, astm.compute_v15_from_lookup_grid)
-
-→ densite_a_15  
-VCF  
-volume_15c
-
-→ écriture en base
+- cours_de_route
+- receptions
+- sorties_produit
+- stocks_journaliers
+- citernes
+- produits
+- clients
+- partenaires
+- log_actions
 
 ---
 
-# Key Database Components
+# SOURCES DE VÉRITÉ OPÉRATIONNELLES
 
-Tables principales :
+- Stock actuel → v_stock_actuel
+- Réception → receptions
+- Sortie → sorties_produit
+- Flux transport → cours_de_route
+- Audit → log_actions
 
-cours_de_route  
-receptions  
-sorties_produit  
-stocks_journaliers  
-citernes  
-produits  
-clients  
-partenaires
-
----
-
-Fonctions volumétriques :
-
-astm.compute_v15_from_lookup_grid  
-astm.lookup_15c_bilinear_v2  
-astm.assert_lookup_grid_domain
+Caches dérivés :
+- stocks_snapshot → technique uniquement, non source de vérité métier  
+  (voir system_invariants.md)
 
 ---
 
-# Triggers
+# ZONES D’INTERVENTION
 
-Triggers critiques :
+## Si le besoin concerne Cours de Route
+Toucher :
+- cours_de_route
+- écrans / providers CDR
 
-receptions_compute_15c_before_ins  
-sorties_produit triggers
+## Si le besoin concerne Réception
+Toucher :
+- receptions
+- triggers / fonctions associées
+- écrans / services Réception
 
-Ces triggers :
+## Si le besoin concerne Stock
+Toucher :
+- v_stock_actuel (lecture métier)
+- stocks_journaliers (journal / support)
+- fonctions / vues de stock
 
-- exécutent les calculs volumétriques
-- garantissent la cohérence des données
-
----
-
-# Lookup Grid Dataset
-
-Table :
-
-astm.lookup_grid
-
-Configuration :
-
-produit = GASOIL  
-source = ASTM_OFFICIAL_APP  
-method = API_MPMS_11_1  
-batch = GASOIL_P0_2026-02-28
-
-Dataset :
-
-63 points
-
-Axes :
-
-9 densités  
-7 températures
-
-Domaine :
-
-densité 820 → 860 kg/m3  
-température 10 → 40 °C
+## Si le besoin concerne Sortie
+Toucher :
+- sorties_produit
+- triggers / fonctions associées
+- écrans / services Sortie
 
 ---
 
-# Rounding Policy
+# ZONES À HAUT RISQUE
 
-Réceptions :
+Les zones suivantes sont critiques :
+- triggers DB
+- fonctions DB
+- vues de stock
+- moteur volumétrique ASTM
 
-volume_15c arrondi à 1 décimale
-
-Sorties :
-
-volume_corrige_15c arrondi au litre entier
-
----
-
-# System Principle
-
-Principe architectural central :
-
-La logique métier critique est exécutée dans la base de données.
-
-Cela garantit :
-
-- cohérence métier
-- auditabilité
-- robustesse du système
+Toute modification sur ces zones doit être traitée comme sensible.
 
 ---
 
-# Environment Setup
+# RÈGLE D’INTERVENTION
 
-STAGING :
-
-- ASTM volumetric engine active
-- lookup grid dataset installed
-- triggers active
-
-PROD :
-
-- ASTM volumetric engine active
-- lookup grid dataset installed
-- triggers active
-- business pipeline aligned with staging
-
----
-
-# Next Major Operation
-
-ASTM lookup-grid volumetric engine is now active in production. Ongoing: maintain alignment and monitor volumetric consistency.
+Avant toute modification :
+1. Lire current_checkpoint.md
+2. Appliquer architecture_rules.md
+3. Identifier la zone concernée
+4. Vérifier la DB si nécessaire
+5. Intervenir dans le périmètre strict

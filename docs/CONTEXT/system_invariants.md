@@ -1,13 +1,12 @@
 # ML_PP MVP — System Invariants
 
-## Purpose
+## PURPOSE
 
-Ce document définit les règles fondamentales du système ML_PP MVP.
+Ce document définit les invariants métier fondamentaux du système.
 
-Ces règles sont des **invariants métier**.
+Ces règles sont non négociables.
 
 Elles ne doivent jamais être violées par :
-
 - le code applicatif
 - les triggers
 - les migrations
@@ -17,204 +16,190 @@ Toute modification du système doit préserver ces invariants.
 
 ---
 
-# Invariant 1 — Single Source of Truth for Volumetrics
+# 1. SOURCE DE VÉRITÉ
 
-Les calculs volumétriques sont exécutés uniquement dans la base de données.
+La base de données est la source de vérité du système.
+
+- Le stock réel provient de la DB
+- La volumétrie est calculée en DB
+- La logique métier critique est en DB
+
+---
+
+# 2. LOGIQUE MÉTIER
+
+La logique métier critique est implémentée uniquement en base de données.
+
+Cela inclut :
+- calculs volumétriques
+- calculs de stock
+- validations métier
+
+Le frontend ne doit jamais reproduire ces règles.
+
+---
+
+# 3. VOLUMÉTRIE (ASTM)
+
+## 3.1 Calcul DB uniquement
+
+Les calculs volumétriques sont exécutés uniquement en DB.
 
 Le frontend ne doit jamais calculer :
-
 - densité à 15°C
 - VCF
 - volume à 15°C
 
-Les fonctions responsables du runtime sont :
-
-astm.compute_v15_from_lookup_grid  
-astm.lookup_15c_bilinear_v2  
-astm.assert_lookup_grid_domain
-
----
-
-# Invariant 2 — Observed Density Input
-
-La densité saisie par l’utilisateur est toujours :
-
-densite_observee.
-
-La densité à 15°C est toujours calculée par le système.
-
-Il est interdit de saisir directement :
-
-densite_a_15.
+Fonctions principales :
+- astm.compute_v15_from_lookup_grid
+- astm.lookup_15c_bilinear_v2
+- astm.assert_lookup_grid_domain
 
 ---
 
-# Invariant 3 — Lookup Grid Domain Safety
+## 3.2 Données d’entrée
 
-Le moteur volumétrique ne doit jamais calculer hors domaine du dataset.
+La densité saisie est toujours :
+- densite_observee
 
-The lookup grid dataset (astm_lookup_grid_15c) defines the allowed computation domain.
-
-Le domaine actuel est :
-
-densité observée :
-
-820 → 860 kg/m3
-
-température :
-
-10 → 40 °C
-
-Toute tentative de calcul hors domaine doit lever une exception.
-
-Fonctions responsables :
-
-astm.assert_lookup_grid_domain  
-astm.lookup_grid_domain (domain check)  
-astm.compute_v15_from_lookup_grid  
-astm.lookup_15c_bilinear_v2
+Il est interdit de saisir :
+- densite_a_15
 
 ---
 
-# Invariant 4 — Deterministic Volumetric Engine
+## 3.3 Domaine de calcul
 
-Le moteur volumétrique doit être déterministe.
+Le moteur ne doit jamais calculer hors domaine.
 
-Pour un même input :
+Domaine actuel :
+- densité : 820 → 860 kg/m3
+- température : 10 → 40 °C
 
-volume_observe  
-temperature  
-densite_observee
-
-le système doit produire exactement :
-
-densite_a_15  
-VCF  
-volume_15c
-
-sans dépendre de l’environnement.
-
-Note: The volumetric engine deployed in production must remain deterministic and environment independent.
+Toute sortie hors domaine → erreur.
 
 ---
 
-# Invariant 5 — Volumetric Rounding Policy
+## 3.4 Déterminisme
 
-La politique d’arrondi doit rester constante.
+Le moteur doit être déterministe.
 
-Réceptions :
-
-volume_15c arrondi à 1 décimale.
-
-Sorties :
-
-volume_corrige_15c arrondi au litre entier.
-
-Toute modification de cette règle doit être traitée comme une modification du moteur volumétrique.
+Même input → même output.
 
 ---
 
-# Invariant 6 — Reception Pipeline Integrity
+## 3.5 Politique d’arrondi
 
-Une réception valide doit toujours suivre le pipeline :
-
-cours_de_route statut ARRIVE  
-→ création réception  
-→ calcul volumétrique  
-→ statut CDR = DECHARGE
-
-Une réception ne doit jamais être créée pour un CDR déjà :
-
-DECHARGE.
+- Réceptions → 1 décimale
+- Sorties → litre entier
 
 ---
 
-# Invariant 7 — Stock Consistency
+## 3.6 Dataset
 
-Les stocks doivent toujours respecter :
+Le dataset ASTM est une référence scientifique.
 
-Stock = Somme(Réceptions) − Somme(Sorties)
-
-Aucun mouvement de stock ne doit exister hors :
-
-receptions  
-sorties_produit
-
----
-
-# Invariant 8 — Immutable Historical Records
-
-Les réceptions et sorties validées ne doivent pas être modifiées.
-
-Une fois créées :
-
-les opérations deviennent historiques.
-
-Toute correction doit être faite par :
-
-une nouvelle opération compensatoire.
-
----
-
-# Invariant 9 — Dataset Integrity
-
-Le golden dataset volumétrique est considéré comme :
-
-une référence scientifique.
-
-Il ne doit pas être modifié sans :
-
+Toute modification nécessite :
 - validation technique
 - validation métier
-- nouvelle version de batch_id
+- versionnement
 
 ---
 
-# Invariant 10 — Database Driven Business Logic
+# 4. PIPELINE LOGISTIQUE
 
-La logique métier critique doit rester dans la base de données.
+Une réception valide suit toujours :
 
-Cela inclut :
+CDR ARRIVE
+→ création réception
+→ calcul volumétrique
+→ CDR = DECHARGE
 
-- calcul volumétrique
-- validation des données
-- calcul des stocks
-
-Le frontend ne doit pas reproduire ces règles.
-
----
-
-# Invariant 11 — Production Safety
-
-Toute modification du moteur volumétrique en production doit suivre :
-
-backup base  
-migration staging  
-validation staging  
-runbook production
+Interdit :
+- réception sur CDR déjà déchargé
 
 ---
 
-# Invariant 12 — Traceability
+# 5. STOCK
 
-Chaque opération métier doit être traçable.
+## 5.1 Calcul
 
-Les éléments suivants doivent toujours être enregistrés :
+Stock = Réceptions − Sorties
 
-date  
-utilisateur  
-volume  
-densité  
-température
+Aucun autre flux n’est autorisé.
 
 ---
 
-# Conclusion
+## 5.2 Source de vérité
 
-Ces invariants définissent les garanties fondamentales du système ML_PP MVP.
+La vue :
+- v_stock_actuel
+
+est la source métier officielle.
+
+---
+
+## 5.3 Snapshot
+
+stocks_snapshot est un cache technique.
+
+- peut diverger
+- ne doit jamais être utilisé comme vérité métier
+
+---
+
+# 6. IMMUTABILITÉ
+
+Les opérations validées sont immuables :
+- réceptions
+- sorties
+
+Toute correction se fait via :
+- opération compensatoire
+
+---
+
+# 7. TRAÇABILITÉ
+
+Chaque opération doit enregistrer :
+- date
+- utilisateur
+- volume
+- densité
+- température
+
+---
+
+# 8. COMPATIBILITÉ TRANSITOIRE
+
+Pendant la migration :
+
+- volume_15c → cible
+- volume_corrige_15c → legacy
+
+Lecture obligatoire :
+
+volume_15c ?? volume_corrige_15c
+
+**Écritures stock (DB) :** toute prise en compte du volume sortie @15 °C dans les effets stock (journal, snapshot, logs) doit s’appuyer sur la **même priorité** : **`volume_15c` puis `volume_corrige_15c`** (ex. `COALESCE(volume_15c, volume_corrige_15c, 0)` là où un scalaire est requis). **Aucun** pipeline stock ne doit dépendre **exclusivement** du champ **legacy** pour le @15 °C lorsque **`volume_15c`** est la colonne cible renseignée par le moteur.
+
+---
+
+# 9. SÉCURITÉ PRODUCTION
+
+Toute modification critique suit :
+
+1. backup
+2. staging
+3. validation
+4. production
+
+---
+
+# CONCLUSION
+
+Ces invariants définissent les garanties fondamentales du système.
 
 Ils doivent être respectés par :
-
-- toutes les évolutions futures
+- toutes les évolutions
 - tous les développeurs
-- tous les scripts de migration
+- toutes les migrations

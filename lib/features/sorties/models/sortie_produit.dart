@@ -7,6 +7,8 @@ part 'sortie_produit.g.dart';
 
 @freezed
 class SortieProduit with _$SortieProduit {
+  const SortieProduit._();
+
   const factory SortieProduit({
     required String id,
 
@@ -21,6 +23,7 @@ class SortieProduit with _$SortieProduit {
     @JsonKey(name: 'index_avant') required double indexAvant,
     @JsonKey(name: 'index_apres') required double indexApres,
     @JsonKey(name: 'volume_ambiant') double? volumeAmbiant,
+    @JsonKey(name: 'volume_15c') double? volume15c,
     @JsonKey(name: 'volume_corrige_15c') double? volumeCorrige15c,
     @JsonKey(name: 'temperature_ambiante_c') double? temperatureAmbianteC,
     @JsonKey(name: 'densite_a_15_kgm3') double? densiteA15Kgm3,
@@ -48,4 +51,8 @@ class SortieProduit with _$SortieProduit {
 
   factory SortieProduit.fromJson(Map<String, dynamic> json) =>
       _$SortieProduitFromJson(json);
+
+  double? get effectiveVolume15c => volume15c ?? volumeCorrige15c;
+
+  bool get hasCanonicalVolume15c => volume15c != null;
 }

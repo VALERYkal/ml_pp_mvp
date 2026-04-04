@@ -84,9 +84,12 @@ Données saisies :
 - température
 - densité
 
-Le système calcule :
+Le système calcule en base :
 
-volume_corrige_15c.
+- **`volume_15c`** (colonne cible pour le volume à 15 °C, moteur ASTM lookup-grid)  
+- **`volume_corrige_15c`** (maintenue en parallèle pour **compatibilité transitoire** et conventions d’arrondi métier associées)
+
+**Migration progressive :** le frontend lit en priorité **`volume_15c`** avec repli sur **`volume_corrige_15c`** ; les modèles et payloads d’écriture ne sont pas entièrement harmonisés sur un seul nom — convergence ultérieure possible hors périmètre actuel.
 
 ---
 
@@ -102,6 +105,8 @@ Les mouvements impactant le stock :
 
 - receptions
 - sorties_produit
+
+**Lecture du stock actuel :** la vue **`v_stock_actuel`** est la **source de vérité métier**. **`stocks_snapshot`** est un **cache technique** ; en cas d’écart, les corrections métier ne passent pas par une édition directe arbitraire du snapshot comme substitut de la vérité stock.
 
 ---
 

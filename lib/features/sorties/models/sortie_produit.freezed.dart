@@ -36,6 +36,8 @@ mixin _$SortieProduit {
   double get indexApres => throw _privateConstructorUsedError;
   @JsonKey(name: 'volume_ambiant')
   double? get volumeAmbiant => throw _privateConstructorUsedError;
+  @JsonKey(name: 'volume_15c')
+  double? get volume15c => throw _privateConstructorUsedError;
   @JsonKey(name: 'volume_corrige_15c')
   double? get volumeCorrige15c => throw _privateConstructorUsedError;
   @JsonKey(name: 'temperature_ambiante_c')
@@ -90,6 +92,7 @@ abstract class $SortieProduitCopyWith<$Res> {
     @JsonKey(name: 'index_avant') double indexAvant,
     @JsonKey(name: 'index_apres') double indexApres,
     @JsonKey(name: 'volume_ambiant') double? volumeAmbiant,
+    @JsonKey(name: 'volume_15c') double? volume15c,
     @JsonKey(name: 'volume_corrige_15c') double? volumeCorrige15c,
     @JsonKey(name: 'temperature_ambiante_c') double? temperatureAmbianteC,
     @JsonKey(name: 'densite_a_15_kgm3') double? densiteA15Kgm3,
@@ -130,6 +133,7 @@ class _$SortieProduitCopyWithImpl<$Res, $Val extends SortieProduit>
     Object? indexAvant = null,
     Object? indexApres = null,
     Object? volumeAmbiant = freezed,
+    Object? volume15c = freezed,
     Object? volumeCorrige15c = freezed,
     Object? temperatureAmbianteC = freezed,
     Object? densiteA15Kgm3 = freezed,
@@ -178,6 +182,10 @@ class _$SortieProduitCopyWithImpl<$Res, $Val extends SortieProduit>
             volumeAmbiant: freezed == volumeAmbiant
                 ? _value.volumeAmbiant
                 : volumeAmbiant // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            volume15c: freezed == volume15c
+                ? _value.volume15c
+                : volume15c // ignore: cast_nullable_to_non_nullable
                       as double?,
             volumeCorrige15c: freezed == volumeCorrige15c
                 ? _value.volumeCorrige15c
@@ -259,6 +267,7 @@ abstract class _$$SortieProduitImplCopyWith<$Res>
     @JsonKey(name: 'index_avant') double indexAvant,
     @JsonKey(name: 'index_apres') double indexApres,
     @JsonKey(name: 'volume_ambiant') double? volumeAmbiant,
+    @JsonKey(name: 'volume_15c') double? volume15c,
     @JsonKey(name: 'volume_corrige_15c') double? volumeCorrige15c,
     @JsonKey(name: 'temperature_ambiante_c') double? temperatureAmbianteC,
     @JsonKey(name: 'densite_a_15_kgm3') double? densiteA15Kgm3,
@@ -298,6 +307,7 @@ class __$$SortieProduitImplCopyWithImpl<$Res>
     Object? indexAvant = null,
     Object? indexApres = null,
     Object? volumeAmbiant = freezed,
+    Object? volume15c = freezed,
     Object? volumeCorrige15c = freezed,
     Object? temperatureAmbianteC = freezed,
     Object? densiteA15Kgm3 = freezed,
@@ -346,6 +356,10 @@ class __$$SortieProduitImplCopyWithImpl<$Res>
         volumeAmbiant: freezed == volumeAmbiant
             ? _value.volumeAmbiant
             : volumeAmbiant // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        volume15c: freezed == volume15c
+            ? _value.volume15c
+            : volume15c // ignore: cast_nullable_to_non_nullable
                   as double?,
         volumeCorrige15c: freezed == volumeCorrige15c
             ? _value.volumeCorrige15c
@@ -410,7 +424,7 @@ class __$$SortieProduitImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$SortieProduitImpl implements _SortieProduit {
+class _$SortieProduitImpl extends _SortieProduit {
   const _$SortieProduitImpl({
     required this.id,
     @JsonKey(name: 'citerne_id') required this.citerneId,
@@ -420,6 +434,7 @@ class _$SortieProduitImpl implements _SortieProduit {
     @JsonKey(name: 'index_avant') required this.indexAvant,
     @JsonKey(name: 'index_apres') required this.indexApres,
     @JsonKey(name: 'volume_ambiant') this.volumeAmbiant,
+    @JsonKey(name: 'volume_15c') this.volume15c,
     @JsonKey(name: 'volume_corrige_15c') this.volumeCorrige15c,
     @JsonKey(name: 'temperature_ambiante_c') this.temperatureAmbianteC,
     @JsonKey(name: 'densite_a_15_kgm3') this.densiteA15Kgm3,
@@ -434,7 +449,7 @@ class _$SortieProduitImpl implements _SortieProduit {
     @JsonKey(name: 'created_by') this.createdBy,
     @JsonKey(name: 'validated_by') this.validatedBy,
     this.note,
-  });
+  }) : super._();
 
   factory _$SortieProduitImpl.fromJson(Map<String, dynamic> json) =>
       _$$SortieProduitImplFromJson(json);
@@ -464,6 +479,9 @@ class _$SortieProduitImpl implements _SortieProduit {
   @override
   @JsonKey(name: 'volume_ambiant')
   final double? volumeAmbiant;
+  @override
+  @JsonKey(name: 'volume_15c')
+  final double? volume15c;
   @override
   @JsonKey(name: 'volume_corrige_15c')
   final double? volumeCorrige15c;
@@ -511,7 +529,7 @@ class _$SortieProduitImpl implements _SortieProduit {
 
   @override
   String toString() {
-    return 'SortieProduit(id: $id, citerneId: $citerneId, produitId: $produitId, clientId: $clientId, partenaireId: $partenaireId, indexAvant: $indexAvant, indexApres: $indexApres, volumeAmbiant: $volumeAmbiant, volumeCorrige15c: $volumeCorrige15c, temperatureAmbianteC: $temperatureAmbianteC, densiteA15Kgm3: $densiteA15Kgm3, statut: $statut, proprietaireType: $proprietaireType, dateSortie: $dateSortie, chauffeurNom: $chauffeurNom, plaqueCamion: $plaqueCamion, plaqueRemorque: $plaqueRemorque, transporteur: $transporteur, createdAt: $createdAt, createdBy: $createdBy, validatedBy: $validatedBy, note: $note)';
+    return 'SortieProduit(id: $id, citerneId: $citerneId, produitId: $produitId, clientId: $clientId, partenaireId: $partenaireId, indexAvant: $indexAvant, indexApres: $indexApres, volumeAmbiant: $volumeAmbiant, volume15c: $volume15c, volumeCorrige15c: $volumeCorrige15c, temperatureAmbianteC: $temperatureAmbianteC, densiteA15Kgm3: $densiteA15Kgm3, statut: $statut, proprietaireType: $proprietaireType, dateSortie: $dateSortie, chauffeurNom: $chauffeurNom, plaqueCamion: $plaqueCamion, plaqueRemorque: $plaqueRemorque, transporteur: $transporteur, createdAt: $createdAt, createdBy: $createdBy, validatedBy: $validatedBy, note: $note)';
   }
 
   @override
@@ -534,6 +552,8 @@ class _$SortieProduitImpl implements _SortieProduit {
                 other.indexApres == indexApres) &&
             (identical(other.volumeAmbiant, volumeAmbiant) ||
                 other.volumeAmbiant == volumeAmbiant) &&
+            (identical(other.volume15c, volume15c) ||
+                other.volume15c == volume15c) &&
             (identical(other.volumeCorrige15c, volumeCorrige15c) ||
                 other.volumeCorrige15c == volumeCorrige15c) &&
             (identical(other.temperatureAmbianteC, temperatureAmbianteC) ||
@@ -574,6 +594,7 @@ class _$SortieProduitImpl implements _SortieProduit {
     indexAvant,
     indexApres,
     volumeAmbiant,
+    volume15c,
     volumeCorrige15c,
     temperatureAmbianteC,
     densiteA15Kgm3,
@@ -604,7 +625,7 @@ class _$SortieProduitImpl implements _SortieProduit {
   }
 }
 
-abstract class _SortieProduit implements SortieProduit {
+abstract class _SortieProduit extends SortieProduit {
   const factory _SortieProduit({
     required final String id,
     @JsonKey(name: 'citerne_id') required final String citerneId,
@@ -614,6 +635,7 @@ abstract class _SortieProduit implements SortieProduit {
     @JsonKey(name: 'index_avant') required final double indexAvant,
     @JsonKey(name: 'index_apres') required final double indexApres,
     @JsonKey(name: 'volume_ambiant') final double? volumeAmbiant,
+    @JsonKey(name: 'volume_15c') final double? volume15c,
     @JsonKey(name: 'volume_corrige_15c') final double? volumeCorrige15c,
     @JsonKey(name: 'temperature_ambiante_c') final double? temperatureAmbianteC,
     @JsonKey(name: 'densite_a_15_kgm3') final double? densiteA15Kgm3,
@@ -629,6 +651,7 @@ abstract class _SortieProduit implements SortieProduit {
     @JsonKey(name: 'validated_by') final String? validatedBy,
     final String? note,
   }) = _$SortieProduitImpl;
+  const _SortieProduit._() : super._();
 
   factory _SortieProduit.fromJson(Map<String, dynamic> json) =
       _$SortieProduitImpl.fromJson;
@@ -656,6 +679,9 @@ abstract class _SortieProduit implements SortieProduit {
   @override
   @JsonKey(name: 'volume_ambiant')
   double? get volumeAmbiant;
+  @override
+  @JsonKey(name: 'volume_15c')
+  double? get volume15c;
   @override
   @JsonKey(name: 'volume_corrige_15c')
   double? get volumeCorrige15c;
