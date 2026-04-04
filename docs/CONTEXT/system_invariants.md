@@ -209,6 +209,29 @@ température
 
 ---
 
+# Invariant 13 — Dual Volume Compatibility (sorties / lecture)
+
+Pendant la phase de **compatibilité transitoire**, le système peut persister **deux** colonnes volume @15 °C sur les sorties (et contextes associés) :
+
+- **`volume_15c`** — référence **cible**
+- **`volume_corrige_15c`** — **legacy**, conservée
+
+Toute **lecture** applicative sur les périmètres migrés doit respecter :
+
+**`volume_15c ?? volume_corrige_15c`**
+
+sans supposer que **`volume_15c`** est toujours renseigné sur les données les plus anciennes. Cette phase **n’implique pas** la fin du legacy ni une unification complète des modèles Dart.
+
+---
+
+# Invariant 14 — Stock Source of Truth vs Snapshot
+
+La **source de vérité métier** pour le stock actuel exposé aux règles métier et à la lecture canonique est la vue **`v_stock_actuel`**.
+
+**`stocks_snapshot`** est un **cache / structure technique dérivée**. Il peut **diverger** dans des cas exceptionnels ; la correction du cache (ex. via **`stock_snapshot_apply_delta`**) est un mécanisme **technique** sous contrôle — **ne pas** « corriger » le stock métier en traitant le snapshot comme source de vérité à la place de **`v_stock_actuel`**.
+
+---
+
 # Conclusion
 
 Ces invariants définissent les garanties fondamentales du système ML_PP MVP.

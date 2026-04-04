@@ -160,6 +160,16 @@ The engine uses the lookup grid dataset (astm_lookup_grid_15c) and bilinear inte
 
 ---
 
+# Sorties — volume à 15 °C (complément)
+
+Pour les **sorties**, le pipeline ASTM (lookup-grid) alimente désormais aussi le volume standardisé à 15 °C via la colonne cible **`volume_15c`** sur **`sorties_produit`**, en complément du chemin historique.
+
+**`volume_corrige_15c`** reste **écrite et conservée** pour compatibilité transitoire et pour la politique d’**arrondi métier** sorties (litre entier) documentée sur ce champ. La logique de calcul ASTM (domaine, interpolation, `compute_v15_from_lookup_grid`) n’est pas remplacée par une saisie manuelle du volume @15 °C.
+
+**Lecture applicative :** **`volume_15c ?? volume_corrige_15c`** sur les périmètres Flutter migrés.
+
+---
+
 # Reception Trigger
 
 Le calcul volumétrique est exécuté automatiquement lors d’une réception.

@@ -16,6 +16,7 @@ _$SortieProduitImpl _$$SortieProduitImplFromJson(Map<String, dynamic> json) =>
       indexAvant: (json['index_avant'] as num).toDouble(),
       indexApres: (json['index_apres'] as num).toDouble(),
       volumeAmbiant: (json['volume_ambiant'] as num?)?.toDouble(),
+      volume15c: (json['volume_15c'] as num?)?.toDouble(),
       volumeCorrige15c: (json['volume_corrige_15c'] as num?)?.toDouble(),
       temperatureAmbianteC: (json['temperature_ambiante_c'] as num?)
           ?.toDouble(),
@@ -47,6 +48,7 @@ Map<String, dynamic> _$$SortieProduitImplToJson(_$SortieProduitImpl instance) =>
       'index_avant': instance.indexAvant,
       'index_apres': instance.indexApres,
       'volume_ambiant': instance.volumeAmbiant,
+      'volume_15c': instance.volume15c,
       'volume_corrige_15c': instance.volumeCorrige15c,
       'temperature_ambiante_c': instance.temperatureAmbianteC,
       'densite_a_15_kgm3': instance.densiteA15Kgm3,

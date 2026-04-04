@@ -43,76 +43,37 @@ Volumes approximatifs :
 37383  
 33445
 
-Ces volumes ont été calculés avec l’ancien moteur.
+Ces volumes correspondent à l’historique rejoué après migration ASTM (référence terrain / audit).
 
 ---
 
-# Migration Strategy
+# Post volume_15c compatibility migration
 
-The migration has been completed.
+État **après** migration colonne **`volume_15c`** sur **`sorties_produit`** (mode compatibilité, **sans** suppression de **`volume_corrige_15c`**) :
+
+- Migration **STAGING** puis **PROD** exécutée et validée (triggers sorties, fonctions associées, double write **`volume_15c`** + **`volume_corrige_15c`**).
+- **Flutter** aligné en **lecture** : **`volume_15c ?? volume_corrige_15c`** sur les zones concernées (KPI, repositories, providers sorties, ajustements de stock) ; écritures / modèles **non** entièrement unifiés (migration progressive documentée ailleurs).
+- Système **exploitable en PROD** avec moteur volumétrique ASTM lookup-grid actif.
+- **Test PROD** ponctuel sur sortie : exécuté puis **compensé** (`stocks_adjustments`) ; correction technique snapshot si besoin via **`stock_snapshot_apply_delta`** — pas de pollution durable du stock métier (**`v_stock_actuel`** reste la référence).
+
+Références : `docs/00_REFERENCE/VOLUME_15C_MIGRATION_SUMMARY.md`, `docs/RUNBOOKS/RUNBOOK_VOLUME_15C_COMPAT_MIGRATION.md`, `docs/00_REFERENCE/VOLUME_15C_COMPATIBILITY_NOTE.md`.
+
+---
+
+# Migration Strategy (volumétrie ASTM — référence)
+
+The ASTM volumetric migration has been completed.
 
 Strategy executed: controlled purge of legacy transactions, then installation of ASTM schema, lookup grid dataset, volumetric functions and triggers, replay of the 8 historical receptions, reconstruction of stocks, system reopening.
 
-The new volumetric engine is now active in production.
+The ASTM lookup-grid volumetric engine is active in production.
 
 ---
 
-# Required Schema Changes
+# Schéma et étapes (archive de haut niveau)
 
-Réceptions :
-
-ajouter
-
-densite_observee_kgm3  
-densite_a_15_kgm3  
-densite_a_15_g_cm3
-
-Sorties :
-
-ajouter
-
-densite_a_15_kgm3  
-densite_a_15_g_cm3
-
----
-
-# Migration Steps
-
-1 backup base production  
-2 purge transactions  
-3 migration schéma tables  
-4 création schéma astm  
-5 installation golden dataset  
-6 installation fonctions interpolation  
-7 installation moteur volumétrique  
-8 installation triggers  
-9 smoke tests  
-10 réouverture système
-
----
-
-# Current Work Status
-
-Nous avons déjà :
-
-analysé staging  
-analysé production  
-comparé les schémas  
-validé le moteur volumétrique  
-validé le dataset  
-rédigé le runbook de migration
-
----
-
-# Next Step
-
-Préparer le package final d’activation production :
-
-- scripts SQL
-- installation dataset
-- installation fonctions
-- activation triggers
-- tests volumétriques
+Les évolutions de schéma détaillées (colonnes densité, **`volume_15c` sorties**, etc.) sont consignées dans les scripts SQL versionnés et les documents **`docs/DB_CHANGES/`** / runbooks volumétrie.  
+Phases typiques déjà couvertes : backup, purge contrôlée si applicable, schéma `astm`, datasets, fonctions, triggers, smoke tests, réouverture.
 
 ---
 

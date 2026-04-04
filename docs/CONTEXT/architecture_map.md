@@ -110,6 +110,8 @@ Le stock est recalculé automatiquement après :
 - réception
 - sortie produit
 
+**Lecture métier du stock actuel :** la source de vérité est la vue **`v_stock_actuel`**. La table **`stocks_snapshot`** est un **cache technique** dérivé ; en cas de divergence constatée (ex. après opération exceptionnelle), une resynchronisation peut passer par des mécanismes dédiés (ex. `stock_snapshot_apply_delta`) — sans substituer la vue métier.
+
 ---
 
 ## 4 — Sortie carburant
@@ -118,9 +120,12 @@ Table :
 
 sorties_produit
 
-Calcul :
+Calculs / persistance (runtime actuel, mode compatibilité) :
 
-volume_corrige_15c
+- **`volume_15c`** — colonne cible pour le volume à 15 °C  
+- **`volume_corrige_15c`** — conservée en parallèle (double write + compatibilité transitoire ; arrondi métier sorties documenté sur ce champ)
+
+**Lecture applicative (Flutter) :** règle officielle **`volume_15c ?? volume_corrige_15c`** sur les périmètres migrés.
 
 ---
 
