@@ -79,20 +79,6 @@ class FakeCoursDeRouteService implements CoursDeRouteService {
   @override
   Future<List<CoursDeRoute>> getByStatut(StatutCours statut) async =>
       throw UnimplementedError();
-
-  @override
-  Future<bool> canTransition({
-    required dynamic from,
-    required dynamic to,
-  }) async => throw UnimplementedError();
-
-  @override
-  Future<bool> applyTransition({
-    required String cdrId,
-    required dynamic from,
-    required dynamic to,
-    String? userId,
-  }) async => throw UnimplementedError();
 }
 
 /// Structure de résultat KPI CDR (pour les tests de logique pure)

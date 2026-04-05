@@ -264,28 +264,6 @@ class FakeCoursDeRouteServiceForE2E implements CoursDeRouteService {
     return counts;
   }
 
-  @override
-  Future<bool> canTransition({
-    required dynamic from,
-    required dynamic to,
-  }) async {
-    throw UnimplementedError(
-      'Utiliser CoursDeRouteStateMachine.canTransition() directement',
-    );
-  }
-
-  @override
-  Future<bool> applyTransition({
-    required String cdrId,
-    required dynamic from,
-    required dynamic to,
-    String? userId,
-  }) async {
-    throw UnimplementedError(
-      'Utiliser updateStatut() pour les transitions de statut',
-    );
-  }
-
   List<CoursDeRoute> get items => List.unmodifiable(_data);
   void clear() => _data.clear();
 }

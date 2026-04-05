@@ -79,20 +79,6 @@ class FakeCoursDeRouteServiceForDetail implements CoursDeRouteService {
   @override
   Future<Map<String, int>> countByCategorie() async =>
       throw UnimplementedError();
-
-  @override
-  Future<bool> canTransition({
-    required dynamic from,
-    required dynamic to,
-  }) async => throw UnimplementedError();
-
-  @override
-  Future<bool> applyTransition({
-    required String cdrId,
-    required dynamic from,
-    required dynamic to,
-    String? userId,
-  }) async => throw UnimplementedError();
 }
 
 // ════════════════════════════════════════════════════════════════════════════
