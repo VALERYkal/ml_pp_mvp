@@ -117,6 +117,13 @@ Toute évolution doit suivre :
 
 ## RÈGLES FRONTEND
 
+Le frontend ne doit jamais implémenter une machine d’état métier parallèle à la base.
+
+Exemple interdit:
+- état local différent de `statut`
+- enum métier non aligné DB
+- logique de transition indépendante
+
 Le frontend n’est pas une source de vérité.
 
 Son rôle est de :

@@ -40,7 +40,7 @@ Chaque mouvement est journalisé et impacte les stocks.
 
 Représente un transport carburant entre un fournisseur et le dépôt.
 
-Statuts possibles :
+Workflow canonique :
 
 CHARGEMENT  
 TRANSIT  
@@ -48,10 +48,20 @@ FRONTIERE
 ARRIVE  
 DECHARGE
 
-Pipeline :
+Pipeline métier :
 
 ARRIVE → réception carburant  
 réception validée → CDR = DECHARGE
+
+Le CDR ne possède qu’une seule source de vérité d’état : la colonne `statut` en base de données.
+
+Toute logique applicative parallèle (ex: etat, state machine frontend) a été supprimée.
+
+Les transitions métier sont pilotées par:
+- les actions utilisateur (updateStatut)
+- les triggers DB (ex: réception → DECHARGE)
+
+Il est interdit d’introduire une seconde machine d’état côté application.
 
 ---
 

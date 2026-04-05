@@ -2,6 +2,23 @@
 
 Ce fichier documente les changements notables du projet **ML_PP MVP**, conformément aux bonnes pratiques de versionnage sémantique.
 
+## [2026-04-05] — CDR State Machine Cleanup
+
+### Changed
+- Removed legacy CdrEtat state machine
+- Removed applyTransition and canTransition
+- Removed cdr_logs_service
+- Removed writes to non-existent `etat` field
+
+### Fixed
+- Align CDR state handling with DB (`statut` only)
+- Prevent inconsistent dual state systems
+
+### Impact
+- Single source of truth: `statut`
+- Reduced technical debt
+- Safer CDR evolution going forward
+
 ## [Unreleased]
 
 ---

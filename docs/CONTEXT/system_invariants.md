@@ -117,6 +117,18 @@ CDR ARRIVE
 Interdit :
 - réception sur CDR déjà déchargé
 
+# 4.1 CDR STATE INVARIANT
+
+- Le CDR est piloté uniquement par la colonne `statut`
+- Les valeurs autorisées sont contrôlées en base (CHECK constraint)
+- Aucune machine d’état parallèle n’est autorisée côté application
+- Le passage à DECHARGE ne peut se faire que via une réception validée
+
+Interdit :
+- ajouter un champ etat
+- gérer un workflow parallèle côté frontend
+- bypass la règle réception → DECHARGE
+
 ---
 
 # 5. STOCK

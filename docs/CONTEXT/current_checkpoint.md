@@ -44,6 +44,10 @@ Constats issus de `docs/DB/staging_status.md` et `docs/DB/prod_status.md` (inves
 
 # FIXES RÉCENTS CRITIQUES
 
+- Refactor CDR: suppression complète de la machine d’état applicative (`etat`, `CdrEtat`, `applyTransition`)
+- Alignement total avec la DB: `statut` devient la seule source de vérité
+- Suppression des écritures vers un champ non existant en base (`etat`)
+- Simplification du module CDR et réduction de dette technique
 - Fix alignement STAGING / PROD sur **`sorties_after_insert_trg()`**.
 - Correction du **débit stock @15 °C** en sortie (after-insert).
 - Harmonisation volumétrique sortie : **`COALESCE(NEW.volume_15c, NEW.volume_corrige_15c, 0)`** pour journal, snapshot et `log_actions.details.volume_15c`.
@@ -52,6 +56,7 @@ Constats issus de `docs/DB/staging_status.md` et `docs/DB/prod_status.md` (inves
 
 # ÉTAT ACTUEL ALIGNEMENT
 
+- Module CDR désormais aligné avec la DB (aucune divergence état/statut)
 - STAGING et PROD **alignés sur la logique critique** du débit sortie @15 °C dans **`sorties_after_insert_trg()`**.
 - **Aucun écart bloquant restant** sur ce pipeline stock (after-insert sortie) pour le volume @15 °C, sous réserve de vérification continue via `docs/DB/prod_status.md` / `docs/DB/staging_status.md`.
 - Autres écarts **non bloquants** possibles (doc, traçabilité migrations) : voir **ALIGNEMENT STAGING / PROD** ci-dessus.
