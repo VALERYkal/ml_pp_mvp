@@ -15,7 +15,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_route_providers.dart';
 import 'package:ml_pp_mvp/features/cours_route/data/cours_de_route_service.dart';
-import 'package:ml_pp_mvp/features/cours_route/models/cdr_etat.dart';
 
 // ════════════════════════════════════════════════════════════════════════════
 // FAKE SERVICE POUR LES TESTS
@@ -128,27 +127,6 @@ class FakeCoursDeRouteService implements CoursDeRouteService {
       }
     }
     return counts;
-  }
-
-  @override
-  Future<bool> canTransition({
-    required dynamic from,
-    required dynamic to,
-  }) async {
-    if (from is CdrEtat && to is CdrEtat) {
-      return from.canTransitionTo(to);
-    }
-    return false;
-  }
-
-  @override
-  Future<bool> applyTransition({
-    required String cdrId,
-    required dynamic from,
-    required dynamic to,
-    String? userId,
-  }) async {
-    return true; // Simplifié pour les tests
   }
 }
 
