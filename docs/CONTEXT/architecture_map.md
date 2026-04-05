@@ -90,20 +90,16 @@ PostgreSQL / Supabase :
 - Flux transport → cours_de_route
 - Audit → log_actions
 
-<<<<<<< HEAD
 Caches dérivés :
 - stocks_snapshot → technique uniquement, non source de vérité métier  
   (voir system_invariants.md)
-=======
-sorties_produit
 
-Calculs / persistance (runtime actuel, mode compatibilité) :
+**sorties_produit** — calculs / persistance (runtime actuel, mode compatibilité) :
 
 - **`volume_15c`** — colonne cible pour le volume à 15 °C  
 - **`volume_corrige_15c`** — conservée en parallèle (double write + compatibilité transitoire ; arrondi métier sorties documenté sur ce champ)
 
 **Lecture applicative (Flutter) :** règle officielle **`volume_15c ?? volume_corrige_15c`** sur les périmètres migrés.
->>>>>>> 9d68912 (snapshot: état stable avant restructuration repo (IA pack + gouvernance contexte))
 
 ---
 
@@ -113,6 +109,11 @@ Calculs / persistance (runtime actuel, mode compatibilité) :
 Toucher :
 - cours_de_route
 - écrans / providers CDR
+
+Attention:
+- le module CDR ne possède plus de machine d’état applicative
+- toute évolution doit se baser sur la colonne `statut` en base
+- ne pas introduire de logique parallèle (duplication hors `statut`, FSM, etc.)
 
 ## Si le besoin concerne Réception
 Toucher :
