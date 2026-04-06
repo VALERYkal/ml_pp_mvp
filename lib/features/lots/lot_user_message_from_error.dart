@@ -1,4 +1,4 @@
-// 📌 Module : Lots — Message utilisateur à partir d’une erreur backend (liaison CDR ↔ lot).
+// 📌 Module : Lots — Message utilisateur à partir d’une erreur backend (CDR ↔ lot, statut lot).
 // 🧭 Présentation uniquement ; la base reste la source de vérité.
 
 import 'package:flutter/foundation.dart';
@@ -41,6 +41,14 @@ String extractLotBackendErrorText(Object error) {
 String mapLotUserMessage(Object error) {
   final raw = extractLotBackendErrorText(error);
   final n = normalizeLotBackendErrorText(raw);
+
+  if (n.contains('transition de statut lot invalide')) {
+    return "Cette action n'est pas autorisée pour le statut actuel du lot.";
+  }
+
+  if (n.contains('statut lot invalide')) {
+    return 'Le statut du lot est invalide.';
+  }
 
   if (n.contains(
         'impossible de rattacher : le fournisseur du cdr ne correspond pas',

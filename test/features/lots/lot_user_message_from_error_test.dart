@@ -70,6 +70,22 @@ void main() {
       );
     });
 
+    test('transition de statut lot invalide', () {
+      expect(
+        mapLotUserMessage(
+          Exception('Transition de statut lot invalide : cloture → ouvert'),
+        ),
+        "Cette action n'est pas autorisée pour le statut actuel du lot.",
+      );
+    });
+
+    test('statut lot invalide', () {
+      expect(
+        mapLotUserMessage(Exception('Statut lot invalide : archive')),
+        'Le statut du lot est invalide.',
+      );
+    });
+
     test('erreur inconnue → fallback', () {
       expect(
         mapLotUserMessage(Exception('constraint xyz violated')),

@@ -27,6 +27,19 @@ Donner l’état actuel de la base staging et permettre une vérification rapide
 
 ## DERNIÈRES MODIFICATIONS
 
+- **2026-04-07** — **Lot fournisseur (workflow statut DB)** :
+  - ajout du trigger `trg_fournisseur_lot_statut_transition`
+  - ajout de la fonction `check_fournisseur_lot_statut_transition`
+  - transition de statuts sécurisée en base :
+    - `ouvert` → `cloture`
+    - `cloture` → `facture`
+  - transitions interdites :
+    - `cloture` → `ouvert`
+    - `facture` → `cloture`
+    - `facture` → `ouvert`
+  - INSERT autorisé uniquement avec `statut = 'ouvert'`
+  - ajout du CHECK `fournisseur_lot_statut_check`
+  - validation STAGING OK
 - **2026-04-07** — **Lot fournisseur (hardening DB)** :
   - ajout du trigger `trg_cours_de_route_enforce_fournisseur_lot`
   - fonction `check_cdr_fournisseur_lot_liaison`
@@ -61,6 +74,11 @@ Donner l’état actuel de la base staging et permettre une vérification rapide
 - **Lot fournisseur (nouveau périmètre DB)** :
   - contraintes métier désormais portées par trigger
   - toute modification du champ `cours_de_route.fournisseur_lot_id` doit être testée
+  - erreurs levées via `RAISE EXCEPTION` → impact direct API / frontend
+- **Lot fournisseur (workflow statut)** :
+  - le cycle de vie du lot est désormais porté par trigger DB
+  - toute modification directe de `public.fournisseur_lot.statut` est soumise à contraintes
+  - les transitions arrière sont interdites
   - erreurs levées via `RAISE EXCEPTION` → impact direct API / frontend
 
 ---
@@ -134,6 +152,21 @@ FROM information_schema.columns
 WHERE table_schema = 'public'
   AND table_name = 'cours_de_route'
   AND column_name = 'fournisseur_lot_id';
+```
+
+### Lot fournisseur — workflow statut
+
+```sql
+SELECT tgname
+FROM pg_trigger
+WHERE tgname = 'trg_fournisseur_lot_statut_transition';
+```
+
+```sql
+SELECT conname, pg_get_constraintdef(oid)
+FROM pg_constraint
+WHERE conrelid = 'public.fournisseur_lot'::regclass
+  AND conname = 'fournisseur_lot_statut_check';
 ```
 
 ### Référence complémentaire

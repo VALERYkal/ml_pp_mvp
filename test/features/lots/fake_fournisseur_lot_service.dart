@@ -17,6 +17,7 @@ class FakeFournisseurLotService implements FournisseurLotService {
   final List<(String cdrId, String lotId)> attachCalls = [];
   final List<String> detachCalls = [];
   final List<String> closeLotCalls = [];
+  final List<String> markLotAsFacturedCalls = [];
 
   @override
   Future<List<FournisseurLot>> getAll() async => throw UnimplementedError();
@@ -98,6 +99,17 @@ class FakeFournisseurLotService implements FournisseurLotService {
       throw StateError('closeLot: lot introuvable');
     }
     lotOverride = l.copyWith(statut: StatutFournisseurLot.cloture);
+    return lotOverride!;
+  }
+
+  @override
+  Future<FournisseurLot> markLotAsFactured(String lotId) async {
+    markLotAsFacturedCalls.add(lotId);
+    final l = lotOverride;
+    if (l == null || l.id != lotId) {
+      throw StateError('markLotAsFactured: lot introuvable');
+    }
+    lotOverride = l.copyWith(statut: StatutFournisseurLot.facture);
     return lotOverride!;
   }
 }

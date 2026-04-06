@@ -185,8 +185,8 @@ void invalidateAfterLotCdrLinkChange(
   ref.invalidate(fournisseurLotByIdProvider(lot.id));
 }
 
-/// Après clôture (statut uniquement) : listes, détail, compteurs.
-void invalidateAfterLotClose(riverpod.WidgetRef ref, FournisseurLot lot) {
+void _invalidateLotAfterStatutChange(
+    riverpod.WidgetRef ref, FournisseurLot lot) {
   ref.invalidate(fournisseurLotsProvider);
   ref.invalidate(lotDetailProvider(lot.id));
   ref.invalidate(fournisseurLotByIdProvider(lot.id));
@@ -203,4 +203,14 @@ void invalidateAfterLotClose(riverpod.WidgetRef ref, FournisseurLot lot) {
     fournisseurLotsOuvertsByFournisseurProvider(lot.fournisseurId),
   );
   ref.invalidate(fournisseurLotCountsByStatutProvider);
+}
+
+/// Après clôture (statut uniquement) : listes, détail, compteurs.
+void invalidateAfterLotClose(riverpod.WidgetRef ref, FournisseurLot lot) {
+  _invalidateLotAfterStatutChange(ref, lot);
+}
+
+/// Après facturation (statut uniquement) : mêmes invalidations que la clôture.
+void invalidateAfterLotFactured(riverpod.WidgetRef ref, FournisseurLot lot) {
+  _invalidateLotAfterStatutChange(ref, lot);
 }
