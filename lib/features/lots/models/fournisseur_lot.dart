@@ -1,4 +1,4 @@
-// 📌 Module : Fournisseur Lot - Models
+// 📌 Module : Lots — Models
 // 🧑 Auteur : Valery Kalonga
 // 📅 Date : 2026-04-06
 // 🗃️ Source SQL : Table `public.fournisseur_lot`

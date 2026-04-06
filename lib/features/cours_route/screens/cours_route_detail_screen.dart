@@ -8,7 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_route_providers.dart';
-import 'package:ml_pp_mvp/features/cours_route/providers/fournisseur_lot_providers.dart';
+import 'package:ml_pp_mvp/features/lots/providers/fournisseur_lot_providers.dart';
 import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart';
 import 'package:ml_pp_mvp/core/models/user_role.dart';
 import 'package:ml_pp_mvp/shared/providers/ref_data_provider.dart'

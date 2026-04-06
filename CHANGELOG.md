@@ -2,6 +2,51 @@
 
 Ce fichier documente les changements notables du projet **ML_PP MVP**, conformément aux bonnes pratiques de versionnage sémantique.
 
+## [2026-04-07] — Stabilisation module lot fournisseur (CDR ↔ lot)
+
+### Backend (DB)
+
+- Mise en place / validation des contraintes métier via triggers :
+  - cohérence fournisseur entre CDR et lot
+  - cohérence produit
+  - blocage rattachement selon statut CDR (ex: DECHARGE)
+  - blocage modification si lot fermé
+- Fonction centrale : `check_cdr_fournisseur_lot_liaison`
+- Trigger : `trg_cours_de_route_enforce_fournisseur_lot`
+
+### Frontend
+
+- Introduction de `mapLotUserMessage` :
+  - mapping des erreurs SQL → messages utilisateur propres
+  - suppression des messages bruts PostgREST dans l’UI
+- Gestion unifiée des erreurs :
+  - rattachement / détachement CDR
+  - clôture lot
+  - chargement des CDR éligibles
+
+### Tests
+
+- Couverture des erreurs métier :
+  - lot non modifiable
+  - incohérence fournisseur
+  - incohérence produit
+  - statut DECHARGE
+  - fallback générique
+- Extraction message backend (PostgrestException)
+
+### Impact
+
+- Le module lot fournisseur passe de **fonctionnel** à **robuste et sécurisé**
+- La logique métier est désormais **entièrement portée par la DB**
+- Le frontend devient **strictement consommateur de règles**
+
+### Notes
+
+- STAGING reste environnement expérimental (tests libres autorisés)
+- PROD reste strictement contrôlée
+
+---
+
 ## [2026-04-05] — CDR State Machine Cleanup
 
 ### Changed

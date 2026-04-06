@@ -27,6 +27,16 @@ Donner l’état actuel de la base staging et permettre une vérification rapide
 
 ## DERNIÈRES MODIFICATIONS
 
+- **2026-04-07** — **Lot fournisseur (hardening DB)** :
+  - ajout du trigger `trg_cours_de_route_enforce_fournisseur_lot`
+  - fonction `check_cdr_fournisseur_lot_liaison`
+  - validation en DB :
+    - cohérence fournisseur CDR ↔ lot
+    - cohérence produit CDR ↔ lot
+  - blocages métier :
+    - rattachement interdit si statut incompatible (ex: DECHARGE)
+    - modification interdite si lot fermé
+  - tests STAGING OK (erreurs levées correctement)
 - **2026-04-06** — **Lot fournisseur** : table `public.fournisseur_lot` déployée ; colonne nullable `public.cours_de_route.fournisseur_lot_id` ajoutée. Smoke test STAGING : création lot, liaison CDR ↔ lot, contrôle cohérence fonctionnelle OK (pas de revendication de couverture exhaustive hors ce périmètre).
 - non confirmé — dernière migration exacte non vérifiée (`supabase_migrations.schema_migrations` présente ; entrée la plus récente non confirmée)
 - 2026-04-04 — investigation structurelle STAGING (tables, vue stock, triggers, fonctions ASTM, fonctions stock, comptages)
@@ -48,6 +58,10 @@ Donner l’état actuel de la base staging et permettre une vérification rapide
 - **`log_actions` :** actions vues : `RECEPTION_CREEE`, `RECEPTION_VALIDE`, `SORTIE_VALIDE` (cohérent avec le wiring ci-dessus).
 - **Comptages (instantané observé) :** `cours_de_route` 9, `receptions` 17, `sorties_produit` 6, `stocks_journaliers` 12, `stocks_snapshot` 4, `stocks_adjustments` 0, `log_actions` 39 — dataset faible, cohérent pour validation contrôlée, **non représentatif** d’une volumétrie production élevée.
 - **`stocks_adjustments` :** table présente ; 0 ligne sur l’instantané observé.
+- **Lot fournisseur (nouveau périmètre DB)** :
+  - contraintes métier désormais portées par trigger
+  - toute modification du champ `cours_de_route.fournisseur_lot_id` doit être testée
+  - erreurs levées via `RAISE EXCEPTION` → impact direct API / frontend
 
 ---
 
@@ -130,6 +144,7 @@ Pour les contrôles avancés (procédure, dangers), voir `docs/DB/critical_objec
 
 ## NOTES
 
+- STAGING est un environnement expérimental : données incohérentes ou tests destructifs autorisés
 - STAGING cohérent et exploitable pour validation avant production.
 - Lecture métier du stock : **`public.v_stock_actuel`**.
 - Vérifier **PROD** séparément avant toute conclusion d’alignement complet.

@@ -5,8 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:ml_pp_mvp/features/cours_route/models/fournisseur_lot.dart';
-import 'package:ml_pp_mvp/features/cours_route/providers/fournisseur_lot_providers.dart';
+import 'package:ml_pp_mvp/features/lots/models/fournisseur_lot.dart';
+import 'package:ml_pp_mvp/features/lots/lot_user_message_from_error.dart';
+import 'package:ml_pp_mvp/features/lots/providers/fournisseur_lot_providers.dart';
 import 'package:ml_pp_mvp/shared/providers/ref_data_provider.dart';
 import 'package:ml_pp_mvp/shared/ui/toast.dart';
 import 'package:ml_pp_mvp/shared/ui/dialogs.dart';
@@ -94,11 +95,11 @@ class _FournisseurLotFormScreenState
       context.pop(created);
     } on PostgrestException catch (e) {
       if (mounted) {
-        showAppToast(context, e.message, type: ToastType.error);
+        showAppToast(context, mapLotUserMessage(e), type: ToastType.error);
       }
     } catch (e) {
       if (mounted) {
-        showAppToast(context, 'Erreur: $e', type: ToastType.error);
+        showAppToast(context, mapLotUserMessage(e), type: ToastType.error);
       }
     } finally {
       if (mounted) setState(() => isSaving = false);
