@@ -25,7 +25,15 @@ Point d’entrée principal pour comprendre l’état actuel du système et agir
 - **DB tests STAGING** du pipeline critique exécutés avec succès (voir **VALIDATION STAGING RÉCENTE**)
 - Schéma **ASTM** accessible côté STAGING ; **RLS**, **stock**, **réception**, **sortie** validés sur ce périmètre en STAGING
 - Pack canonique et **invariants VOL15** synchronisés (`docs/system_invariants.md`, `docs/CONTEXT/system_invariants.md`)
-- **Lot fournisseur** introduit et **opérationnel** (STAGING + PROD) : table `public.fournisseur_lot`, colonne nullable `public.cours_de_route.fournisseur_lot_id` ; module app minimal (création lot, liste `/cours/lots`, `/cours/lots/new`, lien dans formulaire / détail CDR, colonne **Réf. lot** en liste desktop). UX liste CDR : **Nouveau camion**, **Lot fournisseur**, colonne **Dépôt** retirée du tableau desktop — **sans** changement du pilotage **`statut`** CDR en DB.
+- **Lot fournisseur** introduit et **industrialisé** (STAGING + PROD) :
+  - table `public.fournisseur_lot`
+  - relation optionnelle `cours_de_route.fournisseur_lot_id`
+  - **intégrité CDR ↔ lot garantie par la DB** (trigger)
+  - **workflow statut lot porté par la DB** :
+    - `ouvert → cloture → facture`
+    - transitions invalides bloquées
+  - module frontend aligné (UI pilotée par DB)
+  - couverture app : création lot, liste `/cours/lots`, `/cours/lots/new`, lien formulaire / détail CDR, colonne **Réf. lot** desktop ; liste CDR : **Nouveau camion**, **Lot fournisseur**, **Dépôt** retiré du tableau desktop — **sans** changement du pilotage **`statut`** CDR en DB.
 
 ---
 
@@ -52,6 +60,15 @@ Constats issus de `docs/DB/staging_status.md` et `docs/DB/prod_status.md` (inves
 - Fix alignement STAGING / PROD sur **`sorties_after_insert_trg()`**.
 - Correction du **débit stock @15 °C** en sortie (after-insert).
 - Harmonisation volumétrique sortie : **`COALESCE(NEW.volume_15c, NEW.volume_corrige_15c, 0)`** pour journal, snapshot et `log_actions.details.volume_15c`.
+- Hardening DB du module lot fournisseur :
+  - trigger `trg_cours_de_route_enforce_fournisseur_lot`
+  - validation cohérence fournisseur / produit / statut
+  - blocage des rattachements invalides CDR ↔ lot
+- Implémentation du workflow statut lot en DB :
+  - fonction `check_fournisseur_lot_statut_transition`
+  - trigger `trg_fournisseur_lot_statut_transition`
+  - contrainte CHECK sur les statuts
+  - transitions strictement contrôlées
 
 ---
 
@@ -61,6 +78,11 @@ Constats issus de `docs/DB/staging_status.md` et `docs/DB/prod_status.md` (inves
 - STAGING et PROD **alignés sur la logique critique** du débit sortie @15 °C dans **`sorties_after_insert_trg()`**.
 - **Aucun écart bloquant restant** sur ce pipeline stock (after-insert sortie) pour le volume @15 °C, sous réserve de vérification continue via `docs/DB/prod_status.md` / `docs/DB/staging_status.md`.
 - Autres écarts **non bloquants** possibles (doc, traçabilité migrations) : voir **ALIGNEMENT STAGING / PROD** ci-dessus.
+- Module lot fournisseur :
+  - STAGING et PROD alignés sur :
+    - intégrité CDR ↔ lot
+    - workflow statut lot
+  - aucune divergence connue sur ce périmètre
 
 ---
 
@@ -81,6 +103,10 @@ Constats issus des **DB tests** et vérifications manuelles sur **STAGING** (pas
 - Stabilisation post-validation STAGING (pipeline critique app + DB + RLS)
 - Gouvernance du pack canonique maintenue
 - Enrichissement **CDR** par structuration amont **lot fournisseur** (relation optionnelle, vérité toujours `statut` + réception pour le stock)
+- Stabilisation du module lot fournisseur (intégrité + workflow DB)
+- Préparation des évolutions :
+  - audit des transitions lot
+  - observabilité métier
 - Pistes prioritaires : observabilité stock, audit automatique DB / staging–prod, hardening tests / monitoring
 
 ---
@@ -92,6 +118,8 @@ Constats issus des **DB tests** et vérifications manuelles sur **STAGING** (pas
 - Moteur ASTM
 - Triggers, fonctions et vues critiques
 - **Pipeline VOL15 côté frontend** (contrat de lecture, services DB-first sur le périmètre traité) — considéré stable ; **ne pas refactorer sans besoin réel**
+- Module lot fournisseur (intégrité DB + workflow statut) considéré comme stable
+- Toute modification doit passer par migration et validation staging
 
 ---
 

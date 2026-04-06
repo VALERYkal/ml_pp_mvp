@@ -2,6 +2,82 @@
 
 Ce fichier documente les changements notables du projet **ML_PP MVP**, conformément aux bonnes pratiques de versionnage sémantique.
 
+## [2026-04-07] — Lot fournisseur : hardening DB + workflow statut
+
+### DB — Intégrité CDR ↔ lot
+
+- ajout trigger `trg_cours_de_route_enforce_fournisseur_lot`
+- ajout fonction `check_cdr_fournisseur_lot_liaison`
+- enforcement en base :
+  - cohérence fournisseur CDR ↔ lot
+  - cohérence produit CDR ↔ lot
+  - blocage rattachement selon statut CDR (ex: DECHARGE)
+  - interdiction modification si lot fermé
+
+→ la cohérence métier du lien CDR ↔ lot est désormais garantie par la DB
+
+### DB — Workflow statut lot fournisseur
+
+- ajout fonction `check_fournisseur_lot_statut_transition`
+- ajout trigger `trg_fournisseur_lot_statut_transition`
+- ajout contrainte `fournisseur_lot_statut_check`
+
+Règles :
+
+- statuts autorisés :
+  - `ouvert`
+  - `cloture`
+  - `facture`
+- transitions autorisées :
+  - ouvert → cloture
+  - cloture → facture
+- transitions interdites :
+  - retour arrière (ex: cloture → ouvert, facture → cloture)
+  - toute transition hors workflow
+- INSERT :
+  - statut obligatoire = `ouvert`
+
+→ le workflow métier du lot fournisseur est désormais porté par la DB
+
+### Frontend — Alignement workflow statut
+
+- ajout helper UI :
+  - `canCloseLot`
+  - `canMarkLotAsFactured`
+  - `isLotReadOnly`
+  - `lotStatutAllowsCdrLinkEdit`
+- ajout action :
+  - `markLotAsFactured`
+- adaptation écrans :
+  - `lot_detail_screen` :
+    - ouvert → clôture + ajout CDR
+    - cloture → facturation possible
+    - facture → lecture seule
+  - formulaire :
+    - pas de sélecteur de statut à la création ; lot créé en `ouvert` (texte d’aide UI)
+- mapping erreurs DB :
+  - `statut lot invalide`
+  - `transition de statut lot invalide`
+
+### Tests
+
+- ajout tests :
+  - workflow statut lot
+  - mapping erreurs
+  - providers lot
+  - écrans lot
+- 31 tests OK sur `test/features/lots/`
+
+### BREAKING
+
+- contraintes DB bloquantes :
+  - transitions statut invalides refusées
+  - incohérences CDR ↔ lot bloquées
+
+→ impact direct API / frontend en cas de violation
+
+---
+
 ## [2026-04-07] — Stabilisation module lot fournisseur (CDR ↔ lot)
 
 ### Backend (DB)

@@ -8,6 +8,7 @@ import 'package:ml_pp_mvp/core/models/user_role.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 import 'package:ml_pp_mvp/features/lots/models/fournisseur_lot.dart';
 import 'package:ml_pp_mvp/features/lots/models/lot_detail_view.dart';
+import 'package:ml_pp_mvp/features/lots/lot_statut_ui.dart';
 import 'package:ml_pp_mvp/features/lots/lot_user_message_from_error.dart';
 import 'package:ml_pp_mvp/features/lots/providers/fournisseur_lot_providers.dart';
 import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart';
@@ -67,6 +68,50 @@ class LotDetailScreen extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Lot clôturé')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(mapLotUserMessage(e))),
+        );
+      }
+    }
+  }
+
+  Future<void> _onMarkLotAsFacturedPressed(
+    BuildContext context,
+    WidgetRef ref,
+    FournisseurLot lot,
+  ) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Marquer ce lot comme facturé ?'),
+        content: const Text(
+          'Cette action est définitive. Le lot passera en lecture seule.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Annuler'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Marquer comme facturé'),
+          ),
+        ],
+      ),
+    );
+
+    if (ok != true || !context.mounted) return;
+
+    try {
+      await ref.read(fournisseurLotServiceProvider).markLotAsFactured(lot.id);
+      invalidateAfterLotFactured(ref, lot);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Lot marqué comme facturé')),
         );
       }
     } catch (e) {
@@ -376,7 +421,7 @@ class LotDetailScreen extends ConsumerWidget {
             data: (refData) {
               final lot = view.lot;
               final lotEditable =
-                  canWrite && lot.statut == StatutFournisseurLot.ouvert;
+                  canWrite && lotStatutAllowsCdrLinkEdit(lot.statut);
               final fournisseurLabel =
                   resolveName(refData, lot.fournisseurId, 'fournisseur');
               final produitLabel =
@@ -426,12 +471,28 @@ class LotDetailScreen extends ConsumerWidget {
                     ],
                   ),
                   if (canWrite &&
-                      lot.statut != StatutFournisseurLot.ouvert) ...[
+                      lot.statut == StatutFournisseurLot.cloture) ...[
                     Padding(
                       padding: const EdgeInsets.only(bottom: 12),
                       child: Text(
-                        'Lot clôturé : aucune modification n’est disponible.',
+                        'Lot clôturé : plus de rattachement ni détachement de '
+                        'cours. Vous pouvez marquer le lot comme facturé.',
                         key: const Key('lot_detail_closed_notice'),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                            ),
+                      ),
+                    ),
+                  ],
+                  if (canWrite &&
+                      lot.statut == StatutFournisseurLot.facture) ...[
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Text(
+                        'Lot facturé : lecture seule.',
+                        key: const Key('lot_detail_facture_readonly_notice'),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: Theme.of(context)
                                   .colorScheme
@@ -569,7 +630,7 @@ class LotDetailScreen extends ConsumerWidget {
                       ),
                     ),
                   const SizedBox(height: 24),
-                  if (lotEditable) ...[
+                  if (canWrite && canCloseLot(lot.statut)) ...[
                     OutlinedButton.icon(
                       key: const Key('lot_detail_close_lot_button'),
                       onPressed: () =>
@@ -578,12 +639,26 @@ class LotDetailScreen extends ConsumerWidget {
                       label: const Text('Clôturer le lot'),
                     ),
                     const SizedBox(height: 8),
+                  ],
+                  if (canWrite && canMarkLotAsFactured(lot.statut)) ...[
+                    FilledButton.icon(
+                      key: const Key('lot_detail_mark_factured_button'),
+                      onPressed: () => _onMarkLotAsFacturedPressed(
+                        context,
+                        ref,
+                        lot,
+                      ),
+                      icon: const Icon(Icons.receipt_long_outlined),
+                      label: const Text('Marquer comme facturé'),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                  if (lotEditable)
                     FilledButton.icon(
                       onPressed: () => _showAddCdrSheet(context, ref, lot),
                       icon: const Icon(Icons.add),
                       label: const Text('Ajouter CDR au lot'),
                     ),
-                  ],
                   ],
                 ),
               );

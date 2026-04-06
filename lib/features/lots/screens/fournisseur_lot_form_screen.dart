@@ -120,6 +120,15 @@ class _FournisseurLotFormScreenState
                   color: Theme.of(context).primaryColor,
                 ),
           ),
+          const SizedBox(height: 8),
+          Text(
+            key: const Key('lot_form_statut_ouvert_hint'),
+            'Nouveau lot : statut Ouvert (imposé). La clôture et la '
+            'facturation se font depuis le détail du lot.',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+          ),
           const SizedBox(height: 16),
           DropdownButtonFormField<String>(
             initialValue: selectedFournisseurId,

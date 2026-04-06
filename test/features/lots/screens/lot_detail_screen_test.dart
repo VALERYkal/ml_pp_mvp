@@ -130,6 +130,10 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('lot_detail_close_lot_button')), findsOneWidget);
+    expect(
+      find.byKey(const Key('lot_detail_mark_factured_button')),
+      findsNothing,
+    );
   });
 
   testWidgets('clôture confirmée : service, refresh, SnackBar', (
@@ -211,9 +215,103 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('lot_detail_close_lot_button')), findsNothing);
+    expect(
+      find.byKey(const Key('lot_detail_mark_factured_button')),
+      findsOneWidget,
+    );
     expect(find.text('Ajouter CDR au lot'), findsNothing);
     expect(find.text('Détacher'), findsNothing);
     expect(find.byKey(const Key('lot_detail_closed_notice')), findsOneWidget);
     expect(find.text('ZZ-000-ZZ'), findsOneWidget);
+  });
+
+  testWidgets('lot facturé : aucune transition ni édition CDR', (tester) async {
+    final lot = FournisseurLot.empty().copyWith(
+      id: 'lot-1',
+      fournisseurId: 'f1',
+      produitId: 'p1',
+      reference: 'REF-F',
+      statut: StatutFournisseurLot.facture,
+    );
+    final cdr = CoursDeRoute.empty().copyWith(
+      id: 'cdr-1',
+      fournisseurId: 'f1',
+      produitId: 'p1',
+      depotDestinationId: 'd1',
+      plaqueCamion: 'FA-111-AA',
+    );
+    final fake = FakeFournisseurLotService(
+      lotOverride: lot,
+      cdrsForLot: [cdr],
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          fournisseurLotServiceProvider.overrideWithValue(fake),
+          lotDetailProviderOverride(fake),
+          userRoleProvider.overrideWith((ref) => UserRole.admin),
+          refDataProvider.overrideWith((ref) async => _emptyRefData()),
+        ],
+        child: const MaterialApp(
+          home: LotDetailScreen(lotId: 'lot-1'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('lot_detail_close_lot_button')), findsNothing);
+    expect(
+      find.byKey(const Key('lot_detail_mark_factured_button')),
+      findsNothing,
+    );
+    expect(find.text('Ajouter CDR au lot'), findsNothing);
+    expect(find.text('Détacher'), findsNothing);
+    expect(
+      find.byKey(const Key('lot_detail_facture_readonly_notice')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('facturation confirmée : service + refresh', (tester) async {
+    final lot = FournisseurLot.empty().copyWith(
+      id: 'lot-1',
+      fournisseurId: 'f1',
+      produitId: 'p1',
+      reference: 'REF-FAC',
+      statut: StatutFournisseurLot.cloture,
+    );
+    final fake = FakeFournisseurLotService(lotOverride: lot);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          fournisseurLotServiceProvider.overrideWithValue(fake),
+          lotDetailProviderOverride(fake),
+          userRoleProvider.overrideWith((ref) => UserRole.admin),
+          refDataProvider.overrideWith((ref) async => _emptyRefData()),
+        ],
+        child: const MaterialApp(
+          home: LotDetailScreen(lotId: 'lot-1'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final btn = find.byKey(const Key('lot_detail_mark_factured_button'));
+    await tester.ensureVisible(btn);
+    await tester.pumpAndSettle();
+    await tester.tap(btn);
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text('Marquer comme facturé'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(fake.markLotAsFacturedCalls, ['lot-1']);
+    expect(fake.lotOverride!.statut, StatutFournisseurLot.facture);
+    expect(find.text('Lot marqué comme facturé'), findsOneWidget);
+    expect(btn, findsNothing);
   });
 }

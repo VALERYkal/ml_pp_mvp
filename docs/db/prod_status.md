@@ -35,6 +35,22 @@ Donner l’état actuel de la base de production et sécuriser toute interventio
 
 → la cohérence métier du lien CDR ↔ lot est désormais garantie par la DB
 
+**Workflow statut lot** :
+
+- trigger : `trg_fournisseur_lot_statut_transition`
+- fonction : `check_fournisseur_lot_statut_transition`
+- CHECK : `fournisseur_lot_statut_check`
+
+**Règles appliquées** :
+
+- INSERT uniquement en `ouvert`
+- `ouvert` → `cloture`
+- `cloture` → `facture`
+- retours arrière interdits
+- statuts invalides interdits
+
+→ le cycle de vie du lot est désormais garanti par la DB
+
 **`public.v_stock_actuel`** : exécutable ; lit `v_stocks_snapshot_corrige`. Colonnes : `depot_id`, `citerne_id`, `produit_id`, `proprietaire_type`, `stock_ambiant`, `stock_15c`, `last_movement_at`, `updated_at`, `stock_ambiant_base`, `stock_15c_base`, `delta_ambiant_total`, `delta_15c_total`. Au moins une ligne avec `delta_ambiant_total = 10` et `delta_15c_total = 10`.
 
 **Triggers `receptions`** : `receptions_after_ins` → `reception_after_ins_trg()` ; `trg_00_receptions_block_update_delete` ; `trg_receptions_check_cdr_arrive` ; `trg_receptions_check_produit_citerne` ; `trg_receptions_compute_15c_before_ins` ; `trg_receptions_log_created` ; `trg_receptions_set_created_by` ; `trg_receptions_set_volume_ambiant`.
@@ -63,6 +79,10 @@ Donner l’état actuel de la base de production et sécuriser toute interventio
 
 ## DERNIÈRE INTERVENTION
 
+- **2026-04-07** — workflow DB du statut lot fournisseur :
+  - ajout trigger + fonction de validation
+  - ajout CHECK constraint sur `statut`
+  - sécurisation du cycle `ouvert → cloture → facture`
 - **2026-04-07** — hardening DB du module lot fournisseur :
   - ajout trigger + fonction de validation
   - sécurisation du rattachement CDR ↔ lot
@@ -80,6 +100,10 @@ Donner l’état actuel de la base de production et sécuriser toute interventio
   - logique métier portée par trigger DB
   - modification directe de `fournisseur_lot_id` soumise à contraintes strictes
   - erreurs bloquantes possibles côté API si incohérence
+- **Lot fournisseur (workflow statut)** :
+  - statut porté par trigger DB + CHECK constraint
+  - toute mise à jour directe de `statut` hors transitions autorisées échoue
+  - erreurs bloquantes possibles côté API si transition invalide
 - Désalignement documentaire partiel (doc vs triggers réellement branchés).  
 - Ajustement stock réel présent (`stocks_adjustments`).  
 - Conventions de logs / couches legacy coexistantes.  
@@ -158,6 +182,21 @@ FROM information_schema.columns
 WHERE table_schema = 'public'
   AND table_name = 'cours_de_route'
   AND column_name = 'fournisseur_lot_id';
+```
+
+### Lot fournisseur — workflow statut
+
+```sql
+SELECT tgname
+FROM pg_trigger
+WHERE tgname = 'trg_fournisseur_lot_statut_transition';
+```
+
+```sql
+SELECT conname, pg_get_constraintdef(oid)
+FROM pg_constraint
+WHERE conrelid = 'public.fournisseur_lot'::regclass
+  AND conname = 'fournisseur_lot_statut_check';
 ```
 
 ### Référence complémentaire

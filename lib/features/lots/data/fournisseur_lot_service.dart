@@ -154,6 +154,23 @@ produits(nom, code)
     return FournisseurLot.fromMap(row);
   }
 
+  /// Passe le lot en statut « facturé » (champ `statut` uniquement).
+  Future<FournisseurLot> markLotAsFactured(String lotId) async {
+    final trimmed = lotId.trim();
+    if (trimmed.isEmpty) {
+      throw ArgumentError('L\'id du lot est requis pour markLotAsFactured().');
+    }
+
+    final row = await _client
+        .from(_table)
+        .update({'statut': StatutFournisseurLot.facture.db})
+        .eq('id', trimmed)
+        .select(_selectWithRefs)
+        .single();
+
+    return FournisseurLot.fromMap(row);
+  }
+
   Future<void> delete(String id) async {
     await _client.from(_table).delete().eq('id', id);
   }
