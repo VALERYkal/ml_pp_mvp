@@ -19,6 +19,7 @@ import 'package:ml_pp_mvp/features/cours_route/utils/keyboard_shortcuts.dart';
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_sort_provider.dart';
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_pagination_provider.dart';
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_cache_provider.dart';
+import 'package:ml_pp_mvp/features/cours_route/providers/fournisseur_lot_providers.dart';
 import 'package:ml_pp_mvp/features/cours_route/widgets/pagination_controls.dart';
 import 'package:ml_pp_mvp/features/cours_route/widgets/infinite_scroll_list.dart';
 import 'package:ml_pp_mvp/features/cours_route/widgets/performance_indicator.dart';
@@ -46,6 +47,13 @@ String produitLabel(
   if (byCode != '—') return byCode;
 
   return '—';
+}
+
+/// Libellé réf. lot pour la liste (lookup depuis les lots déjà chargés).
+String lotRefLabel(String? lotId, Map<String, String> lotIdToReference) {
+  if (lotId == null || lotId.isEmpty) return '—';
+  final r = (lotIdToReference[lotId] ?? '').trim();
+  return r.isEmpty ? '—' : r;
 }
 
 /// Écran de liste des cours de route (v2.2)
@@ -498,6 +506,10 @@ class _DataTableView extends ConsumerWidget {
 
     // Utiliser la liste paginée au lieu de la liste complète
     final paginatedList = ref.watch(paginatedCoursProvider);
+    final lotRefById = ref.watch(fournisseurLotsProvider).maybeWhen(
+          data: (lots) => {for (final l in lots) l.id: l.reference},
+          orElse: () => <String, String>{},
+        );
 
     // Helper pour afficher les plaques
     String plaquesLabel(String? plaqueCamion, String? plaqueRemorque) {
@@ -566,6 +578,11 @@ class _DataTableView extends ConsumerWidget {
                             }),
                             cells: [
                               DataCell(
+                                Text(
+                                  lotRefLabel(c.fournisseurLotId, lotRefById),
+                                ),
+                              ),
+                              DataCell(
                                 Text(nameOf(fournisseurs, c.fournisseurId)),
                               ),
                               DataCell(
@@ -587,9 +604,6 @@ class _DataTableView extends ConsumerWidget {
                               DataCell(Text(c.chauffeur ?? '—')),
                               DataCell(Text(c.transporteur ?? '—')),
                               DataCell(Text(fmtVolume(c.volume))),
-                              DataCell(
-                                Text(nameOf(depots, c.depotDestinationId)),
-                              ),
                               DataCell(Text(fmtDate(c.dateChargement))),
                               DataCell(_statutBadge(c.statut)),
                               DataCell(
@@ -645,6 +659,7 @@ class _DataTableView extends ConsumerWidget {
     final sortConfig = ref.watch(coursSortProvider);
 
     return [
+      const DataColumn(label: Text('Réf. lot')),
       _buildSortableColumn(
         label: 'Fournisseur',
         column: CoursSortColumn.fournisseur,
@@ -687,13 +702,6 @@ class _DataTableView extends ConsumerWidget {
         ref: ref,
         context: context,
         numeric: true,
-      ),
-      _buildSortableColumn(
-        label: 'Dépôt',
-        column: CoursSortColumn.depot,
-        sortConfig: sortConfig,
-        ref: ref,
-        context: context,
       ),
       _buildSortableColumn(
         label: 'Date',
@@ -966,12 +974,18 @@ class _ActionsBar extends ConsumerWidget {
         runSpacing: screenWidth >= 800 ? 12 : 8,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          if (canWrite)
+          if (canWrite) ...[
+            OutlinedButton.icon(
+              onPressed: () => context.push('/cours/lots'),
+              icon: const Icon(Icons.inventory_2_outlined),
+              label: const Text('Lot fournisseur'),
+            ),
             FilledButton.icon(
               onPressed: () => context.go('/cours/new'),
               icon: const Icon(Icons.add),
-              label: const Text('Nouveau'),
+              label: const Text('Nouveau camion'),
             ),
+          ],
           OutlinedButton.icon(
             onPressed: () => ref.invalidate(coursDeRouteListProvider),
             icon: const Icon(Icons.refresh),

@@ -12,6 +12,8 @@ import 'package:ml_pp_mvp/features/splash/splash_screen.dart';
 import 'package:ml_pp_mvp/features/cours_route/screens/cours_route_list_screen.dart';
 import 'package:ml_pp_mvp/features/cours_route/screens/cours_route_form_screen.dart';
 import 'package:ml_pp_mvp/features/cours_route/screens/cours_route_detail_screen.dart';
+import 'package:ml_pp_mvp/features/cours_route/screens/fournisseur_lot_form_screen.dart';
+import 'package:ml_pp_mvp/features/cours_route/screens/fournisseur_lot_list_screen.dart';
 import 'package:ml_pp_mvp/features/receptions/screens/reception_form_screen.dart';
 import 'package:ml_pp_mvp/features/receptions/screens/reception_list_screen.dart';
 import 'package:ml_pp_mvp/features/receptions/screens/reception_detail_screen.dart';
@@ -154,6 +156,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/cours/new',
             builder: (ctx, st) => const CoursRouteFormScreen(),
+          ),
+          GoRoute(
+            path: '/cours/lots',
+            builder: (ctx, st) => const FournisseurLotListScreen(),
+          ),
+          GoRoute(
+            path: '/cours/lots/new',
+            builder: (ctx, st) => const FournisseurLotFormScreen(),
           ),
           GoRoute(
             path: '/cours/:id',

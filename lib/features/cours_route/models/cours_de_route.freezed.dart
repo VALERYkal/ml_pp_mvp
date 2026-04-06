@@ -49,6 +49,10 @@ mixin _$CoursDeRoute {
   @JsonKey(name: 'depot_destination_id')
   String get depotDestinationId => throw _privateConstructorUsedError;
 
+  /// Référence vers `fournisseur_lot.id` (optionnel)
+  @JsonKey(name: 'fournisseur_lot_id')
+  String? get fournisseurLotId => throw _privateConstructorUsedError;
+
   /// Nom du transporteur
   /// Exemple : "Transport Express SARL"
   String? get transporteur => throw _privateConstructorUsedError;
@@ -133,6 +137,7 @@ abstract class $CoursDeRouteCopyWith<$Res> {
     @JsonKey(includeFromJson: false, includeToJson: false) String? produitNom,
     @JsonKey(name: 'produit_code') String? produitCode,
     @JsonKey(name: 'depot_destination_id') String depotDestinationId,
+    @JsonKey(name: 'fournisseur_lot_id') String? fournisseurLotId,
     String? transporteur,
     @JsonKey(name: 'plaque_camion') String? plaqueCamion,
     @JsonKey(name: 'plaque_remorque') String? plaqueRemorque,
@@ -170,6 +175,7 @@ class _$CoursDeRouteCopyWithImpl<$Res, $Val extends CoursDeRoute>
     Object? produitNom = freezed,
     Object? produitCode = freezed,
     Object? depotDestinationId = null,
+    Object? fournisseurLotId = freezed,
     Object? transporteur = freezed,
     Object? plaqueCamion = freezed,
     Object? plaqueRemorque = freezed,
@@ -210,6 +216,10 @@ class _$CoursDeRouteCopyWithImpl<$Res, $Val extends CoursDeRoute>
                 ? _value.depotDestinationId
                 : depotDestinationId // ignore: cast_nullable_to_non_nullable
                       as String,
+            fournisseurLotId: freezed == fournisseurLotId
+                ? _value.fournisseurLotId
+                : fournisseurLotId // ignore: cast_nullable_to_non_nullable
+                      as String?,
             transporteur: freezed == transporteur
                 ? _value.transporteur
                 : transporteur // ignore: cast_nullable_to_non_nullable
@@ -284,6 +294,7 @@ abstract class _$$CoursDeRouteImplCopyWith<$Res>
     @JsonKey(includeFromJson: false, includeToJson: false) String? produitNom,
     @JsonKey(name: 'produit_code') String? produitCode,
     @JsonKey(name: 'depot_destination_id') String depotDestinationId,
+    @JsonKey(name: 'fournisseur_lot_id') String? fournisseurLotId,
     String? transporteur,
     @JsonKey(name: 'plaque_camion') String? plaqueCamion,
     @JsonKey(name: 'plaque_remorque') String? plaqueRemorque,
@@ -320,6 +331,7 @@ class __$$CoursDeRouteImplCopyWithImpl<$Res>
     Object? produitNom = freezed,
     Object? produitCode = freezed,
     Object? depotDestinationId = null,
+    Object? fournisseurLotId = freezed,
     Object? transporteur = freezed,
     Object? plaqueCamion = freezed,
     Object? plaqueRemorque = freezed,
@@ -360,6 +372,10 @@ class __$$CoursDeRouteImplCopyWithImpl<$Res>
             ? _value.depotDestinationId
             : depotDestinationId // ignore: cast_nullable_to_non_nullable
                   as String,
+        fournisseurLotId: freezed == fournisseurLotId
+            ? _value.fournisseurLotId
+            : fournisseurLotId // ignore: cast_nullable_to_non_nullable
+                  as String?,
         transporteur: freezed == transporteur
             ? _value.transporteur
             : transporteur // ignore: cast_nullable_to_non_nullable
@@ -427,6 +443,7 @@ class _$CoursDeRouteImpl implements _CoursDeRoute {
     @JsonKey(includeFromJson: false, includeToJson: false) this.produitNom,
     @JsonKey(name: 'produit_code') this.produitCode,
     @JsonKey(name: 'depot_destination_id') required this.depotDestinationId,
+    @JsonKey(name: 'fournisseur_lot_id') this.fournisseurLotId,
     this.transporteur,
     @JsonKey(name: 'plaque_camion') this.plaqueCamion,
     @JsonKey(name: 'plaque_remorque') this.plaqueRemorque,
@@ -480,6 +497,11 @@ class _$CoursDeRouteImpl implements _CoursDeRoute {
   @override
   @JsonKey(name: 'depot_destination_id')
   final String depotDestinationId;
+
+  /// Référence vers `fournisseur_lot.id` (optionnel)
+  @override
+  @JsonKey(name: 'fournisseur_lot_id')
+  final String? fournisseurLotId;
 
   /// Nom du transporteur
   /// Exemple : "Transport Express SARL"
@@ -556,7 +578,7 @@ class _$CoursDeRouteImpl implements _CoursDeRoute {
 
   @override
   String toString() {
-    return 'CoursDeRoute(id: $id, fournisseurId: $fournisseurId, produitId: $produitId, produitNom: $produitNom, produitCode: $produitCode, depotDestinationId: $depotDestinationId, transporteur: $transporteur, plaqueCamion: $plaqueCamion, plaqueRemorque: $plaqueRemorque, chauffeur: $chauffeur, chauffeurNom: $chauffeurNom, volume: $volume, dateChargement: $dateChargement, dateArriveePrevue: $dateArriveePrevue, pays: $pays, statut: $statut, note: $note, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'CoursDeRoute(id: $id, fournisseurId: $fournisseurId, produitId: $produitId, produitNom: $produitNom, produitCode: $produitCode, depotDestinationId: $depotDestinationId, fournisseurLotId: $fournisseurLotId, transporteur: $transporteur, plaqueCamion: $plaqueCamion, plaqueRemorque: $plaqueRemorque, chauffeur: $chauffeur, chauffeurNom: $chauffeurNom, volume: $volume, dateChargement: $dateChargement, dateArriveePrevue: $dateArriveePrevue, pays: $pays, statut: $statut, note: $note, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -575,6 +597,8 @@ class _$CoursDeRouteImpl implements _CoursDeRoute {
                 other.produitCode == produitCode) &&
             (identical(other.depotDestinationId, depotDestinationId) ||
                 other.depotDestinationId == depotDestinationId) &&
+            (identical(other.fournisseurLotId, fournisseurLotId) ||
+                other.fournisseurLotId == fournisseurLotId) &&
             (identical(other.transporteur, transporteur) ||
                 other.transporteur == transporteur) &&
             (identical(other.plaqueCamion, plaqueCamion) ||
@@ -609,6 +633,7 @@ class _$CoursDeRouteImpl implements _CoursDeRoute {
     produitNom,
     produitCode,
     depotDestinationId,
+    fournisseurLotId,
     transporteur,
     plaqueCamion,
     plaqueRemorque,
@@ -648,6 +673,7 @@ abstract class _CoursDeRoute implements CoursDeRoute {
     @JsonKey(name: 'produit_code') final String? produitCode,
     @JsonKey(name: 'depot_destination_id')
     required final String depotDestinationId,
+    @JsonKey(name: 'fournisseur_lot_id') final String? fournisseurLotId,
     final String? transporteur,
     @JsonKey(name: 'plaque_camion') final String? plaqueCamion,
     @JsonKey(name: 'plaque_remorque') final String? plaqueRemorque,
@@ -700,6 +726,11 @@ abstract class _CoursDeRoute implements CoursDeRoute {
   @override
   @JsonKey(name: 'depot_destination_id')
   String get depotDestinationId;
+
+  /// Référence vers `fournisseur_lot.id` (optionnel)
+  @override
+  @JsonKey(name: 'fournisseur_lot_id')
+  String? get fournisseurLotId;
 
   /// Nom du transporteur
   /// Exemple : "Transport Express SARL"

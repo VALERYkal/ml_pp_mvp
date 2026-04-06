@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_route_providers.dart';
+import 'package:ml_pp_mvp/features/cours_route/providers/fournisseur_lot_providers.dart';
 import 'package:ml_pp_mvp/features/profil/providers/profil_provider.dart';
 import 'package:ml_pp_mvp/core/models/user_role.dart';
 import 'package:ml_pp_mvp/shared/providers/ref_data_provider.dart'
@@ -145,44 +146,79 @@ class CoursRouteDetailScreen extends ConsumerWidget {
                     c.fournisseurId,
                     'fournisseur',
                   );
+                  final infoPills = <InfoPill>[
+                    InfoPill(
+                      icon: Icons.business,
+                      label: 'Fournisseur',
+                      value: four,
+                      color: Colors.indigo,
+                    ),
+                  ];
+                  final lotId = c.fournisseurLotId;
+                  final lotAsync = (lotId != null && lotId.isNotEmpty)
+                      ? ref.watch(fournisseurLotByIdProvider(lotId))
+                      : null;
+                  final lotPill = lotAsync?.when<InfoPill?>(
+                    loading: () => InfoPill(
+                      icon: Icons.inventory_2,
+                      label: 'Lot fournisseur',
+                      value: 'Chargement...',
+                      color: Colors.deepPurple,
+                    ),
+                    error: (_, __) => InfoPill(
+                      icon: Icons.inventory_2,
+                      label: 'Lot fournisseur',
+                      value: 'Erreur',
+                      color: Colors.deepPurple,
+                    ),
+                    data: (lot) => lot != null
+                        ? InfoPill(
+                            icon: Icons.inventory_2,
+                            label: 'Lot fournisseur',
+                            value: lot.reference,
+                            color: Colors.deepPurple,
+                          )
+                        : null,
+                  );
+                  if (lotPill != null) {
+                    infoPills.add(lotPill);
+                  }
+                  infoPills.addAll([
+                    InfoPill(
+                      icon: Icons.local_gas_station,
+                      label: 'Volume',
+                      value: fmtVolume(c.volume),
+                      color: Colors.blue,
+                    ),
+                    InfoPill(
+                      icon: Icons.event,
+                      label: 'Date',
+                      value: fmtDate(c.dateChargement),
+                      color: Colors.green,
+                    ),
+                    InfoPill(
+                      icon: Icons.badge,
+                      label: 'Camion',
+                      value: c.plaqueCamion ?? '—',
+                      color: Colors.orange,
+                    ),
+                  ]);
+                  if ((c.plaqueRemorque ?? '').isNotEmpty) {
+                    infoPills.add(
+                      InfoPill(
+                        icon: Icons.badge_outlined,
+                        label: 'Remorque',
+                        value: c.plaqueRemorque!,
+                        color: Colors.purple,
+                      ),
+                    );
+                  }
                   return ModernDetailHeader(
                     title: 'Cours #${c.id.substring(0, 8)}',
                     subtitle: 'Détail du cours de route',
                     accentColor: _getStatutColor(c.statut),
                     statusWidget: _ModernStatutChip(statut: c.statut),
-                    infoPills: [
-                      InfoPill(
-                        icon: Icons.business,
-                        label: 'Fournisseur',
-                        value: four,
-                        color: Colors.indigo,
-                      ),
-                      InfoPill(
-                        icon: Icons.local_gas_station,
-                        label: 'Volume',
-                        value: fmtVolume(c.volume),
-                        color: Colors.blue,
-                      ),
-                      InfoPill(
-                        icon: Icons.event,
-                        label: 'Date',
-                        value: fmtDate(c.dateChargement),
-                        color: Colors.green,
-                      ),
-                      InfoPill(
-                        icon: Icons.badge,
-                        label: 'Camion',
-                        value: c.plaqueCamion ?? '—',
-                        color: Colors.orange,
-                      ),
-                      if ((c.plaqueRemorque ?? '').isNotEmpty)
-                        InfoPill(
-                          icon: Icons.badge_outlined,
-                          label: 'Remorque',
-                          value: c.plaqueRemorque!,
-                          color: Colors.purple,
-                        ),
-                    ],
+                    infoPills: infoPills,
                   );
                 },
               ),

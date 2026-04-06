@@ -162,6 +162,11 @@ Le frontend peut :
 En cas de conflit entre frontend et DB :
 - la DB a toujours raison
 
+### Lot fournisseur (CDR)
+
+- Le **lot fournisseur** est une entité métier de **préparation logistique / manifeste amont** ; il ne doit pas être confondu avec une **réception** ni utilisé pour **porter du stock** ou des calculs volumétriques ASTM.
+- Le lien CDR ↔ lot repose sur **`cours_de_route.fournisseur_lot_id`** en base ; le frontend ne doit pas inventer de relation parallèle hors ce champ (pas de « second lien » implicite).
+
 ## NON-RÉGRESSION
 
 Les zones stables du système ne doivent pas être modifiées sans justification explicite.

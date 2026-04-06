@@ -23,6 +23,31 @@ Ce fichier documente les changements notables du projet **ML_PP MVP**, conformé
 
 ---
 
+## [2026-04-06] — Lot fournisseur (manifeste amont, STAGING + PROD)
+
+### Database
+
+- Création table **`public.fournisseur_lot`**.
+- Ajout colonne nullable **`public.cours_de_route.fournisseur_lot_id`**.
+- Validation **STAGING** puis réplication **PROD** ; smoke tests : création lot, liaison CDR ↔ lot, contrôle cohérence **STAGING / PROD** (pas de revendication de fonctionnalités non implémentées : édition / suppression / clôture automatique lot, etc.).
+
+### Added
+
+- Écran création lot fournisseur ; écran liste lots fournisseur.
+- Routes **`/cours/lots`**, **`/cours/lots/new`**.
+
+### Changed
+
+- **CDR** : formulaire et détail gèrent **`fournisseur_lot_id`** ; liste avec colonne **Réf. lot** (desktop).
+- Liste **CDR** desktop : colonne **Dépôt** retirée ; libellé **Nouveau camion** ; barre d’actions : bouton **Lot fournisseur**.
+
+### Business / UX
+
+- Chaîne métier : **Fournisseur → Lot fournisseur (manifeste) → Cours de Route → Réception → Stock → Sortie**.
+- Le lot regroupe plusieurs camions (CDR) sous une même référence fournisseur ; **pas** de stock sur le lot ; **pas** substitut de la réception ni du **`statut`** CDR.
+
+---
+
 ## [STAGING VALIDATION] - VOL15 / ASTM / RLS / Stock pipeline
 
 ### Validated

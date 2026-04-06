@@ -174,6 +174,9 @@ class CoursDeRoute with _$CoursDeRoute {
     /// Dépôt de destination du transport
     @JsonKey(name: 'depot_destination_id') required String depotDestinationId,
 
+    /// Référence vers `fournisseur_lot.id` (optionnel)
+    @JsonKey(name: 'fournisseur_lot_id') String? fournisseurLotId,
+
     /// Nom du transporteur
     /// Exemple : "Transport Express SARL"
     String? transporteur,
@@ -296,6 +299,7 @@ class CoursDeRoute with _$CoursDeRoute {
           : data['produit_nom'] as String?,
       produitCode: data['produit_code'] as String?,
       depotDestinationId: (data['depot_destination_id'] ?? '') as String,
+      fournisseurLotId: data['fournisseur_lot_id'] as String?,
       transporteur: data['transporteur'] as String?,
       plaqueCamion: data['plaque_camion'] as String?,
       plaqueRemorque: data['plaque_remorque'] as String?,
