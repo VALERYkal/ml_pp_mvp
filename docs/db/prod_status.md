@@ -16,6 +16,8 @@ Donner l’état actuel de la base de production et sécuriser toute interventio
 
 **Tables critiques** : `cours_de_route`, `receptions`, `sorties_produit`, `stocks_journaliers`, `stocks_snapshot`, `stocks_adjustments`, `log_actions`.
 
+**Lot fournisseur (2026-04-06)** : après validation STAGING, **`public.fournisseur_lot`** et **`public.cours_de_route.fournisseur_lot_id`** (nullable) sont **présents en PROD**. Le module est **introduit et opérationnel** (création / liaison / lecture côté app) — **sans** prétendre à une industrialisation complète au-delà du périmètre déployé. Smoke test PROD : création lot test, vérification réussie ; données de test **retirées** si nettoyage effectué sur l’instance. Alignement **PROD** ↔ **STAGING** sur ce socle schématique pour le lot.
+
 **`public.v_stock_actuel`** : exécutable ; lit `v_stocks_snapshot_corrige`. Colonnes : `depot_id`, `citerne_id`, `produit_id`, `proprietaire_type`, `stock_ambiant`, `stock_15c`, `last_movement_at`, `updated_at`, `stock_ambiant_base`, `stock_15c_base`, `delta_ambiant_total`, `delta_15c_total`. Au moins une ligne avec `delta_ambiant_total = 10` et `delta_15c_total = 10`.
 
 **Triggers `receptions`** : `receptions_after_ins` → `reception_after_ins_trg()` ; `trg_00_receptions_block_update_delete` ; `trg_receptions_check_cdr_arrive` ; `trg_receptions_check_produit_citerne` ; `trg_receptions_compute_15c_before_ins` ; `trg_receptions_log_created` ; `trg_receptions_set_created_by` ; `trg_receptions_set_volume_ambiant`.
@@ -44,6 +46,7 @@ Donner l’état actuel de la base de production et sécuriser toute interventio
 
 ## DERNIÈRE INTERVENTION
 
+- **2026-04-06** — déploiement **lot fournisseur** (`fournisseur_lot`, `cours_de_route.fournisseur_lot_id`) après validation STAGING ; smoke fonctionnel PROD documenté par la session (création / liaison).
 - **2026-03-22** — ajustement stock lié à un test migration `volume_15c` observé en production  
 - **2026-04-04** — investigation structurelle PROD (tables, vue stock, triggers, ASTM, stock, données)  
 - **2026-04-04** — correction critique **`sorties_after_insert_trg()`** (alignement STAGING/PROD sur débit @15 °C)  
@@ -117,6 +120,20 @@ SELECT count(*) FROM public.astm_lookup_grid_15c;
 
 ```sql
 SELECT count(*) FROM public.stocks_adjustments;
+```
+
+### Lot fournisseur — présence schéma
+
+```sql
+SELECT COUNT(*) AS lots_count FROM public.fournisseur_lot;
+```
+
+```sql
+SELECT column_name
+FROM information_schema.columns
+WHERE table_schema = 'public'
+  AND table_name = 'cours_de_route'
+  AND column_name = 'fournisseur_lot_id';
 ```
 
 ### Référence complémentaire

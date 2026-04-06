@@ -28,6 +28,7 @@ Principe central :
 # FLUX MÉTIER PRINCIPAL
 
 Fournisseur
+→ Lot fournisseur (manifeste / regroupement CDR)
 → Cours de Route
 → Réception
 → Stock
@@ -68,7 +69,8 @@ PostgreSQL / Supabase :
 
 # TABLES CLÉS
 
-- cours_de_route
+- fournisseur_lot
+- cours_de_route (`fournisseur_lot_id` → lot optionnel)
 - receptions
 - sorties_produit
 - stocks_journaliers
@@ -107,8 +109,9 @@ Caches dérivés :
 
 ## Si le besoin concerne Cours de Route
 Toucher :
-- cours_de_route
-- écrans / providers CDR
+- `fournisseur_lot` (création / liste / référence métier)
+- `cours_de_route` (dont **`fournisseur_lot_id`**)
+- écrans / providers CDR et lots
 
 Attention:
 - le module CDR ne possède plus de machine d’état applicative

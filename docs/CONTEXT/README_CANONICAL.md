@@ -88,6 +88,7 @@ En cas de doute :
 
 ## GARANTIE DU PACK CANONIQUE
 
+- Le pack canonique couvre désormais le **lot fournisseur** (`fournisseur_lot`) et le lien optionnel **`cours_de_route.fournisseur_lot_id`**. Toute évolution du module **Cours de Route** doit tenir compte de cette relation ; toute **divergence** doc ↔ DB sur ce schéma doit être **corrigée** comme pour le reste du périmètre critique.
 - Le pack canonique doit **refléter l’état réel** consigné dans **`docs/DB/staging_status.md`** et **`docs/DB/prod_status.md`** ; toute **divergence** entre pack et DB constatée doit être **corrigée** (doc ou base) sans délai injustifié.
 - Le cas **`sorties_after_insert_trg()`** (PROD débitant autrefois sur `volume_corrige_15c` seul) est un **exemple de dérive** entre environnements — **corrigée** et **tracée** (voir `CHANGELOG.md`, `current_checkpoint.md`, migration `20260404120000_sorties_after_insert_trg_coalesce_volume_15c.sql`).
 - **Validations STAGING récentes** (DB tests / contrôles manuels sur le critique) ont confirmé sur **STAGING** : alignement **VOL15** frontend, schéma **ASTM** utilisable, **RLS** attendu sur `stocks_adjustments`, et enchaînements **réception → stock**, **sortie → stock → log** — voir **`current_checkpoint.md`** (section dédiée) et **`CHANGELOG.md`**.

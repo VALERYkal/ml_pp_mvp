@@ -131,6 +131,15 @@ Interdit :
 
 ---
 
+## 4.2 Lot fournisseur (manifeste amont)
+
+- Un `cours_de_route` peut être lié à **0 ou 1** `fournisseur_lot` via **`fournisseur_lot_id`** (nullable).
+- Un `fournisseur_lot` peut regrouper **plusieurs** `cours_de_route`.
+- Le lot fournisseur **ne crée aucun stock** et **ne remplace pas** une réception.
+- Le lot fournisseur **ne remplace pas** le pilotage du CDR par la colonne **`statut`**.
+
+---
+
 # 5. STOCK
 
 ## 5.1 Calcul

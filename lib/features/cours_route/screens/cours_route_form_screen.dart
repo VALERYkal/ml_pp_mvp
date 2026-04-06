@@ -8,7 +8,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ml_pp_mvp/features/cours_route/models/cours_de_route.dart';
+import 'package:ml_pp_mvp/features/cours_route/models/fournisseur_lot.dart';
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_route_providers.dart';
+import 'package:ml_pp_mvp/features/cours_route/providers/fournisseur_lot_providers.dart';
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_filters_provider.dart';
 import 'package:ml_pp_mvp/shared/providers/ref_data_provider.dart';
 import 'package:ml_pp_mvp/features/kpi/providers/cours_kpi_provider.dart';
@@ -51,6 +53,7 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
   // Variables d'état
   String? selectedFournisseurId;
   String? selectedProduitId;
+  String? selectedFournisseurLotId;
   String? depotDestinationId;
   String departPays = '';
   DateTime? dateChargement;
@@ -164,6 +167,9 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
 
           // Fournisseur - Dropdown
           _buildFournisseurDropdown(refData),
+          const SizedBox(height: 16),
+
+          _buildFournisseurLotField(),
           const SizedBox(height: 16),
 
           // Produit - Toggle ESS/AGO
@@ -303,6 +309,7 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
           departPays = cours.pays ?? '';
           _noteController.text = cours.note ?? '';
           dateChargement = cours.dateChargement;
+          selectedFournisseurLotId = cours.fournisseurLotId;
         });
       }
     } catch (e) {
@@ -338,6 +345,7 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
       onChanged: (value) {
         setState(() {
           selectedFournisseurId = value;
+          selectedFournisseurLotId = null;
           _dirty = true;
         });
       },
@@ -374,6 +382,7 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
                 if (newSelection.isNotEmpty) {
                   setState(() {
                     selectedProduitId = newSelection.first;
+                    selectedFournisseurLotId = null;
                     _dirty = true;
                   });
                 }
@@ -397,6 +406,7 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
                 if (newSelection.isNotEmpty) {
                   setState(() {
                     selectedProduitId = newSelection.first;
+                    selectedFournisseurLotId = null;
                     _dirty = true;
                   });
                 }
@@ -405,6 +415,133 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
           }
         },
       ),
+    );
+  }
+
+  Widget _buildFournisseurLotField() {
+    final lotsAsync = ref.watch(fournisseurLotsProvider);
+
+    return lotsAsync.when(
+      loading: () => const Padding(
+        padding: EdgeInsets.symmetric(vertical: 12),
+        child: Center(
+          child: SizedBox(
+            width: 28,
+            height: 28,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      ),
+      error: (_, __) => InputDecorator(
+        decoration: const InputDecoration(
+          labelText: 'Lot fournisseur',
+          border: OutlineInputBorder(),
+          errorText: 'Erreur',
+        ),
+        child: Text(
+          'Erreur',
+          style: TextStyle(color: Theme.of(context).colorScheme.error),
+        ),
+      ),
+      data: (allLots) {
+        final canPick =
+            selectedFournisseurId != null && selectedProduitId != null;
+        final filteredLots = canPick
+            ? allLots
+                .where(
+                  (lot) =>
+                      lot.fournisseurId == selectedFournisseurId &&
+                      lot.produitId == selectedProduitId &&
+                      lot.statut == StatutFournisseurLot.ouvert,
+                )
+                .toList()
+            : <FournisseurLot>[];
+
+        final ids = filteredLots.map((l) => l.id).toSet();
+        final items = <DropdownMenuItem<String?>>[];
+
+        if (canPick && filteredLots.isNotEmpty) {
+          items.add(
+            const DropdownMenuItem<String?>(
+              value: null,
+              child: Text('—'),
+            ),
+          );
+        }
+        if (selectedFournisseurLotId != null &&
+            !ids.contains(selectedFournisseurLotId)) {
+          items.add(
+            DropdownMenuItem<String?>(
+              value: selectedFournisseurLotId,
+              child: const Text('Lot enregistré'),
+            ),
+          );
+        }
+        for (final lot in filteredLots) {
+          items.add(
+            DropdownMenuItem<String?>(
+              value: lot.id,
+              child: Text(lot.reference),
+            ),
+          );
+        }
+        if (items.isEmpty) {
+          items.add(
+            const DropdownMenuItem<String?>(
+              value: null,
+              child: Text('Aucun lot disponible'),
+            ),
+          );
+        }
+
+        final validValues = items.map((e) => e.value).toSet();
+        String? dropdownValue = selectedFournisseurLotId;
+        if (dropdownValue != null && !validValues.contains(dropdownValue)) {
+          dropdownValue = null;
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            DropdownButtonFormField<String?>(
+              decoration: const InputDecoration(
+                labelText: 'Lot fournisseur',
+                border: OutlineInputBorder(),
+              ),
+              value: dropdownValue,
+              items: items,
+              onChanged: !canPick
+                  ? null
+                  : (v) {
+                      setState(() {
+                        selectedFournisseurLotId = v;
+                        _dirty = true;
+                      });
+                    },
+            ),
+            const SizedBox(height: 8),
+            TextButton.icon(
+              onPressed: (selectedFournisseurId == null ||
+                      selectedProduitId == null)
+                  ? null
+                  : () async {
+                      final created =
+                          await context.push<FournisseurLot?>('/cours/lots/new');
+                      if (!context.mounted) return;
+                      if (created != null) {
+                        ref.invalidate(fournisseurLotsProvider);
+                        setState(() {
+                          selectedFournisseurLotId = created.id;
+                          _dirty = true;
+                        });
+                      }
+                    },
+              icon: const Icon(Icons.add),
+              label: const Text('Nouveau lot fournisseur'),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -558,6 +695,7 @@ class _CoursRouteFormScreenState extends ConsumerState<CoursRouteFormScreen> {
         fournisseurId: selectedFournisseurId!,
         depotDestinationId: depotDestinationId!,
         produitId: selectedProduitId!,
+        fournisseurLotId: selectedFournisseurLotId,
         plaqueCamion: _plaqueController.text.trim(),
         plaqueRemorque: emptyToNull(_plaqueRemorqueController.text),
         chauffeur: _chauffeurController.text.trim(),

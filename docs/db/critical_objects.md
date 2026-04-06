@@ -30,6 +30,11 @@ Les tables suivantes sont considérées comme critiques :
 - stocks_journaliers
 - log_actions
 
+### Tables métier sensibles (flux CDR, hors effet stock direct)
+
+- **fournisseur_lot** — regroupement logistique amont (**manifeste**), plusieurs CDR possibles ; **pas** équivalent à une réception ni à une table de stock.
+- **cours_de_route** — inchangé comme point d’entrée du transport ; **enrichie** par **`fournisseur_lot_id`** (nullable) : toute évolution du lien doit rester cohérente avec les triggers / contraintes existants sur `cours_de_route`.
+
 ### Pourquoi
 
 - cours_de_route → point d’entrée du flux logistique

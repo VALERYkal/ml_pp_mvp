@@ -24,13 +24,13 @@ Le système modélise les flux physiques du carburant dans un dépôt.
 Pipeline métier :
 
 Fournisseur  
-→ Transport camion  
-→ Cours de Route  
+→ **Lot fournisseur** (manifeste / préparation logistique amont)  
+→ Cours de Route (transport camion)  
 → Réception dépôt  
 → Stock citerne  
 → Sortie vers client
 
-Chaque mouvement est journalisé et impacte les stocks.
+Chaque mouvement physique (réception, sortie) est journalisé et impacte les stocks. Le **lot fournisseur** n’est pas un mouvement de stock : il structure plusieurs CDR sous une même référence fournisseur (`fournisseur_id` + `produit_id` + `reference`) avant la chaîne réception / stock.
 
 ---
 
@@ -39,6 +39,8 @@ Chaque mouvement est journalisé et impacte les stocks.
 ## 1 — Cours de Route (CDR)
 
 Représente un transport carburant entre un fournisseur et le dépôt.
+
+Un CDR peut être rattaché à **0 ou 1** lot fournisseur (`fournisseur_lot_id`), objet amont qui matérialise le **manifeste fournisseur** et regroupe plusieurs camions sous la même référence métier. Cela ne remplace ni la réception, ni le `statut` du CDR, ni le calcul de stock.
 
 Workflow canonique :
 
@@ -173,6 +175,7 @@ Ce choix garantit :
 
 Tables principales :
 
+fournisseur_lot  
 cours_de_route  
 receptions  
 sorties_produit  

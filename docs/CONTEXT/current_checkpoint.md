@@ -25,6 +25,7 @@ Point d’entrée principal pour comprendre l’état actuel du système et agir
 - **DB tests STAGING** du pipeline critique exécutés avec succès (voir **VALIDATION STAGING RÉCENTE**)
 - Schéma **ASTM** accessible côté STAGING ; **RLS**, **stock**, **réception**, **sortie** validés sur ce périmètre en STAGING
 - Pack canonique et **invariants VOL15** synchronisés (`docs/system_invariants.md`, `docs/CONTEXT/system_invariants.md`)
+- **Lot fournisseur** introduit et **opérationnel** (STAGING + PROD) : table `public.fournisseur_lot`, colonne nullable `public.cours_de_route.fournisseur_lot_id` ; module app minimal (création lot, liste `/cours/lots`, `/cours/lots/new`, lien dans formulaire / détail CDR, colonne **Réf. lot** en liste desktop). UX liste CDR : **Nouveau camion**, **Lot fournisseur**, colonne **Dépôt** retirée du tableau desktop — **sans** changement du pilotage **`statut`** CDR en DB.
 
 ---
 
@@ -79,6 +80,7 @@ Constats issus des **DB tests** et vérifications manuelles sur **STAGING** (pas
 
 - Stabilisation post-validation STAGING (pipeline critique app + DB + RLS)
 - Gouvernance du pack canonique maintenue
+- Enrichissement **CDR** par structuration amont **lot fournisseur** (relation optionnelle, vérité toujours `statut` + réception pour le stock)
 - Pistes prioritaires : observabilité stock, audit automatique DB / staging–prod, hardening tests / monitoring
 
 ---

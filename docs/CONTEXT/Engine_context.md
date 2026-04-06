@@ -198,3 +198,9 @@ Sorties :
 volume_corrige_15c arrondi au litre entier.
 
 Cette convention est volontaire et documentée.
+
+---
+
+# Note — lot fournisseur
+
+Le **lot fournisseur** est un objet **logistique amont** (regroupement de CDR sous une référence fournisseur). Il **n’alimente pas** le moteur ASTM, **n’intervient pas** dans les calculs volumétriques ni dans les volumes persistés pour réception / sortie / stock.

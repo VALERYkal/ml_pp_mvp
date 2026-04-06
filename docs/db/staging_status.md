@@ -27,6 +27,7 @@ Donner l’état actuel de la base staging et permettre une vérification rapide
 
 ## DERNIÈRES MODIFICATIONS
 
+- **2026-04-06** — **Lot fournisseur** : table `public.fournisseur_lot` déployée ; colonne nullable `public.cours_de_route.fournisseur_lot_id` ajoutée. Smoke test STAGING : création lot, liaison CDR ↔ lot, contrôle cohérence fonctionnelle OK (pas de revendication de couverture exhaustive hors ce périmètre).
 - non confirmé — dernière migration exacte non vérifiée (`supabase_migrations.schema_migrations` présente ; entrée la plus récente non confirmée)
 - 2026-04-04 — investigation structurelle STAGING (tables, vue stock, triggers, fonctions ASTM, fonctions stock, comptages)
 - 2026-04-04 — constat alignement PROD sur `sorties_after_insert_trg()` (documentation pack canonique)
@@ -105,6 +106,21 @@ FROM public.astm_lookup_grid_15c;
 ```
 
 *(Min/max densité et température sur la grille : constat métier documenté dans les points de vigilance ; requête d’agrégation sur colonnes exactes : non confirmé ici.)*
+
+### Lot fournisseur — présence schéma
+
+```sql
+SELECT COUNT(*) AS lots_count
+FROM public.fournisseur_lot;
+```
+
+```sql
+SELECT column_name
+FROM information_schema.columns
+WHERE table_schema = 'public'
+  AND table_name = 'cours_de_route'
+  AND column_name = 'fournisseur_lot_id';
+```
 
 ### Référence complémentaire
 
