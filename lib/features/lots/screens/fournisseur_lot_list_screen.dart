@@ -3,8 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:ml_pp_mvp/features/cours_route/models/fournisseur_lot.dart';
-import 'package:ml_pp_mvp/features/cours_route/providers/fournisseur_lot_providers.dart';
+import 'package:ml_pp_mvp/features/lots/models/fournisseur_lot.dart';
+import 'package:ml_pp_mvp/features/lots/providers/fournisseur_lot_providers.dart';
 import 'package:ml_pp_mvp/shared/providers/ref_data_provider.dart';
 
 class FournisseurLotListScreen extends ConsumerStatefulWidget {
@@ -209,15 +209,7 @@ class _FournisseurLotListScreenState
                   DataCell(Text(lot.statut.label)),
                   DataCell(
                     TextButton(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Lot ${lot.reference} (${lot.id.length >= 8 ? lot.id.substring(0, 8) : lot.id}…)',
-                            ),
-                          ),
-                        );
-                      },
+                      onPressed: () => context.push('/lots/${lot.id}'),
                       child: const Text('Voir'),
                     ),
                   ),

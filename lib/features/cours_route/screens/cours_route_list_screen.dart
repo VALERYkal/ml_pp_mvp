@@ -19,7 +19,7 @@ import 'package:ml_pp_mvp/features/cours_route/utils/keyboard_shortcuts.dart';
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_sort_provider.dart';
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_pagination_provider.dart';
 import 'package:ml_pp_mvp/features/cours_route/providers/cours_cache_provider.dart';
-import 'package:ml_pp_mvp/features/cours_route/providers/fournisseur_lot_providers.dart';
+import 'package:ml_pp_mvp/features/lots/providers/fournisseur_lot_providers.dart';
 import 'package:ml_pp_mvp/features/cours_route/widgets/pagination_controls.dart';
 import 'package:ml_pp_mvp/features/cours_route/widgets/infinite_scroll_list.dart';
 import 'package:ml_pp_mvp/features/cours_route/widgets/performance_indicator.dart';

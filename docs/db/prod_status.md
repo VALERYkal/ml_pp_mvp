@@ -16,7 +16,24 @@ Donner l’état actuel de la base de production et sécuriser toute interventio
 
 **Tables critiques** : `cours_de_route`, `receptions`, `sorties_produit`, `stocks_journaliers`, `stocks_snapshot`, `stocks_adjustments`, `log_actions`.
 
-**Lot fournisseur (2026-04-06)** : après validation STAGING, **`public.fournisseur_lot`** et **`public.cours_de_route.fournisseur_lot_id`** (nullable) sont **présents en PROD**. Le module est **introduit et opérationnel** (création / liaison / lecture côté app) — **sans** prétendre à une industrialisation complète au-delà du périmètre déployé. Smoke test PROD : création lot test, vérification réussie ; données de test **retirées** si nettoyage effectué sur l’instance. Alignement **PROD** ↔ **STAGING** sur ce socle schématique pour le lot.
+**Lot fournisseur (2026-04-07)** :
+
+- module actif en production
+- contraintes métier enforcées en base de données
+
+**Implémentation** :
+
+- trigger : `trg_cours_de_route_enforce_fournisseur_lot`
+- fonction : `check_cdr_fournisseur_lot_liaison`
+
+**Règles appliquées** :
+
+- cohérence fournisseur obligatoire (CDR ↔ lot)
+- cohérence produit obligatoire
+- rattachement interdit selon statut CDR (ex: DECHARGE)
+- modification interdite si lot fermé
+
+→ la cohérence métier du lien CDR ↔ lot est désormais garantie par la DB
 
 **`public.v_stock_actuel`** : exécutable ; lit `v_stocks_snapshot_corrige`. Colonnes : `depot_id`, `citerne_id`, `produit_id`, `proprietaire_type`, `stock_ambiant`, `stock_15c`, `last_movement_at`, `updated_at`, `stock_ambiant_base`, `stock_15c_base`, `delta_ambiant_total`, `delta_15c_total`. Au moins une ligne avec `delta_ambiant_total = 10` et `delta_15c_total = 10`.
 
@@ -46,6 +63,9 @@ Donner l’état actuel de la base de production et sécuriser toute interventio
 
 ## DERNIÈRE INTERVENTION
 
+- **2026-04-07** — hardening DB du module lot fournisseur :
+  - ajout trigger + fonction de validation
+  - sécurisation du rattachement CDR ↔ lot
 - **2026-04-06** — déploiement **lot fournisseur** (`fournisseur_lot`, `cours_de_route.fournisseur_lot_id`) après validation STAGING ; smoke fonctionnel PROD documenté par la session (création / liaison).
 - **2026-03-22** — ajustement stock lié à un test migration `volume_15c` observé en production  
 - **2026-04-04** — investigation structurelle PROD (tables, vue stock, triggers, ASTM, stock, données)  
@@ -56,6 +76,10 @@ Donner l’état actuel de la base de production et sécuriser toute interventio
 
 ## POINTS DE VIGILANCE
 
+- **Lot fournisseur** :
+  - logique métier portée par trigger DB
+  - modification directe de `fournisseur_lot_id` soumise à contraintes strictes
+  - erreurs bloquantes possibles côté API si incohérence
 - Désalignement documentaire partiel (doc vs triggers réellement branchés).  
 - Ajustement stock réel présent (`stocks_adjustments`).  
 - Conventions de logs / couches legacy coexistantes.  
@@ -157,6 +181,7 @@ Tant que ces points ne sont pas cochés : le pack est **cohérent sur l’intent
 
 ## NOTES
 
+- PRODUCTION maintenue propre : éviter les données de test ou les nettoyer après validation
 - Toute intervention en production est critique.  
 - Lecture stock : **`public.v_stock_actuel`**.  
 - Alignement **complet** sur tout le périmètre : non garanti tant que d’autres écarts (doc, migrations, legacy amont sortie) subsistent — voir points de vigilance.  
