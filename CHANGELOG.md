@@ -2,6 +2,31 @@
 
 Ce fichier documente les changements notables du projet **ML_PP MVP**, conformément aux bonnes pratiques de versionnage sémantique.
 
+## [2026-04-17] — Finance fournisseur lot : UI V1 + navigation + paiements
+
+### Added
+
+- UI V1 **Finance fournisseur lot**
+  - écran liste factures lot
+  - écran détail facture lot
+  - formulaire paiement lot (bottom sheet)
+  - navigation **GoRouter** intégrée (`/finance/factures-lot`, `/finance/factures-lot/:factureId`)
+  - lecture historique paiements depuis la DB (`fournisseur_paiement_lot_min`)
+- tests ciblés sous `test/features/lots_finance/` (écrans, widgets, providers)
+
+### Changed
+
+- module **Finance fournisseur lot** : désormais **utilisable côté UI** en production métier (au cadre documenté : GO contrôlé, projection 20 °C provisoire, surveillance)
+- navigation liste → détail : **routing GoRouter** à la place d’un push local isolé
+
+### Technical
+
+- provider `fournisseurPaiementsLotByFactureIdProvider`
+- intégration lecture `fournisseur_paiement_lot_min` côté service Dart
+- refresh post-paiement (invalidation providers facture + liste paiements)
+
+---
+
 ## [2026-04-07] — Lot fournisseur : hardening DB + workflow statut
 
 ### DB — Intégrité CDR ↔ lot
@@ -141,6 +166,75 @@ Règles :
 - Safer CDR evolution going forward
 
 ## [Unreleased]
+
+## [2026-04-12] — Finance fournisseur lot (PROD)
+
+### 🚀 Déploiement PROD — GO contrôlé
+
+- Déploiement en production du module **finance fournisseur lot**
+- Chaîne métier activée :
+  - LOT → Σ réceptions → total_20c → facture → rapprochement → paiement
+- Pivot central : `fournisseur_lot`
+
+### Database
+
+- Ajout fonction :
+  - `public.compute_volume_20c_from_reception(...)`
+
+- Ajout vue :
+  - `public.v_reception_20c`
+
+- Ajout tables :
+  - `public.fournisseur_facture_lot_min`
+  - `public.fournisseur_paiement_lot_min`
+
+- Ajout vues :
+  - `public.v_fournisseur_rapprochement_lot_min`
+  - `public.v_fournisseur_facture_lot`
+
+- Ajout triggers :
+  - `trg_fournisseur_paiement_lot_min_after_ins`
+  - `trg_fournisseur_paiement_lot_min_check_overpay`
+
+### Validation technique
+
+- Fonction 20°C exécutée correctement
+- Vue `v_reception_20c` validée
+- Rapprochement calculé (OK / TOLERE / LITIGE)
+- Triggers paiement actifs et testés
+- Cohérence STAGING → PROD validée
+
+### Sécurité
+
+- Backup PROD effectué avant migration
+- Migration exécutée avec succès
+- Rotation du mot de passe DB effectuée après déploiement
+
+### Business
+
+- Introduction du rapprochement fournisseur basé sur les lots
+- Support de la facturation fournisseur au niveau du lot
+- Suivi des paiements fournisseur activé
+
+### ⚠️ Statut
+
+- GO contrôlé / sous surveillance
+- Projection 20°C provisoire
+- Seuils actuels :
+  - OK : écart < 0.5
+  - TOLERE : écart < 50
+  - LITIGE : au-delà
+
+### Impact
+
+- Activation d’un module critique en production
+- Aucun impact sur les flux existants (CDR → Réception → Stock → Sortie)
+- Extension vers la gestion financière fournisseur
+
+### Type
+
+- FEATURE MAJEURE (ERP / FINANCE)
+- EXTENSION MÉTIER STRUCTURANTE
 
 ---
 

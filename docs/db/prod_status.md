@@ -12,9 +12,9 @@ Donner l’état actuel de la base de production et sécuriser toute interventio
 
 - **Environnement** : PRODUCTION  
 - **État général** : stable  
-- **Alignement avec staging** : aligné sur **logique critique** (débit after-insert sortie @15 °C) ; périmètre global encore **partiel** (voir points de vigilance).  
+- **Alignement avec staging** : aligné sur **logique critique** (débit after-insert sortie @15 °C) ; **lot fournisseur** aligné sur STAGING pour **intégrité CDR ↔ lot** et **workflow statut** (déploiement documenté **2026-04-07**) ; **finance fournisseur lot** **déployé en PROD** (**2026-04-12**) après validation technique — **GO contrôlé / sous surveillance** : projection **20 °C** et seuils de rapprochement **provisoires**, à consolider métier (voir points de vigilance) ; périmètre global (doc, legacy) pouvant rester **partiel**.
 
-**Tables critiques** : `cours_de_route`, `receptions`, `sorties_produit`, `stocks_journaliers`, `stocks_snapshot`, `stocks_adjustments`, `log_actions`.
+**Tables critiques** : `cours_de_route`, `fournisseur_lot`, `fournisseur_facture_lot_min`, `fournisseur_paiement_lot_min`, `receptions`, `sorties_produit`, `stocks_journaliers`, `stocks_snapshot`, `stocks_adjustments`, `log_actions`.
 
 **Lot fournisseur (2026-04-07)** :
 
@@ -51,6 +51,18 @@ Donner l’état actuel de la base de production et sécuriser toute interventio
 
 → le cycle de vie du lot est désormais garanti par la DB
 
+**Finance fournisseur lot (2026-04-12)** — déploiement PROD en **GO contrôlé / sous surveillance** (pas de revendication de cycle **pleinement industrialisé** sans nuance) :
+
+- **Application** : **UI V1** déployée côté Flutter — navigation GoRouter (`/finance/factures-lot`, détail par `factureId`) ; module **accessible utilisateur** ; paiement **opérationnel depuis l’UI** (écriture **`fournisseur_paiement_lot_min`** ; lecture factures / rapprochement via **vues** ; historique paiements via lecture table minimale ; refresh post-paiement côté app).
+- chaîne métier : **LOT → Σ réceptions → total_20c → facture → rapprochement → paiement** ; pivot **`fournisseur_lot`**
+- fonction : `public.compute_volume_20c_from_reception(...)`
+- vue : `public.v_reception_20c`
+- tables : `public.fournisseur_facture_lot_min`, `public.fournisseur_paiement_lot_min`
+- vues : `public.v_fournisseur_rapprochement_lot_min`, `public.v_fournisseur_facture_lot` (exécutable en PROD — smoke technique validé)
+- triggers sur `public.fournisseur_paiement_lot_min` : `trg_fournisseur_paiement_lot_min_after_ins`, `trg_fournisseur_paiement_lot_min_check_overpay`
+- **projection 20 °C** : héritée du prototype validé en STAGING puis répliquée en PROD — **provisoire** ; **non** présentée comme formule définitivement figée
+- garde-fous d’intervention : **backup PROD** avant migration ; **migration exécutée avec succès** ; **rotation du mot de passe DB** après intervention
+
 **`public.v_stock_actuel`** : exécutable ; lit `v_stocks_snapshot_corrige`. Colonnes : `depot_id`, `citerne_id`, `produit_id`, `proprietaire_type`, `stock_ambiant`, `stock_15c`, `last_movement_at`, `updated_at`, `stock_ambiant_base`, `stock_15c_base`, `delta_ambiant_total`, `delta_15c_total`. Au moins une ligne avec `delta_ambiant_total = 10` et `delta_15c_total = 10`.
 
 **Triggers `receptions`** : `receptions_after_ins` → `reception_after_ins_trg()` ; `trg_00_receptions_block_update_delete` ; `trg_receptions_check_cdr_arrive` ; `trg_receptions_check_produit_citerne` ; `trg_receptions_compute_15c_before_ins` ; `trg_receptions_log_created` ; `trg_receptions_set_created_by` ; `trg_receptions_set_volume_ambiant`.
@@ -79,6 +91,11 @@ Donner l’état actuel de la base de production et sécuriser toute interventio
 
 ## DERNIÈRE INTERVENTION
 
+- **2026-04-12** — déploiement PROD du module **finance fournisseur lot** :
+  - **backup PROD** réalisé avant migration
+  - **migration exécutée avec succès**
+  - smoke tests techniques validés (ex. `public.v_fournisseur_facture_lot` exécutable ; triggers présents sur `public.fournisseur_paiement_lot_min` : `trg_fournisseur_paiement_lot_min_after_ins`, `trg_fournisseur_paiement_lot_min_check_overpay`)
+  - **rotation du mot de passe DB** après intervention
 - **2026-04-07** — workflow DB du statut lot fournisseur :
   - ajout trigger + fonction de validation
   - ajout CHECK constraint sur `statut`
@@ -96,6 +113,12 @@ Donner l’état actuel de la base de production et sécuriser toute interventio
 
 ## POINTS DE VIGILANCE
 
+- **Finance fournisseur lot (PROD)** :
+  - module **déployé et présent** en production (**2026-04-12**) — ne pas le traiter comme inexistant côté PROD
+  - **GO contrôlé / sous surveillance** : pas d’équivalence avec un module « figé » sans retour terrain
+  - projection **20 °C** actuelle : **provisoire** ; issue du **prototype STAGING** puis répliquée en PROD — **non** assimilable à une volumétrie définitivement validée métier
+  - seuils de rapprochement actuellement câblés (cohérents avec le modèle documenté en STAGING) : **OK** si l’écart est strictement inférieur à **0,5 L** ; **TOLERE** si l’écart est strictement inférieur à **50 L** sans relever de la plage OK ; **LITIGE** sinon — **à confirmer métier** après premiers cas réels
+  - surveillance active des **premiers cas réels** recommandée
 - **Lot fournisseur** :
   - logique métier portée par trigger DB
   - modification directe de `fournisseur_lot_id` soumise à contraintes strictes
@@ -184,6 +207,14 @@ WHERE table_schema = 'public'
   AND column_name = 'fournisseur_lot_id';
 ```
 
+### Lot fournisseur — intégrité CDR ↔ lot
+
+```sql
+SELECT tgname
+FROM pg_trigger
+WHERE tgname = 'trg_cours_de_route_enforce_fournisseur_lot';
+```
+
 ### Lot fournisseur — workflow statut
 
 ```sql
@@ -197,6 +228,28 @@ SELECT conname, pg_get_constraintdef(oid)
 FROM pg_constraint
 WHERE conrelid = 'public.fournisseur_lot'::regclass
   AND conname = 'fournisseur_lot_statut_check';
+```
+
+### Finance fournisseur lot — PROD
+
+```sql
+SELECT *
+FROM public.v_fournisseur_facture_lot
+LIMIT 10;
+```
+
+```sql
+SELECT *
+FROM public.v_fournisseur_rapprochement_lot_min
+LIMIT 10;
+```
+
+```sql
+SELECT tgname
+FROM pg_trigger
+WHERE tgrelid = 'public.fournisseur_paiement_lot_min'::regclass
+  AND NOT tgisinternal
+ORDER BY 1;
 ```
 
 ### Référence complémentaire
@@ -225,3 +278,4 @@ Tant que ces points ne sont pas cochés : le pack est **cohérent sur l’intent
 - Lecture stock : **`public.v_stock_actuel`**.  
 - Alignement **complet** sur tout le périmètre : non garanti tant que d’autres écarts (doc, migrations, legacy amont sortie) subsistent — voir points de vigilance.  
 - Toute modification doit passer par staging avant déploiement.
+- **Finance fournisseur lot** : inventaire PROD et garde-fous d’intervention dans ce fichier ; le scénario de validation détaillé côté STAGING reste décrit dans `docs/DB/staging_status.md` (section **2026-04-12**) — **sans** impliquer que les objets PROD ci-dessus seraient absents.

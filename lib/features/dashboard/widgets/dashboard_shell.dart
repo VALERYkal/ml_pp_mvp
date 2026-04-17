@@ -302,7 +302,7 @@ class _NavEntry {
 }
 
 /// Ordre canonique des ids (sans dashboard en début car géré à part)
-const _opsIds = ['receptions', 'sorties', 'cours'];
+const _opsIds = ['receptions', 'sorties', 'cours', 'finance-factures-lot'];
 const _stockIds = ['stocks', 'citernes', 'stocks-adjustments'];
 const _govIds = ['logs', 'integrity'];
 
