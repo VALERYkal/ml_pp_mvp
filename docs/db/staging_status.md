@@ -27,6 +27,47 @@ Donner l’état actuel de la base staging et permettre une vérification rapide
 
 ## DERNIÈRES MODIFICATIONS
 
+- **2026-04-12** — **Finance fournisseur lot (prototype STAGING validé)** :
+  - validation d’un flux minimal **lot fournisseur → CDR → réception → projection 20°C → facture lot → rapprochement → paiement**
+  - **pivot économique confirmé = `fournisseur_lot`** (et non `reception` seule)
+  - création / validation des objets STAGING suivants :
+    - fonction `public.compute_volume_20c_from_reception(...)`
+    - vue `public.v_reception_20c`
+    - table `public.fournisseur_facture_lot_min`
+    - table `public.fournisseur_paiement_lot_min`
+    - vue `public.v_fournisseur_rapprochement_lot_min`
+    - vue `public.v_fournisseur_facture_lot`
+    - triggers :
+      - `trg_fournisseur_paiement_lot_min_check_overpay`
+      - `trg_fournisseur_paiement_lot_min_after_ins`
+  - scénario STAGING validé :
+    - lot test `TEST-LOT-STAGING-001`
+    - CDR lié au lot mis en `ARRIVE`
+    - réception test créée avec succès
+    - projection `volume_20c` calculée depuis la réception
+    - facture lot test créée
+    - paiement partiel enregistré
+    - surpaiement correctement bloqué via `RAISE EXCEPTION`
+  - résultat observé sur le cas test :
+    - `total_volume_15c = 11850`
+    - `total_volume_20c = 11944.800`
+    - `quantite_facturee_20c = 11897.400`
+    - `ecart_volume_20c = 47.400`
+    - `statut_rapprochement = 'TOLERE'`
+    - `statut_paiement = 'PARTIEL'`
+  - **important** :
+    - la projection **20°C actuelle est une approximation STAGING contrôlée**
+    - **non prête PROD** en l’état
+    - avant réplication PROD, il faut verrouiller :
+      - la formule 20°C définitive
+      - les seuils métier `OK / TOLERE / LITIGE`
+      - une migration versionnée propre
+  - conclusion :
+    - le périmètre **finance fournisseur par lot** est **fonctionnel en STAGING**
+    - le design cible à retenir est :
+      - `LOT → Σ réceptions → total_20c → facture → rapprochement → paiement`
+
+
 - **2026-04-07** — **Lot fournisseur (workflow statut DB)** :
   - ajout du trigger `trg_fournisseur_lot_statut_transition`
   - ajout de la fonction `check_fournisseur_lot_statut_transition`
@@ -58,6 +99,27 @@ Donner l’état actuel de la base staging et permettre une vérification rapide
 ---
 
 ## POINTS DE VIGILANCE
+
+- **Finance fournisseur lot (nouveau périmètre STAGING)** :
+  - le **lot fournisseur** est désormais le **pivot du rapprochement financier fournisseur**
+  - la facture fournisseur doit être **liée au lot** ; la comparaison se fait sur la **somme des réceptions du lot**
+  - la vue `public.v_fournisseur_facture_lot` fournit une lecture consolidée :
+    - volumes 15°C / 20°C
+    - quantité facturée à 20°C
+    - écart
+    - statut de rapprochement
+    - montant réglé / solde / statut de paiement
+- **Projection 20°C** :
+  - la fonction `public.compute_volume_20c_from_reception(...)` est **provisoire**
+  - elle sert à la validation STAGING du module finance fournisseur
+  - elle ne doit **pas** être considérée comme formule volumétrique finale pour PROD sans validation complémentaire
+- **Tolérances de rapprochement** :
+  - seuils actuellement câblés dans la vue finale :
+    - `OK` si écart < 0.5 L
+    - `TOLERE` si écart < 50 L
+    - sinon `LITIGE`
+  - ces seuils sont **à confirmer métier** avant PROD
+
 
 - **Doc vs réel :** la documentation peut mentionner `receptions_apply_effects()` et `fn_sorties_after_insert()` ; le wiring observé en STAGING passe par **`reception_after_ins_trg()`** (trigger `receptions_after_ins`) et **`sorties_after_insert_trg()`** (trigger `trg_sorties_after_insert`).
 - **Réception :** `trg_receptions_compute_15c_before_ins` → moteur ASTM lookup-grid → `volume_15c` ; `volume_corrige_15c` nul ou legacy selon les cas.
@@ -167,6 +229,44 @@ SELECT conname, pg_get_constraintdef(oid)
 FROM pg_constraint
 WHERE conrelid = 'public.fournisseur_lot'::regclass
   AND conname = 'fournisseur_lot_statut_check';
+```
+
+### Finance fournisseur lot — présence objets
+
+```sql
+SELECT *
+FROM public.v_fournisseur_facture_lot
+LIMIT 10;
+```
+
+```sql
+SELECT *
+FROM public.v_fournisseur_rapprochement_lot_min
+LIMIT 10;
+```
+
+```sql
+SELECT tgname
+FROM pg_trigger
+WHERE tgrelid = 'public.fournisseur_paiement_lot_min'::regclass
+  AND NOT tgisinternal
+ORDER BY 1;
+```
+
+### Finance fournisseur lot — cas test connu
+
+```sql
+SELECT
+  facture_id,
+  total_volume_20c,
+  quantite_facturee_20c,
+  ecart_volume_20c,
+  statut_rapprochement,
+  montant_regle_usd,
+  solde_restant_usd,
+  statut_paiement
+FROM public.v_fournisseur_facture_lot
+WHERE deal_reference = 'TEST-LOT-STAGING-001';
 ```
 
 ### Référence complémentaire

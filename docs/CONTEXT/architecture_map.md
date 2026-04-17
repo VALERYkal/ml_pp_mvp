@@ -34,6 +34,8 @@ Fournisseur
 → Stock
 → Sortie
 
+**Finance fournisseur lot (PROD)** — chaîne en lecture / écriture pilotée par la DB, **après** le pivot lot : **LOT** → agrégation réceptions → **total @20 °C (provisoire)** → facture → rapprochement → paiement (voir checkpoint, `docs/DB/prod_status.md`).
+
 ---
 
 # MODULES PRINCIPAUX
@@ -46,6 +48,7 @@ Fournisseur
 - Citernes
 - Logs / audit
 - Dashboard
+- **Finance fournisseur lot** (couche Dart `lib/features/lots_finance/` ; **UI V1 implémentée** — liste / détail facture lot, paiement ; interaction utilisateur via GoRouter ; lecture métier exclusivement via **vues** DB + lecture paiements sur table minimale ; écriture paiement sur **`fournisseur_paiement_lot_min`**)
 
 ---
 
@@ -71,6 +74,7 @@ PostgreSQL / Supabase :
 
 - fournisseur_lot
 - cours_de_route (`fournisseur_lot_id` → lot optionnel)
+- fournisseur_facture_lot_min / fournisseur_paiement_lot_min (écriture finance lot ; lecture métier via vues dédiées)
 - receptions
 - sorties_produit
 - stocks_journaliers
@@ -102,6 +106,14 @@ Caches dérivés :
 - **`volume_corrige_15c`** — conservée en parallèle (double write + compatibilité transitoire ; arrondi métier sorties documenté sur ce champ)
 
 **Lecture applicative (Flutter) :** règle officielle **`volume_15c ?? volume_corrige_15c`** sur les périmètres migrés.
+
+---
+
+# FINANCE FOURNISSEUR LOT
+
+- **Dépend de** : **réceptions** (agrégation volumes), **cours_de_route** (chaîne logistique amont), **`fournisseur_lot`** (pivot métier).
+- **Utilise** : **vues** PostgreSQL pour la lecture applicative (`v_fournisseur_facture_lot`, `v_fournisseur_rapprochement_lot_min`, `v_reception_20c`, etc.) ; **tables minimales** pour l’écriture contrôlée — aligné avec le service Dart `FournisseurFinanceLotService`.
+- **Ne modifie pas** : le **stock** ni la **volumétrie @15 °C** des périmètres stock / sortie existants ; la projection **@20 °C** sert la chaîne finance documentée et reste **provisoire** (voir checkpoint / `prod_status`).
 
 ---
 

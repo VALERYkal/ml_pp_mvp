@@ -34,6 +34,34 @@ Point d’entrée principal pour comprendre l’état actuel du système et agir
     - transitions invalides bloquées
   - module frontend aligné (UI pilotée par DB)
   - couverture app : création lot, liste `/cours/lots`, `/cours/lots/new`, lien formulaire / détail CDR, colonne **Réf. lot** desktop ; liste CDR : **Nouveau camion**, **Lot fournisseur**, **Dépôt** retiré du tableau desktop — **sans** changement du pilotage **`statut`** CDR en DB.
+- **Finance fournisseur lot** : module **actif en PROD** (déploiement **2026-04-12**, **GO contrôlé** — voir section dédiée ci-dessous).
+- **Finance fournisseur lot — UI V1** : implémentée ; navigation **GoRouter** (`/finance/factures-lot`, `/finance/factures-lot/:factureId`) ; module **utilisable en production métier** (liste factures, détail, rapprochement en lecture, historique paiements, saisie paiement, refresh post-paiement).
+- **Bridge Dart** : `lib/features/lots_finance/` — modèles (`fromMap` / `toMap`), service Supabase, providers Riverpod ; lecture via **vues**, écriture paiement via **`fournisseur_paiement_lot_min`** ; **sans** logique métier financière côté app.
+- **Tests** : `test/features/lots_finance/` (modèles, providers, écrans / widgets ciblés) — verts sur le périmètre lots_finance.
+
+---
+
+# NOUVEAU MODULE — FINANCE FOURNISSEUR LOT
+
+- **Chaîne métier** : **LOT** → **Σ réceptions** → **total @20 °C** → **facture** → **rapprochement** → **paiement** ; pivot **`fournisseur_lot`**.
+- **Objets DB (PROD)** :
+  - fonction : `public.compute_volume_20c_from_reception(...)`
+  - vues : `public.v_reception_20c`, `public.v_fournisseur_rapprochement_lot_min`, `public.v_fournisseur_facture_lot`
+  - tables : `public.fournisseur_facture_lot_min`, `public.fournisseur_paiement_lot_min`
+  - triggers sur `public.fournisseur_paiement_lot_min` : `trg_fournisseur_paiement_lot_min_after_ins` (recalcul totaux facture après insert paiement), `trg_fournisseur_paiement_lot_min_check_overpay` (blocage surpaiement).
+- **Statut** : déploiement PROD en **GO contrôlé / sous surveillance** ; pas d’équivalence avec un périmètre « figé » sans retour terrain.
+- **Projection @20 °C** : **approximation contrôlée**, héritée du **prototype STAGING** puis répliquée en PROD ; **provisoire** — **ne pas** la traiter comme volumétrie métier définitivement validée (voir `docs/DB/prod_status.md`, points de vigilance).
+- **UI V1** : écrans **liste factures lot**, **détail facture lot**, **formulaire paiement** ; interaction utilisateur réelle ; module passé de couche technique seule → **utilisable** côté app (toujours lecture vues / écriture table paiement minimale, sans calcul métier frontend).
+
+---
+
+## FINANCE LOT — UI V1
+
+- **Écrans** : liste factures lot ; détail facture lot ; bottom sheet paiement.
+- **Navigation** : routes GoRouter intégrées au shell existant ; entrée menu **Finance lot** (`/finance/factures-lot`).
+- **Lecture** : factures et agrégats via **vues** ; historique paiements via lecture **`fournisseur_paiement_lot_min`** (provider dédié) — **aucun** recalcul `volume_20c`, `statut_rapprochement`, `montant_regle`, `solde`, `statut_paiement` côté Flutter.
+- **Écriture** : paiement uniquement via **`fournisseur_paiement_lot_min`** ; refresh post-paiement (invalidation providers lecture).
+- **Projection @20 °C** : toujours **provisoire** (inchangé côté vérité métier).
 
 ---
 
@@ -128,6 +156,13 @@ Constats issus des **DB tests** et vérifications manuelles sur **STAGING** (pas
 - Observabilité stock
 - Audit automatique DB / alignement staging–prod
 - Hardening tests / monitoring
+- **UI** module **finance fournisseur lot** : **V1 livrée** (navigation + écrans + paiement) ; consolidation terrain et observabilité sous le cadre **GO contrôlé / sous surveillance** (projection 20 °C provisoire inchangée).
+
+---
+
+# NEXT STEP
+
+- Suivi terrain module **finance fournisseur lot** (premiers usages réels, retours métier) sous **GO contrôlé** ; pas de revendication d’industrialisation complète sans validation continue (voir `docs/db/prod_status.md`).
 
 ---
 

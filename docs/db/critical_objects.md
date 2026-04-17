@@ -102,6 +102,38 @@ Ces fonctions :
 
 ---
 
+## FINANCE FOURNISSEUR LOT (CRITIQUE)
+
+Périmètre **finance fournisseur lot** déployé en PROD (facturation / rapprochement / paiement au niveau lot ; pivot **`fournisseur_lot`**). Impact **financier** direct en cas d’erreur ou de contournement.
+
+### Vues critiques (lecture)
+
+- **`public.v_fournisseur_facture_lot`** — projection facture lot (agrégats, soldes, statuts de lecture).
+- **`public.v_fournisseur_rapprochement_lot_min`** — projection rapprochement (vue minimale).
+- **`public.v_reception_20c`** — support de la chaîne **@20 °C** (approximation contrôlée, **provisoire** — ne pas substituer à la vérité stock @15 °C).
+
+### Tables sensibles (écriture)
+
+- **`public.fournisseur_facture_lot_min`**
+- **`public.fournisseur_paiement_lot_min`**
+
+### Fonctions
+
+- **`public.compute_volume_20c_from_reception(...)`** — conversion **@20 °C** pour la chaîne finance ; toute modification exige validation métier / technique (projection non figée).
+
+### Triggers (paiement lot)
+
+Sur **`public.fournisseur_paiement_lot_min`** (noms attendus, vérifier `pg_trigger` sur l’instance) :
+
+- **`trg_fournisseur_paiement_lot_min_after_ins`** — recalcul des totaux facture après insert paiement.
+- **`trg_fournisseur_paiement_lot_min_check_overpay`** — blocage **surpaiement**.
+
+### Règle
+
+- **Ne pas modifier** vues, tables, fonctions ni triggers de ce périmètre **sans validation explicite** (staging, relecture impact financier, backup si PROD).
+
+---
+
 ## DANGERS DB
 
 Les opérations suivantes sont à haut risque :

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -15,6 +14,8 @@ import 'package:ml_pp_mvp/features/cours_route/screens/cours_route_detail_screen
 import 'package:ml_pp_mvp/features/lots/screens/fournisseur_lot_form_screen.dart';
 import 'package:ml_pp_mvp/features/lots/screens/fournisseur_lot_list_screen.dart';
 import 'package:ml_pp_mvp/features/lots/screens/lot_detail_screen.dart';
+import 'package:ml_pp_mvp/features/lots_finance/screens/fournisseur_facture_lot_detail_screen.dart';
+import 'package:ml_pp_mvp/features/lots_finance/screens/fournisseur_facture_lot_list_screen.dart';
 import 'package:ml_pp_mvp/features/receptions/screens/reception_form_screen.dart';
 import 'package:ml_pp_mvp/features/receptions/screens/reception_list_screen.dart';
 import 'package:ml_pp_mvp/features/receptions/screens/reception_detail_screen.dart';
@@ -170,6 +171,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/lots/:id',
             builder: (ctx, st) =>
                 LotDetailScreen(lotId: st.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: '/finance/factures-lot',
+            name: 'financeFacturesLotList',
+            builder: (ctx, st) => const FournisseurFactureLotListScreen(),
+          ),
+          GoRoute(
+            path: '/finance/factures-lot/:factureId',
+            name: 'financeFacturesLotDetail',
+            builder: (ctx, st) => FournisseurFactureLotDetailScreen(
+              factureId: st.pathParameters['factureId']!,
+            ),
           ),
           GoRoute(
             path: '/cours/:id',

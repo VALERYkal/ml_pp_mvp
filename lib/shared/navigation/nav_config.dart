@@ -89,6 +89,14 @@ class NavConfig {
       order: 12,
     ),
     NavItem(
+      id: 'finance-factures-lot',
+      title: 'Finance lot',
+      path: '/finance/factures-lot',
+      icon: Icons.receipt_long_outlined,
+      allowedRoles: kAllRoles,
+      order: 13,
+    ),
+    NavItem(
       id: 'stocks',
       title: 'Stocks',
       path: '/stocks',
