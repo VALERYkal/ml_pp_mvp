@@ -113,6 +113,8 @@ Caches dérivés :
 
 - **Dépend de** : **réceptions** (agrégation volumes), **cours_de_route** (chaîne logistique amont), **`fournisseur_lot`** (pivot métier).
 - **Utilise** : **vues** PostgreSQL pour la lecture applicative (`v_fournisseur_facture_lot`, `v_fournisseur_rapprochement_lot_min`, `v_reception_20c`, etc.) ; **tables minimales** pour l’écriture contrôlée — aligné avec le service Dart `FournisseurFinanceLotService`.
+- **Lecture rapprochement** : le **`statut_rapprochement` affiché** provient **uniquement** du calcul dans ces **vues** (pas de la colonne table `fournisseur_facture_lot_min.statut_rapprochement` comme vérité métier lecture). Les vues joignent l’agrégat réceptions en **LEFT JOIN** : **une facture reste visible** même sans agrégat complet.
+- **Lot `statut = facture`** : cycle de vie du lot en base ; **ne pas** l’utiliser comme preuve qu’une ligne **`fournisseur_facture_lot_min`** existe (voir `docs/db/critical_objects.md`).
 - **Ne modifie pas** : le **stock** ni la **volumétrie @15 °C** des périmètres stock / sortie existants ; la projection **@20 °C** sert la chaîne finance documentée et reste **provisoire** (voir checkpoint / `prod_status`).
 
 ---

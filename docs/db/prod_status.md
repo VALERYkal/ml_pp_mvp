@@ -58,7 +58,7 @@ Donner l’état actuel de la base de production et sécuriser toute interventio
 - fonction : `public.compute_volume_20c_from_reception(...)`
 - vue : `public.v_reception_20c`
 - tables : `public.fournisseur_facture_lot_min`, `public.fournisseur_paiement_lot_min`
-- vues : `public.v_fournisseur_rapprochement_lot_min`, `public.v_fournisseur_facture_lot` (exécutable en PROD — smoke technique validé)
+- vues : `public.v_fournisseur_rapprochement_lot_min`, `public.v_fournisseur_facture_lot` (exécutable en PROD — smoke technique validé) ; **`statut_rapprochement` de lecture = colonne calculée dans ces vues** (jointure **LEFT** sur l’agrégat réceptions ; facture toujours exposée ; sans agrégat → **`A_RAPPROCHER`**) — voir migration `20260417130000_finance_lot_views_rapprochement_read_model.sql` lorsque déployée sur l’instance
 - triggers sur `public.fournisseur_paiement_lot_min` : `trg_fournisseur_paiement_lot_min_after_ins`, `trg_fournisseur_paiement_lot_min_check_overpay`
 - **projection 20 °C** : héritée du prototype validé en STAGING puis répliquée en PROD — **provisoire** ; **non** présentée comme formule définitivement figée
 - garde-fous d’intervention : **backup PROD** avant migration ; **migration exécutée avec succès** ; **rotation du mot de passe DB** après intervention
@@ -117,7 +117,8 @@ Donner l’état actuel de la base de production et sécuriser toute interventio
   - module **déployé et présent** en production (**2026-04-12**) — ne pas le traiter comme inexistant côté PROD
   - **GO contrôlé / sous surveillance** : pas d’équivalence avec un module « figé » sans retour terrain
   - projection **20 °C** actuelle : **provisoire** ; issue du **prototype STAGING** puis répliquée en PROD — **non** assimilable à une volumétrie définitivement validée métier
-  - seuils de rapprochement actuellement câblés (cohérents avec le modèle documenté en STAGING) : **OK** si l’écart est strictement inférieur à **0,5 L** ; **TOLERE** si l’écart est strictement inférieur à **50 L** sans relever de la plage OK ; **LITIGE** sinon — **à confirmer métier** après premiers cas réels
+  - seuils de rapprochement dans les **vues** (tels que dans les migrations finance lot du dépôt) : **OK** si |écart 20°C| < **0,001** L ; **TOLERE** si |écart| < **10** L ; **LITIGE** sinon ; sans agrégat réceptions exploitable → **`A_RAPPROCHER`** — **à confirmer métier** après premiers cas réels
+  - **`fournisseur_lot.statut = facture`** : cycle de vie du lot ; **ne pas** l’équiper à « une facture `fournisseur_facture_lot_min` existe » (voir `docs/db/critical_objects.md`)
   - surveillance active des **premiers cas réels** recommandée
 - **Lot fournisseur** :
   - logique métier portée par trigger DB

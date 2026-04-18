@@ -111,7 +111,10 @@ class FournisseurFactureLotDetailScreen extends ConsumerWidget {
                     ),
                   )
                   .toList();
-              return FournisseurPaiementsList(paiements: items);
+              return FournisseurPaiementsList(
+                paiements: items,
+                totalPayeUsd: facture.montantRegleUsd,
+              );
             },
           );
 

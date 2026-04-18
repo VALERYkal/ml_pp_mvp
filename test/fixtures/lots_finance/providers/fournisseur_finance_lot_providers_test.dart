@@ -29,8 +29,8 @@ void main() {
 
       expect(result.factureId, 'id-1');
       expect(result.nbReceptions, 2);
-      expect(result.totalVolume15c, 1000.5);
-      expect(result.totalVolume20c, 1002.0);
+      expect(result.totalVolume15c, closeTo(1000.5, 1e-9));
+      expect(result.totalVolume20c, closeTo(1002.0, 1e-9));
       expect(result.montantRegleUsd, 500000);
       expect(result.soldeRestantUsd, 350000);
       expect(result.dateFacture, isNotNull);
@@ -42,8 +42,8 @@ void main() {
       final result = FournisseurFactureLot.fromMap(map);
 
       expect(result.factureId, '');
-      expect(result.nbReceptions, 0);
-      expect(result.totalVolume15c, 0);
+      expect(result.nbReceptions, isNull);
+      expect(result.totalVolume15c, isNull);
     });
   });
 

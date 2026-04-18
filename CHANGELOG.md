@@ -2,6 +2,24 @@
 
 Ce fichier documente les changements notables du projet **ML_PP MVP**, conformément aux bonnes pratiques de versionnage sémantique.
 
+## [2026-04-17] — Finance fournisseur lot : vues lecture rapprochement (LEFT JOIN + statut canon)
+
+### Changed (DB)
+
+- **`public.v_fournisseur_facture_lot`** et **`public.v_fournisseur_rapprochement_lot_min`** : jointure agrégat réceptions en **LEFT JOIN** ; **`statut_rapprochement`** calculé dans la vue uniquement ; agrégats / écart **nullable** si pas de données agrégées ; cas sans agrégat → **`A_RAPPROCHER`**.
+- **`public.fournisseur_facture_lot_min.statut_rapprochement`** : commentaire SQL précisant qu’elle **n’est pas** la vérité de lecture métier pour le rapprochement affiché.
+
+### Changed (app)
+
+- modèles **`FournisseurFactureLot`** / **`FournisseurRapprochementLot`** : champs d’agrégat **nullable** (`fromMap` tolérant aux `null` renvoyés par la vue).
+
+### Technical
+
+- migration : `supabase/migrations/20260417130000_finance_lot_views_rapprochement_read_model.sql`
+- documentation : `docs/db/critical_objects.md`, `docs/db/staging_status.md`, `docs/CONTEXT/architecture_map.md`, `docs/CONTEXT/current_checkpoint.md`
+
+---
+
 ## [2026-04-17] — Finance fournisseur lot : UI V1 + navigation + paiements
 
 ### Added

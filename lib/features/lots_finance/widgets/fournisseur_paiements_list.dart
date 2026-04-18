@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ml_pp_mvp/features/lots_finance/widgets/finance_lot_currency_format.dart';
 import 'package:ml_pp_mvp/shared/ui/format.dart';
 
 class FournisseurPaiementListItem {
@@ -21,9 +22,16 @@ class FournisseurPaiementsList extends StatelessWidget {
   const FournisseurPaiementsList({
     super.key,
     required this.paiements,
+    this.totalPayeUsd,
   });
 
   final List<FournisseurPaiementListItem> paiements;
+  final double? totalPayeUsd;
+
+  String get _title {
+    if (totalPayeUsd == null) return 'Paiements';
+    return 'Paiements (Total: ${formatUsd(totalPayeUsd!)})';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +43,7 @@ class FournisseurPaiementsList extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Paiements', style: Theme.of(context).textTheme.titleMedium),
+              Text(_title, style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 10),
               const Text('Aucun paiement enregistré pour cette facture.'),
             ],
@@ -51,12 +59,12 @@ class FournisseurPaiementsList extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Paiements', style: Theme.of(context).textTheme.titleMedium),
+            Text(_title, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 10),
             ...paiements.map(
               (item) => ListTile(
                 contentPadding: EdgeInsets.zero,
-                title: Text('${item.montantUsd.toStringAsFixed(2)} USD'),
+                title: Text(formatUsd(item.montantUsd)),
                 subtitle: Text(
                   'Date: ${fmtDate(item.datePaiement)}'
                   ' · Mode: ${(item.modePaiement ?? '—').trim().isEmpty ? '—' : item.modePaiement}'

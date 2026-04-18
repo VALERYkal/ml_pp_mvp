@@ -104,20 +104,20 @@ Donner l’état actuel de la base staging et permettre une vérification rapide
   - le **lot fournisseur** est désormais le **pivot du rapprochement financier fournisseur**
   - la facture fournisseur doit être **liée au lot** ; la comparaison se fait sur la **somme des réceptions du lot**
   - la vue `public.v_fournisseur_facture_lot` fournit une lecture consolidée :
-    - volumes 15°C / 20°C
+    - volumes 15°C / 20°C (nullable si **aucun agrégat réceptions** pour le lot — la ligne facture **reste** dans la vue grâce au **LEFT JOIN**)
     - quantité facturée à 20°C
-    - écart
-    - statut de rapprochement
+    - écart (nullable si agrégat absent)
+    - **`statut_rapprochement` calculé dans la vue** (vérité de lecture app) ; en absence d’agrégat exploitable → **`A_RAPPROCHER`**
     - montant réglé / solde / statut de paiement
 - **Projection 20°C** :
   - la fonction `public.compute_volume_20c_from_reception(...)` est **provisoire**
   - elle sert à la validation STAGING du module finance fournisseur
   - elle ne doit **pas** être considérée comme formule volumétrique finale pour PROD sans validation complémentaire
-- **Tolérances de rapprochement** :
-  - seuils actuellement câblés dans la vue finale :
-    - `OK` si écart < 0.5 L
-    - `TOLERE` si écart < 50 L
-    - sinon `LITIGE`
+- **Tolérances de rapprochement** (vues `v_fournisseur_facture_lot` / `v_fournisseur_rapprochement_lot_min`, seuils tels que déployés dans les migrations finance lot) :
+  - `OK` si |écart 20°C| < **0,001** L
+  - `TOLERE` si |écart| < **10** L
+  - sinon `LITIGE`
+  - sans agrégat réceptions (ou `total_volume_20c` NULL) → **`A_RAPPROCHER`**
   - ces seuils sont **à confirmer métier** avant PROD
 
 

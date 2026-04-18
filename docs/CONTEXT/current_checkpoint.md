@@ -44,6 +44,7 @@ Point d’entrée principal pour comprendre l’état actuel du système et agir
 # NOUVEAU MODULE — FINANCE FOURNISSEUR LOT
 
 - **Chaîne métier** : **LOT** → **Σ réceptions** → **total @20 °C** → **facture** → **rapprochement** → **paiement** ; pivot **`fournisseur_lot`**.
+- **Rapprochement lecture** : **`statut_rapprochement`** canonique = colonne **calculée dans** `public.v_fournisseur_facture_lot` (et vue minimale associée), avec **LEFT JOIN** sur l’agrégat réceptions ; facture **toujours** exposée en lecture ; distinction **`fournisseur_lot.statut`** vs existence **`fournisseur_facture_lot_min`** documentée dans `docs/db/critical_objects.md`.
 - **Objets DB (PROD)** :
   - fonction : `public.compute_volume_20c_from_reception(...)`
   - vues : `public.v_reception_20c`, `public.v_fournisseur_rapprochement_lot_min`, `public.v_fournisseur_facture_lot`

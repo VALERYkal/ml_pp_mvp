@@ -32,10 +32,10 @@ void main() {
       expect(f.dealReference, 'DEAL');
       expect(f.fournisseurLotId, 'lot-a');
       expect(f.nbReceptions, 3);
-      expect(f.totalVolume15c, 10.5);
-      expect(f.totalVolume20c, 20.0);
+      expect(f.totalVolume15c, closeTo(10.5, 1e-9));
+      expect(f.totalVolume20c, closeTo(20.0, 1e-9));
       expect(f.quantiteFacturee20c, 18.25);
-      expect(f.ecartVolume20c, -1.5);
+      expect(f.ecartVolume20c, closeTo(-1.5, 1e-9));
       expect(f.statutRapprochement, 'ok');
       expect(f.prixUnitaireUsd, 2.0);
       expect(f.montantTotalUsd, 100.0);
@@ -54,8 +54,8 @@ void main() {
       expect(f.invoiceNo, '');
       expect(f.dealReference, isNull);
       expect(f.fournisseurLotId, '');
-      expect(f.nbReceptions, 0);
-      expect(f.totalVolume15c, 0.0);
+      expect(f.nbReceptions, isNull);
+      expect(f.totalVolume15c, isNull);
       expect(f.statutRapprochement, '');
       expect(f.statutPaiement, '');
       expect(f.dateFacture, isNull);
@@ -112,7 +112,7 @@ void main() {
       expect(r.factureId, '');
       expect(r.invoiceNo, '');
       expect(r.dealReference, isNull);
-      expect(r.ecartVolume20c, 0.0);
+      expect(r.ecartVolume20c, isNull);
     });
   });
 

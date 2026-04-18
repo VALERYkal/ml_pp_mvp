@@ -117,7 +117,7 @@ void main() {
 
     expect(find.text('INV-DETAIL'), findsOneWidget);
     expect(find.text('Rapprochement'), findsOneWidget);
-    expect(find.text('Montants'), findsOneWidget);
+    expect(find.text('Montants', skipOffstage: false), findsOneWidget);
     expect(find.text('Contexte lot', skipOffstage: false), findsOneWidget);
     expect(find.text('Enregistrer un paiement'), findsOneWidget);
   });

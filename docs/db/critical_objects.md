@@ -108,13 +108,13 @@ Périmètre **finance fournisseur lot** déployé en PROD (facturation / rapproc
 
 ### Vues critiques (lecture)
 
-- **`public.v_fournisseur_facture_lot`** — projection facture lot (agrégats, soldes, statuts de lecture).
-- **`public.v_fournisseur_rapprochement_lot_min`** — projection rapprochement (vue minimale).
+- **`public.v_fournisseur_facture_lot`** — projection facture lot (agrégats, soldes, statuts de lecture). **Source de vérité de lecture** pour le **rapprochement volume** : `statut_rapprochement` y est **calculé** (valeurs `OK` / `TOLERE` / `LITIGE` / `A_RAPPROCHER`) ; jointure **LEFT** sur l’agrégat réceptions par lot afin qu’**une facture reste toujours visible** même sans ligne agrégée.
+- **`public.v_fournisseur_rapprochement_lot_min`** — projection rapprochement (vue minimale) ; **même logique** de jointure et de `statut_rapprochement` que la vue facture.
 - **`public.v_reception_20c`** — support de la chaîne **@20 °C** (approximation contrôlée, **provisoire** — ne pas substituer à la vérité stock @15 °C).
 
 ### Tables sensibles (écriture)
 
-- **`public.fournisseur_facture_lot_min`**
+- **`public.fournisseur_facture_lot_min`** — la colonne **`statut_rapprochement`** (CHECK table) **n’est pas** la vérité de lecture métier pour l’écran rapprochement ; l’app lit **`statut_rapprochement` depuis les vues** ci-dessus.
 - **`public.fournisseur_paiement_lot_min`**
 
 ### Fonctions
@@ -131,6 +131,11 @@ Sur **`public.fournisseur_paiement_lot_min`** (noms attendus, vérifier `pg_trig
 ### Règle
 
 - **Ne pas modifier** vues, tables, fonctions ni triggers de ce périmètre **sans validation explicite** (staging, relecture impact financier, backup si PROD).
+
+### Distinction cycle de vie lot vs facture fournisseur
+
+- **`public.fournisseur_lot.statut`** (`ouvert` / `cloture` / `facture`) = **cycle de vie métier du lot** (porté par triggers workflow lot), **sans** équivalence avec « une ligne facture existe en base ».
+- **Existence d’une facture fournisseur lot** = présence d’une ligne dans **`public.fournisseur_facture_lot_min`** (et lecture consolidée via **`public.v_fournisseur_facture_lot`**).
 
 ---
 
