@@ -12,7 +12,7 @@ Donner l’état actuel de la base de production et sécuriser toute interventio
 
 - **Environnement** : PRODUCTION  
 - **État général** : stable  
-- **Alignement avec staging** : aligné sur **logique critique** (débit after-insert sortie @15 °C) ; **lot fournisseur** aligné sur STAGING pour **intégrité CDR ↔ lot** et **workflow statut** (déploiement documenté **2026-04-07**) ; **finance fournisseur lot** **déployé en PROD** (**2026-04-12**) après validation technique — **GO contrôlé / sous surveillance** : projection **20 °C** et seuils de rapprochement **provisoires**, à consolider métier (voir points de vigilance) ; périmètre global (doc, legacy) pouvant rester **partiel**.
+- **Alignement avec staging** : aligné sur **logique critique** (débit after-insert sortie @15 °C) ; **lot fournisseur** aligné sur STAGING pour **intégrité CDR ↔ lot** et **workflow statut** (déploiement documenté **2026-04-07**) ; **finance fournisseur lot** : passage PROD initial **2026-04-12** (**GO contrôlé / sous surveillance**) ; **session 2026-04-19** : **structure PROD alignée** sur le read model STAGING durci pour **`v_fournisseur_facture_lot`** (**LEFT JOIN** agrégat réceptions, **`A_RAPPROCHER`**, **recalcul paiement** depuis **`fournisseur_paiement_lot_min`**, colonnes **`lot_reference`** / **`fournisseur_nom`**) + **index unique** **`idx_fournisseur_facture_lot_min_one_facture_per_lot`** **appliqué / confirmé** ; **aucune ligne** dans **`fournisseur_facture_lot_min`** en PROD au moment du contrôle → **validation structurelle** et requêtes de cohérence **sans dataset métier facture/paiement réel** ; **validation métier** (premier cas réel ou test contrôlé) **à réaliser** ; **écart structurel mineur** vs STAGING hors périmètre finance lot : **`app_settings`** et table **`fournisseur_facture_min`** absents d’un côté — **`fournisseur_facture_min`** **non utilisée** par les vues finance lot en STAGING → **non bloquant** pour ce périmètre ; projection **20 °C** et seuils **provisoires** ; périmètre global (doc, legacy) pouvant rester **partiel**.
 
 **Tables critiques** : `cours_de_route`, `fournisseur_lot`, `fournisseur_facture_lot_min`, `fournisseur_paiement_lot_min`, `receptions`, `sorties_produit`, `stocks_journaliers`, `stocks_snapshot`, `stocks_adjustments`, `log_actions`.
 
@@ -53,12 +53,12 @@ Donner l’état actuel de la base de production et sécuriser toute interventio
 
 **Finance fournisseur lot (2026-04-12)** — déploiement PROD en **GO contrôlé / sous surveillance** (pas de revendication de cycle **pleinement industrialisé** sans nuance) :
 
-- **Application** : **UI V1** déployée côté Flutter — navigation GoRouter (`/finance/factures-lot`, détail par `factureId`) ; module **accessible utilisateur** ; paiement **opérationnel depuis l’UI** (écriture **`fournisseur_paiement_lot_min`** ; lecture factures / rapprochement via **vues** ; historique paiements via lecture table minimale ; refresh post-paiement côté app).
-- chaîne métier : **LOT → Σ réceptions → total_20c → facture → rapprochement → paiement** ; pivot **`fournisseur_lot`**
+- **Application / front** : fonctionnalités **versionnées dans le dépôt** ; **build Flutter Web** : génération **`build/web`** réussie (session **2026-04-19**) ; **déploiement Firebase** vers utilisateurs finaux : **non confirmé terminé** dans ce document.
+- chaîne métier cible : **LOT → Σ réceptions → total_20c → facture → rapprochement → paiement** ; pivot **`fournisseur_lot`**
 - fonction : `public.compute_volume_20c_from_reception(...)`
 - vue : `public.v_reception_20c`
 - tables : `public.fournisseur_facture_lot_min`, `public.fournisseur_paiement_lot_min`
-- vues : `public.v_fournisseur_rapprochement_lot_min`, `public.v_fournisseur_facture_lot` (exécutable en PROD — smoke technique validé) ; **`statut_rapprochement` de lecture = colonne calculée dans ces vues** (jointure **LEFT** sur l’agrégat réceptions ; facture toujours exposée ; sans agrégat → **`A_RAPPROCHER`**) — voir migration `20260417130000_finance_lot_views_rapprochement_read_model.sql` lorsque déployée sur l’instance
+- vues : `public.v_fournisseur_rapprochement_lot_min`, `public.v_fournisseur_facture_lot` — **smoke** « exécutable » **documenté** lors du passage **2026-04-12** ; **définition SQL effective** sur PROD pour **`v_fournisseur_facture_lot`** (read model durci + enrichissements) : **alignée** sur STAGING **à l’issue de la session 2026-04-19** (voir **DERNIÈRE INTERVENTION**) — **sans** revendication de parcours métier complet **LOT → FACTURE → PAIEMENT** déjà rejoué sur **données réelles PROD**
 - triggers sur `public.fournisseur_paiement_lot_min` : `trg_fournisseur_paiement_lot_min_after_ins`, `trg_fournisseur_paiement_lot_min_check_overpay`
 - **projection 20 °C** : héritée du prototype validé en STAGING puis répliquée en PROD — **provisoire** ; **non** présentée comme formule définitivement figée
 - garde-fous d’intervention : **backup PROD** avant migration ; **migration exécutée avec succès** ; **rotation du mot de passe DB** après intervention
@@ -91,6 +91,13 @@ Donner l’état actuel de la base de production et sécuriser toute interventio
 
 ## DERNIÈRE INTERVENTION
 
+- **2026-04-19** — **finance fournisseur lot (alignement PROD sur read model STAGING)** :
+  - inventaire **PROD vs STAGING** : très proche ; seul écart structurel relevé hors périmètre bloquant : **`app_settings`** / **`fournisseur_facture_min`** (table **`fournisseur_facture_min`** non utilisée par les vues finance lot en STAGING)
+  - **pré-contrôle doublons** avant index unique : **aucun** doublon sur **`fournisseur_lot_id`** dans **`fournisseur_facture_lot_min`**
+  - **appliqué / confirmé en PROD** : index unique **`idx_fournisseur_facture_lot_min_one_facture_per_lot`** sur **`public.fournisseur_facture_lot_min (fournisseur_lot_id)`**
+  - **appliqué en PROD** : remplacement de **`public.v_fournisseur_facture_lot`** pour alignement sur le modèle STAGING : **LEFT JOIN** agrégat réceptions, **`A_RAPPROCHER`**, **recalcul** **`montant_regle_usd`**, **`solde_restant_usd`**, **`statut_paiement`** depuis agrégat **`fournisseur_paiement_lot_min`**, colonnes **`lot_reference`** et **`fournisseur_nom`**
+  - **constat** : **aucune facture** en PROD au moment de la validation → **validation structurelle** uniquement (pas de validation métier sur jeu réel facture/paiement)
+  - **hors périmètre prouvé ici** : **triggers** paiement **non modifiés** dans cette intervention (rôle inchangé ; **correctif principal** porté par la **vue**)
 - **2026-04-12** — déploiement PROD du module **finance fournisseur lot** :
   - **backup PROD** réalisé avant migration
   - **migration exécutée avec succès**
@@ -111,13 +118,39 @@ Donner l’état actuel de la base de production et sécuriser toute interventio
 
 ---
 
+## ÉCARTS À RÉPLIQUER DEPUIS STAGING
+
+Réplication **à planifier / exécuter** sur PROD pour les périmètres **non couverts** ci-dessous ; pour **finance fournisseur lot** (read model **B**, création facture **C1**, unicité **C2**, **vue paiement + enrichissements 2026-04-19**) : **répliqué / confirmé sur PROD lors de la session 2026-04-19** — voir **DERNIÈRE INTERVENTION** (reste **validation métier** sur données réelles).
+
+### Finance fournisseur lot — état post-réplication (2026-04-19)
+
+- migrations de référence (dépôt) : `20260417130000_finance_lot_views_rapprochement_read_model.sql`, `20260417150000_fournisseur_facture_lot_min_unique_fournisseur_lot.sql`, évolutions **vue** **`v_fournisseur_facture_lot`** (recalcul paiement + **`lot_reference`** / **`fournisseur_nom`**) telles qu’**alignées en PROD** session **2026-04-19**
+- **index unique** **`idx_fournisseur_facture_lot_min_one_facture_per_lot`** : **présent PROD**
+- **vue** **`public.v_fournisseur_facture_lot`** : **définition alignée** (LEFT JOIN, **`A_RAPPROCHER`**, paiement depuis **`fournisseur_paiement_lot_min`**, enrichissements) — **sans** jeu de données facture en PROD au moment du contrôle
+- **flux applicatif** : code **versionné** ; **build web** **`build/web`** **généré** ; **déploiement Firebase** : **statut final non attesté** ici
+
+### Autres écarts structurels (hors finance lot read model)
+
+- **`app_settings`** / **`fournisseur_facture_min`** : divergence d’inventaire **non bloquante** finance lot (voir **STATUT ACTUEL**)
+
+---
+
 ## POINTS DE VIGILANCE
 
 - **Finance fournisseur lot (PROD)** :
   - module **déployé et présent** en production (**2026-04-12**) — ne pas le traiter comme inexistant côté PROD
   - **GO contrôlé / sous surveillance** : pas d’équivalence avec un module « figé » sans retour terrain
   - projection **20 °C** actuelle : **provisoire** ; issue du **prototype STAGING** puis répliquée en PROD — **non** assimilable à une volumétrie définitivement validée métier
-  - seuils de rapprochement dans les **vues** (tels que dans les migrations finance lot du dépôt) : **OK** si |écart 20°C| < **0,001** L ; **TOLERE** si |écart| < **10** L ; **LITIGE** sinon ; sans agrégat réceptions exploitable → **`A_RAPPROCHER`** — **à confirmer métier** après premiers cas réels
+  - seuils de rapprochement : **portés par le SQL** des migrations finance lot **du dépôt** (ex. |écart 20°C| strictement inférieur à **0,001** L → `OK` ; strictement inférieur à **10** L → `TOLERE` ; sinon `LITIGE` ; sans agrégat exploitable → `A_RAPPROCHER`) — **validation métier finale encore requise** ; comportement observé en PROD sur **cas réels finance lot** = **à confirmer** après première facture / test contrôlé
+  - **index unique (C2)** : **déployé PROD** **2026-04-19** ; pour toute **nouvelle** instance ou rollback, conserver le **pré-contrôle doublons** avant application :
+
+```sql
+SELECT fournisseur_lot_id, count(*)
+FROM public.fournisseur_facture_lot_min
+GROUP BY fournisseur_lot_id
+HAVING count(*) > 1;
+```
+
   - **`fournisseur_lot.statut = facture`** : cycle de vie du lot ; **ne pas** l’équiper à « une facture `fournisseur_facture_lot_min` existe » (voir `docs/db/critical_objects.md`)
   - surveillance active des **premiers cas réels** recommandée
 - **Lot fournisseur** :

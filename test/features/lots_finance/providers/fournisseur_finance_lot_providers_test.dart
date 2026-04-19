@@ -43,6 +43,11 @@ class FakeFournisseurFinanceLotService implements FournisseurFinanceLotService {
       List<FournisseurRapprochementLot>.from(_rapprochements);
 
   @override
+  Future<Set<String>> fetchFournisseurLotIdsAvecFacture() async {
+    return _factures.map((f) => f.fournisseurLotId).where((id) => id.isNotEmpty).toSet();
+  }
+
+  @override
   Future<FournisseurFactureLot> createFactureLot(
     CreateFournisseurFactureLotInput input,
   ) async {

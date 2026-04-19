@@ -2,6 +2,39 @@
 
 Ce fichier documente les changements notables du projet **ML_PP MVP**, conformément aux bonnes pratiques de versionnage sémantique.
 
+## [2026-04-19] — Finance fournisseur lot : read model paiement en vue, enrichissements, alignement PROD structurel
+
+### DB — STAGING (audit / vérifications)
+
+- Audit périmètre **finance fournisseur lot** : présence confirmée des vues **`public.v_fournisseur_facture_lot`**, **`public.v_fournisseur_rapprochement_lot_min`**, **`public.v_reception_20c`** ; structure des colonnes clés conforme au périmètre documenté (facture / rapprochement).
+- Comportement **`A_RAPPROCHER`** validé sur données : facture **sans agrégat réception** → **`nb_receptions` NULL**, **`total_volume_20c` NULL** → **`statut_rapprochement = A_RAPPROCHER`** ; cas avec agrégat → **`LITIGE`** observé conforme sur le cas contrôlé.
+- Index unique confirmé : **`idx_fournisseur_facture_lot_min_one_facture_per_lot`** sur **`public.fournisseur_facture_lot_min (fournisseur_lot_id)`**.
+- **`public.v_fournisseur_facture_lot`** : **paiement affiché** recalculé **en vue** depuis agrégat **`fournisseur_paiement_lot_min`** (somme **`montant_paye_usd`**, jointure **`p.fournisseur_facture_id = f.id`**) au lieu de lire **`f.montant_regle_usd` / `f.solde_restant_usd` / `f.statut_paiement`** sur la table — correction du cas **sans paiement** où **`solde_restant_usd`** pouvait **incorrectement** valoir **0** avec **`montant_total_usd > 0`** ; **`statut_paiement`** dérivé en vue (**`A_PAYER` / `PARTIEL` / `PAYE`** selon payé vs total).
+- Validations chiffrées post-correction en STAGING (sans paiement, partiel) documentées dans le pack canonique.
+- Enrichissement fin de vue (sans rupture d’ordre des colonnes existantes) : **`lot_reference`**, **`fournisseur_nom`** (**`LEFT JOIN`** `fournisseur_lot`, **`fournisseurs`**).
+
+### DB — PROD
+
+- Pré-contrôle : **aucun doublon** sur **`fournisseur_lot_id`** dans **`fournisseur_facture_lot_min`**.
+- Application / confirmation : index unique **`idx_fournisseur_facture_lot_min_one_facture_per_lot`**.
+- **`public.v_fournisseur_facture_lot`** replacée pour alignement structurel sur le read model STAGING durci : **LEFT JOIN** agrégat réceptions, **`A_RAPPROCHER`**, recalcul paiement depuis **`fournisseur_paiement_lot_min`**, ajout **`lot_reference`** / **`fournisseur_nom`**.
+- **Contrainte factuelle** : **aucune facture** en PROD au moment du contrôle → **validation structurelle** uniquement ; **pas** de revendication de parcours métier **LOT → FACTURE → PAIEMENT** validé sur **données réelles PROD** — attente **premier cas réel** ou **test contrôlé**.
+
+### UX / Frontend (cadrage session)
+
+- **Cadrage produit / UI C3** validé pendant la session (**non** présenté comme entièrement implémenté dans le code) : priorisation **dashboard direction**, **détail facture** orienté compréhension métier, **ajout paiement** cadré comme saisie simple avec **validation finale en DB**, libellés statuts plus lisibles (**ex.** `LITIGE` → « Litige fournisseur », `A_CONTROLER` → « À vérifier », `A_PAYER` → « À payer », `EN_COURS` → « Paiement en cours », `SOLDE` → « Soldée »), affichage attendu **fournisseur** / **référence lot** (champs portés par la **vue** en lecture) ; **« statut global »** = **mapping UX** — **pas** colonne métier DB.
+
+### Build / release
+
+- **Build Flutter Web** : succès ; artefact **`build/web`** généré.
+- Rappel opérationnel shell : **`export VAR="valeur"`** — **ne pas** utiliser **`export VAR=="..."`**.
+
+### Documentation
+
+- Mise à jour pack canonique : `docs/CONTEXT/current_checkpoint.md`, `docs/CONTEXT/architecture_map.md`, `docs/DB/staging_status.md`, `docs/DB/prod_status.md`, `docs/DB/critical_objects.md`.
+
+---
+
 ## [2026-04-17] — Finance fournisseur lot : vues lecture rapprochement (LEFT JOIN + statut canon)
 
 ### Changed (DB)
@@ -184,6 +217,40 @@ Règles :
 - Safer CDR evolution going forward
 
 ## [Unreleased]
+
+### Added — Finance Fournisseur Lot
+
+- Mise en place du read model canonique via vues SQL :
+  - `v_fournisseur_facture_lot`
+  - `v_fournisseur_rapprochement_lot_min`
+- Introduction du rapprochement basé uniquement sur des vues (aucune table métier dédiée)
+- Ajout du `statut_rapprochement` calculé côté DB (source de vérité)
+
+### Changed — Finance Fournisseur Lot
+
+- Lecture métier désormais exclusivement via vues (interdiction de lecture directe des tables pour agrégats)
+- Utilisation de LEFT JOIN dans les vues pour garantir la visibilité des factures même sans réceptions agrégées
+- Alignement du statut `A_RAPPROCHER` avec la logique CASE SQL en base
+
+### Added — Création Facture Fournisseur
+
+- Ajout de la table minimale `fournisseur_facture_lot_min`
+- Implémentation de la création de facture via insert DB + relecture via vue
+- Intégration UI V1 (création facture + navigation)
+
+### Added — Paiement Fournisseur
+
+- Ajout de la table `fournisseur_paiement_lot_min`
+- Écriture directe en DB sans logique métier frontend
+
+### Added — Règles métier critiques
+
+- Contrainte : 1 lot = 1 facture fournisseur active
+- Ajout d’un index unique sur `fournisseur_lot_id`
+- Gestion erreur DB `23505` en cas de doublon
+- Distinction claire entre :
+  - statut métier du lot (`fournisseur_lot.statut`)
+  - existence d’une facture réelle en base
 
 ## [2026-04-12] — Finance fournisseur lot (PROD)
 

@@ -41,6 +41,22 @@ class FournisseurFinanceLotService {
     return FournisseurFactureLot.fromMap(row);
   }
 
+  /// Identifiants de lots ayant déjà une facture dans `fournisseur_facture_lot_min`.
+  Future<Set<String>> fetchFournisseurLotIdsAvecFacture() async {
+    final rows = await _client
+        .from(_factureTable)
+        .select<List<Map<String, dynamic>>>('fournisseur_lot_id');
+
+    final out = <String>{};
+    for (final r in rows) {
+      final id = r['fournisseur_lot_id']?.toString().trim();
+      if (id != null && id.isNotEmpty) {
+        out.add(id);
+      }
+    }
+    return out;
+  }
+
   Future<List<FournisseurRapprochementLot>> fetchRapprochementsLot() async {
     final rows = await _client
         .from(_rapprochementView)
