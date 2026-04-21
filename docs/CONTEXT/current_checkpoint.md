@@ -24,6 +24,7 @@ Point d’entrée principal pour comprendre l’état actuel du système et agir
 - **VOL15 frontend** aligné (lecture canonique `volume_15c ?? volume_corrige_15c`, pas de vérité volumétrique critique côté app)
 - **DB tests STAGING** du pipeline critique exécutés avec succès (voir **VALIDATION STAGING RÉCENTE**)
 - Schéma **ASTM** accessible côté STAGING ; **RLS**, **stock**, **réception**, **sortie** validés sur ce périmètre en STAGING
+- Schéma **ASTM** désormais accessible en PROD pour les rôles applicatifs requis (`authenticated`, `anon`) ; incident Réception PROD `403/42501` résolu (grant `USAGE` sur schéma `astm`)
 - Pack canonique et **invariants VOL15** synchronisés (`docs/system_invariants.md`, `docs/CONTEXT/system_invariants.md`)
 - **Lot fournisseur** introduit et **industrialisé** (STAGING + PROD) :
   - table `public.fournisseur_lot`
@@ -138,6 +139,9 @@ Constats issus de `docs/DB/staging_status.md` et `docs/DB/prod_status.md` (inves
 - Module CDR désormais aligné avec la DB (aucune divergence état/statut)
 - STAGING et PROD **alignés sur la logique critique** du débit sortie @15 °C dans **`sorties_after_insert_trg()`**.
 - **Aucun écart bloquant restant** sur ce pipeline stock (after-insert sortie) pour le volume @15 °C, sous réserve de vérification continue via `docs/DB/prod_status.md` / `docs/DB/staging_status.md`.
+- Incident critique Réception PROD (403 / `permission denied for schema astm`) **clos** : pipeline Réception revalidé en PROD (`CDR ARRIVE → réception → volume_15c → stock → log_actions`).
+- Garde-fou SQL des grants critiques ASTM exécuté et validé **vert** sur STAGING et PROD (USAGE schéma + EXECUTE fonctions + présence/câblage trigger Réception).
+- Divergence résiduelle STAGING/PROD sur `public.receptions_compute_15c_before_ins()` : garde `app_settings/env` encore présente uniquement en STAGING ; **non causale** sur l’incident, suivi d’alignement restant ouvert.
 - Autres écarts **non bloquants** possibles (doc, traçabilité migrations) : voir **ALIGNEMENT STAGING / PROD** ci-dessus.
 - Module lot fournisseur :
   - STAGING et PROD alignés sur :
@@ -163,6 +167,7 @@ Constats issus des **DB tests** et vérifications manuelles sur **STAGING** (pas
 
 - Stabilisation post-validation STAGING (pipeline critique app + DB + RLS)
 - Gouvernance du pack canonique maintenue
+- C4 infra hardening minimal en place : garde-fou SQL grants ASTM versionné + checklist PRE-DB CHANGE documentée
 - Enrichissement **CDR** par structuration amont **lot fournisseur** (relation optionnelle, vérité toujours `statut` + réception pour le stock)
 - Stabilisation du module lot fournisseur (intégrité + workflow DB)
 - Préparation des évolutions :

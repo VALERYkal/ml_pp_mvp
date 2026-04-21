@@ -144,6 +144,10 @@ Toucher :
 - triggers / fonctions associées
 - écrans / services Réception
 
+Attention :
+- le pipeline Réception dépend aussi des privilèges runtime sur le schéma `astm`
+- perte de `USAGE` sur `astm` (rôles applicatifs) => blocage volumétrie trigger + insert Réception
+
 ## Si le besoin concerne Stock
 Toucher :
 - v_stock_actuel (lecture métier)

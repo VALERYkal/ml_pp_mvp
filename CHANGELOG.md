@@ -2,6 +2,89 @@
 
 Ce fichier documente les changements notables du projet **ML_PP MVP**, conformément aux bonnes pratiques de versionnage sémantique.
 
+## [Unreleased]
+
+### Added
+
+- Ajout d’un dataset de validation en PROD pour le module Finance lot :
+  - création d’un lot fournisseur `PROD-VAL-FINLOT-2026-04-19-001`
+  - création d’un CDR de test (100 L)
+  - rattachement CDR ↔ lot validé en UI
+- Instrumentation frontend (`main.dart`) pour améliorer le diagnostic Supabase Web :
+  - logs de boot
+  - listener `onAuthStateChange`
+  - configuration auth web explicite
+
+### Changed
+
+- Mise à jour des policies RLS en PROD (dans le cadre du debug Réception) :
+  - ajout policy UPDATE sur `stocks_journaliers`
+  - ajout policies INSERT/UPDATE sur `stocks_snapshot`
+  - ajout policy INSERT sur `log_actions`
+  - simplification temporaire de la policy INSERT sur `receptions`
+- Aucun changement structurel du read model Finance lot (déjà aligné précédemment).
+- Ces changements sont liés à une investigation et non à une évolution fonctionnelle validée.
+
+### Debug / Investigation
+
+- Validation end-to-end partielle du flux : **LOT → CDR → ARRIVE** (OK en PROD).
+- Vérifications approfondies effectuées en PROD :
+  - policies RLS (`receptions`, `stocks_journaliers`, `stocks_snapshot`, `log_actions`)
+  - triggers `receptions`
+  - fonctions critiques : `reception_after_ins_trg`, `receptions_log_created`, `stock_snapshot_apply_delta`, `stock_upsert_journalier`
+  - owners et flags `SECURITY DEFINER` alignés STAGING / PROD
+- Vérification des profils :
+  - utilisateur admin valide (`valery@monaluxe.com`)
+  - mapping `auth.users` ↔ `profils` correct
+- Conclusion :
+  - aucun écart structurel clair identifié entre STAGING et PROD
+  - bug non isolé à ce stade
+
+### Known Issues
+
+- Réception impossible en PROD :
+  - endpoint : `POST /rest/v1/receptions?select=id`
+  - erreur : `403 Forbidden`
+  - message UI : `Permissions insuffisantes pour créer une réception`
+- Le problème persiste malgré :
+  - ajustements RLS
+  - vérification des rôles
+  - validation du statut CDR (`ARRIVE`)
+- Impact : flux complet non validé en PROD (`LOT → CDR → RÉCEPTION → FACTURE → PAIEMENT`).
+- Cause racine non identifiée à ce stade.
+- Action requise :
+  - audit complet des policies RLS PROD vs STAGING
+  - nettoyage des modifications de debug
+  - reprise structurée du diagnostic
+
+### Fix — Réception PROD bloquée (ASTM schema access)
+
+- Correction d’un incident critique empêchant la création de Réceptions en production (HTTP 403 sur `POST /rest/v1/receptions?select=id`)
+- Code erreur observé : PostgREST / PostgreSQL `42501`
+- Cause racine identifiée :
+  - absence de privilège USAGE sur le schéma astm pour les rôles applicatifs
+- Impact :
+  - impossibilité d’exécuter le trigger `receptions_compute_15c_before_ins`
+  - blocage du calcul volumétrique ASTM et de l’insert réception
+- Correction appliquée :
+  - `GRANT USAGE ON SCHEMA astm TO authenticated;`
+  - `GRANT USAGE ON SCHEMA astm TO anon;`
+- Résultat :
+  - pipeline Réception restauré en production
+  - calcul `volume_15c` exécuté correctement
+  - flux validé : CDR ARRIVE → réception → stock → log_actions
+- Garde-fou (audit SQL grants ASTM) :
+  - STAGING : checks critiques ASTM = `true`
+  - PROD : checks critiques ASTM = `true`
+  - checks validés : `anon_execute_all_astm_functions`, `anon_usage_on_astm`, `authenticated_execute_all_astm_functions`, `authenticated_usage_on_astm`, `has_trg_receptions_compute_15c_before_ins`, `receptions_trigger_calls_astm_compute`, `receptions_trigger_calls_astm_guard`
+- Note :
+  - divergence restante STAGING vs PROD sur la définition de `receptions_compute_15c_before_ins` (garde env=staging uniquement en STAGING)
+
+### Docs / Ops
+
+- Officialisation du garde-fou SQL ASTM (grants + câblage trigger Réception) : `docs/DB_CHANGES/2026-04-21_astm_grants_guard.sql`
+- Ajout de la checklist opérationnelle PRE-DB CHANGE : `docs/02_RUNBOOKS/RUNBOOK_PRE_DB_CHANGE_CHECKLIST.md`
+
 ## [2026-04-19] — Finance fournisseur lot : read model paiement en vue, enrichissements, alignement PROD structurel
 
 ### DB — STAGING (audit / vérifications)

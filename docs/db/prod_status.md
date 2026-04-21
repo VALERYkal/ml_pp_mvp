@@ -12,7 +12,7 @@ Donner l’état actuel de la base de production et sécuriser toute interventio
 
 - **Environnement** : PRODUCTION  
 - **État général** : stable  
-- **Alignement avec staging** : aligné sur **logique critique** (débit after-insert sortie @15 °C) ; **lot fournisseur** aligné sur STAGING pour **intégrité CDR ↔ lot** et **workflow statut** (déploiement documenté **2026-04-07**) ; **finance fournisseur lot** : passage PROD initial **2026-04-12** (**GO contrôlé / sous surveillance**) ; **session 2026-04-19** : **structure PROD alignée** sur le read model STAGING durci pour **`v_fournisseur_facture_lot`** (**LEFT JOIN** agrégat réceptions, **`A_RAPPROCHER`**, **recalcul paiement** depuis **`fournisseur_paiement_lot_min`**, colonnes **`lot_reference`** / **`fournisseur_nom`**) + **index unique** **`idx_fournisseur_facture_lot_min_one_facture_per_lot`** **appliqué / confirmé** ; **aucune ligne** dans **`fournisseur_facture_lot_min`** en PROD au moment du contrôle → **validation structurelle** et requêtes de cohérence **sans dataset métier facture/paiement réel** ; **validation métier** (premier cas réel ou test contrôlé) **à réaliser** ; **écart structurel mineur** vs STAGING hors périmètre finance lot : **`app_settings`** et table **`fournisseur_facture_min`** absents d’un côté — **`fournisseur_facture_min`** **non utilisée** par les vues finance lot en STAGING → **non bloquant** pour ce périmètre ; projection **20 °C** et seuils **provisoires** ; périmètre global (doc, legacy) pouvant rester **partiel**.
+- **Alignement avec staging** : aligné sur **logique critique** (débit after-insert sortie @15 °C) ; **lot fournisseur** aligné sur STAGING pour **intégrité CDR ↔ lot** et **workflow statut** (déploiement documenté **2026-04-07**) ; **finance fournisseur lot** : passage PROD initial **2026-04-12** (**GO contrôlé / sous surveillance**) ; **session 2026-04-19** : **structure PROD alignée** sur le read model STAGING durci pour **`v_fournisseur_facture_lot`** (**LEFT JOIN** agrégat réceptions, **`A_RAPPROCHER`**, **recalcul paiement** depuis **`fournisseur_paiement_lot_min`**, colonnes **`lot_reference`** / **`fournisseur_nom`**) + **index unique** **`idx_fournisseur_facture_lot_min_one_facture_per_lot`** **appliqué / confirmé** ; **aucune ligne** dans **`fournisseur_facture_lot_min`** en PROD au moment du contrôle → **validation structurelle** et requêtes de cohérence **sans dataset métier facture/paiement réel** ; **validation métier** (premier cas réel ou test contrôlé) **à réaliser** ; **écart structurel mineur** vs STAGING hors périmètre finance lot : **`app_settings`** et table **`fournisseur_facture_min`** absents d’un côté — **`fournisseur_facture_min`** **non utilisée** par les vues finance lot en STAGING → **non bloquant** pour ce périmètre ; projection **20 °C** et seuils **provisoires** ; périmètre global (doc, legacy) pouvant rester **partiel** ; **session de debug 2026-04-20/21** : incident critique Réception PROD diagnostiqué puis **résolu** (cause racine confirmée : absence de `USAGE` sur schéma `astm` ; correctif appliqué le 2026-04-21). Flux Réception désormais **opérationnel** en PROD ; surveillance post-fix maintenue.
 
 **Tables critiques** : `cours_de_route`, `fournisseur_lot`, `fournisseur_facture_lot_min`, `fournisseur_paiement_lot_min`, `receptions`, `sorties_produit`, `stocks_journaliers`, `stocks_snapshot`, `stocks_adjustments`, `log_actions`.
 
@@ -91,6 +91,67 @@ Donner l’état actuel de la base de production et sécuriser toute interventio
 
 ## DERNIÈRE INTERVENTION
 
+- **2026-04-21** — **résolution incident critique Réception PROD (suite debug)** :
+  - **diagnostic final confirmé** : cause racine = `permission denied for schema astm` ; incident **non** causé par un défaut RLS/triggers/owners sur les objets déjà audités, mais par un privilège d’accès schéma manquant
+  - **fix appliqué en PROD** :
+    - `GRANT USAGE ON SCHEMA astm TO authenticated;`
+    - `GRANT USAGE ON SCHEMA astm TO anon;`
+  - **validation post-fix** :
+    - création Réception en PROD à nouveau fonctionnelle
+    - calcul volumétrique ASTM exécuté correctement
+    - pipeline métier validé : **CDR ARRIVE → réception → volume_15c → stock → log_actions**
+  - **garde-fou SQL exécuté (STAGING + PROD)** :
+    - `anon_execute_all_astm_functions = true`
+    - `anon_usage_on_astm = true`
+    - `authenticated_execute_all_astm_functions = true`
+    - `authenticated_usage_on_astm = true`
+    - `has_trg_receptions_compute_15c_before_ins = true`
+    - `receptions_trigger_calls_astm_compute = true`
+    - `receptions_trigger_calls_astm_guard = true`
+  - **divergence restante (ouverte)** : définition de `public.receptions_compute_15c_before_ins()` non identique STAGING/PROD (garde `app_settings/env` encore présente uniquement en STAGING) ; écart **non causal** sur cet incident
+  - **conclusion** : incident Réception PROD résolu ; alignement opérationnel PROD rétabli sur ce flux
+
+- **2026-04-21** — **debug PROD approfondi flux Réception (post-alignement finance lot)** :
+  - **validation UI / dataset contrôlé en PROD** :
+    - UI Finance lot ouverte ; écran liste chargé (vide sans données métier)
+    - lot de validation créé : **`PROD-VAL-FINLOT-2026-04-19-001`** ; fournisseur affiché **Kemexon** ; produit **Gasoil/AGO** ; statut **Ouvert**
+    - CDR de validation créé et rattaché au lot (volume **100 L**, camion/remorque/transporteur de test)
+    - rattachement lot ↔ CDR visible en UI
+    - CDR passé à **`ARRIVE`** ; carte/liste CDR affiche le CDR **100 L** avec statut **Arrivé**
+    - conclusion visuelle : UI Cours de route exploitable ; lot fournisseur exploitable ; rattachement lot↔CDR validé
+  - **tentatives de création Réception en PROD** :
+    - formulaire Réception chargé correctement ; CDR de validation prérempli/sélectionnable ; produit + citernes visibles ; aperçus volumétriques affichés
+    - enregistrement Réception en échec répété ; message UI : **`Permissions insuffisantes pour créer une réception.`**
+    - symptôme réseau observé (DevTools) : **`POST /rest/v1/receptions?select=id`** → **`403 Forbidden`**
+    - constat métier : le CDR étant **`ARRIVE`**, l’échec n’est pas imputé à la règle « CDR non arrivé »
+  - **investigation DB PROD exécutée** :
+    - inspection policies RLS : `receptions`, `stocks_journaliers`, `stocks_snapshot`, `log_actions`, `cours_de_route`
+    - inspection triggers `receptions`
+    - inspection définitions : `current_user_profile`, `receptions_log_created()`, `reception_after_ins_trg()`, `receptions_set_created_by_default()`
+    - contrôle owners / `SECURITY DEFINER` : `reception_after_ins_trg`, `receptions_log_created`, `receptions_set_created_by_default`, `stock_snapshot_apply_delta`, `stock_upsert_journalier`
+    - contrôle état RLS / FORCE RLS sur tables critiques
+  - **résultats confirmés pendant debug** :
+    - `profils` contient `valery@monaluxe.com` avec rôle `admin`
+    - alignement confirmé `profils.user_id` = `auth.users.id` pour cet utilisateur
+    - `current_user_profile` en PROD défini sur jointure `auth.users` ↔ `profils` via `user_id`
+    - flags/owners observés alignés STAGING/PROD :
+      - `reception_after_ins_trg` : `SECURITY DEFINER = true`, owner `postgres`
+      - `receptions_log_created` : `SECURITY DEFINER = false`, owner `postgres`
+      - `receptions_set_created_by_default` : `SECURITY DEFINER = false`, owner `postgres`
+      - `stock_snapshot_apply_delta` : `SECURITY DEFINER = true`, owner `postgres`
+      - `stock_upsert_journalier` : `SECURITY DEFINER = false`, owner `postgres`
+    - conclusion technique : **aucun écart structurel clair STAGING/PROD** démontré sur ces fonctions critiques ; **cause racine non isolée**
+  - **policies de diagnostic appliquées en PROD (sans résolution finale)** :
+    - ajout policy `UPDATE` sur `stocks_journaliers` (accompagnement upsert)
+    - ajout policies permissives `INSERT/UPDATE` sur `stocks_snapshot` (test hypothèse trigger/snapshot)
+    - ajout policy `INSERT` permissive sur `log_actions`
+    - remplacement/simplification de `insert_receptions_authenticated` sur `public.receptions`
+    - malgré ces ajustements, **`POST /rest/v1/receptions?select=id` → `403` persistant** en fin de session
+  - **diagnostic applicatif (frontend)** :
+    - `main.dart` instrumenté pour debug Supabase Web (options Auth web explicites, logs safe boot/session, listener `onAuthStateChange`)
+    - incident Réception PROD **non clos** ; hypothèse « purement frontend » **non validée** comme conclusion
+  - **état final intervention** : vérité documentaire restaurée ; PROD modifiée par policies de diagnostic ; incident Réception PROD **toujours ouvert**
+
 - **2026-04-19** — **finance fournisseur lot (alignement PROD sur read model STAGING)** :
   - inventaire **PROD vs STAGING** : très proche ; seul écart structurel relevé hors périmètre bloquant : **`app_settings`** / **`fournisseur_facture_min`** (table **`fournisseur_facture_min`** non utilisée par les vues finance lot en STAGING)
   - **pré-contrôle doublons** avant index unique : **aucun** doublon sur **`fournisseur_lot_id`** dans **`fournisseur_facture_lot_min`**
@@ -118,9 +179,19 @@ Donner l’état actuel de la base de production et sécuriser toute interventio
 
 ---
 
+## CAUSE RACINE CONFIRMÉE
+
+- L’exécution du flux Réception dépend de fonctions volumétriques du schéma **`astm`**.
+- Ces appels nécessitent un privilège **`USAGE`** sur le schéma pour les rôles applicatifs effectifs.
+- En PROD, l’absence de `USAGE` sur `astm` pour `authenticated`/`anon` provoquait le blocage insert Réception (`POST /rest/v1/receptions?select=id` → `403` côté API/UI).
+- Le correctif appliqué (`GRANT USAGE ON SCHEMA astm TO authenticated, anon`) a levé le blocage.
+
+---
+
 ## ÉCARTS À RÉPLIQUER DEPUIS STAGING
 
-Réplication **à planifier / exécuter** sur PROD pour les périmètres **non couverts** ci-dessous ; pour **finance fournisseur lot** (read model **B**, création facture **C1**, unicité **C2**, **vue paiement + enrichissements 2026-04-19**) : **répliqué / confirmé sur PROD lors de la session 2026-04-19** — voir **DERNIÈRE INTERVENTION** (reste **validation métier** sur données réelles).
+Réplication **à planifier / exécuter** sur PROD pour les périmètres **non couverts** ci-dessous ; pour **finance fournisseur lot** (read model **B**, création facture **C1**, unicité **C2**, **vue paiement + enrichissements 2026-04-19**) : **répliqué / confirmé sur PROD lors de la session 2026-04-19** — voir **DERNIÈRE INTERVENTION** (reste **validation métier** sur données réelles).  
+Sujet Réception PROD : incident **clos** après correctif privilèges schéma `astm` (voir **CAUSE RACINE CONFIRMÉE**).
 
 ### Finance fournisseur lot — état post-réplication (2026-04-19)
 
@@ -132,11 +203,24 @@ Réplication **à planifier / exécuter** sur PROD pour les périmètres **non c
 ### Autres écarts structurels (hors finance lot read model)
 
 - **`app_settings`** / **`fournisseur_facture_min`** : divergence d’inventaire **non bloquante** finance lot (voir **STATUT ACTUEL**)
+- **RLS PROD (réception/stock/logs)** : des policies ont été **modifiées en PROD à des fins de diagnostic** pendant l’incident Réception ; avant toute nouvelle réplication STAGING→PROD, réaliser un **diff propre des policies effectives** (STAGING vs PROD) puis décider un **rollback ciblé** ou un **réalignement documenté**.
 
 ---
 
 ## POINTS DE VIGILANCE
 
+- **Réception PROD (post-fix 2026-04-21)** :
+  - incident `403` clôturé après `GRANT USAGE ON SCHEMA astm` pour `authenticated` et `anon`
+  - contrôle `USAGE`/`EXECUTE` ASTM désormais **obligatoire** avant intervention DB critique sur ce périmètre (script de garde-fou : `docs/DB_CHANGES/2026-04-21_astm_grants_guard.sql`)
+  - conserver une surveillance ciblée sur les prochaines créations Réception pour confirmer la stabilité
+- **Écart STAGING vs PROD — trigger Réception (`receptions_compute_15c_before_ins`)** :
+  - STAGING contient une garde `env=staging`
+  - PROD ne contient pas cette garde
+  - écart documenté comme **non bloquant** à ce stade, mais à conserver dans le suivi d’alignement
+- **Politiques RLS PROD manipulées en diagnostic** :
+  - des patchs RLS ciblés ont été appliqués sur `receptions`, `stocks_journaliers`, `stocks_snapshot`, `log_actions`
+  - **ne pas empiler** de nouveaux patchs PROD sans audit préalable
+  - reprise recommandée : (1) audit policies réellement présentes en PROD, (2) diff STAGING↔PROD, (3) correction propre + re-documentation
 - **Finance fournisseur lot (PROD)** :
   - module **déployé et présent** en production (**2026-04-12**) — ne pas le traiter comme inexistant côté PROD
   - **GO contrôlé / sous surveillance** : pas d’équivalence avec un module « figé » sans retour terrain
@@ -289,6 +373,16 @@ ORDER BY 1;
 ### Référence complémentaire
 
 Voir `docs/DB/critical_objects.md`.
+
+### Diagnostic Réception PROD — policies RLS (à comparer STAGING/PROD)
+
+```sql
+SELECT schemaname, tablename, policyname, permissive, roles, cmd, qual, with_check
+FROM pg_policies
+WHERE schemaname = 'public'
+  AND tablename IN ('receptions', 'stocks_journaliers', 'stocks_snapshot', 'log_actions', 'cours_de_route')
+ORDER BY tablename, policyname;
+```
 
 ---
 

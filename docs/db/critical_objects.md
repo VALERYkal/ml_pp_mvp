@@ -93,6 +93,7 @@ Ces fonctions :
 - exécutent la logique métier critique
 - garantissent la cohérence des calculs
 - impactent directement les données métier
+- dépendent aussi des privilèges d’accès au schéma `astm` (pas seulement des droits `EXECUTE` sur fonctions)
 
 ### Règle
 
@@ -167,7 +168,10 @@ Avant toute modification d’un objet critique :
 4. Vérifier l’état staging / production
 5. Passer par migration
 6. Tester en staging
-7. Documenter si nécessaire
+7. Vérifier explicitement les grants critiques du périmètre volumétrique (`USAGE` sur schéma `astm` + `EXECUTE` fonctions ASTM pour rôles applicatifs)
+8. Exécuter le garde-fou SQL versionné : `docs/DB_CHANGES/2026-04-21_astm_grants_guard.sql`
+9. Obtenir un GO/NO-GO explicite avant intervention
+10. Documenter si nécessaire
 
 ---
 
