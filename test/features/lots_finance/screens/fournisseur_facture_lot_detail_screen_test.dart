@@ -116,10 +116,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('INV-DETAIL'), findsOneWidget);
-    expect(find.text('Rapprochement'), findsOneWidget);
-    expect(find.text('Montants'), findsOneWidget);
-    expect(find.text('Contexte lot', skipOffstage: false), findsOneWidget);
-    expect(find.text('Enregistrer un paiement'), findsOneWidget);
+    expect(find.text('Rapport volume'), findsOneWidget);
+    expect(find.text('Finance', skipOffstage: false), findsOneWidget);
+    expect(find.text('Paiements', skipOffstage: false), findsOneWidget);
+    expect(find.text('Ajouter paiement'), findsOneWidget);
   });
 
   testWidgets('detail: affiche la facture avec paiements provider branché', (tester) async {
@@ -163,7 +163,7 @@ void main() {
     final detailBefore = detailReads;
     final paiementsBefore = paiementReads;
 
-    await tester.tap(find.text('Enregistrer un paiement'));
+    await tester.tap(find.text('Ajouter paiement'));
     await tester.pumpAndSettle();
 
     await tester.enterText(find.widgetWithText(TextFormField, 'Montant'), '10');

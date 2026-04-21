@@ -8,12 +8,19 @@ double _toDouble(dynamic value, {double fallback = 0}) {
   return fallback;
 }
 
-int _toInt(dynamic value, {int fallback = 0}) {
-  if (value == null) return fallback;
+int? _toIntNullable(dynamic value) {
+  if (value == null) return null;
   if (value is int) return value;
   if (value is num) return value.toInt();
-  if (value is String) return int.tryParse(value) ?? fallback;
-  return fallback;
+  if (value is String) return int.tryParse(value);
+  return null;
+}
+
+double? _toDoubleNullable(dynamic value) {
+  if (value == null) return null;
+  if (value is num) return value.toDouble();
+  if (value is String) return double.tryParse(value);
+  return null;
 }
 
 DateTime? _toDateTimeOrNull(dynamic value) {
@@ -34,12 +41,14 @@ class FournisseurFactureLot {
   final String factureId;
   final String invoiceNo;
   final String? dealReference;
+  final String? fournisseurNom;
+  final String? lotStatut;
   final String fournisseurLotId;
-  final int nbReceptions;
-  final double totalVolume15c;
-  final double totalVolume20c;
+  final int? nbReceptions;
+  final double? totalVolume15c;
+  final double? totalVolume20c;
   final double quantiteFacturee20c;
-  final double ecartVolume20c;
+  final double? ecartVolume20c;
   final String statutRapprochement;
   final double prixUnitaireUsd;
   final double montantTotalUsd;
@@ -54,6 +63,8 @@ class FournisseurFactureLot {
     required this.factureId,
     required this.invoiceNo,
     required this.dealReference,
+    required this.fournisseurNom,
+    required this.lotStatut,
     required this.fournisseurLotId,
     required this.nbReceptions,
     required this.totalVolume15c,
@@ -76,12 +87,18 @@ class FournisseurFactureLot {
       factureId: map['facture_id']?.toString() ?? '',
       invoiceNo: map['invoice_no']?.toString() ?? '',
       dealReference: _toNullableString(map['deal_reference']),
+      fournisseurNom: _toNullableString(
+        map['fournisseur_nom'] ?? map['fournisseur_name'] ?? map['fournisseur'],
+      ),
+      lotStatut: _toNullableString(
+        map['statut_lot'] ?? map['lot_statut'] ?? map['fournisseur_lot_statut'],
+      ),
       fournisseurLotId: map['fournisseur_lot_id']?.toString() ?? '',
-      nbReceptions: _toInt(map['nb_receptions']),
-      totalVolume15c: _toDouble(map['total_volume_15c']),
-      totalVolume20c: _toDouble(map['total_volume_20c']),
+      nbReceptions: _toIntNullable(map['nb_receptions']),
+      totalVolume15c: _toDoubleNullable(map['total_volume_15c']),
+      totalVolume20c: _toDoubleNullable(map['total_volume_20c']),
       quantiteFacturee20c: _toDouble(map['quantite_facturee_20c']),
-      ecartVolume20c: _toDouble(map['ecart_volume_20c']),
+      ecartVolume20c: _toDoubleNullable(map['ecart_volume_20c']),
       statutRapprochement: map['statut_rapprochement']?.toString() ?? '',
       prixUnitaireUsd: _toDouble(map['prix_unitaire_usd']),
       montantTotalUsd: _toDouble(map['montant_total_usd']),
@@ -101,11 +118,11 @@ class FournisseurRapprochementLot {
   final String invoiceNo;
   final String? dealReference;
   final String fournisseurLotId;
-  final int nbReceptions;
-  final double totalVolume15c;
-  final double totalVolume20c;
+  final int? nbReceptions;
+  final double? totalVolume15c;
+  final double? totalVolume20c;
   final double quantiteFacturee20c;
-  final double ecartVolume20c;
+  final double? ecartVolume20c;
   final double prixUnitaireUsd;
   final double montantTotalUsd;
   final String statutRapprochement;
@@ -131,11 +148,11 @@ class FournisseurRapprochementLot {
       invoiceNo: map['invoice_no']?.toString() ?? '',
       dealReference: _toNullableString(map['deal_reference']),
       fournisseurLotId: map['fournisseur_lot_id']?.toString() ?? '',
-      nbReceptions: _toInt(map['nb_receptions']),
-      totalVolume15c: _toDouble(map['total_volume_15c']),
-      totalVolume20c: _toDouble(map['total_volume_20c']),
+      nbReceptions: _toIntNullable(map['nb_receptions']),
+      totalVolume15c: _toDoubleNullable(map['total_volume_15c']),
+      totalVolume20c: _toDoubleNullable(map['total_volume_20c']),
       quantiteFacturee20c: _toDouble(map['quantite_facturee_20c']),
-      ecartVolume20c: _toDouble(map['ecart_volume_20c']),
+      ecartVolume20c: _toDoubleNullable(map['ecart_volume_20c']),
       prixUnitaireUsd: _toDouble(map['prix_unitaire_usd']),
       montantTotalUsd: _toDouble(map['montant_total_usd']),
       statutRapprochement: map['statut_rapprochement']?.toString() ?? '',

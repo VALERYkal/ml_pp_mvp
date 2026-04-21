@@ -48,7 +48,7 @@ Fournisseur
 - Citernes
 - Logs / audit
 - Dashboard
-- **Finance fournisseur lot** (couche Dart `lib/features/lots_finance/` ; **UI V1 implémentée** — liste / détail facture lot, paiement ; interaction utilisateur via GoRouter ; lecture métier exclusivement via **vues** DB + lecture paiements sur table minimale ; écriture paiement sur **`fournisseur_paiement_lot_min`**)
+- **Finance fournisseur lot** (couche Dart `lib/features/lots_finance/` ; **UI V1** — liste / détail / création facture / ajout paiement ; GoRouter ; lecture métier via **`v_fournisseur_facture_lot`** pour projection consolidée ; écriture facture **`fournisseur_facture_lot_min`** ; écriture paiement **`fournisseur_paiement_lot_min`**)
 
 ---
 
@@ -112,7 +112,15 @@ Caches dérivés :
 # FINANCE FOURNISSEUR LOT
 
 - **Dépend de** : **réceptions** (agrégation volumes), **cours_de_route** (chaîne logistique amont), **`fournisseur_lot`** (pivot métier).
-- **Utilise** : **vues** PostgreSQL pour la lecture applicative (`v_fournisseur_facture_lot`, `v_fournisseur_rapprochement_lot_min`, `v_reception_20c`, etc.) ; **tables minimales** pour l’écriture contrôlée — aligné avec le service Dart `FournisseurFinanceLotService`.
+- **Création facture** : via la **table minimale** `fournisseur_facture_lot_min` (insert contrôlé) ; **paiement** via `fournisseur_paiement_lot_min` — aligné avec le service Dart `FournisseurFinanceLotService`.
+- **Lecture métier consolidée** : **`v_fournisseur_facture_lot`** = **source de vérité lecture** pour **rapprochement** et **paiement affiché** (`montant_regle_usd`, `solde_restant_usd`, `statut_paiement`) — **recalculés en vue** depuis agrégat **`fournisseur_paiement_lot_min`** (jointure sur `fournisseur_facture_id`) ; **enrichissements** fin de vue : **`lot_reference`** (`fournisseur_lot.reference`), **`fournisseur_nom`** (`fournisseurs.nom`) via **`LEFT JOIN`** `fournisseur_lot` / `fournisseurs`. **`v_fournisseur_rapprochement_lot_min`**, **`v_reception_20c`** : périmètres complémentaires documentés dans le pack DB.
+- **Lecture métier (autres agrégats)** : **`v_fournisseur_rapprochement_lot_min`**, etc. ; pas de lecture applicative « canonique » sur les tables pour reconstruire agrégats affichés.
+- **Rapprochement** : **calculé dans les vues DB** ; **`statut_rapprochement` affiché** = calcul en vue ; colonne homonyme sur `fournisseur_facture_lot_min` **non** vérité lecture UI pour le rapprochement.
+- **LEFT JOIN** (agrégat réceptions dans les vues facture / rapprochement lot min) : **comportement critique** de **visibilité** facture sans agrégat complet ; **`A_RAPPROCHER`** lorsque l’agrégat ou `total_volume_20c` n’est pas exploitable.
+- **Règle métier** : **1 lot = 1 facture fournisseur active** — verrou DB **`idx_fournisseur_facture_lot_min_one_facture_per_lot`** (STAGING + PROD, session **2026-04-19** pour PROD).
+- **Triggers** `fournisseur_paiement_lot_min` (**after insert**, **check overpay**) : **toujours présents** ; la **lecture métier consolidée** des soldes / statut paiement sur **`v_fournisseur_facture_lot`** **ne repose plus** sur la seule lecture des colonnes dérivées persistées sur **`fournisseur_facture_lot_min`** pour l’affichage.
+- **Statuts « globaux » dans l’app** (ex. libellés dérivés de `statut_rapprochement` + `statut_paiement`) : **mapping UX Flutter** — **pas** une vérité métier DB.
+- **Lot `statut = facture`** : cycle de vie du lot en base ; **ne pas** l’utiliser comme preuve qu’une ligne **`fournisseur_facture_lot_min`** existe (voir `docs/DB/critical_objects.md`).
 - **Ne modifie pas** : le **stock** ni la **volumétrie @15 °C** des périmètres stock / sortie existants ; la projection **@20 °C** sert la chaîne finance documentée et reste **provisoire** (voir checkpoint / `prod_status`).
 
 ---
@@ -135,6 +143,10 @@ Toucher :
 - receptions
 - triggers / fonctions associées
 - écrans / services Réception
+
+Attention :
+- le pipeline Réception dépend aussi des privilèges runtime sur le schéma `astm`
+- perte de `USAGE` sur `astm` (rôles applicatifs) => blocage volumétrie trigger + insert Réception
 
 ## Si le besoin concerne Stock
 Toucher :

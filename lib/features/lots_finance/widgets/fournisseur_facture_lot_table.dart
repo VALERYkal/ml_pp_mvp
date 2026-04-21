@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ml_pp_mvp/features/lots_finance/models/fournisseur_finance_lot_models.dart';
+import 'package:ml_pp_mvp/features/lots_finance/widgets/finance_lot_currency_format.dart';
 import 'package:ml_pp_mvp/features/lots_finance/widgets/finance_lot_status_badges.dart';
-
-String _fmtUsd(double value) => '${value.toStringAsFixed(2)} USD';
 
 class FournisseurFactureLotTable extends StatelessWidget {
   const FournisseurFactureLotTable({
@@ -24,8 +23,8 @@ class FournisseurFactureLotTable extends StatelessWidget {
             constraints: BoxConstraints(minWidth: constraints.maxWidth),
             child: DataTable(
               columns: const [
-                DataColumn(label: Text('Invoice')),
-                DataColumn(label: Text('Deal reference')),
+                DataColumn(label: Text('Facture')),
+                DataColumn(label: Text('Référence lot')),
                 DataColumn(label: Text('Rapprochement')),
                 DataColumn(label: Text('Montant total')),
                 DataColumn(label: Text('Montant réglé')),
@@ -44,9 +43,9 @@ class FournisseurFactureLotTable extends StatelessWidget {
                             statut: item.statutRapprochement,
                           ),
                         ),
-                        DataCell(Text(_fmtUsd(item.montantTotalUsd))),
-                        DataCell(Text(_fmtUsd(item.montantRegleUsd))),
-                        DataCell(Text(_fmtUsd(item.soldeRestantUsd))),
+                        DataCell(Text(formatUsd(item.montantTotalUsd))),
+                        DataCell(Text(formatUsd(item.montantRegleUsd))),
+                        DataCell(Text(formatUsd(item.soldeRestantUsd))),
                         DataCell(
                           StatutPaiementBadge(statut: item.statutPaiement),
                         ),

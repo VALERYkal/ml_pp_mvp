@@ -302,7 +302,8 @@ class _NavEntry {
 }
 
 /// Ordre canonique des ids (sans dashboard en début car géré à part)
-const _opsIds = ['receptions', 'sorties', 'cours', 'finance-factures-lot'];
+const _opsIds = ['receptions', 'sorties', 'cours'];
+const _financeIds = ['finance-factures-lot'];
 const _stockIds = ['stocks', 'citernes', 'stocks-adjustments'];
 const _govIds = ['logs', 'integrity'];
 
@@ -324,6 +325,13 @@ List<_NavEntry> _buildNavEntries(UserRole? role, List<NavItem> items) {
   // OPÉRATIONS
   entries.add(const _NavEntry.header('OPÉRATIONS'));
   for (final id in _opsIds) {
+    final it = byId[id];
+    if (it != null) entries.add(_NavEntry.item(it));
+  }
+
+  // FINANCE
+  entries.add(const _NavEntry.header('FINANCE'));
+  for (final id in _financeIds) {
     final it = byId[id];
     if (it != null) entries.add(_NavEntry.item(it));
   }

@@ -3,6 +3,20 @@ import 'package:ml_pp_mvp/features/lots_finance/models/fournisseur_finance_lot_m
 import 'package:ml_pp_mvp/features/lots_finance/widgets/finance_lot_status_badges.dart';
 import 'package:ml_pp_mvp/shared/ui/format.dart';
 
+String _lotStatutLabel(String? raw) {
+  final value = raw?.trim().toLowerCase();
+  switch (value) {
+    case 'ouvert':
+      return 'En cours';
+    case 'cloture':
+      return 'Clôturé (figé)';
+    case 'facture':
+      return 'Facturé';
+    default:
+      return '—';
+  }
+}
+
 class FournisseurFactureLotHeader extends StatelessWidget {
   const FournisseurFactureLotHeader({
     super.key,
@@ -24,13 +38,20 @@ class FournisseurFactureLotHeader extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text(
+              'Facture fournisseur',
+              style: Theme.of(context).textTheme.labelLarge,
+            ),
+            const SizedBox(height: 6),
             Text(facture.invoiceNo, style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 6),
-            Text('Deal reference: ${facture.dealReference ?? '—'}'),
+            Text('Référence lot: ${facture.dealReference ?? '—'}'),
             const SizedBox(height: 6),
-            Text('Référence lot: ${lotReference ?? facture.fournisseurLotId}'),
+            Text('ID lot: ${lotReference ?? facture.fournisseurLotId}'),
             const SizedBox(height: 6),
-            Text('Fournisseur: ${fournisseurLabel ?? '—'}'),
+            Text('Fournisseur: ${fournisseurLabel ?? facture.fournisseurNom ?? '—'}'),
+            const SizedBox(height: 6),
+            Text('Statut lot: ${_lotStatutLabel(facture.lotStatut)}'),
             const SizedBox(height: 6),
             Text('Date facture: ${fmtDate(facture.dateFacture)}'),
             const SizedBox(height: 6),

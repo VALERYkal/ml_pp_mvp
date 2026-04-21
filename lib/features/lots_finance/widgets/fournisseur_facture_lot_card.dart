@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ml_pp_mvp/features/lots_finance/models/fournisseur_finance_lot_models.dart';
+import 'package:ml_pp_mvp/features/lots_finance/widgets/finance_lot_currency_format.dart';
 import 'package:ml_pp_mvp/features/lots_finance/widgets/finance_lot_status_badges.dart';
-
-String _fmtUsd(double value) => '${value.toStringAsFixed(2)} USD';
 
 class FournisseurFactureLotCard extends StatelessWidget {
   const FournisseurFactureLotCard({
@@ -39,11 +38,11 @@ class FournisseurFactureLotCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              Text('Montant total: ${_fmtUsd(item.montantTotalUsd)}'),
+              Text('Montant total: ${formatUsd(item.montantTotalUsd)}'),
               const SizedBox(height: 4),
-              Text('Montant réglé: ${_fmtUsd(item.montantRegleUsd)}'),
+              Text('Montant réglé: ${formatUsd(item.montantRegleUsd)}'),
               const SizedBox(height: 4),
-              Text('Solde: ${_fmtUsd(item.soldeRestantUsd)}'),
+              Text('Solde: ${formatUsd(item.soldeRestantUsd)}'),
             ],
           ),
         ),

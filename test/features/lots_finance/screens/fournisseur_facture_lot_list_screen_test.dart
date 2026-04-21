@@ -94,7 +94,10 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Aucune facture lot disponible.'), findsOneWidget);
+    expect(
+      find.textContaining('Aucune facture dans la vue'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('liste: data state affiche les factures', (tester) async {
@@ -110,7 +113,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('INV-001'), findsOneWidget);
-    expect(find.text('DEAL-INV-001'), findsOneWidget);
   });
 
   testWidgets('liste: tap item navigue vers détail', (tester) async {

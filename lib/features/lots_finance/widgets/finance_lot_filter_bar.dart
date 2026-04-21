@@ -55,7 +55,7 @@ class FinanceLotFilterBar extends StatelessWidget {
               onChanged: (_) => _notify(),
               decoration: const InputDecoration(
                 labelText: 'Recherche',
-                hintText: 'Invoice, deal reference...',
+                hintText: 'Facture, référence lot...',
                 prefixIcon: Icon(Icons.search),
                 border: OutlineInputBorder(),
                 isDense: true,

@@ -21,6 +21,11 @@ class FournisseurFactureLotRapprochementCard extends StatelessWidget {
               'Rapprochement',
               style: Theme.of(context).textTheme.titleMedium,
             ),
+            const SizedBox(height: 6),
+            Text(
+              'Statut calculé automatiquement selon l’écart volume 20°C',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
             const SizedBox(height: 12),
             Text('Total volume 15°C: ${fmtVolume(facture.totalVolume15c)}'),
             const SizedBox(height: 6),

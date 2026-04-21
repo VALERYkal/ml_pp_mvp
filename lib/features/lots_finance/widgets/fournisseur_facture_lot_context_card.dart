@@ -36,7 +36,9 @@ class FournisseurFactureLotContextCard extends StatelessWidget {
               Text('Fournisseur: $fournisseurLabel'),
             ],
             const SizedBox(height: 6),
-            Text('Nombre de réceptions: ${facture.nbReceptions}'),
+            Text(
+              'Nombre de réceptions: ${facture.nbReceptions?.toString() ?? '—'}',
+            ),
           ],
         ),
       ),
